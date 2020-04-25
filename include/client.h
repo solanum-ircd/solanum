@@ -281,6 +281,8 @@ struct LocalUser
 	uint16_t cork_count;			/* used for corking/uncorking connections */
 	struct ev_entry *event;			/* used for associated events */
 
+	struct resume_session *resume;
+
 	char sasl_agent[IDLEN];
 	unsigned char sasl_out;
 	unsigned char sasl_complete;
