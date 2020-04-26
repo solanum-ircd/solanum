@@ -312,6 +312,7 @@ cap_req(struct Client *source_p, const char *arg)
 	int i = 0;
 	int capadd = 0, capdel = 0;
 	int finished = 0, negate;
+	hook_data_cap_change hdata;
 
 	if(!IsRegistered(source_p))
 		source_p->flags |= FLAGS_CLICAP;
@@ -399,8 +400,15 @@ cap_req(struct Client *source_p, const char *arg)
 		sendto_one(source_p, "%s%s%s", buf_prefix, str_final, buf_list[0]);
 	}
 
+	hdata.client = source_p;
+	hdata.oldcaps = source_p->localClient->caps;
+	hdata.add = capadd;
+	hdata.del = capdel;
+
 	source_p->localClient->caps |= capadd;
 	source_p->localClient->caps &= ~capdel;
+
+	call_hook(h_cap_change, &hdata);
 }
 
 static struct clicap_cmd
