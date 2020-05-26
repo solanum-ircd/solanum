@@ -79,8 +79,6 @@ typedef struct
 {
 	struct Client *client;
 	struct Client *target;
-	struct Channel *chptr;
-	int approved;
 } hook_data_client;
 
 typedef struct
@@ -108,6 +106,15 @@ typedef struct
 	const char *modestr;
 	const char *error;
 } hook_data_channel_approval;
+
+typedef struct
+{
+	struct Client *client;
+	struct Channel *chptr;
+	struct membership *clientms;
+	struct membership *targms;
+	int approved;
+} hook_data_channel_visibility;
 
 typedef struct
 {

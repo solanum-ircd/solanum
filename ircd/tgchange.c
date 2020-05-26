@@ -38,14 +38,29 @@ static int add_hashed_target(struct Client *source_p, uint32_t hashv);
 struct Channel *
 find_allowing_channel(struct Client *source_p, struct Client *target_p)
 {
-	rb_dlink_node *ptr;
-	struct membership *msptr;
+	rb_dlink_node *ps = source_p->user->channel.head;
+	rb_dlink_node *pt = target_p->user->channel.head;
 
-	RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
+	while (ps && pt)
 	{
-		msptr = ptr->data;
-		if (is_chanop_voiced(msptr) && IsMember(target_p, msptr->chptr))
-			return msptr->chptr;
+		struct membership *ms = ps->data;
+		struct membership *mt = pt->data;
+		int d;
+		if (ms->chptr == mt->chptr)
+		{
+			if (is_chanop_voiced(ms))
+				return ms->chptr;
+			ps = ps->next;
+			pt = pt->next;
+			continue;
+		}
+		d = irccmp(ms->chptr->chname, mt->chptr->chname);
+		if (d < 0)
+			ps = ps->next;
+		else if (d > 0)
+			pt = pt->next;
+		else
+			assert("different channels can't have equal names" && false);
 	}
 	return NULL;
 }

@@ -14,7 +14,7 @@
 
 static const char hide_desc[] = "Hides channel memberships not shared";
 
-static void h_huc_doing_whois_channel_visibility(hook_data_client *);
+static void h_huc_doing_whois_channel_visibility(void *);
 
 mapi_hfn_list_av1 huc_hfnlist[] = {
 	{ "doing_whois_channel_visibility", (hookfn) h_huc_doing_whois_channel_visibility },
@@ -24,7 +24,8 @@ mapi_hfn_list_av1 huc_hfnlist[] = {
 DECLARE_MODULE_AV2(hide_uncommon_channels, NULL, NULL, NULL, NULL, huc_hfnlist, NULL, NULL, hide_desc);
 
 static void
-h_huc_doing_whois_channel_visibility(hook_data_client *hdata)
+h_huc_doing_whois_channel_visibility(void *data_)
 {
-	hdata->approved = ((PubChannel(hdata->chptr) && !IsInvisible(hdata->target)) || IsMember((hdata->client), (hdata->chptr)));
+	hook_data_channel_visibility *data = data_;
+	data->approved = data->approved && (!IsInvisible(data->targms->client_p) || data->clientms != NULL);
 }
