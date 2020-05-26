@@ -225,8 +225,6 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 {
 	char buf[BUFSIZE];
 	rb_dlink_node *ptr;
-	struct membership *msptr;
-	struct Channel *chptr;
 	int cur_len = 0;
 	int mlen;
 	char *t;
@@ -269,19 +267,57 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 	if (!IsService(target_p))
 	{
-		RB_DLINK_FOREACH(ptr, target_p->user->channel.head)
+		hook_data_channel_visibility hdata_vis;
+		rb_dlink_node *ps = source_p->user->channel.head;
+		rb_dlink_node *pt = target_p->user->channel.head;
+
+		hdata_vis.client = source_p;
+
+		while (pt)
 		{
-			msptr = ptr->data;
-			chptr = msptr->chptr;
-
-			hdata.chptr = chptr;
-
-			hdata.approved = ShowChannel(source_p, chptr);
-			call_hook(doing_whois_channel_visibility_hook, &hdata);
-
-			if(hdata.approved || operspy)
+			struct membership *mt = pt->data;
+			int dir = 0;
+			if (ps != NULL)
 			{
-				if((cur_len + strlen(chptr->chname) + 3) > (BUFSIZE - 5))
+				struct membership *ms = ps->data;
+				if (ms->chptr == mt->chptr)
+				{
+					ps = ps->next;
+					pt = pt->next;
+					hdata_vis.chptr = mt->chptr;
+					hdata_vis.clientms = ms;
+					hdata_vis.targms = mt;
+					hdata_vis.approved = 1;
+					dir = 0;
+				}
+				else
+				{
+					dir = irccmp(ms->chptr->chname, mt->chptr->chname);
+				}
+			}
+			else
+			{
+				dir = 1;
+			}
+			if (dir < 0)
+			{
+				ps = ps->next;
+				continue;
+			}
+			else if (dir > 0)
+			{
+				pt = pt->next;
+				hdata_vis.chptr = mt->chptr;
+				hdata_vis.clientms = NULL;
+				hdata_vis.targms = mt;
+				hdata_vis.approved = PubChannel(mt->chptr);
+			}
+
+			call_hook(doing_whois_channel_visibility_hook, &hdata_vis);
+
+			if(hdata_vis.approved || operspy)
+			{
+				if((cur_len + strlen(mt->chptr->chname) + 3) > (BUFSIZE - 5))
 				{
 					sendto_one(source_p, "%s", buf);
 					cur_len = mlen + extra_space;
@@ -289,9 +325,9 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 				}
 
 				tlen = sprintf(t, "%s%s%s ",
-						hdata.approved ? "" : "!",
-						find_channel_status(msptr, 1),
-						chptr->chname);
+						hdata_vis.approved ? "" : "!",
+						find_channel_status(mt, 1),
+						mt->chptr->chname);
 				t += tlen;
 				cur_len += tlen;
 			}
