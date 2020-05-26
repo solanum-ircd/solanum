@@ -221,6 +221,7 @@ void
 add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 {
 	struct membership *msptr;
+	rb_dlink_node *p;
 
 	s_assert(client_p->user != NULL);
 	if(client_p->user == NULL)
@@ -232,7 +233,17 @@ add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 	msptr->client_p = client_p;
 	msptr->flags = flags;
 
-	rb_dlinkAdd(msptr, &msptr->usernode, &client_p->user->channel);
+	RB_DLINK_FOREACH(p, client_p->user->channel.head)
+	{
+		struct membership *ms2 = p->data;
+		if (irccmp(chptr->chname, ms2->chptr->chname) < 0)
+			break;
+	}
+	if (p == NULL)
+		rb_dlinkAddTail(msptr, &msptr->usernode, &client_p->user->channel);
+	else
+		rb_dlinkAddBefore(p, msptr, &msptr->usernode, &client_p->user->channel);
+
 	rb_dlinkAdd(msptr, &msptr->channode, &chptr->members);
 
 	if(MyClient(client_p))
