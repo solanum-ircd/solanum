@@ -291,6 +291,9 @@ read_packet(rb_fde_t * F, void *data)
 		if(IsAnyDead(client_p))
 			return;
 
+		if(client_p->localClient->F == NULL)
+			return;
+
 		/* Check to make sure we're not flooding */
 		if(!IsAnyServer(client_p) &&
 		   (rb_linebuf_alloclen(&client_p->localClient->buf_recvq) > ConfigFileEntry.client_flood_max_lines))
