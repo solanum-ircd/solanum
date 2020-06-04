@@ -46,6 +46,7 @@ extern int h_conf_read_end;
 extern int h_outbound_msgbuf;
 extern int h_rehash;
 extern int h_cap_change;
+extern int h_sendq_cleared;
 
 void init_hook(void);
 int register_hook(const char *name);
