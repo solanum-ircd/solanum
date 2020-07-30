@@ -32,5 +32,7 @@ _moddeinit(void)
 static int
 eb_hostmask(const char *banstr, struct Client *client_p, struct Channel *chptr, long mode_type)
 {
+	if (banstr == NULL)
+		return EXTBAN_INVALID;
 	return client_matches_mask(client_p, banstr) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
 }
