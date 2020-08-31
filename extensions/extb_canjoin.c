@@ -46,6 +46,8 @@ static int eb_canjoin(const char *data, struct Client *client_p,
 		return EXTBAN_INVALID;
 	if (data == NULL)
 		return EXTBAN_INVALID;
+	if (mode_type == CHFL_EXCEPTION)
+		return EXTBAN_INVALID;
 	chptr2 = find_channel(data);
 	/* must exist, and no point doing this with the same channel */
 	if (chptr2 == NULL || chptr2 == chptr)
