@@ -223,6 +223,8 @@ extern int is_banned(struct Channel *chptr, struct Client *who,
 extern int is_quieted(struct Channel *chptr, struct Client *who,
                       struct membership *msptr, const struct matchset *ms,
                       const struct matchset *mexcept);
+extern int is_borq(struct Channel *chptr, struct Client *who,
+                      struct membership *msptr);
 extern int can_join(struct Client *source_p, struct Channel *chptr,
 		    const char *key, const char **forward);
 
