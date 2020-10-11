@@ -613,7 +613,8 @@ void matchset_for_client(struct Client *who, struct matchset *m, long mode_type)
 			sprintf(m->host[m->hostn++], "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
 		}
 	}
-	if (!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
+	if ((mode_type == CHFL_BAN || mode_type == CHFL_QUIET) &&
+		!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
 			rb_ipv4_from_ipv6((const struct sockaddr_in6 *)&who->localClient->ip, &ip4))
 	{
 		int n = sprintf(m->ip[m->ipn++], "%s!%s@", who->name, who->username);
