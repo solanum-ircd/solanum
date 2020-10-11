@@ -34,6 +34,7 @@ struct Class
 	struct Class *next;
 	char *class_name;
 	int max_total;
+	int max_autoconn;
 	int max_local;
 	int max_global;
 	int max_ident;
@@ -57,6 +58,7 @@ extern struct Class *default_class;
 #define MaxGlobal(x)	((x)->max_global)
 #define MaxIdent(x)	((x)->max_ident)
 #define MaxUsers(x)	((x)->max_total)
+#define MaxAutoconn(x)	((x)->max_autoconn)
 #define PingFreq(x)     ((x)->ping_freq)
 #define MaxSendq(x)     ((x)->max_sendq)
 #define CurrUsers(x)    ((x)->total)

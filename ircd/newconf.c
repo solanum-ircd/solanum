@@ -826,6 +826,12 @@ conf_set_class_max_number(void *data)
 }
 
 static void
+conf_set_class_max_autoconn(void *data)
+{
+	yy_class->max_autoconn = *(unsigned int *) data;
+}
+
+static void
 conf_set_class_sendq(void *data)
 {
 	yy_class->max_sendq = *(unsigned int *) data;
@@ -2689,6 +2695,7 @@ static struct ConfEntry conf_class_table[] =
 	{ "number_per_ident", 	CF_INT,  conf_set_class_number_per_ident,	0, NULL },
 	{ "connectfreq", 	CF_TIME, conf_set_class_connectfreq,		0, NULL },
 	{ "max_number", 	CF_INT,  conf_set_class_max_number,		0, NULL },
+	{ "max_autoconn",	CF_INT,  conf_set_class_max_autoconn,		0, NULL },
 	{ "sendq", 		CF_TIME, conf_set_class_sendq,			0, NULL },
 	{ "\0",	0, NULL, 0, NULL }
 };
