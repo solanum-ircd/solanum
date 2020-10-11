@@ -537,9 +537,10 @@ del_invite(struct Channel *chptr, struct Client *who)
 static int
 is_banned_list(struct Channel *chptr, rb_dlink_list *list,
 	       struct Client *who, struct membership *msptr,
-	       const struct matchset *ms, const char **forward)
+	       const struct matchset *ms, const struct matchset *mexcept,
+		   const char **forward)
 {
-	struct matchset ms_;
+	struct matchset ms_, mexcept_;
 	rb_dlink_node *ptr;
 	struct Ban *actualBan = NULL;
 	struct Ban *actualExcept = NULL;
@@ -549,8 +550,14 @@ is_banned_list(struct Channel *chptr, rb_dlink_list *list,
 
 	if (ms == NULL)
 	{
-		matchset_for_client(who, &ms_);
+		matchset_for_client(who, &ms_, CHFL_BAN);
 		ms = &ms_;
+	}
+
+	if (mexcept == NULL)
+	{
+		matchset_for_client(who, &mexcept_, CHFL_EXCEPTION);
+		mexcept = &mexcept_;
 	}
 
 	RB_DLINK_FOREACH(ptr, list->head)
@@ -570,7 +577,7 @@ is_banned_list(struct Channel *chptr, rb_dlink_list *list,
 			actualExcept = ptr->data;
 
 			/* theyre exempted.. */
-			if (matches_mask(ms, actualExcept->banstr) ||
+			if (matches_mask(mexcept, actualExcept->banstr) ||
 					match_extban(actualExcept->banstr, who, chptr, CHFL_BAN))
 			{
 				/* cache the fact theyre not banned */
@@ -617,7 +624,7 @@ is_banned_list(struct Channel *chptr, rb_dlink_list *list,
  */
 int
 is_banned(struct Channel *chptr, struct Client *who, struct membership *msptr,
-	  const struct matchset *ms, const char **forward)
+	  const struct matchset *ms, const struct matchset *mexcept, const char **forward)
 {
 #if 0
 	if (chptr->last_checked_client != NULL &&
@@ -633,7 +640,7 @@ is_banned(struct Channel *chptr, struct Client *who, struct membership *msptr,
 
 	return chptr->last_checked_result;
 #else
-	return is_banned_list(chptr, &chptr->banlist, who, msptr, ms, forward);
+	return is_banned_list(chptr, &chptr->banlist, who, msptr, ms, mexcept, forward);
 #endif
 }
 
@@ -646,7 +653,7 @@ is_banned(struct Channel *chptr, struct Client *who, struct membership *msptr,
  */
 int
 is_quieted(struct Channel *chptr, struct Client *who, struct membership *msptr,
-	   const struct matchset *ms)
+	   const struct matchset *ms, const struct matchset *mexcept)
 {
 #if 0
 	if (chptr->last_checked_client != NULL &&
@@ -662,7 +669,7 @@ is_quieted(struct Channel *chptr, struct Client *who, struct membership *msptr,
 
 	return chptr->last_checked_result;
 #else
-	return is_banned_list(chptr, &chptr->quietlist, who, msptr, ms, NULL);
+	return is_banned_list(chptr, &chptr->quietlist, who, msptr, ms, mexcept, NULL);
 #endif
 }
 
@@ -679,7 +686,7 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 	rb_dlink_node *invite = NULL;
 	rb_dlink_node *ptr;
 	struct Ban *invex = NULL;
-	struct matchset ms;
+	struct matchset ms, mexcept;
 	int i = 0;
 	hook_data_channel moduledata;
 
@@ -689,9 +696,10 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 	moduledata.chptr = chptr;
 	moduledata.approved = 0;
 
-	matchset_for_client(source_p, &ms);
+	matchset_for_client(source_p, &ms, CHFL_BAN);
+	matchset_for_client(source_p, &mexcept, CHFL_EXCEPTION);
 
-	if((is_banned(chptr, source_p, NULL, &ms, forward)) == CHFL_BAN)
+	if((is_banned(chptr, source_p, NULL, &ms, &mexcept, forward)) == CHFL_BAN)
 	{
 		moduledata.approved = ERR_BANNEDFROMCHAN;
 		goto finish_join_check;
@@ -709,6 +717,8 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 
 	if(chptr->mode.mode & MODE_INVITEONLY)
 	{
+		matchset_for_client(source_p, &ms, CHFL_INVEX);
+
 		RB_DLINK_FOREACH(invite, source_p->user->invited.head)
 		{
 			if(invite->data == chptr)
@@ -813,9 +823,15 @@ can_send(struct Channel *chptr, struct Client *source_p, struct membership *mspt
 			if(can_send_banned(msptr))
 				moduledata.approved = CAN_SEND_NO;
 		}
-		else if(is_banned(chptr, source_p, msptr, NULL, NULL) == CHFL_BAN
-			|| is_quieted(chptr, source_p, msptr, NULL) == CHFL_BAN)
-			moduledata.approved = CAN_SEND_NO;
+		else
+		{
+			struct matchset ms, mexcept;
+			matchset_for_client(source_p, &ms, CHFL_BAN);
+			matchset_for_client(source_p, &mexcept, CHFL_EXCEPTION);
+			if (is_banned(chptr, source_p, msptr, &ms, &mexcept, NULL) == CHFL_BAN
+					|| is_quieted(chptr, source_p, msptr, &ms, &mexcept) == CHFL_BAN)
+				moduledata.approved = CAN_SEND_NO;
+		}
 	}
 
 	if(is_chanop_voiced(msptr))
@@ -899,11 +915,13 @@ find_bannickchange_channel(struct Client *client_p)
 	struct membership *msptr;
 	rb_dlink_node *ptr;
 	struct matchset ms;
+	struct matchset mexcept;
 
 	if (!MyClient(client_p))
 		return NULL;
 
-	matchset_for_client(client_p, &ms);
+	matchset_for_client(client_p, &ms, CHFL_BAN);
+	matchset_for_client(client_p, &ms, CHFL_EXCEPTION);
 
 	RB_DLINK_FOREACH(ptr, client_p->user->channel.head)
 	{
@@ -917,8 +935,8 @@ find_bannickchange_channel(struct Client *client_p)
 			if (can_send_banned(msptr))
 				return chptr;
 		}
-		else if (is_banned(chptr, client_p, msptr, &ms, NULL) == CHFL_BAN
-			|| is_quieted(chptr, client_p, msptr, &ms) == CHFL_BAN)
+		else if (is_banned(chptr, client_p, msptr, &ms, &mexcept, NULL) == CHFL_BAN
+			|| is_quieted(chptr, client_p, msptr, &ms, &mexcept) == CHFL_BAN)
 			return chptr;
 	}
 	return NULL;

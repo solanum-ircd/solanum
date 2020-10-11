@@ -218,9 +218,11 @@ extern bool flood_attack_channel(int p_or_n, struct Client *source_p,
 struct matchset;
 extern int is_banned(struct Channel *chptr, struct Client *who,
                      struct membership *msptr, const struct matchset *ms,
+                     const struct matchset *mexcept,
                      const char **);
 extern int is_quieted(struct Channel *chptr, struct Client *who,
-		     struct membership *msptr, const struct matchset *ms);
+                      struct membership *msptr, const struct matchset *ms,
+                      const struct matchset *mexcept);
 extern int can_join(struct Client *source_p, struct Channel *chptr,
 		    const char *key, const char **forward);
 

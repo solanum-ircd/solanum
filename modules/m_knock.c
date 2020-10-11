@@ -130,9 +130,13 @@ m_knock(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if(MyClient(source_p))
 	{
+		struct matchset ms, mexcept;
+		matchset_for_client(source_p, &ms, CHFL_BAN);
+		matchset_for_client(source_p, &mexcept, CHFL_EXCEPTION);
+
 		/* don't allow a knock if the user is banned */
-		if(is_banned(chptr, source_p, NULL, NULL, NULL) == CHFL_BAN ||
-			is_quieted(chptr, source_p, NULL, NULL) == CHFL_BAN)
+		if(is_banned(chptr, source_p, NULL, &ms, &mexcept, NULL) == CHFL_BAN ||
+			is_quieted(chptr, source_p, NULL, &ms, &mexcept) == CHFL_BAN)
 		{
 			sendto_one_numeric(source_p, ERR_CANNOTSENDTOCHAN,
 					   form_str(ERR_CANNOTSENDTOCHAN), name);
