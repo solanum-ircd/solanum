@@ -79,6 +79,7 @@ extension_LTLIBRARIES =		\
   spy_trace_notice.la		\
   drain.la			\
   identify_msg.la		\
+  match_gatewayip.la		\
   example_module.la
 
 if HAVE_HYPERSCAN
