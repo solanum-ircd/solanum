@@ -23,6 +23,7 @@
 #include "ircd.h"
 #include "match.h"
 #include "s_assert.h"
+#include "hook.h"
 
 /*
  * Compare if a given string (name) matches the given
@@ -589,29 +590,24 @@ int ircncmp(const char *s1, const char *s2, int n)
 void matchset_for_client(struct Client *who, struct matchset *m, long mode_type)
 {
 	struct sockaddr_in ip4;
+	hook_data_match_client hdata = {.client = who, .ms = m, .mode_type = mode_type};
 
 	m->hostn = m->ipn = 0;
 
-	sprintf(m->host[m->hostn++], "%s!%s@%s", who->name, who->username, who->host);
+	matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->host);
 
 	if (!IsIPSpoof(who))
-	{
-		sprintf(m->ip[m->ipn++], "%s!%s@%s", who->name, who->username, who->sockhost);
-	}
+		matchset_append_ip(m, "%s!%s@%s", who->name, who->username, who->sockhost);
 
 	if (who->localClient->mangledhost != NULL)
 	{
 		/* if host mangling mode enabled, also check their real host */
 		if (!strcmp(who->host, who->localClient->mangledhost))
-		{
-			sprintf(m->host[m->hostn++], "%s!%s@%s", who->name, who->username, who->orighost);
-		}
+			matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->orighost);
 		/* if host mangling mode not enabled and no other spoof,
 		 * also check the mangled form of their host */
 		else if (!IsDynSpoof(who))
-		{
-			sprintf(m->host[m->hostn++], "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
-		}
+			matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
 	}
 	if ((mode_type == CHFL_BAN || mode_type == CHFL_QUIET) &&
 		!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
@@ -621,6 +617,8 @@ void matchset_for_client(struct Client *who, struct matchset *m, long mode_type)
 		rb_inet_ntop_sock((struct sockaddr *)&ip4,
 				m->ip[m->ipn] + n, sizeof m->ip[m->ipn] - n);
 	}
+
+	call_hook(h_match_client, &hdata);
 
 	for (int i = m->hostn; i < ARRAY_SIZE(m->host); i++)
 	{
