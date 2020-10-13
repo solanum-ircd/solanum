@@ -1,43 +1,24 @@
-Charybdis started as an evolution from ircd-ratbox. Its development
-is led by a team of dedicated developers who have put a lot of time
-into the project and it has seen use on a variety of different
-network configurations.
+Solanum is based on Charybdis, which was based on ircd-ratbox.
 
-The Charybdis core team, listed in nick-alphabetical order:
+Development is led by a group of representatives from freenode
+and OFTC:
+
+dwfreed, Doug Freed <...>
+edk, Ed Kellett <edk@freenode.net>
+tomaw, Tom Wesley <tom@tomaw.net>
+
+The Charybdis team was:
 
 amdj, Aaron Jones <aaronmdjones -at- gmail.com>
 Elizafox, Elizabeth Myers <elizabeth -at- interlinked.me>
+jdhore, JD Horelick <jdhore1 -at- gmail.com>
 jilles, Jilles Tjoelker <jilles -at- stack.nl>
 kaniini, William Pitcock <nenolod -at- dereferenced.org>
 mr_flea, Keith Buck <mr_flea -at- esper.net>
-
-The following people are also project members, listed in nick-alphabetical
-order:
-
-jdhore, JD Horelick <jdhore1 -at- gmail.com>
 viatsko, Valerii Iatsko <dwr -at- codingbox.io>
 
-The following people have made contributions to the Charybdis releases,
-in nick-alphabetical order:
+A full list of contributors to Charybdis and its predecessors
+is in doc/credits-past.txt.
 
-AndroSyn, Aaron Sethman <androsyn -at- ratbox.org>
-anfl, Lee Hardy <lee -at- leeh.co.uk>
-beu, Elfyn McBratney <elfyn.mcbratney -at- gmail.com>
-BlindSight, Matt Ullman <matt -at- airraidsirens.com>
-Entrope, Michael Poole <mdpoole -at- trolius.org>
-grawity, Mantas Mikulėnas <grawity -at- gmail.com>
-gxti, Michael Tharp <gxti -at- partiallystapled.com>
-mniip <mniip -at- mniip.com>
-Simon, Simon Arlott
-spb, Stephen Bennett <spb -at- attenuate.org>
-Taros, Brett Greenham <taros -at- shadowircd.net>
-ThaPrince, Jon Christopherson <jon -at- vile.com>
-twincest, River Tarnell <river -at- attenuate.org>
-w00t, Robin Burchell <surreal.w00t -at- gmail.com>
-
-For a list of contributors to ircd-ratbox, ircd-hybrid, and ircd2.8 (the
-predecessors to Charybdis), see the doc/credits-past.txt file in the Charybdis
-distribution.
-
-Visit the Charybdis website at: http://www.charybdis.io/
-Visit us on IRC at: irc.charybdis.io #charybdis
+Visit the Solanum website at: https://solanum.chat/
+Visit us on IRC at: chat.freenode.net #solanum

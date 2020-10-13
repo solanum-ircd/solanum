@@ -116,11 +116,11 @@ Armin Gruner <gruner@informatik.tu-muenchen.de> / May, June 1990:
 
 Tom Hopkins <hoppie@buengf.bu.edu> / September, October 1990:
 * Patched msa's K lines for servers (Q lines).
-* Consolidated several patches, including Stealth's logging patch. 
-* Fixed several minor bugs. 
+* Consolidated several patches, including Stealth's logging patch.
+* Fixed several minor bugs.
 * Has done lots of other stuff that I can't seem to remember, but he
   always works on code, so he has to have done alot more than three
-  lines worth. :) 
+  lines worth. :)
 
 Thanks go to those persons not mentioned here who have added their advice,
 opinions, and code to IRC.
@@ -195,7 +195,7 @@ TimeMr14C, Yusuf Iskenderoglu <uhc0@stud.uni-karlsruhe.de>
 toot, Toby Verrall <to7@antipope.fsnet.co.uk>
 vx0, Mark Miller <mark@oc768.net>
 wiz, Jason Dambrosio <jason@wiz.cx>
-Xride, S�ren Straarup <xride@x12.dk>
+Xride, Søren Straarup <xride@x12.dk>
 zb^3, Alfred Perlstein <alfred@freebsd.org>
 
 Others are welcome. Always. And if we left anyone off the above list,
@@ -210,9 +210,9 @@ Send bug fixes/complaints/rotten tomatoes to bugs@ircd-hybrid.org.
 IRCD-RATBOX CREDITS
 ===============================================================================
 
-ircd-ratbox is an evolution where ircd-hybrid left off around version 7-rc1.  
+ircd-ratbox is an evolution where ircd-hybrid left off around version 7-rc1.
 Currently the ircd-ratbox team consists of the following developers:
- 
+
 AndroSyn, Aaron Sethman <androsyn -at- ratbox.org>
 anfl, Lee Hardy <lee -at- leeh.co.uk>
 
@@ -221,8 +221,56 @@ Special thanks for support, code and ideas to:
 Hwy, W. Campbell <wcampbel -at- botbay.net>
 jilles, Jilles Tjoelker <jilles -at- stack.nl>
 larne, Edward Brocklesby <ejb -at- sdf.lonestar.org>
- 
+
 Of course our work is based on the work of many, many others over the past
 10 or so years since irc has existed, including the work done by the Hybrid
 team, our thanks goes to them.
- 
+
+
+===============================================================================
+CHARYBDIS CREDITS
+===============================================================================
+
+Charybdis started as an evolution from ircd-ratbox. Its development
+is led by a team of dedicated developers who have put a lot of time
+into the project and it has seen use on a variety of different
+network configurations.
+
+The Charybdis core team, listed in nick-alphabetical order:
+
+amdj, Aaron Jones <aaronmdjones -at- gmail.com>
+Elizafox, Elizabeth Myers <elizabeth -at- interlinked.me>
+jilles, Jilles Tjoelker <jilles -at- stack.nl>
+kaniini, William Pitcock <nenolod -at- dereferenced.org>
+mr_flea, Keith Buck <mr_flea -at- esper.net>
+
+The following people are also project members, listed in nick-alphabetical
+order:
+
+jdhore, JD Horelick <jdhore1 -at- gmail.com>
+viatsko, Valerii Iatsko <dwr -at- codingbox.io>
+
+The following people have made contributions to the Charybdis releases,
+in nick-alphabetical order:
+
+AndroSyn, Aaron Sethman <androsyn -at- ratbox.org>
+anfl, Lee Hardy <lee -at- leeh.co.uk>
+beu, Elfyn McBratney <elfyn.mcbratney -at- gmail.com>
+BlindSight, Matt Ullman <matt -at- airraidsirens.com>
+Entrope, Michael Poole <mdpoole -at- trolius.org>
+grawity, Mantas Mikulėnas <grawity -at- gmail.com>
+gxti, Michael Tharp <gxti -at- partiallystapled.com>
+mniip <mniip -at- mniip.com>
+Simon, Simon Arlott
+spb, Stephen Bennett <spb -at- attenuate.org>
+Taros, Brett Greenham <taros -at- shadowircd.net>
+ThaPrince, Jon Christopherson <jon -at- vile.com>
+twincest, River Tarnell <river -at- attenuate.org>
+w00t, Robin Burchell <surreal.w00t -at- gmail.com>
+
+For a list of contributors to ircd-ratbox, ircd-hybrid, and ircd2.8 (the
+predecessors to Charybdis), see the doc/credits-past.txt file in the Charybdis
+distribution.
+
+Visit the Charybdis website at: http://www.charybdis.io/
+Visit us on IRC at: irc.charybdis.io #charybdis
