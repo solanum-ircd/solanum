@@ -1,5 +1,5 @@
 /*
- * charybdis: An advanced ircd.
+ * Solanum: a slightly advanced ircd
  * m_list_safelist.c: Version of /list that uses the safelist code.
  *
  * Copyright (c) 2006 William Pitcock <nenolod@nenolod.net>

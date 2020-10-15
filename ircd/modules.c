@@ -41,7 +41,7 @@
 #include <ltdl.h>
 
 #ifndef LT_MODULE_EXT
-#	error "Charybdis requires loadable module support."
+#	error "Solanum requires loadable module support."
 #endif
 
 rb_dlink_list module_list;

@@ -1,5 +1,5 @@
 /*
- *  charybdis
+ *  solanum
  *  m_extendchans.c: Allow an oper or service to let a given user join more channels.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

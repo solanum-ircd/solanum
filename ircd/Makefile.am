@@ -69,10 +69,10 @@ libircd_la_LDFLAGS = $(EXTRA_FLAGS) -avoid-version -no-undefined
 libircd_la_LIBADD = @LIBLTDL@ -L$(top_srcdir)/librb/src -lrb
 libircd_LTLIBRARIES = libircd.la
 
-bin_PROGRAMS = charybdis
-charybdis_SOURCES = main.c
-charybdis_LDFLAGS = $(EXTRA_FLAGS) -dlopen self
-charybdis_LDADD = libircd.la -L$(top_srcdir)/librb/src -lrb
+bin_PROGRAMS = solanum
+solanum_SOURCES = main.c
+solanum_LDFLAGS = $(EXTRA_FLAGS) -dlopen self
+solanum_LDADD = libircd.la -L$(top_srcdir)/librb/src -lrb
 
 install-exec-hook: install-libircdLTLIBRARIES
 	$(RM) -f version.c

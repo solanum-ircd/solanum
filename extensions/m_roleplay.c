@@ -1,5 +1,5 @@
 /*
- * roleplay commands for charybdis.
+ * roleplay commands for solanum.
  *
  * adds NPC, NPCA, and SCENE which allow users to send messages from 'fake'
  * nicknames. in the case of NPC and NPCA, the nickname will be underlined

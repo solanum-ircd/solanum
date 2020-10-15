@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd
+ * Solanum: a slightly advanced ircd
  * markup.h: parses markup into human-readable strings
  *
  * Copyright (c) 2006-2007 William Pitcock <nenolod@nenolod.net>

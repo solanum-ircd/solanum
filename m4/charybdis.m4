@@ -29,8 +29,8 @@ AC_DEFUN([AC_SUBST_DIR], [
         AC_SUBST($1)
 ])
 
-dnl CHARYBDIS_C_GCC_TRY_FLAGS(<warnings>,<cachevar>)
-AC_DEFUN([CHARYBDIS_C_GCC_TRY_FLAGS],[
+dnl SOLANUM_C_GCC_TRY_FLAGS(<warnings>,<cachevar>)
+AC_DEFUN([SOLANUM_C_GCC_TRY_FLAGS],[
  AC_MSG_CHECKING([GCC flag(s) $1])
  if test "${GCC-no}" = yes
  then

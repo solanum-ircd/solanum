@@ -1,5 +1,5 @@
 /*
- * charybdis - an advanced ircd.
+ * solanum - an advanced ircd.
  * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -19,8 +19,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHARYBDIS__MSGBUF_H
-#define CHARYBDIS__MSGBUF_H
+#ifndef SOLANUM__MSGBUF_H
+#define SOLANUM__MSGBUF_H
 
 #define MAXPARA		(15)
 

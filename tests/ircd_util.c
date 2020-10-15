@@ -31,7 +31,7 @@
 
 #define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
 
-extern int charybdis_main(int argc, const char *argv[]);
+extern int solanum_main(int argc, const char *argv[]);
 
 static char argv0[BUFSIZE];
 static char configfile[BUFSIZE];
@@ -94,7 +94,7 @@ void ircd_util_init(const char *name)
 	ircd_paths[IRCD_PATH_BIN] = rb_strdup(buf);
 	ircd_paths[IRCD_PATH_LIBEXEC] = rb_strdup(buf);
 
-	is_int(0, charybdis_main(ARRAY_SIZE(argv) - 1, argv), MSG);
+	is_int(0, solanum_main(ARRAY_SIZE(argv) - 1, argv), MSG);
 }
 
 void ircd_util_reload_module(const char *name)

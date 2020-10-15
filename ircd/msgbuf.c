@@ -1,5 +1,5 @@
 /*
- * charybdis - an advanced ircd.
+ * solanum - an advanced ircd.
  * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>.
  *
  * Permission to use, copy, modify, and/or distribute this software for any

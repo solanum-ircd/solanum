@@ -1,5 +1,5 @@
 /*
- * charybdis: An advanced ircd.
+ * Solanum: a slightly advanced ircd
  * ircd_linker.h: IRCd symbol table linking and maintainance
  *
  * Copyright (c) 2006 William Pitcock <nenolod@nenolod.net>
@@ -31,8 +31,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _CHARYBDIS_IRCD_LINKER_H
-#define _CHARYBDIS_IRCD_LINKER_H
+#ifndef _SOLANUM_IRCD_LINKER_H
+#define _SOLANUM_IRCD_LINKER_H
 
 #include <dlfcn.h>
 

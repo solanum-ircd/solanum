@@ -306,7 +306,7 @@ main(int argc, char *argv[])
 	if(bandb_helper == NULL)
 	{
 		fprintf(stderr,
-			"This is the charybdis bandb for internal ircd use.\n");
+			"This is the solanum bandb for internal ircd use.\n");
 		fprintf(stderr,
 			"You aren't supposed to run me directly (did you want bantool?). Exiting.\n");
 		exit(1);

@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd.
+ * Solanum: a slightly advanced ircd
  * rb_radixtree.h: Dictionary-based storage.
  *
  * Copyright (c) 2007-2016 William Pitcock <nenolod -at- dereferenced.org>

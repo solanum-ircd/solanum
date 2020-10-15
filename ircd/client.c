@@ -1,5 +1,5 @@
 /*
- *  charybdis: an advanced ircd.
+ *  Solanum: a slightly advanced ircd
  *  client.c: Controls clients.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -1147,7 +1147,7 @@ free_exited_clients(void *unused)
 						target_p->name, (unsigned int) target_p->status,
 						(unsigned long long)target_p->flags,  target_p->handler);
 					sendto_realops_snomask(SNO_GENERAL, L_ALL,
-						"Please report this to the charybdis developers!");
+						"Please report this to the solanum developers!");
 					found++;
 				}
 			}
@@ -1291,7 +1291,7 @@ exit_aborted_clients(void *unused)
 					abt->client->name, (unsigned int) abt->client->status,
 					(unsigned long long)abt->client->flags, abt->client->handler);
 				sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					"Please report this to the charybdis developers!");
+					"Please report this to the solanum developers!");
 				continue;
 			}
 		}

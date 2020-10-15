@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd
+ * Solanum: a slightly advanced ircd
  * ratelimit.c: Per-client ratelimiting for high-bandwidth commands.
  *
  * Copyright (c) 2012 Keith Buck <mr_flea -at- esper.net>

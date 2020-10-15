@@ -1,5 +1,5 @@
 /*
- *  charybdis: A useful ircd.
+ *  Solanum: a slightly advanced ircd
  *  certpf.h: Fingerprint method strings
  *
  *  Copyright 2016 Simon Arlott

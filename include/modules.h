@@ -30,7 +30,7 @@
 #include "parse.h"
 #include "client.h" /* for IDLEN */
 
-#define MAPI_CHARYBDIS 2
+#define MAPI_SOLANUM 2
 
 #include <ltdl.h>
 
@@ -97,8 +97,8 @@ struct mapi_mheader_av1
 };
 
 #define MAPI_ORIGIN_UNKNOWN	0		/* Unknown provenance (AV1 etc.) */
-#define MAPI_ORIGIN_EXTENSION	1		/* Charybdis extension */
-#define MAPI_ORIGIN_CORE	2		/* Charybdis core module */
+#define MAPI_ORIGIN_EXTENSION	1		/* Solanum extension */
+#define MAPI_ORIGIN_CORE	2		/* Solanum core module */
 
 struct mapi_mheader_av2
 {

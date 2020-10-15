@@ -1,5 +1,5 @@
 #!/bin/sh
-# application.sh: Special package building rules for charybdis.
+# application.sh: Special package building rules for solanum.
 #
 # Copyright (c) 2007-2008 atheme.org
 #
@@ -24,11 +24,11 @@ if [ "x$TIP" = "x" ]; then
 	exit
 fi
 
-# Charybdis wants the git head to be in include/serno.h, in its own format.
+# Solanum wants the git head to be in include/serno.h, in its own format.
 SERNO=`git log -1 --date=format:%Y%m%d --pretty=format:%cd-%h`
 DATECODE=`git log -1 --pretty=format:%ct`
 
-echo "[charybdis] Generating include/serno.h for tip $MYTIP."
+echo "[solanum] Generating include/serno.h for tip $MYTIP."
 cat << _EOF_ > include/serno.h
 /* Generated automatically by makepackage. Any changes made here will be lost. */
 #define SERNO "$SERNO"

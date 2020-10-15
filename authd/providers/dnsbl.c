@@ -1,5 +1,5 @@
 /*
- * charybdis: A slightly useful ircd.
+ * Solanum: a slightly advanced ircd
  * dnsbl.c: Manages DNSBL entries and lookups
  *
  * Copyright (C) 2006-2011 charybdis development team
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Originally written for charybdis circa 2006 (by nenolod?).
+/* Originally written for solanum circa 2006 (by nenolod?).
  * Tweaked for authd. Some functions and structs renamed. Public/private
  * interfaces have been shifted around. Some code has been cleaned up too.
  * -- Elizafox 24 March 2016

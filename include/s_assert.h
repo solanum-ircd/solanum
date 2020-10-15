@@ -1,5 +1,5 @@
 /*
- *  charybdis: An advanced IRCd.
+ *  solanum: An advanced IRCd.
  *  s_assert.h: Definition of the soft assert (s_assert) macro.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

@@ -1,5 +1,5 @@
 /*
- *  wsockd.c: charybdis websockets helper
+ *  wsockd.c: solanum websockets helper
  *  Copyright (C) 2007 Aaron Sethman <androsyn@ratbox.org>
  *  Copyright (C) 2007 ircd-ratbox development team
  *  Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>
@@ -961,7 +961,7 @@ main(int argc, char **argv)
 	if(s_ctlfd == NULL || s_pipe == NULL || s_pid == NULL)
 	{
 		fprintf(stderr,
-			"This is the charybdis wsockd for internal ircd use.\n");
+			"This is the solanum wsockd for internal ircd use.\n");
 		fprintf(stderr,
 			"You aren't supposed to run me directly. Exiting.\n");
 		exit(1);

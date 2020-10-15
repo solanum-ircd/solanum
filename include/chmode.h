@@ -1,5 +1,5 @@
 /*
- *  charybdis: An advanced ircd.
+ *  Solanum: a slightly advanced ircd
  *  chmode.h: The ircd channel header.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd.
+ * Solanum: a slightly advanced ircd
  * privilege.h: Dynamic privileges API.
  *
  * Copyright (c) 2008 William Pitcock <nenolod@dereferenced.org>
@@ -21,8 +21,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CHARYBDIS_PRIVILEGE_H
-#define __CHARYBDIS_PRIVILEGE_H
+#ifndef __SOLANUM_PRIVILEGE_H
+#define __SOLANUM_PRIVILEGE_H
 
 #include "stdinc.h"
 

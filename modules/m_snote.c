@@ -1,5 +1,5 @@
 /*
- *  charybdis: an advanced Internet Relay Chat Daemon(ircd).
+ *  Solanum: a slightly advanced ircd
  *  m_snote.c: Server notice listener
  *
  *  Copyright (c) 2006 William Pitcock <nenolod -at- nenolod.net>

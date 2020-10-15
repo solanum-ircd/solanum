@@ -18,8 +18,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __CHARYBDIS_AUTHD_PROVIDER_H__
-#define __CHARYBDIS_AUTHD_PROVIDER_H__
+#ifndef __SOLANUM_AUTHD_PROVIDER_H__
+#define __SOLANUM_AUTHD_PROVIDER_H__
 
 #include "stdinc.h"
 #include "authd.h"
@@ -243,4 +243,4 @@ get_provider_timeout(struct auth_client *auth, uint32_t id)
 	return auth->data[id].timeout;
 }
 
-#endif /* __CHARYBDIS_AUTHD_PROVIDER_H__ */
+#endif /* __SOLANUM_AUTHD_PROVIDER_H__ */

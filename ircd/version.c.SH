@@ -1,7 +1,7 @@
 #!/bin/sh
 
 spitshell=cat
-package=charybdis
+package=solanum
 
 echo "Extracting $package/src/version.c..."
 

@@ -1,5 +1,5 @@
 /*
- *  charybdis: A slightly useful ircd.
+ *  Solanum: a slightly advanced ircd
  *  chmode.c: channel mode management
  *
  * Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

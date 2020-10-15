@@ -1,5 +1,5 @@
 /*
- *  charybdis
+ *  solanum
  *  authproc.h: A header with the authd functions.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
@@ -23,8 +23,8 @@
  *  USA
  */
 
-#ifndef CHARYBDIS_AUTHD_H
-#define CHARYBDIS_AUTHD_H
+#ifndef SOLANUM_AUTHD_H
+#define SOLANUM_AUTHD_H
 
 #include "stdinc.h"
 #include "rb_dictionary.h"

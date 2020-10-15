@@ -1,6 +1,6 @@
-# charybdis [![POSIX Build Status](https://travis-ci.org/charybdis-ircd/charybdis.svg?branch=master)](https://travis-ci.org/charybdis-ircd/charybdis) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/is0obsml8xyq2qk7/branch/master?svg=true)](https://ci.appveyor.com/project/kaniini/charybdis/branch/master)
+# solanum [![POSIX Build Status](https://travis-ci.org/solanum-ircd/solanum.svg?branch=master)](https://travis-ci.org/solanum-ircd/solanum) [![Windows Build Status](https://ci.appveyor.com/api/projects/status/is0obsml8xyq2qk7/branch/master?svg=true)](https://ci.appveyor.com/project/kaniini/solanum/branch/master)
 
-Charybdis is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
+Solanum is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
 
 It is meant to be used with an IRCv3-capable services implementation such as [Atheme][atheme] or [Anope][anope].
 
@@ -15,7 +15,7 @@ It is meant to be used with an IRCv3-capable services implementation such as [At
 
 # platforms
 
-Charybdis is designed with portability in mind, but does not target older systems nor those of solely academic
+Solanum is designed with portability in mind, but does not target older systems nor those of solely academic
 interest.
 
 Do note that operating systems are only supported if they are supported by their vendor.
@@ -44,7 +44,7 @@ resolution may not be possible.
 
 ## Tier 3
 
-Anything else that hasn't been tested. Charybdis may or may not work on it; patches welcome if they don't.
+Anything else that hasn't been tested. Solanum may or may not work on it; patches welcome if they don't.
 
 # platform specific errata
 
@@ -68,7 +68,7 @@ These are known issues and workarounds for supported platforms.
 # building from git
 
 We no longer supply a prebuilt configure script in git, due to use of automake and libtool causing problems.
-You will need to run `autogen.sh` to build the autotools files prior to building charybdis.
+You will need to run `autogen.sh` to build the autotools files prior to building solanum.
 
 # feature specific requirements
 
@@ -89,7 +89,7 @@ You will need to run `autogen.sh` to build the autotools files prior to building
 
 # tips
 
- * To report bugs in charybdis, visit us at irc.charybdis.io #charybdis
+ * To report bugs in solanum, visit us at chat.freenode.net #solanum
 
  * Please read doc/index.txt to get an overview of the current documentation.
 
@@ -97,13 +97,13 @@ You will need to run `autogen.sh` to build the autotools files prior to building
 
  * The files, /etc/services, /etc/protocols, and /etc/resolv.conf, SHOULD be
    readable by the user running the server in order for ircd to start with
-   the correct settings.  If these files are wrong, charybdis will try to use
+   the correct settings.  If these files are wrong, solanum will try to use
    127.0.0.1 for a resolver as a last-ditch effort.
 
 # git access
 
- * The Charybdis GIT repository can be checked out using the following command:
-	`git clone https://github.com/charybdis-ircd/charybdis`
+ * The Solanum GIT repository can be checked out using the following command:
+	`git clone https://github.com/solanum-ircd/solanum`
 
- * Charybdis's GIT repository depot can be browsed over the Internet at the following address:
-	https://github.com/charybdis-ircd/charybdis
+ * Solanum's GIT repository depot can be browsed over the Internet at the following address:
+	https://github.com/solanum-ircd/solanum

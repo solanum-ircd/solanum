@@ -1,5 +1,5 @@
 /*
- *  charybdis: an advanced ircd.
+ *  Solanum: a slightly advanced ircd
  *  parse.c: The message parser.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

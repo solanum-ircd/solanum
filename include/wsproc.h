@@ -1,5 +1,5 @@
 /*
- *  wsproc.h: An interface to the charybdis websocket helper daemon
+ *  wsproc.h: An interface to the solanum websocket helper daemon
  *  Copyright (C) 2007 Aaron Sethman <androsyn@ratbox.org>
  *  Copyright (C) 2007 ircd-ratbox development team
  *  Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>

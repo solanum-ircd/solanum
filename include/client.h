@@ -1,5 +1,5 @@
 /*
- *  charybdis: A useful ircd.
+ *  Solanum: a slightly advanced ircd
  *  client.h: The ircd client header.
  *
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center

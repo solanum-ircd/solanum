@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd.
+ * Solanum: a slightly advanced ircd
  * chm_nonotice: block NOTICEs (+T mode).
  *
  * Copyright (c) 2012 William Pitcock <nenolod@dereferenced.org>

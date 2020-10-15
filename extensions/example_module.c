@@ -30,7 +30,7 @@
  *
  * Make it short, sweet, and to the point.
  */
-static const char example_desc[] = "This is an example Charybdis module.";
+static const char example_desc[] = "This is an example Solanum module.";
 
 /* Declare the void's initially up here, as modules dont have an
  * include file, we will normally have client_p, source_p, parc

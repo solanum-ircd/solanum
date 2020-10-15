@@ -18,7 +18,7 @@ generation=`expr $generation + 1`
 
 $spitshell >version.c <<!SUB!THIS!
 /*
- *   librb: a library used by charybdis and other things
+ *   librb: a library used by solanum and other things
  *   src/version.c
  *
  *   Copyright (C) 1990 Chelsea Ashley Dyerman

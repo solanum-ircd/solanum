@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd
+ * Solanum: a slightly advanced ircd
  * rb_dictionary.c: Dictionary-based information storage.
  *
  * Copyright (c) 2007 William Pitcock <nenolod -at- sacredspiral.co.uk>

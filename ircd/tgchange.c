@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced Internet Relay Chat Daemon(ircd).
+ * Solanum: a slightly advanced ircd
  * tgchange.c - code for restricting private messages
  *
  * Copyright (C) 2004-2005 Lee Hardy <lee@leeh.co.uk>

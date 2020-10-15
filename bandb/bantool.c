@@ -196,7 +196,7 @@ main(int argc, char *argv[])
 		rb_strlcpy(etc, ETCPATH, sizeof(ETCPATH));
 
 	fprintf(stdout,
-		"* charybdis bantool v.%s\n", BT_VERSION);
+		"* solanum bantool v.%s\n", BT_VERSION);
 
 	if(flag.pretend == false)
 	{
@@ -864,7 +864,7 @@ bt_smalldate(const char *string)
 void
 print_help(int i_exit)
 {
-	fprintf(stderr, "bantool v.%s - the charybdis database tool.\n", BT_VERSION);
+	fprintf(stderr, "bantool v.%s - the solanum database tool.\n", BT_VERSION);
 	fprintf(stderr, "Copyright (C) 2008 Daniel J Reidy <dubkat@gmail.com>\n");
 	fprintf(stderr, "This program is distributed in the hope that it will be useful,\n"
 		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"

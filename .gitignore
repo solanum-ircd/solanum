@@ -48,7 +48,7 @@ scripts/*.tar.bz2
 scripts/*.tar.gz
 include/setup.h
 include/setup.h.in
-ircd/charybdis
+ircd/solanum
 ircd/ircd_parser.c
 ircd/ircd_parser.h
 ircd/ircd_lexer.c
@@ -74,13 +74,13 @@ tests/*.c.pid
 !tests/runtime/modules/*.so
 !tests/runtime/modules/autoload/*.so
 testsuite/ircd.pid.*
-tools/charybdis-mkpasswd
-tools/charybdis-mkfingerprint
+tools/solanum-mkpasswd
+tools/solanum-mkfingerprint
 tools/genssl
 tools/mkpasswd
 tools/viconf
 include/serno.h
-ircd/charybdis
+ircd/solanum
 ircd/version.c
 ircd/version.c.last
 /libtool

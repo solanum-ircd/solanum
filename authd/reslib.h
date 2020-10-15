@@ -3,8 +3,8 @@
  *
  */
 
-#ifndef _CHARYBDIS_RESLIB_H
-#define _CHARYBDIS_RESLIB_H
+#ifndef _SOLANUM_RESLIB_H
+#define _SOLANUM_RESLIB_H
 
 /* Longest hostname we're willing to work with.
  * Due to DNSBLs this is more than HOSTLEN.

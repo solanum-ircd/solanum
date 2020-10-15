@@ -1,5 +1,5 @@
 /*
- * charybdis: An advanced ircd.
+ * Solanum: a slightly advanced ircd
  * snomask.c: Management for user server-notice masks.
  *
  * Copyright (c) 2006 William Pitcock <nenolod@nenolod.net>

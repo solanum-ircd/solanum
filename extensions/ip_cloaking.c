@@ -1,5 +1,5 @@
 /*
- * Charybdis: an advanced ircd
+ * Solanum: a slightly advanced ircd
  * ip_cloaking.c: provide user hostname cloaking
  *
  * Written originally by nenolod, altered to use FNV by Elizabeth in 2008

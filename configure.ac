@@ -4,7 +4,7 @@ dnl said functions need to be just about as complex as they already are.
 
 AC_PREREQ(2.60)
 
-AC_INIT([charybdis], [4.1.3-dev])
+AC_INIT([solanum], [1.0-dev])
 
 AC_LANG(C)
 AC_USE_SYSTEM_EXTENSIONS
@@ -13,7 +13,7 @@ AC_GNU_SOURCE
 AC_PROG_CC_C99
 
 if test x"$ac_cv_prog_cc_c99" = "xno"; then
-	AC_ERROR([charybdis requires a C99 capable compiler])
+	AC_ERROR([solanum requires a C99 capable compiler])
 fi
 
 AC_PREFIX_DEFAULT($HOME/ircd)
@@ -183,7 +183,7 @@ AC_SUBST(CRYPT_LIB)
 AC_C_BIGENDIAN
 
 dnl Check for stdarg.h - if we can't find it, halt configure
-AC_CHECK_HEADER(stdarg.h, , [AC_MSG_ERROR([** stdarg.h could not be found - charybdis will not compile without it **])])
+AC_CHECK_HEADER(stdarg.h, , [AC_MSG_ERROR([** stdarg.h could not be found - solanum will not compile without it **])])
 AC_CHECK_FUNCS([strlcat strlcpy])
 
 AC_TYPE_INT16_T
@@ -561,7 +561,7 @@ if test "$profile" = yes; then
 	if test "$ac_cv_c_compiler_gnu" = yes; then
 		IRC_CFLAGS="$IRC_CFLAGS -pg"
 		AC_MSG_RESULT([yes, adding -pg])
-		AC_DEFINE(CHARYBDIS_PROFILE, 1, [Define this if you are profiling.])
+		AC_DEFINE(SOLANUM_PROFILE, 1, [Define this if you are profiling.])
 	else
 		AC_MSG_RESULT([no, profile builds only work with gcc])
 	fi
@@ -646,26 +646,26 @@ AC_HELP_STRING([--enable-warnings],[Enable all sorts of warnings for debugging.]
 IRC_CFLAGS="$IRC_CFLAGS -O0"
 CFLAGS="$IRC_CFLAGS"
 
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wall], charybdis_cv_c_gcc_w_all)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wpointer-arith], charybdis_cv_c_gcc_w_pointer_arith)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wimplicit -Wnested-externs], charybdis_cv_c_gcc_w_implicit)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wcast-align], charybdis_cv_c_gcc_w_cast_align)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wcast-qual], charybdis_cv_c_gcc_w_cast_qual)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wwrite-strings], charybdis_cv_c_gcc_w_write_strings)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Werror-implicit-function-declaration], charybdis_cv_c_gcc_w_error_implicit_function_declaration)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations], charybdis_cv_c_gcc_prototypes)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wparentheses], charybdis_cv_c_gcc_parentheses)
-CHARYBDIS_C_GCC_TRY_FLAGS([-W -Wno-unused], charybdis_cv_c_gcc_w)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wextra], charybdis_cv_c_gcc_w_extra)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wshadow], charybdis_cv_c_gcc_w_shadow)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wmissing-noreturn], charybdis_cv_c_gcc_w_missing_noreturn)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wundef], charybdis_cv_c_gcc_w_undef)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wpacked], charybdis_cv_c_gcc_w_packed)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wnested-externs], charybdis_cv_c_gcc_w_nested_externs)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], charybdis_cv_c_gcc_w_unused)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wredundant-decls], charybdis_cv_c_gcc_w_redundant_decls)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wfloat-equal], charybdis_cv_c_gcc_w_float_equal)
-CHARYBDIS_C_GCC_TRY_FLAGS([-Wformat -Wformat-y2k -Wno-format-security], charybdis_cv_c_gcc_w_format)
+SOLANUM_C_GCC_TRY_FLAGS([-Wall], solanum_cv_c_gcc_w_all)
+SOLANUM_C_GCC_TRY_FLAGS([-Wpointer-arith], solanum_cv_c_gcc_w_pointer_arith)
+SOLANUM_C_GCC_TRY_FLAGS([-Wimplicit -Wnested-externs], solanum_cv_c_gcc_w_implicit)
+SOLANUM_C_GCC_TRY_FLAGS([-Wcast-align], solanum_cv_c_gcc_w_cast_align)
+SOLANUM_C_GCC_TRY_FLAGS([-Wcast-qual], solanum_cv_c_gcc_w_cast_qual)
+SOLANUM_C_GCC_TRY_FLAGS([-Wwrite-strings], solanum_cv_c_gcc_w_write_strings)
+SOLANUM_C_GCC_TRY_FLAGS([-Werror-implicit-function-declaration], solanum_cv_c_gcc_w_error_implicit_function_declaration)
+SOLANUM_C_GCC_TRY_FLAGS([-Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations], solanum_cv_c_gcc_prototypes)
+SOLANUM_C_GCC_TRY_FLAGS([-Wparentheses], solanum_cv_c_gcc_parentheses)
+SOLANUM_C_GCC_TRY_FLAGS([-W -Wno-unused], solanum_cv_c_gcc_w)
+SOLANUM_C_GCC_TRY_FLAGS([-Wextra], solanum_cv_c_gcc_w_extra)
+SOLANUM_C_GCC_TRY_FLAGS([-Wshadow], solanum_cv_c_gcc_w_shadow)
+SOLANUM_C_GCC_TRY_FLAGS([-Wmissing-noreturn], solanum_cv_c_gcc_w_missing_noreturn)
+SOLANUM_C_GCC_TRY_FLAGS([-Wundef], solanum_cv_c_gcc_w_undef)
+SOLANUM_C_GCC_TRY_FLAGS([-Wpacked], solanum_cv_c_gcc_w_packed)
+SOLANUM_C_GCC_TRY_FLAGS([-Wnested-externs], solanum_cv_c_gcc_w_nested_externs)
+SOLANUM_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], solanum_cv_c_gcc_w_unused)
+SOLANUM_C_GCC_TRY_FLAGS([-Wredundant-decls], solanum_cv_c_gcc_w_redundant_decls)
+SOLANUM_C_GCC_TRY_FLAGS([-Wfloat-equal], solanum_cv_c_gcc_w_float_equal)
+SOLANUM_C_GCC_TRY_FLAGS([-Wformat -Wformat-y2k -Wno-format-security], solanum_cv_c_gcc_w_format)
 
 IRC_CFLAGS="$CFLAGS"
 ],[])

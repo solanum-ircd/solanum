@@ -1,5 +1,5 @@
 /*
- *  charybdis: A slightly useful ircd.
+ *  Solanum: a slightly advanced ircd
  *  supported.c: isupport (005) numeric
  *
  * Copyright (C) 2006 Jilles Tjoelker

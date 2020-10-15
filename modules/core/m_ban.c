@@ -1,5 +1,5 @@
 /*
- * charybdis: An advanced ircd.
+ * Solanum: a slightly advanced ircd
  * m_ban.c: Propagates network bans across servers.
  *
  *  Copyright (C) 2010 Jilles Tjoelker

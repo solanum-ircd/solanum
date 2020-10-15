@@ -1,5 +1,5 @@
 /*
- * oper-override for charybdis.
+ * oper-override for solanum.
  *
  * adds usermode +p and has a timer event that is iterated over to disable
  * usermode +p after a while...

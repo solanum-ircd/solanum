@@ -1,4 +1,4 @@
-# Travis-CI Build for charybdis
+# Travis-CI Build for solanum
 # see travis-ci.org for details
 
 language: c
@@ -10,7 +10,7 @@ sudo: false
 notifications:
   irc:
     channels:
-    - "chat.freenode.net#charybdis"
+    - "chat.freenode.net#solanum"
 
 matrix:
   include:

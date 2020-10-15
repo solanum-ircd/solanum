@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced Internet Relay Chat Daemon(ircd).
+ * Solanum: a slightly advanced ircd
  *
  * Copyright (C) 2006 charybdis development team
  * All rights reserved

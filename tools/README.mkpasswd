@@ -32,7 +32,7 @@ A Blowfish salt consists of up to 22 alphanumeric characters (plus '.' and
 Blowfish may not always be available, but MD5, SHA256, and SHA512 are
 guaranteed to be.
 
-This program should work anywhere Charybdis does; if you find otherwise, file
+This program should work anywhere Solanum does; if you find otherwise, file
 a bug.
 
  * Blowfish's rounds parameter is a logarithm, not an integer value

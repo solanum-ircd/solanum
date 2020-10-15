@@ -1,9 +1,9 @@
 /* This file is in the public domain. */
 
-extern int charybdis_main(int argc, const char *argv[]);
+extern int solanum_main(int argc, const char *argv[]);
 
 int
 main(int argc, const char *argv[])
 {
-	return charybdis_main(argc, argv);
+	return solanum_main(argc, argv);
 }

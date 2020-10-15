@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd.
+ * Solanum: a slightly advanced ircd
  * privilege.c: Dynamic privileges API.
  *
  * Copyright (c) 2008 William Pitcock <nenolod@dereferenced.org>

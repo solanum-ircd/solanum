@@ -1,5 +1,5 @@
 /*
- * charybdis: an advanced ircd.
+ * Solanum: a slightly advanced ircd
  * cap_server_time.c: implement the server-time IRCv3.2 capability
  *
  * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>
