@@ -429,6 +429,7 @@ struct ListClient
 #define FLAGS_EXEMPTSPAMBOT	0x02000000
 #define FLAGS_EXEMPTSHIDE	0x04000000
 #define FLAGS_EXEMPTJUPE	0x08000000
+#define FLAGS_IDENTIFIED	0x10000000	/* owns their current nick */
 
 
 /* flags for local clients, this needs stuff moved from above to here at some point */
@@ -494,6 +495,9 @@ struct ListClient
 #define IsTGExcessive(x)	((x)->flags & FLAGS_TGEXCESSIVE)
 #define SetTGExcessive(x)	((x)->flags |= FLAGS_TGEXCESSIVE)
 #define ClearTGExcessive(x)	((x)->flags &= ~FLAGS_TGEXCESSIVE)
+#define IsIdentified(x)		((x)->flags & FLAGS_IDENTIFIED)
+#define SetIdentified(x)	((x)->flags |= FLAGS_IDENTIFIED)
+#define ClearIdentified(x)	((x)->flags &= ~FLAGS_IDENTIFIED)
 
 /* local flags */
 

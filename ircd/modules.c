@@ -51,6 +51,7 @@ static const char *core_module_table[] = {
 	"m_ban",
 	"m_die",
 	"m_error",
+	"m_identified",
 	"m_join",
 	"m_kick",
 	"m_kill",

@@ -97,4 +97,5 @@ module_LTLIBRARIES = \
   core/m_part.la \
   core/m_quit.la \
   core/m_server.la \
-  core/m_squit.la
+  core/m_squit.la \
+  core/m_identified.la
