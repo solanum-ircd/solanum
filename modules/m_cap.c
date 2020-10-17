@@ -198,11 +198,6 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 					data != NULL ? data : "") < 0
 					&& buf_list[0] != '\0') {
 
-				if (!(source_p->flags & FLAGS_CLICAP_DATA)) {
-					/* the client doesn't support multiple lines */
-					break;
-				}
-
 				/* doesn't fit in the buffer, output what we have */
 				sendto_one(source_p, "%s%s%s", buf_prefix, str_cont, buf_list);
 
