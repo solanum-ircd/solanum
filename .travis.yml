@@ -7,6 +7,10 @@ language: c
 dist: bionic
 sudo: false
 
+branches:
+  only:
+  - main
+
 matrix:
   include:
     - os: linux
