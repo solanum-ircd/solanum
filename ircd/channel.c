@@ -571,7 +571,7 @@ is_banned_list(struct Channel *chptr, rb_dlink_list *list,
 
 			/* theyre exempted.. */
 			if (matches_mask(ms, actualExcept->banstr) ||
-					match_extban(actualExcept->banstr, who, chptr, CHFL_BAN))
+					match_extban(actualExcept->banstr, who, chptr, CHFL_EXCEPTION))
 			{
 				/* cache the fact theyre not banned */
 				if(msptr != NULL)
