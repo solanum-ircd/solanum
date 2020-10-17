@@ -7,11 +7,6 @@ language: c
 dist: bionic
 sudo: false
 
-notifications:
-  irc:
-    channels:
-    - "chat.freenode.net#solanum"
-
 matrix:
   include:
     - os: linux
