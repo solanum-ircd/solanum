@@ -23,6 +23,7 @@
 #include "ircd.h"
 #include "match.h"
 #include "s_assert.h"
+#include "hook.h"
 
 /*
  * Compare if a given string (name) matches the given
@@ -586,56 +587,95 @@ int ircncmp(const char *s1, const char *s2, int n)
 	return (res);
 }
 
-void matchset_for_client(struct Client *who, struct matchset *m)
+void matchset_for_client(struct Client *who, struct matchset *m, long mode_type)
 {
-	unsigned hostn = 0;
-	unsigned ipn = 0;
-
 	struct sockaddr_in ip4;
+	hook_data_match_client hdata = {.client = who, .ms = m, .mode_type = mode_type};
 
-	sprintf(m->host[hostn++], "%s!%s@%s", who->name, who->username, who->host);
+	m->hostn = m->ipn = 0;
+
+	matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->host);
 
 	if (!IsIPSpoof(who))
-	{
-		sprintf(m->ip[ipn++], "%s!%s@%s", who->name, who->username, who->sockhost);
-	}
+		matchset_append_ip(m, "%s!%s@%s", who->name, who->username, who->sockhost);
 
 	if (who->localClient->mangledhost != NULL)
 	{
 		/* if host mangling mode enabled, also check their real host */
 		if (!strcmp(who->host, who->localClient->mangledhost))
-		{
-			sprintf(m->host[hostn++], "%s!%s@%s", who->name, who->username, who->orighost);
-		}
+			matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->orighost);
 		/* if host mangling mode not enabled and no other spoof,
 		 * also check the mangled form of their host */
 		else if (!IsDynSpoof(who))
-		{
-			sprintf(m->host[hostn++], "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
-		}
+			matchset_append_host(m, "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
 	}
-	if (!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
+	if ((mode_type == CHFL_BAN || mode_type == CHFL_QUIET) &&
+		!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
 			rb_ipv4_from_ipv6((const struct sockaddr_in6 *)&who->localClient->ip, &ip4))
 	{
-		int n = sprintf(m->ip[ipn++], "%s!%s@", who->name, who->username);
+		int n = sprintf(m->ip[m->ipn++], "%s!%s@", who->name, who->username);
 		rb_inet_ntop_sock((struct sockaddr *)&ip4,
-				m->ip[ipn] + n, sizeof m->ip[ipn] - n);
+				m->ip[m->ipn] + n, sizeof m->ip[m->ipn] - n);
 	}
 
-	for (int i = hostn; i < ARRAY_SIZE(m->host); i++)
+	call_hook(h_match_client, &hdata);
+
+	for (int i = m->hostn; i < ARRAY_SIZE(m->host); i++)
 	{
 		m->host[i][0] = '\0';
 	}
-	for (int i = ipn; i < ARRAY_SIZE(m->ip); i++)
+	for (int i = m->ipn; i < ARRAY_SIZE(m->ip); i++)
 	{
 		m->ip[i][0] = '\0';
 	}
 }
 
-bool client_matches_mask(struct Client *who, const char *mask)
+void matchset_append_host(struct matchset *m, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+
+	if (m->hostn >= ARRAY_SIZE(m->host))
+	{
+		char newhost[BUFSIZE];
+		vsnprintf(newhost, sizeof newhost, fmt, ap);
+		va_end(ap);
+
+		iwarn("No space in matchset [%s, ...] for host: %s", m->host[0], newhost);
+		sendto_realops_snomask(SNO_DEBUG, L_ALL | L_NETWIDE,
+			"No space in matchset [%s, ...] for host: %s", m->host[0], newhost);
+		return;
+	}
+
+	vsnprintf(m->host[m->hostn++], sizeof *m->host, fmt, ap);
+	va_end(ap);
+}
+
+void matchset_append_ip(struct matchset *m, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+
+	if (m->ipn >= ARRAY_SIZE(m->ip))
+	{
+		char newip[BUFSIZE];
+		vsnprintf(newip, sizeof newip, fmt, ap);
+		va_end(ap);
+
+		iwarn("No space in matchset [%s, ...] for ip: %s", m->ip[0], newip);
+		sendto_realops_snomask(SNO_DEBUG, L_ALL | L_NETWIDE,
+			"No space in matchset [%s, ...] for ip: %s", m->ip[0], newip);
+		return;
+	}
+
+	vsnprintf(m->ip[m->ipn++], sizeof *m->ip, fmt, ap);
+	va_end(ap);
+}
+
+bool client_matches_mask(struct Client *who, const char *mask, long mode_type)
 {
 	static struct matchset ms;
-	matchset_for_client(who, &ms);
+	matchset_for_client(who, &ms, mode_type);
 	return matches_mask(&ms, mask);
 }
 

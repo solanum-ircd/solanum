@@ -45,6 +45,7 @@ extern int h_conf_read_start;
 extern int h_conf_read_end;
 extern int h_outbound_msgbuf;
 extern int h_rehash;
+extern int h_match_client;
 
 void init_hook(void);
 int register_hook(const char *name);
@@ -167,5 +168,12 @@ typedef struct
 {
 	bool signal;
 } hook_data_rehash;
+
+typedef struct
+{
+	struct Client *client;
+	struct matchset *ms;
+	long mode_type;
+} hook_data_match_client;
 
 #endif

@@ -60,15 +60,20 @@ extern char *collapse(char *pattern);
 extern char *collapse_esc(char *pattern);
 
 struct matchset {
+	size_t hostn;
+	size_t ipn;
 	char host[2][NAMELEN + USERLEN + HOSTLEN + 6];
 	char ip[2][NAMELEN + USERLEN + HOSTIPLEN + 6];
 };
 
 struct Client;
 
-void matchset_for_client(struct Client *who, struct matchset *m);
-bool client_matches_mask(struct Client *who, const char *mask);
+void matchset_for_client(struct Client *who, struct matchset *m, long mode_type);
+bool client_matches_mask(struct Client *who, const char *mask, long mode_type);
 bool matches_mask(const struct matchset *m, const char *mask);
+
+void matchset_append_host(struct matchset *m, const char *fmt, ...);
+void matchset_append_ip(struct matchset *m, const char *fmt, ...);
 
 /*
  * irccmp - case insensitive comparison of s1 and s2
