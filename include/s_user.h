@@ -40,6 +40,7 @@ extern void send_umode(struct Client *, struct Client *, int, char *);
 extern void send_umode_out(struct Client *, struct Client *, int);
 extern void show_lusers(struct Client *source_p);
 extern int register_local_user(struct Client *, struct Client *);
+extern void user_welcome(struct Client *source_p);
 
 extern void introduce_client(struct Client *client_p, struct Client *source_p,
 			    struct User *user, const char *nick, int use_euid);

@@ -182,7 +182,12 @@ send_queued(struct Client *to)
 			       send_queued_write, to);
 	}
 	else
+	{
+		hook_data_client hdata;
+		hdata.client = to;
 		ClearFlush(to);
+		call_hook(h_sendq_cleared, &hdata);
+	}
 }
 
 void

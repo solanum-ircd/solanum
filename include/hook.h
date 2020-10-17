@@ -45,6 +45,8 @@ extern int h_conf_read_start;
 extern int h_conf_read_end;
 extern int h_outbound_msgbuf;
 extern int h_rehash;
+extern int h_cap_change;
+extern int h_sendq_cleared;
 
 void init_hook(void);
 int register_hook(const char *name);
@@ -137,6 +139,14 @@ typedef struct
 	unsigned int oldumodes;
 	unsigned int oldsnomask;
 } hook_data_umode_changed;
+
+typedef struct
+{
+	struct Client *client;
+	int oldcaps;
+	int add;
+	int del;
+} hook_data_cap_change;
 
 enum message_type {
 	MESSAGE_TYPE_NOTICE,
