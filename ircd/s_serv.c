@@ -297,7 +297,7 @@ try_connections(void *unused)
 		 */
 		client_p = find_server(NULL, tmp_p->name);
 
-		if(!client_p && (CurrUsers(cltmp) < MaxUsers(cltmp)) && !connecting)
+		if(!client_p && (CurrUsers(cltmp) < MaxAutoconn(cltmp)) && !connecting)
 		{
 			server_p = tmp_p;
 
