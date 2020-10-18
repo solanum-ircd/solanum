@@ -78,7 +78,6 @@ mo_dline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	char def[] = "No Reason";
 	const char *dlhost;
 	char *reason = def;
-	char cidr_form_host[HOSTLEN + 1];
 	int tdline_time = 0;
 	const char *target_server = NULL;
 	int loc = 1;
@@ -92,8 +91,13 @@ mo_dline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if((tdline_time = valid_temp_time(parv[loc])) >= 0)
 		loc++;
 
+	if (loc >= parc)
+	{
+		sendto_one_notice(source_p, ":Need an IP to D-Line");
+		return;
+	}
+
 	dlhost = parv[loc];
-	rb_strlcpy(cidr_form_host, dlhost, sizeof(cidr_form_host));
 	loc++;
 
 	/* would break the protocol */
