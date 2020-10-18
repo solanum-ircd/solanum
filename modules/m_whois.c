@@ -224,7 +224,6 @@ static void
 single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 {
 	char buf[BUFSIZE];
-	rb_dlink_node *ptr;
 	int cur_len = 0;
 	int mlen;
 	char *t;
@@ -268,56 +267,28 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 	if (!IsService(target_p))
 	{
 		hook_data_channel_visibility hdata_vis;
-		rb_dlink_node *ps = source_p->user->channel.head;
-		rb_dlink_node *pt = target_p->user->channel.head;
+		rb_dlink_node *ps, *pt;
+		struct Channel *chptr;
+		struct membership *ms, *mt;
 
 		hdata_vis.client = source_p;
+		hdata_vis.target = target_p;
 
-		while (pt)
+		ITER_COMM_CHANNELS(ps, pt, source_p->user->channel.head, target_p->user->channel.head, ms, mt, chptr)
 		{
-			struct membership *mt = pt->data;
-			int dir = 0;
-			if (ps != NULL)
-			{
-				struct membership *ms = ps->data;
-				if (ms->chptr == mt->chptr)
-				{
-					ps = ps->next;
-					pt = pt->next;
-					hdata_vis.chptr = mt->chptr;
-					hdata_vis.clientms = ms;
-					hdata_vis.targms = mt;
-					hdata_vis.approved = 1;
-					dir = 0;
-				}
-				else
-				{
-					dir = irccmp(ms->chptr->chname, mt->chptr->chname);
-				}
-			}
-			else
-			{
-				dir = 1;
-			}
-			if (dir < 0)
-			{
-				ps = ps->next;
+			if (mt == NULL)
 				continue;
-			}
-			else if (dir > 0)
-			{
-				pt = pt->next;
-				hdata_vis.chptr = mt->chptr;
-				hdata_vis.clientms = NULL;
-				hdata_vis.targms = mt;
-				hdata_vis.approved = PubChannel(mt->chptr);
-			}
+
+			hdata_vis.chptr = chptr;
+			hdata_vis.clientms = ms;
+			hdata_vis.targetms = mt;
+			hdata_vis.approved = ms != NULL || PubChannel(chptr);
 
 			call_hook(doing_whois_channel_visibility_hook, &hdata_vis);
 
 			if(hdata_vis.approved || operspy)
 			{
-				if((cur_len + strlen(mt->chptr->chname) + 3) > (BUFSIZE - 5))
+				if((cur_len + strlen(chptr->chname) + strlen("!@+ ")) > (BUFSIZE - strlen("\r\n")))
 				{
 					sendto_one(source_p, "%s", buf);
 					cur_len = mlen + extra_space;
@@ -327,7 +298,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 				tlen = sprintf(t, "%s%s%s ",
 						hdata_vis.approved ? "" : "!",
 						find_channel_status(mt, 1),
-						mt->chptr->chname);
+						chptr->chname);
 				t += tlen;
 				cur_len += tlen;
 			}
