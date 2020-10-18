@@ -110,9 +110,10 @@ typedef struct
 typedef struct
 {
 	struct Client *client;
+	struct Client *target;
 	struct Channel *chptr;
 	struct membership *clientms;
-	struct membership *targms;
+	struct membership *targetms;
 	int approved;
 } hook_data_channel_visibility;
 

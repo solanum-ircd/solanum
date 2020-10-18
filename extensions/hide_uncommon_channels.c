@@ -27,5 +27,5 @@ static void
 h_huc_doing_whois_channel_visibility(void *data_)
 {
 	hook_data_channel_visibility *data = data_;
-	data->approved = data->approved && (!IsInvisible(data->targms->client_p) || data->clientms != NULL);
+	data->approved = data->approved && (!IsInvisible(data->target) || data->clientms != NULL);
 }
