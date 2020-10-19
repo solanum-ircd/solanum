@@ -103,6 +103,7 @@ unsigned int CLICAP_ECHO_MESSAGE;
 void
 init_builtin_capabs(void)
 {
+	static struct ClientCapability high_priority = {.flags = CLICAP_FLAGS_PRIORITY};
 	serv_capindex = capability_index_create("server capabilities");
 
 	/* These two are not set via CAPAB/GCAP keywords. */
@@ -135,13 +136,13 @@ init_builtin_capabs(void)
 
 	cli_capindex = capability_index_create("client capabilities");
 
-	CLICAP_MULTI_PREFIX = capability_put(cli_capindex, "multi-prefix", NULL);
-	CLICAP_ACCOUNT_NOTIFY = capability_put(cli_capindex, "account-notify", NULL);
-	CLICAP_EXTENDED_JOIN = capability_put(cli_capindex, "extended-join", NULL);
-	CLICAP_AWAY_NOTIFY = capability_put(cli_capindex, "away-notify", NULL);
-	CLICAP_USERHOST_IN_NAMES = capability_put(cli_capindex, "userhost-in-names", NULL);
+	CLICAP_MULTI_PREFIX = capability_put(cli_capindex, "multi-prefix", &high_priority);
+	CLICAP_ACCOUNT_NOTIFY = capability_put(cli_capindex, "account-notify", &high_priority);
+	CLICAP_EXTENDED_JOIN = capability_put(cli_capindex, "extended-join", &high_priority);
+	CLICAP_AWAY_NOTIFY = capability_put(cli_capindex, "away-notify", &high_priority);
+	CLICAP_USERHOST_IN_NAMES = capability_put(cli_capindex, "userhost-in-names", &high_priority);
 	CLICAP_CAP_NOTIFY = capability_put(cli_capindex, "cap-notify", NULL);
-	CLICAP_CHGHOST = capability_put(cli_capindex, "chghost", NULL);
+	CLICAP_CHGHOST = capability_put(cli_capindex, "chghost", &high_priority);
 	CLICAP_ECHO_MESSAGE = capability_put(cli_capindex, "echo-message", NULL);
 }
 

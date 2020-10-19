@@ -51,6 +51,7 @@ extern struct CapabilityIndex *cli_capindex;
 
 /* register client capabilities with this structure for 3.2 enhanced capability negotiation */
 #define CLICAP_FLAGS_STICKY    0x001
+#define CLICAP_FLAGS_PRIORITY  0x002
 
 struct ClientCapability {
 	bool (*visible)(struct Client *);		/* whether or not to display the capability.  set to NULL or true return value = displayed */
