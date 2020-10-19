@@ -351,12 +351,6 @@ cap_req(struct Client *source_p, const char *arg)
 			capadd |= (1 << cap->value);
 		}
 
-		/* XXX this probably should exclude REQACK'd caps from capadd/capdel, but keep old behaviour for now */
-		if(HasCapabilityFlag(cap, CLICAP_FLAGS_REQACK))
-		{
-			type = "~";
-		}
-
 		for (int attempts = 0; attempts < 2; attempts++) {
 			if (rb_snprintf_try_append(buf_list[i], max_list, "%s%s%s",
 					buf_list[i][0] == '\0' ? "" : " ", /* space between caps */
