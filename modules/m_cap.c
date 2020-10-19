@@ -206,7 +206,7 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 
 				if (!(source_p->flags & FLAGS_CLICAP_DATA)) {
 					/* the client doesn't support multiple lines */
-					break;
+					continue;
 				}
 
 				/* doesn't fit in the buffer, output what we have */
