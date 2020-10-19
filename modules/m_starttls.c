@@ -45,8 +45,12 @@ mapi_clist_av1 starttls_clist[] = { &starttls_msgtab, NULL };
 
 unsigned int CLICAP_TLS = 0;
 
+static struct ClientCapability capdata_tls = {
+	.flags = CLICAP_FLAGS_PRIORITY,
+};
+
 mapi_cap_list_av2 starttls_cap_list[] = {
-	{ MAPI_CAP_CLIENT, "tls", NULL, &CLICAP_TLS },
+	{ MAPI_CAP_CLIENT, "tls", &capdata_tls, &CLICAP_TLS },
 	{ 0, NULL, NULL, NULL }
 };
 

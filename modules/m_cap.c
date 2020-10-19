@@ -177,9 +177,15 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 	buf_list[0] = '\0';
 	max_list = sizeof(buf_prefix) - len_prefix - strlen(str_cont);
 
+	for (int pass = 0; pass < 2; pass++)
 	RB_DICTIONARY_FOREACH(entry, &iter, cli_capindex->cap_dict) {
 		struct ClientCapability *clicap = entry->ownerdata;
 		const char *data = NULL;
+
+		if (pass == 0 && !HasCapabilityFlag(entry, CLICAP_FLAGS_PRIORITY))
+			continue;
+		else if (pass == 1 && HasCapabilityFlag(entry, CLICAP_FLAGS_PRIORITY))
+			continue;
 
 		if (flags && !IsCapableEntry(source_p, entry))
 			continue;
