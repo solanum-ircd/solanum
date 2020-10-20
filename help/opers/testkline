@@ -1,0 +1,7 @@
+TESTKLINE [user@]host
+
+Looks up given mask, looking for any matching K/D-lines.
+If username is not specified, it will look up "dummy@host".
+
+This command will not perform dns lookups on a host; for best
+results you must testkline a host and its IP form.
