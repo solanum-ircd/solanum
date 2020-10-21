@@ -78,7 +78,7 @@ Note that some clients may have to use /quote ACCEPT instead of /accept.
 --
 
 Client Hwy101:  /msg Hwy-LL hi
-Hwy101 will see:  -!- Hwy-LL is in +g mode (server-side ignore.)
+Hwy101 will see:  -!- Hwy-LL is in +g mode and must manually allow you to message them.
                   -!- Hwy-LL has been informed that you messaged them.
 
 Hwy-LL will see:  -!- Hwy101 wcampbel@admin.irc.monkie.org is messaging you, and you have umode +g.
@@ -86,7 +86,7 @@ Hwy-LL will see:  -!- Hwy101 wcampbel@admin.irc.monkie.org is messaging you, and
 --
 
 If Hwy101 sends another message to Hwy-LL (before the minute expires), he will
-see:  -!- Hwy-LL is in +g mode (server-side ignore.)
+see:  -!- Hwy-LL is in +g mode and must manually allow you to message them.
 and will not receive the second notice
 
 Hwy-LL will NOT see any notice. This also applies if the second message comes
@@ -189,7 +189,7 @@ their accept list.
 
 716 - ERR_TARGUMODEG
 --------------------
-:<server> 716 <nick> <target> :is in +g mode (server-side ignore.)
+:<server> 716 <nick> <target> :is in +g mode and must manually allow you to message them.
 
 This numeric is used to indicate that a message (PRIVMSG) the client sent
 could not be delivered because of CallerID restrictions. The <target>
