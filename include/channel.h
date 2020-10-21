@@ -204,9 +204,24 @@ int iter_comm_channels_step(rb_dlink_node *pos1, rb_dlink_node *pos2,
 		struct membership **ms1, struct membership **ms2,
 		struct Channel **chptr);
 
-#define ITER_COMM_CHANNELS(pos1, pos2, head1, head2, ms1, ms2, chptr) for ((pos1) = (head1), (pos2) = (head2); \
-		iter_comm_channels_step((pos1), (pos2), &(ms1), &(ms2), &(chptr)); \
-		(ms1) && ((pos1) = (pos1)->next), (ms2) && ((pos2) = (pos2)->next))
+
+/* Iterate two sorted linked lists of channels, with heads headN, in lockstep.
+   At each iteration, chptr will be a channel in at least one of the lists,
+   and each msN will be non-null iff the channel is in its corresponding list.
+
+   head1 and head2 must be linked list heads.
+   pos1, pos2, ms1, ms2 must be names of modifiable variables, and should not
+   be modified during iteration. It is safe to break or continue at any point
+   without any special cleanup.
+
+   rb_dlink_node_t *pos1, *pos2, *head1, *head2;
+   struct membership *ms1, *ms2;
+   struct Channel *chptr;
+*/
+#define ITER_COMM_CHANNELS(pos1, pos2, head1, head2, ms1, ms2, chptr) \
+		for ((pos1) = (head1), (pos2) = (head2); \
+			iter_comm_channels_step((pos1), (pos2), &(ms1), &(ms2), &(chptr)); \
+			(ms1) && ((pos1) = (pos1)->next), (ms2) && ((pos2) = (pos2)->next))
 
 
 extern rb_dlink_list global_channel_list;
