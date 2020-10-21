@@ -38,14 +38,14 @@ static int add_hashed_target(struct Client *source_p, uint32_t hashv);
 struct Channel *
 find_allowing_channel(struct Client *source_p, struct Client *target_p)
 {
-	rb_dlink_node *ptr;
-	struct membership *msptr;
+	rb_dlink_node *ps, *pt;
+	struct membership *ms, *mt;
+	struct Channel *chptr;
 
-	RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
+	ITER_COMM_CHANNELS(ps, pt, source_p->user->channel.head, target_p->user->channel.head, ms, mt, chptr)
 	{
-		msptr = ptr->data;
-		if (is_chanop_voiced(msptr) && IsMember(target_p, msptr->chptr))
-			return msptr->chptr;
+		if (ms != NULL && mt != NULL && is_chanop_voiced(ms))
+			return chptr;
 	}
 	return NULL;
 }

@@ -200,6 +200,15 @@ typedef int (*ExtbanFunc)(const char *data, struct Client *client_p,
 #define EXTBAN_NOMATCH  0  /* valid mask, no match */
 #define EXTBAN_MATCH    1  /* matches */
 
+int iter_comm_channels_step(rb_dlink_node *pos1, rb_dlink_node *pos2,
+		struct membership **ms1, struct membership **ms2,
+		struct Channel **chptr);
+
+#define ITER_COMM_CHANNELS(pos1, pos2, head1, head2, ms1, ms2, chptr) for ((pos1) = (head1), (pos2) = (head2); \
+		iter_comm_channels_step((pos1), (pos2), &(ms1), &(ms2), &(chptr)); \
+		(ms1) && ((pos1) = (pos1)->next), (ms2) && ((pos2) = (pos2)->next))
+
+
 extern rb_dlink_list global_channel_list;
 void init_channels(void);
 

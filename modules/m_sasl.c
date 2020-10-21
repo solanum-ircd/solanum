@@ -106,7 +106,7 @@ sasl_data(struct Client *client_p)
 static struct ClientCapability capdata_sasl = {
 	.visible = sasl_visible,
 	.data = sasl_data,
-	.flags = CLICAP_FLAGS_STICKY,
+	.flags = CLICAP_FLAGS_STICKY | CLICAP_FLAGS_PRIORITY,
 };
 
 mapi_cap_list_av2 sasl_cap_list[] = {

@@ -224,9 +224,6 @@ static void
 single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 {
 	char buf[BUFSIZE];
-	rb_dlink_node *ptr;
-	struct membership *msptr;
-	struct Channel *chptr;
 	int cur_len = 0;
 	int mlen;
 	char *t;
@@ -269,19 +266,29 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 	if (!IsService(target_p))
 	{
-		RB_DLINK_FOREACH(ptr, target_p->user->channel.head)
+		hook_data_channel_visibility hdata_vis;
+		rb_dlink_node *ps, *pt;
+		struct Channel *chptr;
+		struct membership *ms, *mt;
+
+		hdata_vis.client = source_p;
+		hdata_vis.target = target_p;
+
+		ITER_COMM_CHANNELS(ps, pt, source_p->user->channel.head, target_p->user->channel.head, ms, mt, chptr)
 		{
-			msptr = ptr->data;
-			chptr = msptr->chptr;
+			if (mt == NULL)
+				continue;
 
-			hdata.chptr = chptr;
+			hdata_vis.chptr = chptr;
+			hdata_vis.clientms = ms;
+			hdata_vis.targetms = mt;
+			hdata_vis.approved = ms != NULL || PubChannel(chptr);
 
-			hdata.approved = ShowChannel(source_p, chptr);
-			call_hook(doing_whois_channel_visibility_hook, &hdata);
+			call_hook(doing_whois_channel_visibility_hook, &hdata_vis);
 
-			if(hdata.approved || operspy)
+			if(hdata_vis.approved || operspy)
 			{
-				if((cur_len + strlen(chptr->chname) + 3) > (BUFSIZE - 5))
+				if((cur_len + strlen(chptr->chname) + strlen("!@+ ")) > (BUFSIZE - strlen("\r\n")))
 				{
 					sendto_one(source_p, "%s", buf);
 					cur_len = mlen + extra_space;
@@ -289,8 +296,8 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 				}
 
 				tlen = sprintf(t, "%s%s%s ",
-						hdata.approved ? "" : "!",
-						find_channel_status(msptr, 1),
+						hdata_vis.approved ? "" : "!",
+						find_channel_status(mt, 1),
 						chptr->chname);
 				t += tlen;
 				cur_len += tlen;

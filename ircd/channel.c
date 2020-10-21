@@ -221,6 +221,7 @@ void
 add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 {
 	struct membership *msptr;
+	rb_dlink_node *p;
 
 	s_assert(client_p->user != NULL);
 	if(client_p->user == NULL)
@@ -232,7 +233,17 @@ add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 	msptr->client_p = client_p;
 	msptr->flags = flags;
 
-	rb_dlinkAdd(msptr, &msptr->usernode, &client_p->user->channel);
+	RB_DLINK_FOREACH(p, client_p->user->channel.head)
+	{
+		struct membership *ms2 = p->data;
+		if (irccmp(chptr->chname, ms2->chptr->chname) < 0)
+			break;
+	}
+	if (p == NULL)
+		rb_dlinkAddTail(msptr, &msptr->usernode, &client_p->user->channel);
+	else
+		rb_dlinkAddBefore(p, msptr, &msptr->usernode, &client_p->user->channel);
+
 	rb_dlinkAdd(msptr, &msptr->channode, &chptr->members);
 
 	if(MyClient(client_p))
@@ -421,6 +432,47 @@ channel_pub_or_secret(struct Channel *chptr)
 	else if(SecretChannel(chptr))
 		return ("@");
 	return ("*");
+}
+
+int
+iter_comm_channels_step(rb_dlink_node *pos1, rb_dlink_node *pos2,
+		struct membership **ms1, struct membership **ms2,
+		struct Channel **chptr)
+{
+	*ms1 = pos1 ? pos1->data : NULL;
+	*ms2 = pos2 ? pos2->data : NULL;
+
+	/* we're at the end */
+	if (*ms1 == NULL && *ms2 == NULL)
+		return 0;
+
+	/* one side is at the end, keep stepping the other one */
+	if (*ms1 == NULL || *ms2 == NULL)
+	{
+		*chptr = *ms1 != NULL ? (*ms1)->chptr : (*ms2)->chptr;
+		return 1;
+	}
+
+	/* common channel */
+	if ((*ms1)->chptr == (*ms2)->chptr)
+	{
+		*chptr = (*ms1)->chptr;
+		return 1;
+	}
+
+	/* null out the channel that's further ahead; we'll get to it later */
+	if (irccmp((*ms1)->chptr->chname, (*ms2)->chptr->chname) > 0)
+	{
+		*ms1 = NULL;
+		*chptr = (*ms2)->chptr;
+		return 1;
+	}
+	else
+	{
+		*ms2 = NULL;
+		*chptr = (*ms1)->chptr;
+		return 1;
+	}
 }
 
 /* channel_member_names()
