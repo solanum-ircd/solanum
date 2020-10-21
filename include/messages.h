@@ -217,7 +217,7 @@
 #define NUMERIC_STR_713      "%s :Channel is open."
 #define NUMERIC_STR_714      ":%s 714 %s %s :You are already on that channel."
 #define NUMERIC_STR_715      ":%s 715 %s :KNOCKs are disabled."
-#define NUMERIC_STR_716      "%s :is in %s mode (server-side ignore.)"
+#define NUMERIC_STR_716      "%s :is in %s mode and must manually allow you to message them."
 #define NUMERIC_STR_717      "%s :has been informed that you messaged them."
 #define NUMERIC_STR_718      ":%s 718 %s %s %s@%s :is messaging you, and you have umode %s."
 #define NUMERIC_STR_720      ":%s 720 %s :Start of OPER MOTD"
