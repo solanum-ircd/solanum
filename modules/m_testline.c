@@ -117,7 +117,10 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		mask = p;
 
 		if(EmptyString(mask))
+		{
+			sendto_one_notice(source_p, "Invalid syntax for TESTLINE");
 			return;
+		}
 	}
 
 	if((p = strchr(mask, '@')))
@@ -127,7 +130,10 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		host = p;
 
 		if(EmptyString(host))
+		{
+			sendto_one_notice(source_p, "Invalid syntax for TESTLINE");
 			return;
+		}
 	}
 	else
 		host = mask;
@@ -269,7 +275,10 @@ mo_testkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 		mask = p + 1;
 
 		if(EmptyString(mask))
+		{
+			sendto_one_notice(source_p, "Invalid syntax for TESTKLINE");
 			return;
+		}
 	}
 
 	if ((p = strchr(mask, '@')))
@@ -279,7 +288,10 @@ mo_testkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 		host = p;
 
 		if(EmptyString(host))
+		{
+			sendto_one_notice(source_p, "Invalid syntax for TESTKLINE");
 			return;
+		}
 	}
 	else
 	{
