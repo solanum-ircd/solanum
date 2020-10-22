@@ -76,12 +76,7 @@ cap_realhost_outbound_msgbuf(void *data_)
 	}
 
 	if (!EmptyString(data->client->orighost))
-	{
-		if (IsDynSpoof(data->client))
-			msgbuf_append_tag(msgbuf, "solanum.chat/realhost", data->client->orighost, CLICAP_OPER_REALHOST);
-		else
-			msgbuf_append_tag(msgbuf, "solanum.chat/realhost", data->client->orighost, CLICAP_REALHOST);
-	}
+		msgbuf_append_tag(msgbuf, "solanum.chat/realhost", data->client->orighost, CLICAP_OPER_REALHOST);
 }
 
 static inline void
