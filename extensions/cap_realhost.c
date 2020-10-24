@@ -69,10 +69,8 @@ cap_realhost_outbound_msgbuf(void *data_)
 
 	if (!IsIPSpoof(data->client) && !EmptyString(data->client->sockhost) && strcmp(data->client->sockhost, "0"))
 	{
-		if (IsDynSpoof(data->client))
-			msgbuf_append_tag(msgbuf, "solanum.chat/ip", data->client->sockhost, CLICAP_OPER_REALHOST);
-		else
-			msgbuf_append_tag(msgbuf, "solanum.chat/ip", data->client->sockhost, CLICAP_REALHOST);
+		msgbuf_append_tag(msgbuf, "solanum.chat/ip", data->client->sockhost,
+				IsDynSpoof(data->client) ? CLICAP_OPER_REALHOST : CLICAP_REALHOST);
 	}
 
 	if (!EmptyString(data->client->orighost))
