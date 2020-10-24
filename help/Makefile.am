@@ -1,7 +1,7 @@
 # Generated automatically from Makefile.in by configure.
-# makefile for include/
+# makefile for help/
 
-AUTOMAKE_OPTIONS = foreign 
+AUTOMAKE_OPTIONS = foreign
 
 prefix=		@prefix@
 exec_prefix=	@execprefix@
@@ -17,9 +17,11 @@ SYMLINKS=	topic accept cmode admin names links away whowas \
 
 all: index
 build:
-clean:
 depend:
 lint:
+
+clean:
+	rm -f users/index users/index.tmp opers/index opers/index.tmp
 
 index:
 	@echo building index files
@@ -59,7 +61,7 @@ index:
 		>> opers/index
 	@rm -f opers/index.tmp
 
-install:
+install: index
 	-@if test -d $(DESTDIR)$(helpdir)-old; then \
 		rm -rf $(DESTDIR)$(helpdir)-old; \
 	fi
