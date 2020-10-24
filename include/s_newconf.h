@@ -149,8 +149,7 @@ extern void cluster_generic(struct Client *, const char *, int cltype,
 #define HasPrivilege(x, y)	((x)->user != NULL && (x)->user->privset != NULL && privilegeset_in_set((x)->user->privset, (y)))
 #define MayHavePrivilege(x, y)	(HasPrivilege((x), (y)) || (IsOper((x)) && (x)->user != NULL && (x)->user->privset == NULL))
 
-#define IsOperGlobalKill(x)     (HasPrivilege((x), "oper:global_kill"))
-#define IsOperLocalKill(x)      (HasPrivilege((x), "oper:local_kill"))
+#define IsOperKill(x)           (HasPrivilege((x), "oper:kill"))
 #define IsOperRemote(x)         (HasPrivilege((x), "oper:routing"))
 #define IsOperUnkline(x)        (HasPrivilege((x), "oper:unkline"))
 #define IsOperN(x)              (HasPrivilege((x), "snomask:nick_changes"))
@@ -164,9 +163,9 @@ extern void cluster_generic(struct Client *, const char *, int cltype,
 #define IsOperOperwall(x)       (HasPrivilege((x), "oper:operwall"))
 #define IsOperSpy(x)            (HasPrivilege((x), "oper:spy"))
 #define IsOperInvis(x)          (HasPrivilege((x), "oper:hidden"))
-#define IsOperRemoteBan(x)	(HasPrivilege((x), "oper:remoteban"))
-#define IsOperMassNotice(x)	(HasPrivilege((x), "oper:mass_notice"))
-#define IsOperGeneral(x)	(MayHavePrivilege((x), "oper:general"))
+#define IsOperRemoteBan(x)      (HasPrivilege((x), "oper:remoteban"))
+#define IsOperMassNotice(x)     (HasPrivilege((x), "oper:mass_notice"))
+#define IsOperGeneral(x)        (MayHavePrivilege((x), "oper:general"))
 
 #define SeesOper(target, source)	(IsOper((target)) && ((!ConfigFileEntry.hide_opers && !HasPrivilege((target), "oper:hidden")) || HasPrivilege((source), "auspex:oper")))
 
