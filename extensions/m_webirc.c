@@ -75,8 +75,8 @@ DECLARE_MODULE_AV2(webirc, NULL, NULL, webirc_clist, NULL, webirc_hfnlist, NULL,
 
 /*
  * mr_webirc - webirc message handler
- *      parv[1] = password
- *      parv[2] = fake username (we ignore this)
+ *	parv[1] = password
+ *	parv[2] = fake username (we ignore this)
  *	parv[3] = fake hostname
  *	parv[4] = fake ip
  */
@@ -89,13 +89,20 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	int secure = 0;
 
+	if (source_p->flags & FLAGS_SENTUSER || !EmptyString(source_p->name))
+	{
+		exit_client(client_p, source_p, &me, "WEBIRC may not follow NICK/USER");
+	}
+
 	aconf = find_address_conf(client_p->host, client_p->sockhost,
 				IsGotId(client_p) ? client_p->username : "webirc",
 				IsGotId(client_p) ? client_p->username : "webirc",
 				(struct sockaddr *) &client_p->localClient->ip,
 				GET_SS_FAMILY(&client_p->localClient->ip), NULL);
+
 	if (aconf == NULL || !(aconf->status & CONF_CLIENT))
 		return;
+
 	if (!IsConfDoSpoofIp(aconf) || irccmp(aconf->info.name, "webirc."))
 	{
 		/* XXX */
@@ -133,6 +140,8 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	}
 
 	source_p->localClient->ip = addr;
+	source_p->username[0] = '\0';
+	ClearGotId(source_p);
 
 	if (parc >= 6)
 	{
