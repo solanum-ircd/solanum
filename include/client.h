@@ -539,6 +539,7 @@ struct ListClient
 #define IsNoForward(x)		((x)->umodes & UMODE_NOFORWARD)
 
 #define SetGotId(x)             ((x)->flags |= FLAGS_GOTID)
+#define ClearGotId(x)           ((x)->flags &= ~FLAGS_GOTID)
 #define IsGotId(x)              (((x)->flags & FLAGS_GOTID) != 0)
 
 #define IsExemptKline(x)        ((x)->flags & FLAGS_EXEMPTKLINE)
