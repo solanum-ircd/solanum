@@ -43,8 +43,8 @@ auth { user = "*@127.0.0.0/8"; class = "users"; };
 
 operator "oper" {
 	user = "*@127.0.0.0/8";
-	password = "oper"; 
-	flags = global_kill, remote, kline, unkline, nick_changes,
+	password = "oper";
+	flags = kill, remote, kline, unkline, nick_changes,
 		die, rehash, admin, xline, operwall, oper_spy, ~encrypted;
 };
 
