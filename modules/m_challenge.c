@@ -222,7 +222,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		return;
 	}
 
-	if(IsOperConfNeedSSL(oper_p) && !IsSSLClient(source_p))
+	if(IsOperConfNeedSSL(oper_p) && !IsSecureClient(source_p))
 	{
 		sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
 		ilog(L_FOPER, "FAILED CHALLENGE (%s) by (%s!%s@%s) (%s) -- requires SSL/TLS",
