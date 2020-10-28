@@ -346,6 +346,10 @@ shared {
 	flags = all, rehash;
 };
 
+secure {
+	ip = "127.0.0.1";
+};
+
 /* exempt {}: IPs that are exempt from Dlines and rejectcache. (OLD d:) */
 exempt {
 	ip = "127.0.0.1";
