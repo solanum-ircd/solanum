@@ -1,12 +1,85 @@
 # News
 
-This is charybdis 4.1.3-dev, Copyright (c) 2005-2018 Charybdis team.
+This is solanum 1.0-dev.
 See LICENSE for licensing details (GPL v2).
+
+## solanum-1.0
+
+Includes changes from charybdis-4.1.3-dev.
+
+**This release includes breaking changes.** Please pay close attention to bolded warnings in the
+full release notes below.
+
+### build
+- Add `--with-asan` to configure to produce an ASan instrumented build
+
+### server protocol
+- OPER is now propagated globally, as :operator OPER opername privset
+
+### user
+- **Breaking:** invite-notify is now enabled by loading the invite-notify extension
+- Prioritise older, more important client capabilities for clients that can only accept
+  one line of CAP LS
+- Add the solanum.chat/realhost vendor capability (provided by extensions/cap\_realhost)
+- Add the solanum.chat/identify-msg vendor capability (provided by extensions/identify\_msg)
+- Server-side aliases preserve protocol framing characters
+- Add the +G user mode for soft callerid (implicitly allow users with a common channel)
+- /invite no longer punches through callerid
+- invite-notify now works
+- Rejectcached users are now sent the reason of the ban that caused their reject in most cases
+- Rejectcache entries expire when their corresponding K-lines do
+- One-argument /stats and zero-argument /motd are no longer ratelimited
+- Channel bans don't see through IP spoofs
+- Global /names now respects userhost-in-names
+- The `$j` extban is no longer usable inside ban exceptions
+
+### oper
+- **Breaking:** Kick immunity for override is now its own extension, override\_kick\_immunity
+- **Breaking:** /stats A output now follows the same format as other stats letters
+- **Breaking:** helpops now uses +h instead of +H
+- Opers now have their privset (identified by name) on remote servers
+- Oper-only umodes are refreshed after rehash and /grant
+- Extension modules can be reloaded
+- Override no longer spams about being enabled/disabled. It continues to spam on each use.
+- Add /testkline, which has the same syntax as /testline but doesn't check if the mask is ilined
+- /privs is now remote-capable and can respond with more than one line
+- Most commands now respect oper hiding
+- Massnotice (notice/privmsg to $$.../$#...) now alerts opers
+- Massnotice no longer imposes any restrictions on the target mask
+- /kline and /dline are hardened to invalid inputs
+- K/D-lines are more consistent about checking for encoded ipv4-in-ipv6 addresses
+- Add extensions/drain to reject new connections
+- Add extensions/filter to filter messages, parts and quits with a Hyperscan database
+- Add extensions/sasl\_usercloak to interpolate SASL account names into I-line spoofs
+
+### conf
+- **Breaking:** Completely overhaul oper privs. All privset configs will need to be rewritten.
+  See reference.conf for details.
+- Add the `kline_spoof_ip` I-line flag to make any spoof opaque to K-line matching
+- Add general::hide\_tkline\_duration to remove durations from user-visible ban reasons
+- Add general::hide\_opers, which behaves as if all opers have oper:hidden
+- Add general::post\_registration\_delay
+- Add general::tls\_ciphers\_oper\_only to hide TLS cipher details in /whois
+- Add channel::opmod\_send\_statusmsg to send messages allowed by +z to @#channel
+- Add class::max\_autoconn, with the behaviour of class::max\_number for servers prior to
+  charybdis 4
+- Remove general::kline\_delay
+- If m\_webirc is loaded, connections that try to use a webirc auth block as their I-line will
+  be disconnected on registration
+
+### misc
+- **Breaking:** WEBIRC now processes the "secure" option as specified by IRCv3. Web gateways that
+  do not set this option will need to be updated or their connections will show as insecure.
+
+### code
+- Channel lists are now kept sorted. A for-loop macro, `ITER_COMM_CHANNELS`, is introduced to
+  efficiently compare two such lists.
+
 
 ## charybdis-4.1.2
 
 ### user
-- src/s_user.c: don't corrupt usermodes on module unload/reload
+- src/s\_user.c: don't corrupt usermodes on module unload/reload
 
 ## charybdis-4.1.1
 
@@ -765,7 +838,7 @@ See LICENSE for licensing details (GPL v2).
 ## charybdis-1.0
 
 - Implement channel mode +L for channel list limit exemptions.
-- Implement channel mode +P primarily as a status mode, permanant 
+- Implement channel mode +P primarily as a status mode, permanant
   channel -- this is usually enforced via services registrations.
 - Change behaviour of /stats p: now displays all staff members instead
   of local ones only.
