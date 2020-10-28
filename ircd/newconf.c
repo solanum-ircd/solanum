@@ -1536,6 +1536,25 @@ conf_set_exempt_ip(void *data)
 	add_conf_by_address(yy_tmp->host, CONF_EXEMPTDLINE, NULL, NULL, yy_tmp);
 }
 
+static void
+conf_set_secure_ip(void *data)
+{
+	struct ConfItem *yy_tmp;
+	int masktype = parse_netmask_strict(data, NULL, NULL);
+
+	if(masktype != HM_IPV4 && masktype != HM_IPV6)
+	{
+		conf_report_error("Ignoring secure -- invalid secure::ip.");
+		return;
+	}
+
+	yy_tmp = make_conf();
+	yy_tmp->passwd = rb_strdup("*");
+	yy_tmp->host = rb_strdup(data);
+	yy_tmp->status = CONF_SECURE;
+	add_conf_by_address(yy_tmp->host, CONF_SECURE, NULL, NULL, yy_tmp);
+}
+
 static int
 conf_cleanup_cluster(struct TopConf *tc)
 {
@@ -2893,6 +2912,9 @@ newconf_init()
 
 	add_top_conf("exempt", NULL, NULL, NULL);
 	add_conf_item("exempt", "ip", CF_QSTRING, conf_set_exempt_ip);
+
+	add_top_conf("secure", NULL, NULL, NULL);
+	add_conf_item("secure", "ip", CF_QSTRING, conf_set_secure_ip);
 
 	add_top_conf("cluster", conf_cleanup_cluster, conf_cleanup_cluster, NULL);
 	add_conf_item("cluster", "name", CF_QSTRING, conf_set_cluster_name);
