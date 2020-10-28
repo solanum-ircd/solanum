@@ -202,7 +202,10 @@ cmd_notice_client(int parc, char **parv)
 {
 	struct Client *client_p;
 
-	if((client_p = str_cid_to_client(parv[1], false)) == NULL)
+	if ((client_p = str_cid_to_client(parv[1], false)) == NULL)
+		return;
+
+	if (IsAnyDead(client_p))
 		return;
 
 	sendto_one_notice(client_p, ":%s", parv[2]);
