@@ -101,7 +101,7 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		return;
 	}
 
-	if(IsOperConfNeedSSL(oper_p) && !IsSSLClient(source_p))
+	if(IsOperConfNeedSSL(oper_p) && !IsSecureClient(source_p))
 	{
 		sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
 		ilog(L_FOPER, "FAILED OPER (%s) by (%s!%s@%s) (%s) -- requires SSL/TLS",

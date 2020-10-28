@@ -453,7 +453,7 @@ struct ListClient
 /* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x1000	/* Operator */
 #define UMODE_ADMIN        0x2000	/* Admin on server */
-#define UMODE_SSLCLIENT    0x4000	/* using SSL */
+#define UMODE_SECURE       0x4000	/* has a secure connection */
 
 #define DEFAULT_OPER_UMODES (UMODE_SERVNOTICE | UMODE_OPERWALL | \
                              UMODE_WALLOP | UMODE_LOCOPS)
@@ -527,16 +527,14 @@ struct ListClient
 #define IsInvisible(x)          ((x)->umodes & UMODE_INVISIBLE)
 #define SetInvisible(x)         ((x)->umodes |= UMODE_INVISIBLE)
 #define ClearInvisible(x)       ((x)->umodes &= ~UMODE_INVISIBLE)
-#define IsSSLClient(x)		((x)->umodes & UMODE_SSLCLIENT)
-#define SetSSLClient(x)		((x)->umodes |= UMODE_SSLCLIENT)
-#define ClearSSLClient(x)	((x)->umodes &= ~UMODE_SSLCLIENT)
+#define IsSecureClient(x)       ((x)->umodes & UMODE_SECURE)
 #define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
 #define SendLocops(x)           ((x)->umodes & UMODE_LOCOPS)
 #define SendServNotice(x)       ((x)->umodes & UMODE_SERVNOTICE)
 #define SendOperwall(x)         ((x)->umodes & UMODE_OPERWALL)
-#define IsService(x)		((x)->umodes & UMODE_SERVICE)
-#define IsDeaf(x)		((x)->umodes & UMODE_DEAF)
-#define IsNoForward(x)		((x)->umodes & UMODE_NOFORWARD)
+#define IsService(x)            ((x)->umodes & UMODE_SERVICE)
+#define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
+#define IsNoForward(x)          ((x)->umodes & UMODE_NOFORWARD)
 
 #define SetGotId(x)             ((x)->flags |= FLAGS_GOTID)
 #define IsGotId(x)              (((x)->flags & FLAGS_GOTID) != 0)

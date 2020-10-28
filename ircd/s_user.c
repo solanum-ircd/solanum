@@ -89,7 +89,7 @@ int user_modes[256] = {
 	0,			/* W */
 	0,			/* X */
 	0,			/* Y */
-	UMODE_SSLCLIENT,	/* Z */
+	UMODE_SECURE,		/* Z */
 	/* 0x5B */ 0, 0, 0, 0, 0, 0, /* 0x60 */
 	UMODE_ADMIN,		/* a */
 	0,			/* b */
@@ -635,7 +635,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	}
 
 	if (IsSecure(source_p))
-		source_p->umodes |= UMODE_SSLCLIENT;
+		source_p->umodes |= UMODE_SECURE;
 
 	if (source_p->umodes & UMODE_INVISIBLE)
 		Count.invisi++;

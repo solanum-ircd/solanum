@@ -34,7 +34,7 @@ static int eb_ssl(const char *data, struct Client *client_p,
 	(void)chptr;
 	(void)mode_type;
 
-	if (! IsSSLClient(client_p))
+	if (!IsSecureClient(client_p))
 		return EXTBAN_NOMATCH;
 
 	if (data != NULL)
