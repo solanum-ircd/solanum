@@ -141,13 +141,13 @@ setfilter(const char *check, const char *data, const char **error)
 
 	if (!strcasecmp(data, "disable")) {
 		filter_enable = 0;
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"Filtering disabled.");
 		return 0;
 	}
 	if (!strcasecmp(data, "enable")) {
 		filter_enable = 1;
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"Filtering enabled.");
 		return 0;
 	}
@@ -217,7 +217,7 @@ setfilter(const char *check, const char *data, const char **error)
 		}
 		state = FILTER_LOADED;
 		filter_db = db;
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"New filters loaded.");
 		rb_free(filter_data);
 		filter_data = 0;
@@ -408,7 +408,7 @@ filter_msg_user(void *data_)
 		data->approved = 1;
 	}
 	if (r & ACT_ALARM) {
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"FILTER: %s!%s@%s [%s]",
 			s->name, s->username, s->host, s->sockhost);
 	}
@@ -449,7 +449,7 @@ filter_msg_channel(void *data_)
 		data->approved = 1;
 	}
 	if (r & ACT_ALARM) {
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"FILTER: %s!%s@%s [%s]",
 			s->name, s->username, s->host, s->sockhost);
 	}

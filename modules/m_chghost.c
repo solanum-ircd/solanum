@@ -113,7 +113,7 @@ do_chghost(struct Client *source_p, struct Client *target_p,
 {
 	if (!clean_host(newhost))
 	{
-		sendto_realops_snomask(SNO_GENERAL, is_encap ? L_ALL : L_NETWIDE, "%s attempted to change hostname for %s to %s (invalid)",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s attempted to change hostname for %s to %s (invalid)",
 				IsServer(source_p) ? source_p->name : get_oper_name(source_p),
 				target_p->name, newhost);
 		/* sending this remotely may disclose important

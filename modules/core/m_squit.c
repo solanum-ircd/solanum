@@ -76,7 +76,7 @@ mo_squit(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	{
 		if(MyConnect(found_squit->target_p))
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Received SQUIT %s from %s (%s)",
 					     found_squit->target_p->name,
 					     get_client_name(source_p, HIDE_IP), comment);
@@ -135,13 +135,8 @@ ms_squit(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	 */
 	else if(MyConnect(target_p))
 	{
-		sendto_wallops_flags(UMODE_WALLOP, &me,
-				     "Remote SQUIT %s from %s (%s)",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Remote SQUIT %s from %s (%s)",
 				     target_p->name, source_p->name, comment);
-
-		sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
-			      ":%s WALLOPS :Remote SQUIT %s from %s (%s)",
-			      me.id, target_p->name, source_p->name, comment);
 
 		ilog(L_SERVER, "SQUIT From %s : %s (%s)", source_p->name, target_p->name, comment);
 	}

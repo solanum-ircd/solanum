@@ -325,7 +325,7 @@ ms_uid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	if(parc != 10)
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				     "Dropping server %s due to (invalid) command 'UID' "
 				     "with %d arguments (expecting 10)", client_p->name, parc);
 		ilog(L_SERVER, "Excess parameters (%d) for command 'UID' from %s.",
@@ -356,7 +356,7 @@ ms_uid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if(!clean_username(parv[5]) || !clean_host(parv[6]))
 	{
 		ServerStats.is_kill++;
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Bad user@host: %s@%s From: %s(via %s)",
 				     parv[5], parv[6], source_p->name, client_p->name);
 		sendto_one(client_p, ":%s KILL %s :%s (Bad user@host)", me.id, parv[8], me.name);
@@ -367,7 +367,7 @@ ms_uid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if(strlen(parv[9]) > REALLEN)
 	{
 		char *s = LOCAL_COPY(parv[9]);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "Long realname from server %s for %s",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Long realname from server %s for %s",
 				     source_p->name, parv[1]);
 		s[REALLEN] = '\0';
 		parv[9] = s;
@@ -414,7 +414,7 @@ ms_euid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if(parc != 12)
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				     "Dropping server %s due to (invalid) command 'EUID' "
 				     "with %d arguments (expecting 12)", client_p->name, parc);
 		ilog(L_SERVER, "Excess parameters (%d) for command 'EUID' from %s.",
@@ -445,7 +445,7 @@ ms_euid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if(!clean_username(parv[5]) || !clean_host(parv[6]))
 	{
 		ServerStats.is_kill++;
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Bad user@host: %s@%s From: %s(via %s)",
 				     parv[5], parv[6], source_p->name, client_p->name);
 		sendto_one(client_p, ":%s KILL %s :%s (Bad user@host)", me.id, parv[8], me.name);
@@ -455,7 +455,7 @@ ms_euid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if(strcmp(parv[9], "*") && !clean_host(parv[9]))
 	{
 		ServerStats.is_kill++;
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Bad realhost: %s From: %s(via %s)",
 				     parv[9], source_p->name, client_p->name);
 		sendto_one(client_p, ":%s KILL %s :%s (Bad user@host)", me.id, parv[8], me.name);
@@ -466,7 +466,7 @@ ms_euid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if(strlen(parv[11]) > REALLEN)
 	{
 		char *s = LOCAL_COPY(parv[11]);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "Long realname from server %s for %s",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Long realname from server %s for %s",
 				     source_p->name, parv[1]);
 		s[REALLEN] = '\0';
 		parv[11] = s;
@@ -790,7 +790,7 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 	/* if we dont have a ts, or their TS's are the same, kill both */
 	if(!newts || !target_p->tsinfo || (newts == target_p->tsinfo))
 	{
-		sendto_realops_snomask(SNO_SKILL, L_ALL,
+		sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 				     "Nick collision on %s(%s <- %s)(both %s)",
 				     target_p->name, target_p->from->name, client_p->name, action);
 
@@ -853,12 +853,12 @@ perform_nick_collides(struct Client *source_p, struct Client *client_p,
 		else
 		{
 			if(sameuser)
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick collision on %s(%s <- %s)(older %s)",
 						     target_p->name, target_p->from->name,
 						     client_p->name, action);
 			else
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick collision on %s(%s <- %s)(newer %s)",
 						     target_p->name, target_p->from->name,
 						     client_p->name, action);
@@ -905,7 +905,7 @@ perform_nickchange_collides(struct Client *source_p, struct Client *client_p,
 	/* its a client changing nick and causing a collide */
 	if(!newts || !target_p->tsinfo || (newts == target_p->tsinfo) || !source_p->user)
 	{
-		sendto_realops_snomask(SNO_SKILL, L_ALL,
+		sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 				     "Nick change collision from %s to %s(%s <- %s)(both %s)",
 				     source_p->name, target_p->name, target_p->from->name,
 				     client_p->name, action);
@@ -948,12 +948,12 @@ perform_nickchange_collides(struct Client *source_p, struct Client *client_p,
 		   (!sameuser && newts > target_p->tsinfo))
 		{
 			if(sameuser)
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick change collision from %s to %s(%s <- %s)(older %s)",
 						     source_p->name, target_p->name,
 						     target_p->from->name, client_p->name, action);
 			else
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick change collision from %s to %s(%s <- %s)(newer %s)",
 						     source_p->name, target_p->name,
 						     target_p->from->name, client_p->name, action);
@@ -993,12 +993,12 @@ perform_nickchange_collides(struct Client *source_p, struct Client *client_p,
 		else
 		{
 			if(sameuser)
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick collision on %s(%s <- %s)(older %s)",
 						     target_p->name, target_p->from->name,
 						     client_p->name, action);
 			else
-				sendto_realops_snomask(SNO_SKILL, L_ALL,
+				sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 						     "Nick collision on %s(%s <- %s)(newer %s)",
 						     target_p->name, target_p->from->name,
 						     client_p->name, action);
@@ -1168,7 +1168,7 @@ save_user(struct Client *client_p, struct Client *source_p,
 	{
 		/* This shouldn't happen */
 		/* Note we only need SAVE support in this direction */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Killed %s!%s@%s for nick collision detected by %s (%s does not support SAVE)",
 				target_p->name, target_p->username, target_p->host, source_p->name, target_p->from->name);
 		kill_client_serv_butone(NULL, target_p, "%s (Nick collision (no SAVE support))", me.name);
