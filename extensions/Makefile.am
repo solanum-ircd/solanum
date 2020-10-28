@@ -48,7 +48,6 @@ extension_LTLIBRARIES =		\
   sno_globalkline.la		\
   sno_globalnickchange.la	\
   sno_globaloper.la		\
-  sno_whois.la			\
   umode_noctcp.la		\
   m_adminwall.la		\
   m_echotags.la			\
@@ -70,13 +69,6 @@ extension_LTLIBRARIES =		\
   no_locops.la			\
   no_oper_invis.la		\
   sasl_usercloak.la		\
-  spy_admin_notice.la		\
-  spy_info_notice.la		\
-  spy_links_notice.la		\
-  spy_motd_notice.la		\
-  spy_stats_notice.la		\
-  spy_stats_p_notice.la		\
-  spy_trace_notice.la		\
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
