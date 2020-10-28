@@ -441,7 +441,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		return (CLIENT_EXITED);
 	}
 
-	if(IsConfSSLNeeded(aconf) && !IsSSL(source_p))
+	if(IsConfSSLNeeded(aconf) && !IsSecure(source_p))
 	{
 		ServerStats.is_ref++;
 		sendto_one_notice(source_p, ":*** Notice -- You need to use SSL/TLS to use this server");
@@ -634,7 +634,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		add_to_id_hash(source_p->id, source_p);
 	}
 
-	if (IsSSL(source_p) && !IsInsecure(source_p))
+	if (IsSecure(source_p))
 		source_p->umodes |= UMODE_SSLCLIENT;
 
 	if (source_p->umodes & UMODE_INVISIBLE)

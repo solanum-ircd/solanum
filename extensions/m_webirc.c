@@ -107,7 +107,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		sendto_one(source_p, "NOTICE * :CGI:IRC auth blocks must have a password");
 		return;
 	}
-	if (!IsSSL(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
+	if (!IsSecure(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
 	{
 		sendto_one(source_p, "NOTICE * :Your CGI:IRC block requires TLS");
 		return;
@@ -144,7 +144,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		}
 	}
 
-	if (secure && !IsSSL(source_p))
+	if (secure && !IsSecure(source_p))
 	{
 		sendto_one(source_p, "NOTICE * :CGI:IRC is not connected securely; marking you as insecure");
 		secure = 0;
@@ -152,7 +152,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (!secure)
 	{
-		SetInsecure(source_p);
+		ClearSecure(source_p);
 	}
 
 	rb_inet_ntop_sock((struct sockaddr *)&source_p->localClient->ip, source_p->sockhost, sizeof(source_p->sockhost));
