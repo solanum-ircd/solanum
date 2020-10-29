@@ -33,6 +33,12 @@ enum
 	HM_IPV6,
 };
 
+enum aconf_category
+{
+	AC_CONFIG,
+	AC_BANDB,
+};
+
 int parse_netmask(const char *, struct rb_sockaddr_storage *, int *);
 int parse_netmask_strict(const char *, struct rb_sockaddr_storage *, int *);
 struct ConfItem *find_conf_by_address(const char *host, const char *sockhost,
@@ -42,8 +48,7 @@ struct ConfItem *find_exact_conf_by_address(const char *address, int type,
 					    const char *username);
 void add_conf_by_address(const char *, int, const char *, const char *, struct ConfItem *);
 void delete_one_address_conf(const char *, struct ConfItem *);
-void clear_out_address_conf(void);
-void clear_out_address_conf_bans(void);
+void clear_out_address_conf(enum aconf_category);
 void init_host_hash(void);
 struct ConfItem *find_address_conf(const char *host, const char *sockhost,
 				const char *, const char *, struct sockaddr *,
