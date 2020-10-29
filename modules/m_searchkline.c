@@ -92,6 +92,7 @@ search_ip_kdlines(struct Client *client, const char *username, struct sockaddr *
 	bool found = false;
 	struct AddressRec *arec;
 	int masktype = fam == AF_INET ? HM_IPV4 : HM_IPV6;
+	bool match_dlines = mask_match(username, "*");
 
 	size_t i;
 	size_t min = 0;
@@ -117,6 +118,8 @@ search_ip_kdlines(struct Client *client, const char *username, struct sockaddr *
 				continue;
 
 			if (arec->type == CONF_KILL && !mask_match(username, arec->username))
+				continue;
+			if (arec->type == CONF_DLINE && !match_dlines)
 				continue;
 
 			report_kdline(client, arec->type, arec->aconf);
