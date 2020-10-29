@@ -57,6 +57,7 @@ auto_load_mod_LTLIBRARIES = \
   m_resv.la \
   m_sasl.la \
   m_scan.la \
+  m_searchkline.la \
   m_services.la \
   m_set.la \
   m_signon.la \
