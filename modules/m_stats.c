@@ -288,7 +288,7 @@ stats_dns_servers (struct Client *source_p)
 
 	RB_DLINK_FOREACH(n, nameservers.head)
 	{
-		sendto_one_numeric(source_p, RPL_STATSDEBUG, "A %s", (char *)n->data);
+		sendto_one_numeric(source_p, RPL_STATSDEBUG, "A :%s", (char *)n->data);
 	}
 }
 

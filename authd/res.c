@@ -105,7 +105,7 @@ static uint16_t generate_random_id(void);
  * author:
  *      paul vixie, 29may94
  *      revised for ircd, cryogen(stu) may03
- *      slightly modified for solanum, mr_flea oct12
+ *      slightly modified for charybdis, mr_flea oct12
  */
 static int
 res_ourserver(const struct rb_sockaddr_storage *inp)

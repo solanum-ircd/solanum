@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Originally written for solanum circa 2006 (by nenolod?).
+/* Originally written for charybdis circa 2006 (by nenolod?).
  * Tweaked for authd. Some functions and structs renamed. Public/private
  * interfaces have been shifted around. Some code has been cleaned up too.
  * -- Elizafox 24 March 2016
