@@ -57,6 +57,8 @@ ircd/version.c.last
 ssld/ssld
 wsockd/wsockd
 tests/core
+tests/hostmask1
+tests/match1
 tests/msgbuf_parse1
 tests/msgbuf_unparse1
 tests/rb_dictionary1
