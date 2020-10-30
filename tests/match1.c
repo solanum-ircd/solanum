@@ -30,6 +30,8 @@
 
 struct Client me;
 
+void match_arrange_stars(char *);
+
 static void test_match(void)
 {
 	is_int(0, match("*foo*", "bar"), MSG);
@@ -40,6 +42,7 @@ static void test_match(void)
 
 static void test_mask_match(void)
 {
+
 	is_int(0, mask_match("*foo*", "bar"), MSG);
 	is_int(1, mask_match("*foo*", "foo"), MSG);
 
@@ -63,12 +66,32 @@ static void test_mask_match(void)
 	is_int(0, mask_match("??", "aaa"), MSG);
 }
 
+static void test_arrange_stars(void)
+{
+	{
+		char rearrange[] = "quick brown fox";
+		match_arrange_stars(rearrange);
+		is_string("quick brown fox", rearrange, MSG);
+	}
+	{
+		char rearrange[] = "?*?*?*";
+		match_arrange_stars(rearrange);
+		is_string("***???", rearrange, MSG);
+	}
+	{
+		char rearrange[] = "?*? *?*";
+		match_arrange_stars(rearrange);
+		is_string("*?? **?", rearrange, MSG);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	plan_lazy();
 
 	test_match();
 	test_mask_match();
+	test_arrange_stars();
 
 	return 0;
 }
