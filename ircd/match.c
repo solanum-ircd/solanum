@@ -144,12 +144,16 @@ int mask_match(const char *mask_, const char *name)
 	static char mask[BUFSIZE];
 	const char *m = mask, *n = name;
 	const char *m_tmp = mask, *n_tmp = name;
+	size_t len;
 	int star_p;
 
 	s_assert(mask_ != NULL);
 	s_assert(name != NULL);
 
-	rb_strlcpy(mask, mask_, sizeof mask);
+	len = rb_strlcpy(mask, mask_, sizeof mask);
+	s_assert(len < sizeof mask);
+	(void) len; /* for NDEBUG */
+
 	match_arrange_stars(mask);
 
 	for (;;)
