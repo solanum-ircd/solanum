@@ -104,6 +104,30 @@ int match(const char *mask, const char *name)
 	}
 }
 
+void
+match_arrange_stars(char *mask)
+{
+	char *swap = NULL;
+
+	for (char *p = mask; *p != '\0'; p++)
+	{
+		switch (*p)
+		{
+		case '*':
+			if (swap == NULL) break;
+			*swap++ = '*';
+			*p = '?';
+			break;
+		case '?':
+			if (swap == NULL) swap = p;
+			break;
+		default:
+			swap = NULL;
+			break;
+		}
+	}
+}
+
 /** Check a mask against a mask.
  * This test checks using traditional IRC wildcards only: '*' means
  * match zero or more characters of any type; '?' means match exactly
@@ -115,14 +139,18 @@ int match(const char *mask, const char *name)
  * @param[in] name New wildcard-containing mask.
  * @return 1 if \a name is equal to or more specific than \a mask, 0 otherwise.
  */
-int mask_match(const char *mask, const char *name)
+int mask_match(const char *mask_, const char *name)
 {
+	static char mask[BUFSIZE];
 	const char *m = mask, *n = name;
 	const char *m_tmp = mask, *n_tmp = name;
 	int star_p;
 
-	s_assert(mask != NULL);
+	s_assert(mask_ != NULL);
 	s_assert(name != NULL);
+
+	rb_strlcpy(mask, mask_, sizeof mask);
+	match_arrange_stars(mask);
 
 	for (;;)
 	{
@@ -146,6 +174,7 @@ int mask_match(const char *mask, const char *name)
 				  else if (*m == '?')
 				  {
 					  /* changed for mask_match() */
+					  while (star_p && *n == '*') n++;
 					  if (*n == '*' || !*n)
 						  goto backtrack;
 					  n++;
