@@ -49,7 +49,6 @@ static struct server_conf *yy_server = NULL;
 
 static rb_dlink_list yy_aconf_list;
 static rb_dlink_list yy_oper_list;
-static rb_dlink_list yy_shared_list;
 static rb_dlink_list yy_cluster_list;
 static struct oper_conf *yy_oper = NULL;
 
@@ -378,31 +377,6 @@ static struct mode_table cluster_table[] = {
 	{ "tresv",	SHARED_TRESV	},
 	{ "unresv",	SHARED_UNRESV	},
 	{ "all",	CLUSTER_ALL	},
-	{NULL, 0}
-};
-
-static struct mode_table shared_table[] =
-{
-	{ "kline",	SHARED_PKLINE|SHARED_TKLINE	},
-	{ "xline",	SHARED_PXLINE|SHARED_TXLINE	},
-	{ "resv",	SHARED_PRESV|SHARED_TRESV	},
-	{ "dline",	SHARED_PDLINE|SHARED_TDLINE	},
-	{ "tdline",	SHARED_TDLINE	},
-	{ "pdline",	SHARED_PDLINE   },
-	{ "undline",    SHARED_UNDLINE  },
-	{ "tkline",	SHARED_TKLINE	},
-	{ "unkline",	SHARED_UNKLINE	},
-	{ "txline",	SHARED_TXLINE	},
-	{ "unxline",	SHARED_UNXLINE	},
-	{ "tresv",	SHARED_TRESV	},
-	{ "unresv",	SHARED_UNRESV	},
-	{ "locops",	SHARED_LOCOPS	},
-	{ "rehash",	SHARED_REHASH	},
-	{ "grant",	SHARED_GRANT	},
-	{ "die",	SHARED_DIE	},
-	{ "module",	SHARED_MODULE	},
-	{ "all",	SHARED_ALL	},
-	{ "none",	0		},
 	{NULL, 0}
 };
 /* *INDENT-ON* */
@@ -1181,109 +1155,6 @@ conf_set_auth_class(void *data)
 {
 	rb_free(yy_aconf->className);
 	yy_aconf->className = rb_strdup(data);
-}
-
-/* ok, shared_oper handles the stacking, shared_flags handles adding
- * things.. so all we need to do when we start and end a shared block, is
- * clean up anything thats been left over.
- */
-static int
-conf_cleanup_shared(struct TopConf *tc)
-{
-	rb_dlink_node *ptr, *next_ptr;
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, yy_shared_list.head)
-	{
-		free_remote_conf(ptr->data);
-		rb_dlinkDestroy(ptr, &yy_shared_list);
-	}
-
-	if(yy_shared != NULL)
-	{
-		free_remote_conf(yy_shared);
-		yy_shared = NULL;
-	}
-
-	return 0;
-}
-
-static void
-conf_set_shared_oper(void *data)
-{
-	conf_parm_t *args = data;
-	const char *username;
-	char *p;
-
-	if(yy_shared != NULL)
-		free_remote_conf(yy_shared);
-
-	yy_shared = make_remote_conf();
-
-	if(args->next != NULL)
-	{
-		if(CF_TYPE(args->type) != CF_QSTRING)
-		{
-			conf_report_error("Ignoring shared::oper -- server is not a qstring");
-			return;
-		}
-
-		yy_shared->server = rb_strdup(args->v.string);
-		args = args->next;
-	}
-	else
-		yy_shared->server = rb_strdup("*");
-
-	if(CF_TYPE(args->type) != CF_QSTRING)
-	{
-		conf_report_error("Ignoring shared::oper -- oper is not a qstring");
-		return;
-	}
-
-	if((p = strchr(args->v.string, '@')) == NULL)
-	{
-		conf_report_error("Ignoring shard::oper -- oper is not a user@host");
-		return;
-	}
-
-	username = args->v.string;
-	*p++ = '\0';
-
-	if(EmptyString(p))
-		yy_shared->host = rb_strdup("*");
-	else
-		yy_shared->host = rb_strdup(p);
-
-	if(EmptyString(username))
-		yy_shared->username = rb_strdup("*");
-	else
-		yy_shared->username = rb_strdup(username);
-
-	rb_dlinkAddAlloc(yy_shared, &yy_shared_list);
-	yy_shared = NULL;
-}
-
-static void
-conf_set_shared_flags(void *data)
-{
-	conf_parm_t *args = data;
-	int flags = 0;
-	rb_dlink_node *ptr, *next_ptr;
-
-	if(yy_shared != NULL)
-		free_remote_conf(yy_shared);
-
-	set_modes_from_table(&flags, "flag", shared_table, args);
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, yy_shared_list.head)
-	{
-		yy_shared = ptr->data;
-
-		yy_shared->flags = flags;
-		rb_dlinkDestroy(ptr, &yy_shared_list);
-		rb_dlinkAddTail(yy_shared, &yy_shared->node, &shared_conf_list);
-	}
-
-	yy_shared = NULL;
 }
 
 static int
@@ -2903,10 +2774,6 @@ newconf_init()
 	add_conf_item("listen", "host", CF_QSTRING, conf_set_listen_address);
 
 	add_top_conf("auth", conf_begin_auth, conf_end_auth, conf_auth_table);
-
-	add_top_conf("shared", conf_cleanup_shared, conf_cleanup_shared, NULL);
-	add_conf_item("shared", "oper", CF_QSTRING | CF_FLIST, conf_set_shared_oper);
-	add_conf_item("shared", "flags", CF_STRING | CF_FLIST, conf_set_shared_flags);
 
 	add_top_conf("connect", conf_begin_connect, conf_end_connect, conf_connect_table);
 
