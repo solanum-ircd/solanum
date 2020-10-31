@@ -408,9 +408,5 @@ me_rehash(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if (!IsPerson(source_p))
 		return;
 
-	if (!find_shared_conf(source_p->username, source_p->host,
-				source_p->servptr->name, SHARED_REHASH))
-		return;
-
 	do_rehash(source_p, parc > 1 ? parv[1] : NULL);
 }

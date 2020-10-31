@@ -193,12 +193,6 @@ parse_resv(struct Client *source_p, const char *name, const char *reason, int te
 {
 	struct ConfItem *aconf;
 
-	if(!MyClient(source_p) &&
-	   !find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name,
-			     (temp_time > 0) ? SHARED_TRESV : SHARED_PRESV))
-		return;
-
 	if(IsChannelName(name))
 	{
 		if(hash_find_resv(name))
@@ -489,13 +483,7 @@ me_unresv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 static void
 handle_remote_unresv(struct Client *source_p, const char *name)
 {
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name, SHARED_UNRESV))
-		return;
-
 	remove_resv(source_p, name, 0);
-
-	return;
 }
 
 static void
