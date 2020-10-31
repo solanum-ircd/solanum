@@ -48,7 +48,7 @@ cache:
 
 script:
   - bash autogen.sh
-  - "if [ ${TRAVIS_OS_NAME} != 'osx' ]; then CFLAGS=\"-Werror -Wno-unused-value -Wno-unused-parameter\" ./configure --with-shared-sqlite --with-assert=hard --enable-warnings; fi"
+  - "if [ ${TRAVIS_OS_NAME} != 'osx' ]; then CFLAGS=\"-Werror -Wno-unused-value -Wno-unused-parameter\" ./configure --with-shared-sqlite --enable-assert=hard --enable-warnings; fi"
   - "if [ ${TRAVIS_OS_NAME} = 'osx' ]; then ./configure --with-shared-sqlite; fi"
   - make -j4
   - "if [ ${TRAVIS_OS_NAME} != 'osx' ]; then make check; fi"
