@@ -438,6 +438,7 @@ struct ListClient
 #define LFLAGS_CORK		0x00000004
 #define LFLAGS_SCTP		0x00000008
 #define LFLAGS_SECURE		0x00000010	/* for marking SSL clients as secure before registration */
+#define LFLAGS_FAKE		0x00000020
 
 /* umodes, settable flags */
 /* lots of this moved to snomask -- jilles */

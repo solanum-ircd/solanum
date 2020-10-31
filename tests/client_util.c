@@ -59,6 +59,7 @@ struct Client *make_local_unknown(void)
 	rb_dlinkAdd(client, &client->lnode, &client->servptr->serv->users);
 	client->localClient->listener = &fake_listener;
 	client->preClient->auth.accepted = true;
+	client->localClient->localflags |= LFLAGS_FAKE;
 
 	return client;
 }
@@ -123,6 +124,7 @@ struct Client *make_remote_server_full(struct Client *uplink, const char *name, 
 
 	client = make_client(NULL);
 	client->servptr = uplink;
+	client->localClient->localflags |= LFLAGS_FAKE;
 
 	attach_server_conf(client, find_server_conf(name));
 
