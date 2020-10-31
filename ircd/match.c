@@ -104,6 +104,7 @@ int match(const char *mask, const char *name)
 	}
 }
 
+/* Reorder runs of [?*] in mask to the form  ``**...??...'' */
 void
 match_arrange_stars(char *mask)
 {
