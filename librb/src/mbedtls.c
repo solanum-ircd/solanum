@@ -233,8 +233,8 @@ rb_mbedtls_cfg_new(void)
 	mbedtls_ssl_conf_authmode(&cfg->server_cfg, MBEDTLS_SSL_VERIFY_OPTIONAL);
 	mbedtls_ssl_conf_authmode(&cfg->client_cfg, MBEDTLS_SSL_VERIFY_NONE);
 
-	mbedtls_ssl_conf_min_version(&cfg->server_cfg, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_2);
-	mbedtls_ssl_conf_min_version(&cfg->client_cfg, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_2);
+	mbedtls_ssl_conf_min_version(&cfg->server_cfg, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_1);
+	mbedtls_ssl_conf_min_version(&cfg->client_cfg, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_1);
 
 	#ifdef MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE
 	mbedtls_ssl_conf_legacy_renegotiation(&cfg->client_cfg, MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE);

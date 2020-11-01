@@ -431,10 +431,6 @@ rb_setup_ssl_server(const char *const certfile, const char *keyfile,
 	(void) SSL_CTX_set_options(ssl_ctx_new, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
 	#endif
 
-	#ifdef SSL_OP_NO_TLSv1
-	(void) SSL_CTX_set_options(ssl_ctx_new, SSL_OP_NO_TLSv1);
-	#endif
-
 	#ifdef SSL_OP_NO_TICKET
 	(void) SSL_CTX_set_options(ssl_ctx_new, SSL_OP_NO_TICKET);
 	#endif
