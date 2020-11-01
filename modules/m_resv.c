@@ -69,7 +69,6 @@ static void propagate_resv(struct Client *source_p, const char *target,
 static void cluster_resv(struct Client *source_p, int temp_time,
 			 const char *name, const char *reason);
 
-static void handle_remote_unresv(struct Client *source_p, const char *name);
 static void remove_resv(struct Client *source_p, const char *name, int propagated);
 
 /*
@@ -467,7 +466,7 @@ ms_unresv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!IsPerson(source_p))
 		return;
 
-	handle_remote_unresv(source_p, parv[2]);
+	remove_resv(source_p, parv[2], 0);
 }
 
 static void
@@ -477,13 +476,7 @@ me_unresv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!IsPerson(source_p))
 		return;
 
-	handle_remote_unresv(source_p, parv[1]);
-}
-
-static void
-handle_remote_unresv(struct Client *source_p, const char *name)
-{
-	remove_resv(source_p, name, 0);
+	remove_resv(source_p, parv[1], 0);
 }
 
 static void
