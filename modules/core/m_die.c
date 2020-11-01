@@ -92,13 +92,6 @@ mo_die(struct MsgBuf *msgbuf_p __unused, struct Client *client_p __unused, struc
 static void
 me_die(struct MsgBuf *msgbuf_p __unused, struct Client *client_p __unused, struct Client *source_p, int parc, const char *parv[])
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_DIE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block to "
-				"remotely shut down this server.");
-		return;
-	}
-
 	do_die(source_p, parv[1]);
 }
 

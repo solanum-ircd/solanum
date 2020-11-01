@@ -120,7 +120,6 @@ static void stats_ssld(struct Client *);
 static void stats_usage(struct Client *);
 static void stats_tstats(struct Client *);
 static void stats_uptime(struct Client *);
-static void stats_shared(struct Client *);
 static void stats_servers(struct Client *);
 static void stats_tgecos(struct Client *);
 static void stats_gecos(struct Client *);
@@ -183,7 +182,6 @@ static struct stats_cmd stats_cmd_table[256] = {
 	['t'] = HANDLER_NORM(stats_tstats,	false,	"oper:general"),
 	['T'] = HANDLER_NORM(stats_tstats,	false,	"oper:general"),
 	['u'] = HANDLER_NORM(stats_uptime,	false,	NULL),
-	['U'] = HANDLER_NORM(stats_shared,	false,	"oper:general"),
 	['v'] = HANDLER_NORM(stats_servers,	false,	NULL),
 	['V'] = HANDLER_NORM(stats_servers,	false,	NULL),
 	['x'] = HANDLER_NORM(stats_tgecos,	false,	"oper:general"),
@@ -1095,85 +1093,6 @@ stats_uptime (struct Client *source_p)
 			   Count.totalrestartcount);
 }
 
-struct shared_flags
-{
-	int flag;
-	char letter;
-};
-static struct shared_flags shared_flagtable[] =
-{
-	{ SHARED_PKLINE,	'K' },
-	{ SHARED_TKLINE,	'k' },
-	{ SHARED_UNKLINE,	'U' },
-	{ SHARED_PXLINE,	'X' },
-	{ SHARED_TXLINE,	'x' },
-	{ SHARED_UNXLINE,	'Y' },
-	{ SHARED_PRESV,		'Q' },
-	{ SHARED_TRESV,		'q' },
-	{ SHARED_UNRESV,	'R' },
-	{ SHARED_LOCOPS,	'L' },
-	{ SHARED_REHASH,	'H' },
-	{ SHARED_TDLINE,	'd' },
-	{ SHARED_PDLINE,	'D' },
-	{ SHARED_UNDLINE,	'E' },
-	{ SHARED_GRANT,		'G' },
-	{ SHARED_DIE,		'I' },
-	{ 0,			'\0'}
-};
-
-
-static void
-stats_shared (struct Client *source_p)
-{
-	struct remote_conf *shared_p;
-	rb_dlink_node *ptr;
-	char buf[sizeof(shared_flagtable)/sizeof(shared_flagtable[0])];
-	char *p;
-	int i;
-
-	RB_DLINK_FOREACH(ptr, shared_conf_list.head)
-	{
-		shared_p = ptr->data;
-
-		p = buf;
-
-		*p++ = 'c';
-
-		for(i = 0; shared_flagtable[i].flag != 0; i++)
-		{
-			if(shared_p->flags & shared_flagtable[i].flag)
-				*p++ = shared_flagtable[i].letter;
-		}
-
-		*p = '\0';
-
-		sendto_one_numeric(source_p, RPL_STATSULINE,
-					form_str(RPL_STATSULINE),
-					shared_p->server, shared_p->username,
-					shared_p->host, buf);
-	}
-
-	RB_DLINK_FOREACH(ptr, cluster_conf_list.head)
-	{
-		shared_p = ptr->data;
-
-		p = buf;
-
-		*p++ = 'C';
-
-		for(i = 0; shared_flagtable[i].flag != 0; i++)
-		{
-			if(shared_p->flags & shared_flagtable[i].flag)
-				*p++ = shared_flagtable[i].letter;
-		}
-
-		*p = '\0';
-
-		sendto_one_numeric(source_p, RPL_STATSULINE,
-					form_str(RPL_STATSULINE),
-					shared_p->server, "*", "*", buf);
-	}
-}
 
 /* stats_servers()
  *

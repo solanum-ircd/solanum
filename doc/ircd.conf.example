@@ -341,11 +341,6 @@ cluster {
 	flags = kline, tkline, unkline, xline, txline, unxline, resv, tresv, unresv;
 };
 
-shared {
-	oper = "*@*", "*";
-	flags = all, rehash;
-};
-
 secure {
 	ip = "127.0.0.1";
 };

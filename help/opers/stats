@@ -34,7 +34,6 @@ X f - Shows File Descriptors
 * r - Shows resource usage by ircd
 X S - Shows ssld processes
 * t - Shows generic server stats
-* U - Shows shared blocks (Old U: lines)
   u - Shows server uptime
 ^ v - Shows connected servers and brief status information
 * x - Shows temporary and global gecos bans

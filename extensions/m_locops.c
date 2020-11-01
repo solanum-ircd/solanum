@@ -80,8 +80,7 @@ ms_locops(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!match(parv[1], me.name))
 		return;
 
-	if(find_shared_conf("*", "*", source_p->servptr->name, SHARED_LOCOPS))
-		sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[2]);
+	sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[2]);
 }
 
 static void
@@ -91,7 +90,6 @@ me_locops(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!IsPerson(source_p))
 		return;
 
-	if(find_shared_conf("*", "*", source_p->servptr->name, SHARED_LOCOPS))
-		sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[1]);
+	sendto_wallops_flags(UMODE_LOCOPS, source_p, "SLOCOPS - %s", parv[1]);
 }
 
