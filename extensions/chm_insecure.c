@@ -48,7 +48,7 @@ h_can_join(hook_data_channel *data)
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 
-	if(!(chptr->mode.mode & mymode) && !IsSSLClient(source_p)) {
+	if(!(chptr->mode.mode & mymode) && !IsSecureClient(source_p)) {
 		/* XXX This is equal to ERR_THROTTLE */
 		sendto_one_numeric(source_p, 480, "%s :Cannot join channel (-U) - SSL/TLS required", chptr->chname);
 		data->approved = ERR_CUSTOM;

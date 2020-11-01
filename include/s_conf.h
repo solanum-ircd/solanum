@@ -84,6 +84,7 @@ struct ConfItem
 
 #define CONF_DLINE		0x020000
 #define CONF_EXEMPTDLINE	0x100000
+#define CONF_SECURE		0x200000
 
 #define IsIllegal(x)    ((x)->status & CONF_ILLEGAL)
 

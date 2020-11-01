@@ -43,7 +43,6 @@
 struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;
-extern rb_dlink_list shared_conf_list;
 extern rb_dlink_list oper_conf_list;
 extern rb_dlink_list hubleaf_conf_list;
 extern rb_dlink_list server_conf_list;
@@ -131,8 +130,6 @@ struct oper_conf
 extern struct remote_conf *make_remote_conf(void);
 extern void free_remote_conf(struct remote_conf *);
 
-extern bool find_shared_conf(const char *username, const char *host,
-			const char *server, int flags);
 extern void propagate_generic(struct Client *source_p, const char *command,
 		const char *target, int cap, const char *format, ...);
 extern void cluster_generic(struct Client *, const char *, int cltype,

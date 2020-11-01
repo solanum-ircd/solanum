@@ -539,6 +539,15 @@ add_connection(struct Listener *listener, rb_fde_t *F, struct sockaddr *sai, str
 		F = xF[0];
 		new_client->localClient->F = F;
 		SetSSL(new_client);
+		SetSecure(new_client);
+	}
+	else
+	{
+		struct ConfItem *aconf;
+		aconf = find_conf_by_address(NULL, NULL, NULL, sai, CONF_SECURE | 1, sai->sa_family, NULL, NULL);
+
+		if (aconf != NULL)
+			SetSecure(new_client);
 	}
 
 	if (listener->wsock)

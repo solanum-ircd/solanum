@@ -957,6 +957,14 @@ handle_special(enum message_type msgtype, struct Client *client_p,
 			return;
 		}
 
+		if(MyClient(source_p))
+		{
+			sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s sent mass-%s to %s: %s",
+					get_oper_name(source_p),
+					msgtype == MESSAGE_TYPE_PRIVMSG ? "privmsg" : "notice",
+					nick, text);
+		}
+
 		sendto_match_butone(IsServer(client_p) ? client_p : NULL, source_p,
 				    nick + 1,
 				    (*nick == '#') ? MATCH_HOST : MATCH_SERVER,

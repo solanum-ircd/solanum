@@ -75,14 +75,6 @@ me_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		return;
 	}
 
-	if(!find_shared_conf(source_p->username, source_p->host,
-				source_p->servptr->name, SHARED_GRANT))
-	{
-		sendto_one(source_p, ":%s NOTICE %s :You don't have an appropriate shared"
-			"block to grant privilege on this server.", me.name, source_p->name);
-		return;
-	}
-
 	do_grant(source_p, target_p, parv[2]);
 }
 

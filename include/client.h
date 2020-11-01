@@ -437,7 +437,9 @@ struct ListClient
 #define LFLAGS_FLUSH		0x00000002
 #define LFLAGS_CORK		0x00000004
 #define LFLAGS_SCTP		0x00000008
-#define LFLAGS_INSECURE	0x00000010	/* for marking SSL clients as insecure before registration */
+#define LFLAGS_SECURE		0x00000010	/* for marking SSL clients as secure before registration */
+/* LFLAGS_FAKE: client may not have the usually expected machinery plugged in; don't assert on it. For tests only. */
+#define LFLAGS_FAKE		0x00000020
 
 /* umodes, settable flags */
 /* lots of this moved to snomask -- jilles */
@@ -453,7 +455,7 @@ struct ListClient
 /* user information flags, only settable by remote mode or local oper */
 #define UMODE_OPER         0x1000	/* Operator */
 #define UMODE_ADMIN        0x2000	/* Admin on server */
-#define UMODE_SSLCLIENT    0x4000	/* using SSL */
+#define UMODE_SECURE       0x4000	/* has a secure connection */
 
 #define DEFAULT_OPER_UMODES (UMODE_SERVNOTICE | UMODE_OPERWALL | \
                              UMODE_WALLOP | UMODE_LOCOPS)
@@ -513,9 +515,9 @@ struct ListClient
 #define SetSCTP(x)		((x)->localClient->localflags |= LFLAGS_SCTP)
 #define ClearSCTP(x)		((x)->localClient->localflags &= ~LFLAGS_SCTP)
 
-#define IsInsecure(x)		((x)->localClient->localflags & LFLAGS_INSECURE)
-#define SetInsecure(x)		((x)->localClient->localflags |= LFLAGS_INSECURE)
-#define ClearInsecure(x)	((x)->localClient->localflags &= ~LFLAGS_INSECURE)
+#define IsSecure(x)		((x)->localClient->localflags & LFLAGS_SECURE)
+#define SetSecure(x)		((x)->localClient->localflags |= LFLAGS_SECURE)
+#define ClearSecure(x)		((x)->localClient->localflags &= ~LFLAGS_SECURE)
 
 /* oper flags */
 #define MyOper(x)               (MyConnect(x) && IsOper(x))
@@ -527,16 +529,14 @@ struct ListClient
 #define IsInvisible(x)          ((x)->umodes & UMODE_INVISIBLE)
 #define SetInvisible(x)         ((x)->umodes |= UMODE_INVISIBLE)
 #define ClearInvisible(x)       ((x)->umodes &= ~UMODE_INVISIBLE)
-#define IsSSLClient(x)		((x)->umodes & UMODE_SSLCLIENT)
-#define SetSSLClient(x)		((x)->umodes |= UMODE_SSLCLIENT)
-#define ClearSSLClient(x)	((x)->umodes &= ~UMODE_SSLCLIENT)
+#define IsSecureClient(x)       ((x)->umodes & UMODE_SECURE)
 #define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
 #define SendLocops(x)           ((x)->umodes & UMODE_LOCOPS)
 #define SendServNotice(x)       ((x)->umodes & UMODE_SERVNOTICE)
 #define SendOperwall(x)         ((x)->umodes & UMODE_OPERWALL)
-#define IsService(x)		((x)->umodes & UMODE_SERVICE)
-#define IsDeaf(x)		((x)->umodes & UMODE_DEAF)
-#define IsNoForward(x)		((x)->umodes & UMODE_NOFORWARD)
+#define IsService(x)            ((x)->umodes & UMODE_SERVICE)
+#define IsDeaf(x)               ((x)->umodes & UMODE_DEAF)
+#define IsNoForward(x)          ((x)->umodes & UMODE_NOFORWARD)
 
 #define SetGotId(x)             ((x)->flags |= FLAGS_GOTID)
 #define ClearGotId(x)           ((x)->flags &= ~FLAGS_GOTID)

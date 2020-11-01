@@ -1491,7 +1491,7 @@ clear_out_old_conf(void)
 		MaxUsers(cltmp) = -1;
 	}
 
-	clear_out_address_conf();
+	clear_out_address_conf(AC_CONFIG);
 	clear_s_newconf();
 
 	/* clean out module paths */
