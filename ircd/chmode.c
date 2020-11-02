@@ -86,13 +86,13 @@ construct_cflags_strings(void)
 
 	for(i = 0; i < 256; i++)
 	{
-		if( !(chmode_table[i].set_func == chm_ban) &&
-			!(chmode_table[i].set_func == chm_forward) &&
-			!(chmode_table[i].set_func == chm_throttle) &&
-                        !(chmode_table[i].set_func == chm_key) &&
-                        !(chmode_table[i].set_func == chm_limit) &&
-                        !(chmode_table[i].set_func == chm_op) &&
-                        !(chmode_table[i].set_func == chm_voice))
+		if (chmode_table[i].set_func != chm_ban &&
+				chmode_table[i].set_func != chm_forward &&
+				chmode_table[i].set_func != chm_throttle &&
+				chmode_table[i].set_func != chm_key &&
+				chmode_table[i].set_func != chm_limit &&
+				chmode_table[i].set_func != chm_op &&
+				chmode_table[i].set_func != chm_voice)
 		{
 			chmode_flags[i] = chmode_table[i].mode_type;
 		}
@@ -116,7 +116,9 @@ construct_cflags_strings(void)
 		}
 
 		/* Should we leave orphaned check here? -- dwr */
-		if(!(chmode_table[i].set_func == chm_nosuch) && !(chmode_table[i].set_func == chm_orphaned))
+		if (chmode_table[i].set_func != NULL &&
+				chmode_table[i].set_func != chm_nosuch &&
+				chmode_table[i].set_func != chm_orphaned)
 		{
 		    *ptr2++ = (char) i;
 		}
@@ -153,11 +155,12 @@ cflag_add(char c_, ChannelModeFunc function)
 {
 	int c = (unsigned char)c_;
 
-	if (chmode_table[c].set_func != chm_nosuch &&
+	if (chmode_table[c].set_func != NULL &&
+			chmode_table[c].set_func != chm_nosuch &&
 			chmode_table[c].set_func != chm_orphaned)
 		return 0;
 
-	if (chmode_table[c].set_func == chm_nosuch)
+	if (chmode_table[c].set_func == NULL || chmode_table[c].set_func == chm_nosuch)
 		chmode_table[c].mode_type = find_cflag_slot();
 	if (chmode_table[c].mode_type == 0)
 		return 0;
@@ -1385,272 +1388,29 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 /* *INDENT-OFF* */
 struct ChannelMode chmode_table[256] =
 {
-  {chm_nosuch,  0 },			/* 0x00 */
-  {chm_nosuch,  0 },			/* 0x01 */
-  {chm_nosuch,  0 },			/* 0x02 */
-  {chm_nosuch,  0 },			/* 0x03 */
-  {chm_nosuch,  0 },			/* 0x04 */
-  {chm_nosuch,  0 },			/* 0x05 */
-  {chm_nosuch,  0 },			/* 0x06 */
-  {chm_nosuch,  0 },			/* 0x07 */
-  {chm_nosuch,  0 },			/* 0x08 */
-  {chm_nosuch,  0 },			/* 0x09 */
-  {chm_nosuch,  0 },			/* 0x0a */
-  {chm_nosuch,  0 },			/* 0x0b */
-  {chm_nosuch,  0 },			/* 0x0c */
-  {chm_nosuch,  0 },			/* 0x0d */
-  {chm_nosuch,  0 },			/* 0x0e */
-  {chm_nosuch,  0 },			/* 0x0f */
-  {chm_nosuch,  0 },			/* 0x10 */
-  {chm_nosuch,  0 },			/* 0x11 */
-  {chm_nosuch,  0 },			/* 0x12 */
-  {chm_nosuch,  0 },			/* 0x13 */
-  {chm_nosuch,  0 },			/* 0x14 */
-  {chm_nosuch,  0 },			/* 0x15 */
-  {chm_nosuch,  0 },			/* 0x16 */
-  {chm_nosuch,  0 },			/* 0x17 */
-  {chm_nosuch,  0 },			/* 0x18 */
-  {chm_nosuch,  0 },			/* 0x19 */
-  {chm_nosuch,  0 },			/* 0x1a */
-  {chm_nosuch,  0 },			/* 0x1b */
-  {chm_nosuch,  0 },			/* 0x1c */
-  {chm_nosuch,  0 },			/* 0x1d */
-  {chm_nosuch,  0 },			/* 0x1e */
-  {chm_nosuch,  0 },			/* 0x1f */
-  {chm_nosuch,  0 },			/* 0x20 */
-  {chm_nosuch,  0 },			/* 0x21 */
-  {chm_nosuch,  0 },			/* 0x22 */
-  {chm_nosuch,  0 },			/* 0x23 */
-  {chm_nosuch,  0 },			/* 0x24 */
-  {chm_nosuch,  0 },			/* 0x25 */
-  {chm_nosuch,  0 },			/* 0x26 */
-  {chm_nosuch,  0 },			/* 0x27 */
-  {chm_nosuch,  0 },			/* 0x28 */
-  {chm_nosuch,  0 },			/* 0x29 */
-  {chm_nosuch,  0 },			/* 0x2a */
-  {chm_nosuch,  0 },			/* 0x2b */
-  {chm_nosuch,  0 },			/* 0x2c */
-  {chm_nosuch,  0 },			/* 0x2d */
-  {chm_nosuch,  0 },			/* 0x2e */
-  {chm_nosuch,  0 },			/* 0x2f */
-  {chm_nosuch,  0 },			/* 0x30 */
-  {chm_nosuch,  0 },			/* 0x31 */
-  {chm_nosuch,  0 },			/* 0x32 */
-  {chm_nosuch,  0 },			/* 0x33 */
-  {chm_nosuch,  0 },			/* 0x34 */
-  {chm_nosuch,  0 },			/* 0x35 */
-  {chm_nosuch,  0 },			/* 0x36 */
-  {chm_nosuch,  0 },			/* 0x37 */
-  {chm_nosuch,  0 },			/* 0x38 */
-  {chm_nosuch,  0 },			/* 0x39 */
-  {chm_nosuch,  0 },			/* 0x3a */
-  {chm_nosuch,  0 },			/* 0x3b */
-  {chm_nosuch,  0 },			/* 0x3c */
-  {chm_nosuch,  0 },			/* 0x3d */
-  {chm_nosuch,  0 },			/* 0x3e */
-  {chm_nosuch,  0 },			/* 0x3f */
-
-  {chm_nosuch,	0 },			/* @ */
-  {chm_nosuch,	0 },			/* A */
-  {chm_nosuch,	0 },			/* B */
-  {chm_nosuch,  0 },			/* C */
-  {chm_nosuch,	0 },			/* D */
-  {chm_nosuch,	0 },			/* E */
-  {chm_simple,	MODE_FREETARGET },	/* F */
-  {chm_nosuch,	0 },			/* G */
-  {chm_nosuch,	0 },			/* H */
-  {chm_ban,	CHFL_INVEX },           /* I */
-  {chm_nosuch,	0 },			/* J */
-  {chm_nosuch,	0 },			/* K */
-  {chm_staff,	MODE_EXLIMIT },		/* L */
-  {chm_nosuch,	0 },			/* M */
-  {chm_nosuch,	0 },			/* N */
-  {chm_nosuch,	0 },			/* O */
-  {chm_staff,	MODE_PERMANENT },	/* P */
-  {chm_simple,	MODE_DISFORWARD },	/* Q */
-  {chm_nosuch,	0 },			/* R */
-  {chm_nosuch,	0 },			/* S */
-  {chm_nosuch,	0 },			/* T */
-  {chm_nosuch,	0 },			/* U */
-  {chm_nosuch,	0 },			/* V */
-  {chm_nosuch,	0 },			/* W */
-  {chm_nosuch,	0 },			/* X */
-  {chm_nosuch,	0 },			/* Y */
-  {chm_nosuch,	0 },			/* Z */
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },
-  {chm_nosuch,	0 },			/* a */
-  {chm_ban,	CHFL_BAN },		/* b */
-  {chm_nosuch,	0 },			/* c */
-  {chm_nosuch,	0 },			/* d */
-  {chm_ban,	CHFL_EXCEPTION },	/* e */
-  {chm_forward,	0 },			/* f */
-  {chm_simple,	MODE_FREEINVITE },	/* g */
-  {chm_nosuch,	0 },			/* h */
-  {chm_simple,	MODE_INVITEONLY },	/* i */
-  {chm_throttle, 0 },			/* j */
-  {chm_key,	0 },			/* k */
-  {chm_limit,	0 },			/* l */
-  {chm_simple,	MODE_MODERATED },	/* m */
-  {chm_simple,	MODE_NOPRIVMSGS },	/* n */
-  {chm_op,	0 },			/* o */
-  {chm_simple,	MODE_PRIVATE },		/* p */
-  {chm_ban,	CHFL_QUIET },		/* q */
-  {chm_simple,  MODE_REGONLY },		/* r */
-  {chm_simple,	MODE_SECRET },		/* s */
-  {chm_simple,	MODE_TOPICLIMIT },	/* t */
-  {chm_nosuch,	0 },			/* u */
-  {chm_voice,	0 },			/* v */
-  {chm_nosuch,	0 },			/* w */
-  {chm_nosuch,	0 },			/* x */
-  {chm_nosuch,	0 },			/* y */
-  {chm_simple,	MODE_OPMODERATE },	/* z */
-
-  {chm_nosuch,  0 },			/* 0x7b */
-  {chm_nosuch,  0 },			/* 0x7c */
-  {chm_nosuch,  0 },			/* 0x7d */
-  {chm_nosuch,  0 },			/* 0x7e */
-  {chm_nosuch,  0 },			/* 0x7f */
-
-  {chm_nosuch,  0 },			/* 0x80 */
-  {chm_nosuch,  0 },			/* 0x81 */
-  {chm_nosuch,  0 },			/* 0x82 */
-  {chm_nosuch,  0 },			/* 0x83 */
-  {chm_nosuch,  0 },			/* 0x84 */
-  {chm_nosuch,  0 },			/* 0x85 */
-  {chm_nosuch,  0 },			/* 0x86 */
-  {chm_nosuch,  0 },			/* 0x87 */
-  {chm_nosuch,  0 },			/* 0x88 */
-  {chm_nosuch,  0 },			/* 0x89 */
-  {chm_nosuch,  0 },			/* 0x8a */
-  {chm_nosuch,  0 },			/* 0x8b */
-  {chm_nosuch,  0 },			/* 0x8c */
-  {chm_nosuch,  0 },			/* 0x8d */
-  {chm_nosuch,  0 },			/* 0x8e */
-  {chm_nosuch,  0 },			/* 0x8f */
-
-  {chm_nosuch,  0 },			/* 0x90 */
-  {chm_nosuch,  0 },			/* 0x91 */
-  {chm_nosuch,  0 },			/* 0x92 */
-  {chm_nosuch,  0 },			/* 0x93 */
-  {chm_nosuch,  0 },			/* 0x94 */
-  {chm_nosuch,  0 },			/* 0x95 */
-  {chm_nosuch,  0 },			/* 0x96 */
-  {chm_nosuch,  0 },			/* 0x97 */
-  {chm_nosuch,  0 },			/* 0x98 */
-  {chm_nosuch,  0 },			/* 0x99 */
-  {chm_nosuch,  0 },			/* 0x9a */
-  {chm_nosuch,  0 },			/* 0x9b */
-  {chm_nosuch,  0 },			/* 0x9c */
-  {chm_nosuch,  0 },			/* 0x9d */
-  {chm_nosuch,  0 },			/* 0x9e */
-  {chm_nosuch,  0 },			/* 0x9f */
-
-  {chm_nosuch,  0 },			/* 0xa0 */
-  {chm_nosuch,  0 },			/* 0xa1 */
-  {chm_nosuch,  0 },			/* 0xa2 */
-  {chm_nosuch,  0 },			/* 0xa3 */
-  {chm_nosuch,  0 },			/* 0xa4 */
-  {chm_nosuch,  0 },			/* 0xa5 */
-  {chm_nosuch,  0 },			/* 0xa6 */
-  {chm_nosuch,  0 },			/* 0xa7 */
-  {chm_nosuch,  0 },			/* 0xa8 */
-  {chm_nosuch,  0 },			/* 0xa9 */
-  {chm_nosuch,  0 },			/* 0xaa */
-  {chm_nosuch,  0 },			/* 0xab */
-  {chm_nosuch,  0 },			/* 0xac */
-  {chm_nosuch,  0 },			/* 0xad */
-  {chm_nosuch,  0 },			/* 0xae */
-  {chm_nosuch,  0 },			/* 0xaf */
-
-  {chm_nosuch,  0 },			/* 0xb0 */
-  {chm_nosuch,  0 },			/* 0xb1 */
-  {chm_nosuch,  0 },			/* 0xb2 */
-  {chm_nosuch,  0 },			/* 0xb3 */
-  {chm_nosuch,  0 },			/* 0xb4 */
-  {chm_nosuch,  0 },			/* 0xb5 */
-  {chm_nosuch,  0 },			/* 0xb6 */
-  {chm_nosuch,  0 },			/* 0xb7 */
-  {chm_nosuch,  0 },			/* 0xb8 */
-  {chm_nosuch,  0 },			/* 0xb9 */
-  {chm_nosuch,  0 },			/* 0xba */
-  {chm_nosuch,  0 },			/* 0xbb */
-  {chm_nosuch,  0 },			/* 0xbc */
-  {chm_nosuch,  0 },			/* 0xbd */
-  {chm_nosuch,  0 },			/* 0xbe */
-  {chm_nosuch,  0 },			/* 0xbf */
-
-  {chm_nosuch,  0 },			/* 0xc0 */
-  {chm_nosuch,  0 },			/* 0xc1 */
-  {chm_nosuch,  0 },			/* 0xc2 */
-  {chm_nosuch,  0 },			/* 0xc3 */
-  {chm_nosuch,  0 },			/* 0xc4 */
-  {chm_nosuch,  0 },			/* 0xc5 */
-  {chm_nosuch,  0 },			/* 0xc6 */
-  {chm_nosuch,  0 },			/* 0xc7 */
-  {chm_nosuch,  0 },			/* 0xc8 */
-  {chm_nosuch,  0 },			/* 0xc9 */
-  {chm_nosuch,  0 },			/* 0xca */
-  {chm_nosuch,  0 },			/* 0xcb */
-  {chm_nosuch,  0 },			/* 0xcc */
-  {chm_nosuch,  0 },			/* 0xcd */
-  {chm_nosuch,  0 },			/* 0xce */
-  {chm_nosuch,  0 },			/* 0xcf */
-
-  {chm_nosuch,  0 },			/* 0xd0 */
-  {chm_nosuch,  0 },			/* 0xd1 */
-  {chm_nosuch,  0 },			/* 0xd2 */
-  {chm_nosuch,  0 },			/* 0xd3 */
-  {chm_nosuch,  0 },			/* 0xd4 */
-  {chm_nosuch,  0 },			/* 0xd5 */
-  {chm_nosuch,  0 },			/* 0xd6 */
-  {chm_nosuch,  0 },			/* 0xd7 */
-  {chm_nosuch,  0 },			/* 0xd8 */
-  {chm_nosuch,  0 },			/* 0xd9 */
-  {chm_nosuch,  0 },			/* 0xda */
-  {chm_nosuch,  0 },			/* 0xdb */
-  {chm_nosuch,  0 },			/* 0xdc */
-  {chm_nosuch,  0 },			/* 0xdd */
-  {chm_nosuch,  0 },			/* 0xde */
-  {chm_nosuch,  0 },			/* 0xdf */
-
-  {chm_nosuch,  0 },			/* 0xe0 */
-  {chm_nosuch,  0 },			/* 0xe1 */
-  {chm_nosuch,  0 },			/* 0xe2 */
-  {chm_nosuch,  0 },			/* 0xe3 */
-  {chm_nosuch,  0 },			/* 0xe4 */
-  {chm_nosuch,  0 },			/* 0xe5 */
-  {chm_nosuch,  0 },			/* 0xe6 */
-  {chm_nosuch,  0 },			/* 0xe7 */
-  {chm_nosuch,  0 },			/* 0xe8 */
-  {chm_nosuch,  0 },			/* 0xe9 */
-  {chm_nosuch,  0 },			/* 0xea */
-  {chm_nosuch,  0 },			/* 0xeb */
-  {chm_nosuch,  0 },			/* 0xec */
-  {chm_nosuch,  0 },			/* 0xed */
-  {chm_nosuch,  0 },			/* 0xee */
-  {chm_nosuch,  0 },			/* 0xef */
-
-  {chm_nosuch,  0 },			/* 0xf0 */
-  {chm_nosuch,  0 },			/* 0xf1 */
-  {chm_nosuch,  0 },			/* 0xf2 */
-  {chm_nosuch,  0 },			/* 0xf3 */
-  {chm_nosuch,  0 },			/* 0xf4 */
-  {chm_nosuch,  0 },			/* 0xf5 */
-  {chm_nosuch,  0 },			/* 0xf6 */
-  {chm_nosuch,  0 },			/* 0xf7 */
-  {chm_nosuch,  0 },			/* 0xf8 */
-  {chm_nosuch,  0 },			/* 0xf9 */
-  {chm_nosuch,  0 },			/* 0xfa */
-  {chm_nosuch,  0 },			/* 0xfb */
-  {chm_nosuch,  0 },			/* 0xfc */
-  {chm_nosuch,  0 },			/* 0xfd */
-  {chm_nosuch,  0 },			/* 0xfe */
-  {chm_nosuch,  0 },			/* 0xff */
+  ['F'] = {chm_simple,    MODE_FREETARGET },
+  ['I'] = {chm_ban,       CHFL_INVEX },
+  ['L'] = {chm_staff,     MODE_EXLIMIT },
+  ['P'] = {chm_staff,     MODE_PERMANENT },
+  ['Q'] = {chm_simple,    MODE_DISFORWARD },
+  ['b'] = {chm_ban,       CHFL_BAN },
+  ['e'] = {chm_ban,       CHFL_EXCEPTION },
+  ['f'] = {chm_forward,   0 },
+  ['g'] = {chm_simple,    MODE_FREEINVITE },
+  ['i'] = {chm_simple,    MODE_INVITEONLY },
+  ['j'] = {chm_throttle,  0 },
+  ['k'] = {chm_key,       0 },
+  ['l'] = {chm_limit,     0 },
+  ['m'] = {chm_simple,    MODE_MODERATED },
+  ['n'] = {chm_simple,    MODE_NOPRIVMSGS },
+  ['o'] = {chm_op,        0 },
+  ['p'] = {chm_simple,    MODE_PRIVATE },
+  ['q'] = {chm_ban,       CHFL_QUIET },
+  ['r'] = {chm_simple,    MODE_REGONLY },
+  ['s'] = {chm_simple,    MODE_SECRET },
+  ['t'] = {chm_simple,    MODE_TOPICLIMIT },
+  ['v'] = {chm_voice,     0 },
+  ['z'] = {chm_simple,    MODE_OPMODERATE },
 };
 
 /* *INDENT-ON* */
@@ -1701,6 +1461,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	{
 		switch (c)
 		{
+		ChannelModeFunc set_func;
 		case '+':
 			dir = MODE_ADD;
 			if (!reauthorized)
@@ -1721,7 +1482,10 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 			dir = MODE_QUERY;
 			break;
 		default:
-			chmode_table[(unsigned char) c].set_func(fakesource_p, chptr, alevel,
+			set_func = chmode_table[(unsigned char) c].set_func;
+			if (set_func == NULL)
+				set_func = chm_nosuch;
+			set_func(fakesource_p, chptr, alevel,
 				       parc, &parn, parv,
 				       &errors, dir, c,
 				       chmode_table[(unsigned char) c].mode_type);
