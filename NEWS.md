@@ -7,8 +7,8 @@ See LICENSE for licensing details (GPL v2).
 
 Includes changes from charybdis-4.1.3-dev.
 
-**This release includes breaking changes.** Please pay close attention to bolded warnings in the
-full release notes below.
+**This release includes breaking changes from charybdis 4.x.** Please pay close attention to
+bolded warnings in the full release notes below.
 
 ### build
 - Add `--with-asan` to configure to produce an ASan instrumented build
@@ -32,11 +32,14 @@ full release notes below.
 - Channel bans don't see through IP spoofs
 - Global /names now respects userhost-in-names
 - The `$j` extban is no longer usable inside ban exceptions
+- TLSv1 connections are accepted. They can still be disabled using OpenSSL config if you don't
+  want them. TLSv1 existing is not thought to be a threat to up-to-date clients.
 
 ### oper
 - **Breaking:** Kick immunity for override is now its own extension, override\_kick\_immunity
 - **Breaking:** /stats A output now follows the same format as other stats letters
 - **Breaking:** helpops now uses +h instead of +H
+- **Breaking:** sno\_whois and the spy\_ extensions have been removed
 - Opers now have their privset (identified by name) on remote servers
 - Oper-only umodes are refreshed after rehash and /grant
 - Extension modules can be reloaded
@@ -63,6 +66,8 @@ full release notes below.
 - Add channel::opmod\_send\_statusmsg to send messages allowed by +z to @#channel
 - Add class::max\_autoconn, with the behaviour of class::max\_number for servers prior to
   charybdis 4
+- Add `secure {}` blocks. Networks listed in a secure block gain +Z and can match `need_ssl` I-
+  and O-lines.
 - Remove general::kline\_delay
 - If m\_webirc is loaded, connections that try to use a webirc auth block as their I-line will
   be disconnected on registration
@@ -70,6 +75,7 @@ full release notes below.
 ### misc
 - **Breaking:** WEBIRC now processes the "secure" option as specified by IRCv3. Web gateways that
   do not set this option will need to be updated or their connections will show as insecure.
+- Successfully changing IP with WEBIRC now drops an identd username
 
 ### code
 - Channel lists are now kept sorted. A for-loop macro, `ITER_COMM_CHANNELS`, is introduced to
