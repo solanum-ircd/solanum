@@ -1457,6 +1457,8 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 			if (effective_dir != MODE_QUERY && access_dir == MODE_QUERY)
 				access_dir = effective_dir;
+			if (effective_dir == MODE_QUERY && cm->flags & CHM_OPS_QUERY)
+				access_dir = MODE_OP_QUERY;
 
 			ms->cm = cm;
 			ms->dir = effective_dir;
