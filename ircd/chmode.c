@@ -41,6 +41,7 @@
 #include "chmode.h"
 #include "s_assert.h"
 #include "parse.h"
+#include "msgbuf.h"
 
 /* bitmasks for error returns, so we send once per call */
 #define SM_ERR_NOTS             0x00000001	/* No TS on channel */
@@ -580,8 +581,7 @@ fix_key_remote(char *arg)
  */
 void
 chm_nosuch(struct Client *source_p, struct Channel *chptr,
-	   int alevel, int parc, int *parn,
-	   const char **parv, int *errors, int dir, char c, long mode_type)
+	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	if(*errors & SM_ERR_UNKNOWN)
 		return;
@@ -591,8 +591,7 @@ chm_nosuch(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_simple(struct Client *source_p, struct Channel *chptr,
-	   int alevel, int parc, int *parn,
-	   const char **parv, int *errors, int dir, char c, long mode_type)
+	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
@@ -630,8 +629,7 @@ chm_simple(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_orphaned(struct Client *source_p, struct Channel *chptr,
-	   int alevel, int parc, int *parn,
-	   const char **parv, int *errors, int dir, char c, long mode_type)
+	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	if(MyClient(source_p))
 		return;
@@ -660,8 +658,7 @@ chm_orphaned(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_hidden(struct Client *source_p, struct Channel *chptr,
-	  int alevel, int parc, int *parn,
-	  const char **parv, int *errors, int dir, char c, long mode_type)
+	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	if(MyClient(source_p) && !IsOperGeneral(source_p))
 	{
@@ -707,8 +704,7 @@ chm_hidden(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_staff(struct Client *source_p, struct Channel *chptr,
-	  int alevel, int parc, int *parn,
-	  const char **parv, int *errors, int dir, char c, long mode_type)
+	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	if(MyClient(source_p) && !IsOper(source_p))
 	{
@@ -754,10 +750,9 @@ chm_staff(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_ban(struct Client *source_p, struct Channel *chptr,
-	int alevel, int parc, int *parn,
-	const char **parv, int *errors, int dir, char c, long mode_type)
+	int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
-	const char *mask, *raw_mask;
+	const char *mask;
 	char *forward;
 	rb_dlink_list *list;
 	rb_dlink_node *ptr;
@@ -779,8 +774,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 
 	case CHFL_EXCEPTION:
 		/* if +e is disabled, allow all but +e locally */
-		if(!ConfigChannel.use_except && MyClient(source_p) &&
-		   ((dir == MODE_ADD) && (parc > *parn)))
+		if (!ConfigChannel.use_except && MyClient(source_p) && dir == MODE_ADD)
 			return;
 
 		list = &chptr->exceptlist;
@@ -796,8 +790,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 
 	case CHFL_INVEX:
 		/* if +I is disabled, allow all but +I locally */
-		if(!ConfigChannel.use_invex && MyClient(source_p) &&
-		   (dir == MODE_ADD) && (parc > *parn))
+		if (!ConfigChannel.use_invex && MyClient(source_p) && dir == MODE_ADD)
 			return;
 
 		list = &chptr->invexlist;
@@ -824,7 +817,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		return;
 	}
 
-	if(dir == 0 || parc <= *parn)
+	if (dir == MODE_QUERY)
 	{
 		if((*errors & errorval) != 0)
 			return;
@@ -859,29 +852,26 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		return;
 	}
 
-	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
+	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
 
-	if(MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
+	if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
 		return;
-
-	raw_mask = parv[(*parn)];
-	(*parn)++;
 
 	/* empty ban, or starts with ':' which messes up s2s, ignore it */
-	if(EmptyString(raw_mask) || *raw_mask == ':')
+	if (EmptyString(arg) || *arg == ':')
 		return;
 
-	if(!MyClient(source_p))
+	if (!MyClient(source_p))
 	{
-		if(strchr(raw_mask, ' '))
+		if (strchr(arg, ' '))
 			return;
 
-		mask = raw_mask;
+		mask = arg;
 	}
 	else
-		mask = pretty_mask(raw_mask);
+		mask = pretty_mask(arg);
 
 	/* we'd have problems parsing this, hyb6 does it too
 	 * also make sure it will always fit on a line with channel
@@ -891,7 +881,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 	{
 		sendto_one_numeric(source_p, ERR_INVALIDBAN,
 				form_str(ERR_INVALIDBAN),
-				chptr->chname, c, raw_mask);
+				chptr->chname, c, arg);
 		return;
 	}
 
@@ -907,7 +897,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 	}
 
 	/* if we're adding a NEW id */
-	if(dir == MODE_ADD)
+	if (dir == MODE_ADD)
 	{
 		if (*mask == '$' && MyClient(source_p))
 		{
@@ -915,7 +905,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 			{
 				sendto_one_numeric(source_p, ERR_INVALIDBAN,
 						form_str(ERR_INVALIDBAN),
-						chptr->chname, c, raw_mask);
+						chptr->chname, c, arg);
 				return;
 			}
 		}
@@ -923,28 +913,28 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		/* For compatibility, only check the forward channel from
 		 * local clients. Accept any forward channel from servers.
 		 */
-		if(forward != NULL && MyClient(source_p))
+		if (forward != NULL && MyClient(source_p))
 		{
 			/* For simplicity and future flexibility, do not
 			 * allow '$' in forwarding targets.
 			 */
-			if(!ConfigChannel.use_forward ||
+			if (!ConfigChannel.use_forward ||
 					strchr(forward, '$') != NULL)
 			{
 				sendto_one_numeric(source_p, ERR_INVALIDBAN,
 						form_str(ERR_INVALIDBAN),
-						chptr->chname, c, raw_mask);
+						chptr->chname, c, arg);
 				return;
 			}
 			/* check_forward() sends its own error message */
-			if(!check_forward(source_p, chptr, forward))
+			if (!check_forward(source_p, chptr, forward))
 				return;
 			/* Forwards only make sense for bans. */
-			if(mode_type != CHFL_BAN)
+			if (mode_type != CHFL_BAN)
 			{
 				sendto_one_numeric(source_p, ERR_INVALIDBAN,
 						form_str(ERR_INVALIDBAN),
-						chptr->chname, c, raw_mask);
+						chptr->chname, c, arg);
 				return;
 			}
 		}
@@ -952,10 +942,10 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		/* dont allow local clients to overflow the banlist, dont
 		 * let remote servers set duplicate bans
 		 */
-		if(!add_id(source_p, chptr, mask, forward, list, mode_type))
+		if (!add_id(source_p, chptr, mask, forward, list, mode_type))
 			return;
 
-		if(forward)
+		if (forward)
 			forward[-1]= '$';
 
 		mode_changes[mode_count].letter = c;
@@ -964,23 +954,23 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		mode_changes[mode_count].id = NULL;
 		mode_changes[mode_count++].arg = mask;
 	}
-	else if(dir == MODE_DEL)
+	else if (dir == MODE_DEL)
 	{
 		struct Ban *removed;
 		static char buf[BANLEN * MAXMODEPARAMS];
 		int old_removed_mask_pos = removed_mask_pos;
-		if((removed = del_id(chptr, mask, list, mode_type)) == NULL)
+		if ((removed = del_id(chptr, mask, list, mode_type)) == NULL)
 		{
-			/* mask isn't a valid ban, check raw_mask */
-			if((removed = del_id(chptr, raw_mask, list, mode_type)) != NULL)
-				mask = raw_mask;
+			/* mask isn't a valid ban, check arg */
+			if ((removed = del_id(chptr, arg, list, mode_type)) != NULL)
+				mask = arg;
 		}
 
-		if(removed && removed->forward)
+		if (removed && removed->forward)
 			removed_mask_pos += snprintf(buf + old_removed_mask_pos, sizeof(buf), "%s$%s", removed->banstr, removed->forward) + 1;
 		else
 			removed_mask_pos += rb_strlcpy(buf + old_removed_mask_pos, mask, sizeof(buf)) + 1;
-		if(removed)
+		if (removed)
 		{
 			free_ban(removed);
 			removed = NULL;
@@ -996,30 +986,22 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_op(struct Client *source_p, struct Channel *chptr,
-       int alevel, int parc, int *parn,
-       const char **parv, int *errors, int dir, char c, long mode_type)
+       int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	struct membership *mstptr;
-	const char *opnick;
 	struct Client *targ_p;
 
 	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if((dir == MODE_QUERY) || (parc <= *parn))
-		return;
-
-	opnick = parv[(*parn)];
-	(*parn)++;
-
 	/* empty nick */
-	if(EmptyString(opnick))
+	if(EmptyString(arg))
 	{
 		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), "*");
 		return;
 	}
 
-	if((targ_p = find_chasing(source_p, opnick, NULL)) == NULL)
+	if((targ_p = find_chasing(source_p, arg, NULL)) == NULL)
 	{
 		return;
 	}
@@ -1030,7 +1012,7 @@ chm_op(struct Client *source_p, struct Channel *chptr,
 	{
 		if(!(*errors & SM_ERR_NOTONCHANNEL) && MyClient(source_p))
 			sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
-					   form_str(ERR_USERNOTINCHANNEL), opnick, chptr->chname);
+					   form_str(ERR_USERNOTINCHANNEL), arg, chptr->chname);
 		*errors |= SM_ERR_NOTONCHANNEL;
 		return;
 	}
@@ -1072,30 +1054,22 @@ chm_op(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_voice(struct Client *source_p, struct Channel *chptr,
-	  int alevel, int parc, int *parn,
-	  const char **parv, int *errors, int dir, char c, long mode_type)
+	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	struct membership *mstptr;
-	const char *opnick;
 	struct Client *targ_p;
 
 	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if((dir == MODE_QUERY) || parc <= *parn)
-		return;
-
-	opnick = parv[(*parn)];
-	(*parn)++;
-
 	/* empty nick */
-	if(EmptyString(opnick))
+	if(EmptyString(arg))
 	{
 		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), "*");
 		return;
 	}
 
-	if((targ_p = find_chasing(source_p, opnick, NULL)) == NULL)
+	if((targ_p = find_chasing(source_p, arg, NULL)) == NULL)
 	{
 		return;
 	}
@@ -1106,7 +1080,7 @@ chm_voice(struct Client *source_p, struct Channel *chptr,
 	{
 		if(!(*errors & SM_ERR_NOTONCHANNEL) && MyClient(source_p))
 			sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
-					   form_str(ERR_USERNOTINCHANNEL), opnick, chptr->chname);
+					   form_str(ERR_USERNOTINCHANNEL), arg, chptr->chname);
 		*errors |= SM_ERR_NOTONCHANNEL;
 		return;
 	}
@@ -1138,28 +1112,20 @@ chm_voice(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_limit(struct Client *source_p, struct Channel *chptr,
-	  int alevel, int parc, int *parn,
-	  const char **parv, int *errors, int dir, char c, long mode_type)
+	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
-	const char *lstr;
 	static char limitstr[30];
 	int limit;
 
-	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
+	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if(dir == MODE_QUERY)
+	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
-	if((dir == MODE_ADD) && parc > *parn)
+	if (dir == MODE_ADD)
 	{
-		lstr = parv[(*parn)];
-		(*parn)++;
-
-		if(EmptyString(lstr) || (limit = atoi(lstr)) <= 0)
+		if (EmptyString(arg) || (limit = atoi(arg)) <= 0)
 			return;
 
 		sprintf(limitstr, "%d", limit);
@@ -1172,7 +1138,7 @@ chm_limit(struct Client *source_p, struct Channel *chptr,
 
 		chptr->mode.limit = limit;
 	}
-	else if(dir == MODE_DEL)
+	else if (dir == MODE_DEL)
 	{
 		if(!chptr->mode.limit)
 			return;
@@ -1189,23 +1155,19 @@ chm_limit(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_throttle(struct Client *source_p, struct Channel *chptr,
-	     int alevel, int parc, int *parn,
-	     const char **parv, int *errors, int dir, char c, long mode_type)
+	     int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	int joins = 0, timeslice = 0;
 
-	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
+	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if(dir == MODE_QUERY)
+	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
-	if((dir == MODE_ADD) && parc > *parn)
+	if (dir == MODE_ADD)
 	{
-		if (sscanf(parv[(*parn)], "%d:%d", &joins, &timeslice) < 2)
+		if (sscanf(arg, "%d:%d", &joins, &timeslice) < 2)
 			return;
 
 		if(joins <= 0 || timeslice <= 0)
@@ -1215,9 +1177,7 @@ chm_throttle(struct Client *source_p, struct Channel *chptr,
 		mode_changes[mode_count].dir = MODE_ADD;
 		mode_changes[mode_count].mems = ALL_MEMBERS;
 		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count++].arg = parv[(*parn)];
-
-		(*parn)++;
+		mode_changes[mode_count++].arg = arg;
 
 		chptr->mode.join_num = joins;
 		chptr->mode.join_time = timeslice;
@@ -1242,17 +1202,13 @@ chm_throttle(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_forward(struct Client *source_p, struct Channel *chptr,
-	int alevel, int parc, int *parn,
-	const char **parv, int *errors, int dir, char c, long mode_type)
+	int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
-	const char *forward;
-
 	/* if +f is disabled, ignore local attempts to set it */
-	if(!ConfigChannel.use_forward && MyClient(source_p) &&
-	   (dir == MODE_ADD) && (parc > *parn))
+	if (!ConfigChannel.use_forward && MyClient(source_p) && dir == MODE_ADD)
 		return;
 
-	if(dir == MODE_QUERY || (dir == MODE_ADD && parc <= *parn))
+	if (dir == MODE_QUERY)
 	{
 		if (!(*errors & SM_ERR_RPL_F))
 		{
@@ -1266,10 +1222,10 @@ chm_forward(struct Client *source_p, struct Channel *chptr,
 	}
 
 #ifndef FORWARD_OPERONLY
-	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
+	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 #else
-	if(!IsOperGeneral(source_p) && !IsServer(source_p))
+	if (!IsOperGeneral(source_p) && !IsServer(source_p))
 	{
 		if(!(*errors & SM_ERR_NOPRIVS))
 			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
@@ -1278,28 +1234,25 @@ chm_forward(struct Client *source_p, struct Channel *chptr,
 	}
 #endif
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
+	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
-	if(dir == MODE_ADD && parc > *parn)
+	if (dir == MODE_ADD)
 	{
-		forward = parv[(*parn)];
-		(*parn)++;
-
-		if(EmptyString(forward))
+		if(EmptyString(arg))
 			return;
 
-		if(!check_forward(source_p, chptr, forward))
+		if(!check_forward(source_p, chptr, arg))
 			return;
 
-		rb_strlcpy(chptr->mode.forward, forward, sizeof(chptr->mode.forward));
+		rb_strlcpy(chptr->mode.forward, arg, sizeof(chptr->mode.forward));
 
 		mode_changes[mode_count].letter = c;
 		mode_changes[mode_count].dir = MODE_ADD;
 		mode_changes[mode_count].mems =
 			ConfigChannel.use_forward ? ALL_MEMBERS : ONLY_SERVERS;
 		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count++].arg = forward;
+		mode_changes[mode_count++].arg = arg;
 	}
 	else if(dir == MODE_DEL)
 	{
@@ -1318,24 +1271,19 @@ chm_forward(struct Client *source_p, struct Channel *chptr,
 
 void
 chm_key(struct Client *source_p, struct Channel *chptr,
-	int alevel, int parc, int *parn,
-	const char **parv, int *errors, int dir, char c, long mode_type)
+	int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
 	char *key;
 
-	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
+	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if(dir == MODE_QUERY)
+	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
-	if((dir == MODE_ADD) && parc > *parn)
+	if (dir == MODE_ADD)
 	{
-		key = LOCAL_COPY(parv[(*parn)]);
-		(*parn)++;
+		key = LOCAL_COPY(arg);
 
 		if(MyClient(source_p))
 			fix_key(key);
@@ -1358,9 +1306,6 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 	{
 		static char splat[] = "*";
 		int i;
-
-		if(parc > *parn)
-			(*parn)++;
 
 		if(!(*chptr->mode.key))
 			return;
@@ -1388,29 +1333,29 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 /* *INDENT-OFF* */
 struct ChannelMode chmode_table[256] =
 {
-  ['F'] = {chm_simple,    MODE_FREETARGET },
-  ['I'] = {chm_ban,       CHFL_INVEX },
-  ['L'] = {chm_staff,     MODE_EXLIMIT },
-  ['P'] = {chm_staff,     MODE_PERMANENT },
-  ['Q'] = {chm_simple,    MODE_DISFORWARD },
-  ['b'] = {chm_ban,       CHFL_BAN },
-  ['e'] = {chm_ban,       CHFL_EXCEPTION },
-  ['f'] = {chm_forward,   0 },
-  ['g'] = {chm_simple,    MODE_FREEINVITE },
-  ['i'] = {chm_simple,    MODE_INVITEONLY },
-  ['j'] = {chm_throttle,  0 },
-  ['k'] = {chm_key,       0 },
-  ['l'] = {chm_limit,     0 },
-  ['m'] = {chm_simple,    MODE_MODERATED },
-  ['n'] = {chm_simple,    MODE_NOPRIVMSGS },
-  ['o'] = {chm_op,        0 },
-  ['p'] = {chm_simple,    MODE_PRIVATE },
-  ['q'] = {chm_ban,       CHFL_QUIET },
-  ['r'] = {chm_simple,    MODE_REGONLY },
-  ['s'] = {chm_simple,    MODE_SECRET },
-  ['t'] = {chm_simple,    MODE_TOPICLIMIT },
-  ['v'] = {chm_voice,     0 },
-  ['z'] = {chm_simple,    MODE_OPMODERATE },
+  ['F'] = {chm_simple,    MODE_FREETARGET, 0 },
+  ['I'] = {chm_ban,       CHFL_INVEX,      CHM_QUERYABLE | CHM_OPS_QUERY },
+  ['L'] = {chm_staff,     MODE_EXLIMIT,    0 },
+  ['P'] = {chm_staff,     MODE_PERMANENT,  0 },
+  ['Q'] = {chm_simple,    MODE_DISFORWARD, 0 },
+  ['b'] = {chm_ban,       CHFL_BAN,        CHM_QUERYABLE },
+  ['e'] = {chm_ban,       CHFL_EXCEPTION,  CHM_QUERYABLE | CHM_OPS_QUERY },
+  ['f'] = {chm_forward,   0,               CHM_ARG_SET | CHM_CAN_QUERY },   /* weird because it's nonstandard and violates isupport */
+  ['g'] = {chm_simple,    MODE_FREEINVITE, 0 },
+  ['i'] = {chm_simple,    MODE_INVITEONLY, 0 },
+  ['j'] = {chm_throttle,  0,               CHM_ARG_SET },
+  ['k'] = {chm_key,       0,               CHM_QUERYABLE },
+  ['l'] = {chm_limit,     0,               CHM_ARG_SET },
+  ['m'] = {chm_simple,    MODE_MODERATED,  0 },
+  ['n'] = {chm_simple,    MODE_NOPRIVMSGS, 0 },
+  ['o'] = {chm_op,        0,               CHM_ARGS },
+  ['p'] = {chm_simple,    MODE_PRIVATE,    0 },
+  ['q'] = {chm_ban,       CHFL_QUIET,      CHM_QUERYABLE },
+  ['r'] = {chm_simple,    MODE_REGONLY,    0 },
+  ['s'] = {chm_simple,    MODE_SECRET,     0 },
+  ['t'] = {chm_simple,    MODE_TOPICLIMIT, 0 },
+  ['v'] = {chm_voice,     0,               CHM_ARGS },
+  ['z'] = {chm_simple,    MODE_OPMODERATE, 0 },
 };
 
 /* *INDENT-ON* */
@@ -1433,14 +1378,14 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	char *pbuf;
 	int cur_len, mlen, paralen, paracount, arglen, len;
 	int i, j, flags;
-	int dir = MODE_QUERY;
+	int dir = MODE_ADD;
+	int access_dir = MODE_QUERY;
 	int parn = 1;
 	int errors = 0;
 	int alevel;
 	const char *ml = parv[0];
 	char c;
 	struct Client *fakesource_p;
-	int reauthorized = 0;	/* if we change from MODE_QUERY to MODE_ADD/MODE_DEL, then reauth once, ugly but it works */
 	int flags_list[3] = { ALL_MEMBERS, ONLY_CHANOPS, ONLY_OPERS };
 
 	mask_pos = 0;
@@ -1455,42 +1400,91 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	else
 		fakesource_p = source_p;
 
-	alevel = get_channel_access(source_p, chptr, msptr, dir, reconstruct_parv(parc, parv));
+	struct modeset {
+		const struct ChannelMode *cm;
+		const char *arg;
+		int dir;
+		char mode;
+	};
 
-	for(; (c = *ml) != 0; ml++)
+	static struct modeset modesets[MAXPARA];
+	struct modeset *ms = modesets, *mend;
+
+	for (ml = parv[0]; *ml != 0; ml++)
 	{
+		c = *ml;
 		switch (c)
 		{
-		ChannelModeFunc set_func;
 		case '+':
 			dir = MODE_ADD;
-			if (!reauthorized)
-			{
-				alevel = get_channel_access(source_p, chptr, msptr, dir, reconstruct_parv(parc, parv));
-				reauthorized = 1;
-			}
 			break;
 		case '-':
 			dir = MODE_DEL;
-			if (!reauthorized)
-			{
-				alevel = get_channel_access(source_p, chptr, msptr, dir, reconstruct_parv(parc, parv));
-				reauthorized = 1;
-			}
 			break;
 		case '=':
 			dir = MODE_QUERY;
 			break;
 		default:
-			set_func = chmode_table[(unsigned char) c].set_func;
-			if (set_func == NULL)
-				set_func = chm_nosuch;
-			set_func(fakesource_p, chptr, alevel,
-				       parc, &parn, parv,
-				       &errors, dir, c,
-				       chmode_table[(unsigned char) c].mode_type);
-			break;
+		{
+			int effective_dir = dir;
+			const struct ChannelMode *cm = &chmode_table[(unsigned char) c];
+			bool use_arg = dir == MODE_ADD ? cm->flags & CHM_ARG_SET :
+			               dir == MODE_DEL ? cm->flags & CHM_ARG_DEL :
+			               false;
+			if (cm->set_func == NULL || cm->set_func == chm_nosuch)
+			{
+				sendto_one(source_p, form_str(ERR_UNKNOWNMODE), me.name, source_p->name, c);
+				return;
+			}
+			if (use_arg && parn >= parc)
+			{
+				if (!(cm->flags & CHM_CAN_QUERY))
+				{
+					sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, "MODE");
+					return;
+				}
+				effective_dir = MODE_QUERY;
+				use_arg = false;
+			}
+
+			if (effective_dir == MODE_QUERY && !(cm->flags & CHM_CAN_QUERY))
+			{
+				/* XXX this currently replicates traditional behaviour and just
+				 * does nothing for a query on a mode with no query. would it be
+				 * good to send an error here?
+				 */
+			}
+
+			if (effective_dir != MODE_QUERY && access_dir == MODE_QUERY)
+				access_dir = effective_dir;
+
+			ms->cm = cm;
+			ms->dir = effective_dir;
+			if (use_arg)
+				ms->arg = parv[parn++];
+			else
+				ms->arg = NULL;
+			ms->mode = c;
+			ms++;
 		}
+		}
+	}
+
+	if (parn < parc)
+	{
+		/* XXX we could reject excess params here */
+	}
+
+	mend = ms;
+
+	alevel = get_channel_access(source_p, chptr, msptr, access_dir, reconstruct_parv(parc, parv));
+
+	for (ms = modesets; ms < mend; ms++)
+	{
+		ChannelModeFunc set_func = ms->cm->set_func;
+		if (set_func == NULL)
+			set_func = chm_nosuch;
+		set_func(fakesource_p, chptr, alevel, ms->arg, &errors, ms->dir, ms->mode, ms->cm->mode_type);
 	}
 
 	/* bail out if we have nothing to do... */
