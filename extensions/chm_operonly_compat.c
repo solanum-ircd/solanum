@@ -15,41 +15,33 @@ static const char chm_operonly_compat[] =
 static int _modinit(void);
 static void _moddeinit(void);
 static void chm_operonly(struct Client *source_p, struct Channel *chptr,
-	int alevel, int parc, int *parn,
-	const char **parv, int *errors, int dir, char c, long mode_type);
+	int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
 
 DECLARE_MODULE_AV2(chm_operonly_compat, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, chm_operonly_compat);
 
 static int
 _modinit(void)
 {
-	chmode_table['O'].set_func = chm_operonly;
-	chmode_table['O'].mode_type = 0;
-
+	chmode_table['O'] = (struct ChannelMode){chm_operonly, 0, 0};
 	return 0;
 }
 
 static void
 _moddeinit(void)
 {
-	chmode_table['O'].set_func = chm_nosuch;
-	chmode_table['O'].mode_type = 0;
+	chmode_table['O'] = (struct ChannelMode){chm_nosuch, 0, 0};
 }
 
 static void
 chm_operonly(struct Client *source_p, struct Channel *chptr,
-	int alevel, int parc, int *parn,
-	const char **parv, int *errors, int dir, char c, long mode_type)
+	int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
-	int newparn = 0;
-	const char *newparv[] = { "$o" };
-
 	if (MyClient(source_p)) {
-		chm_simple(source_p, chptr, alevel, parc, parn, parv,
+		chm_simple(source_p, chptr, alevel, NULL,
 				errors, dir, 'i', MODE_INVITEONLY);
-		chm_ban(source_p, chptr, alevel, 1, &newparn, newparv,
+		chm_ban(source_p, chptr, alevel, "$o",
 				errors, dir, 'I', CHFL_INVEX);
 	} else
-		chm_nosuch(source_p, chptr, alevel, parc, parn, parv,
+		chm_nosuch(source_p, chptr, alevel, NULL,
 				errors, dir, c, mode_type);
 }

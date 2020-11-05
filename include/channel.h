@@ -122,13 +122,23 @@ struct ChModeChange
 };
 
 typedef void (*ChannelModeFunc)(struct Client *source_p, struct Channel *chptr,
-		int alevel, int parc, int *parn,
-		const char **parv, int *errors, int dir, char c, long mode_type);
+		int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
+
+enum chm_flags
+{
+	CHM_CAN_QUERY  = 1 << 0,
+	CHM_OPS_QUERY  = 1 << 1,
+	CHM_ARG_SET    = 1 << 2,
+	CHM_ARG_DEL    = 1 << 3,
+	CHM_ARGS       = CHM_ARG_SET | CHM_ARG_DEL,
+	CHM_QUERYABLE  = CHM_ARGS | CHM_CAN_QUERY,
+};
 
 struct ChannelMode
 {
 	ChannelModeFunc set_func;
 	long mode_type;
+	enum chm_flags flags;
 };
 
 typedef int (*ExtbanFunc)(const char *data, struct Client *client_p,
