@@ -191,6 +191,7 @@ typedef int (*ExtbanFunc)(const char *data, struct Client *client_p,
 #define MODE_QUERY     0
 #define MODE_ADD       1
 #define MODE_DEL       -1
+#define MODE_OP_QUERY  2
 
 #define SecretChannel(x)        ((x) && ((x)->mode.mode & MODE_SECRET))
 #define HiddenChannel(x)        ((x) && ((x)->mode.mode & MODE_PRIVATE))
