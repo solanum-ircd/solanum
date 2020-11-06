@@ -49,6 +49,9 @@ static const char message_desc[] =
 static void m_message(enum message_type, struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_privmsg(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_notice(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+
+static void echo_msg(struct Client *, struct Client *, enum message_type, const char *);
 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
@@ -75,8 +78,12 @@ struct Message notice_msgtab = {
 	"NOTICE", 0, 0, 0, 0,
 	{mg_unreg, {m_notice, 0}, {m_notice, 0}, {m_notice, 0}, mg_ignore, {m_notice, 0}}
 };
+struct Message echo_msgtab = {
+	"ECHO", 0, 0, 0, 0,
+	{mg_unreg, mg_ignore, {m_echo, 3}, mg_ignore, mg_ignore, mg_ignore}
+};
 
-mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, NULL };
+mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, NULL };
 
 DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, NULL, NULL, message_desc);
 
@@ -227,6 +234,26 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 			break;
 		}
 	}
+}
+
+static void
+m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
+		int parc, const char *parv[])
+{
+	struct Client *target_p = find_person(parv[2]);
+	enum message_type msgtype;
+
+	if (target_p == NULL)
+		return;
+
+	switch (parv[1][0])
+	{
+	case 'P': msgtype = MESSAGE_TYPE_PRIVMSG; break;
+	case 'N': msgtype = MESSAGE_TYPE_NOTICE; break;
+	default: return;
+	}
+
+	echo_msg(source_p, target_p, msgtype, parv[3]);
 }
 
 /*
@@ -698,6 +725,30 @@ expire_tgchange(void *unused)
 	}
 }
 
+static void
+echo_msg(struct Client *source_p, struct Client *target_p,
+		enum message_type msgtype, const char *text)
+{
+	if (MyClient(target_p))
+	{
+		if (!IsCapable(target_p, CLICAP_ECHO_MESSAGE))
+			return;
+
+		sendto_one(target_p, ":%s!%s@%s %s %s :%s",
+				target_p->name, target_p->username, target_p->host,
+				cmdname[msgtype],
+				source_p->name,
+				text);
+		return;
+	}
+
+	sendto_one(target_p, ":%s ECHO %c %s :%s",
+		use_id(source_p),
+		msgtype == MESSAGE_TYPE_PRIVMSG ? 'P' : 'N',
+		use_id(target_p),
+		text);
+}
+
 /*
  * msg_client
  *
@@ -749,9 +800,6 @@ msg_client(enum message_type msgtype,
 		if (do_floodcount &&
 				flood_attack_client(msgtype, source_p, target_p))
 			return;
-
-		if (IsCapable(source_p, CLICAP_ECHO_MESSAGE) && target_p != source_p)
-			sendto_anywhere_echo(target_p, source_p, cmdname[msgtype], ":%s", text);
 	}
 	else if(source_p->from == target_p->from)
 	{
@@ -792,6 +840,7 @@ msg_client(enum message_type msgtype,
 
 		add_reply_target(target_p, source_p);
 		sendto_anywhere(target_p, source_p, cmdname[msgtype], ":%s", text);
+		echo_msg(target_p, source_p, msgtype, text);
 	}
 	else
 		sendto_anywhere(target_p, source_p, cmdname[msgtype], ":%s", text);
