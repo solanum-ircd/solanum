@@ -1372,7 +1372,7 @@ void
 set_channel_mode(struct Client *client_p, struct Client *source_p,
 		 struct Channel *chptr, struct membership *msptr, int parc, const char *parv[])
 {
-	static char modebuf[BUFSIZE];
+	static char modebuf[BUFSIZE * 2]; /* paranoid case: 2 canonical chars per input char */
 	static char parabuf[BUFSIZE];
 	char *mbuf;
 	char *pbuf;
@@ -1409,6 +1409,9 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 	static struct modeset modesets[MAXPARA];
 	struct modeset *ms = modesets, *mend;
+	char canon_op = '\0';
+
+	mbuf = modebuf;
 
 	for (ml = parv[0]; *ml != 0; ml++)
 	{
@@ -1453,7 +1456,17 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 				 * does nothing for a query on a mode with no query. would it be
 				 * good to send an error here?
 				 */
+				continue;
 			}
+
+			char op = effective_dir == MODE_ADD ? '+' :
+			          effective_dir == MODE_DEL ? '-' :
+			          '=';
+
+			if (op != canon_op)
+				*mbuf++ = canon_op = op;
+
+			*mbuf++ = c;
 
 			if (effective_dir != MODE_QUERY && access_dir == MODE_QUERY)
 				access_dir = effective_dir;
@@ -1472,6 +1485,13 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 		}
 	}
 
+	/* this will happen on something like MODE +-=++-.
+	 * we'd have caught that with the if !mode_count
+	 * later on, but this saves an override notice
+	 */
+	if (ms == modesets)
+		return;
+
 	if (parn < parc)
 	{
 		/* XXX we could reject excess params here */
@@ -1479,7 +1499,16 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 	mend = ms;
 
-	alevel = get_channel_access(source_p, chptr, msptr, access_dir, reconstruct_parv(parc, parv));
+	if (parn > 1)
+	{
+		strcpy(mbuf, " ");
+		rb_strlcat(modebuf, reconstruct_parv(parn - 1, parv + 1), sizeof modebuf);
+	}
+	else
+	{
+		*mbuf = '\0';
+	}
+	alevel = get_channel_access(source_p, chptr, msptr, access_dir, modebuf);
 
 	for (ms = modesets; ms < mend; ms++)
 	{
@@ -1490,10 +1519,10 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	}
 
 	/* bail out if we have nothing to do... */
-	if(!mode_count)
+	if (!mode_count)
 		return;
 
-	if(IsServer(source_p))
+	if (IsServer(source_p))
 		mlen = sprintf(modebuf, ":%s MODE %s ", fakesource_p->name, chptr->chname);
 	else
 		mlen = sprintf(modebuf, ":%s!%s@%s MODE %s ",
