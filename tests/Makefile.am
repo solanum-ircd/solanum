@@ -1,4 +1,5 @@
 check_PROGRAMS = runtests \
+	chmode1 \
 	match1 \
 	msgbuf_parse1 \
 	msgbuf_unparse1 \
@@ -24,6 +25,7 @@ check_LIBRARIES = tap/libtap.a
 tap_libtap_a_SOURCES = tap/basic.c tap/basic.h \
 	tap/float.c tap/float.h tap/macros.h
 
+chmode1_SOURCES = chmode1.c ircd_util.c client_util.c
 match1_SOURCES = match1.c
 msgbuf_parse1_SOURCES = msgbuf_parse1.c
 msgbuf_unparse1_SOURCES = msgbuf_unparse1.c
