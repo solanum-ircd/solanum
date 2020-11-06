@@ -152,30 +152,28 @@ clicap_find(const char *data, int *negate, int *finished)
 static void
 clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 {
-	static char buf_prefix[DATALEN + 1];
-	static char buf_list[DATALEN + 1];
-	const char *str_cont = " * :";
-	const char *str_final = " :";
-	int len_prefix;
-	int max_list;
+	const char *str_cont = "* :";
+	const char *str_final = ":";
 	struct CapabilityEntry *entry;
 	rb_dictionary_iter iter;
+	bool multiline_ret;
+	enum multiline_item_result multiline_item_ret;
 
-	buf_prefix[0] = '\0';
-	len_prefix = rb_snprintf_try_append(buf_prefix, sizeof(buf_prefix),
-			":%s CAP %s %s",
+	multiline_ret = send_multiline_init(source_p, " ", ":%s CAP %s %s %s",
 			me.name,
 			EmptyString(source_p->name) ? "*" : source_p->name,
-			subcmd);
+			subcmd,
+			(source_p->flags & FLAGS_CLICAP_DATA) ? str_cont : str_final);
 
 	/* shortcut, nothing to do */
-	if (flags == -1 || len_prefix < 0) {
-		sendto_one(source_p, "%s%s", buf_prefix, str_final);
+	if (flags == -1 || !multiline_ret) {
+		sendto_one(source_p, ":%s CAP %s %s %s",
+				me.name,
+				EmptyString(source_p->name) ? "*" : source_p->name,
+				subcmd,
+				str_final);
 		return;
 	}
-
-	buf_list[0] = '\0';
-	max_list = sizeof(buf_prefix) - len_prefix - strlen(str_cont);
 
 	for (int pass = 0; pass < 2; pass++)
 	RB_DICTIONARY_FOREACH(entry, &iter, cli_capindex->cap_dict) {
@@ -205,34 +203,32 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 		if (!clicap_visible(source_p, entry))
 			continue;
 
-		if (!flags && (source_p->flags & FLAGS_CLICAP_DATA) && clicap != NULL && clicap->data != NULL)
-			data = clicap->data(source_p);
+		if (source_p->flags & FLAGS_CLICAP_DATA) {
+			if (!flags && clicap != NULL && clicap->data != NULL)
+				data = clicap->data(source_p);
 
-		for (int attempts = 0; attempts < 2; attempts++) {
-			if (rb_snprintf_try_append(buf_list, max_list, "%s%s%s%s",
-					buf_list[0] == '\0' ? "" : " ", /* space between caps */
+			multiline_item_ret = send_multiline_item(source_p, "%s%s%s",
 					entry->cap,
-					data != NULL ? "=" : "", /* '=' between cap and data */
-					data != NULL ? data : "") < 0
-					&& buf_list[0] != '\0') {
+					data != NULL ? "=" : "",
+					data != NULL ? data : "");
 
-				if (!(source_p->flags & FLAGS_CLICAP_DATA)) {
-					/* the client doesn't support multiple lines */
-					continue;
-				}
+			if (multiline_item_ret == MULTILINE_FAILURE)
+				return;
+		} else {
+			multiline_item_ret = send_multiline_item(source_p, "%s", entry->cap);
 
-				/* doesn't fit in the buffer, output what we have */
-				sendto_one(source_p, "%s%s%s", buf_prefix, str_cont, buf_list);
-
-				/* reset the buffer and go around the loop one more time */
-				buf_list[0] = '\0';
-			} else {
-				break;
+			if (multiline_item_ret != MULTILINE_SUCCESS) {
+				send_multiline_reset();
+				return;
 			}
 		}
 	}
 
-	sendto_one(source_p, "%s%s%s", buf_prefix, str_final, buf_list);
+	send_multiline_fini(source_p, ":%s CAP %s %s %s",
+			me.name,
+			EmptyString(source_p->name) ? "*" : source_p->name,
+			subcmd,
+			str_final);
 }
 
 static void
