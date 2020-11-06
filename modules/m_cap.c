@@ -302,16 +302,11 @@ cap_ls(struct Client *source_p, const char *arg)
 static void
 cap_req(struct Client *source_p, const char *arg)
 {
-	static char buf_prefix[DATALEN + 1];
-	static char buf_list[2][DATALEN + 1];
-	const char *str_cont = " * :";
-	const char *str_final = " :";
-	int len_prefix;
-	int max_list;
+	char ack_buf[DATALEN+1];
 	struct CapabilityEntry *cap;
-	int i = 0;
 	int capadd = 0, capdel = 0;
 	int finished = 0, negate;
+	int ret;
 	hook_data_cap_change hdata;
 
 	if(!IsRegistered(source_p))
@@ -320,21 +315,19 @@ cap_req(struct Client *source_p, const char *arg)
 	if(EmptyString(arg))
 		return;
 
-	buf_prefix[0] = '\0';
-	len_prefix = rb_snprintf_try_append(buf_prefix, sizeof(buf_prefix),
-			":%s CAP %s ACK",
-			me.name,
-			EmptyString(source_p->name) ? "*" : source_p->name);
+	ret = snprintf(ack_buf, sizeof ack_buf, ":%s CAP %s ACK :%s",
+			me.name, EmptyString(source_p->name)? "*" : source_p->name, arg);
 
-	buf_list[0][0] = '\0';
-	buf_list[1][0] = '\0';
-	max_list = sizeof(buf_prefix) - len_prefix - strlen(str_cont);
+	if (ret < 0 || ret > DATALEN)
+	{
+		sendto_one(source_p, ":%s CAP %s NAK :%s",
+			me.name, EmptyString(source_p->name) ? "*" : source_p->name, arg);
+		return;
+	}
 
 	for(cap = clicap_find(arg, &negate, &finished); cap;
 	    cap = clicap_find(NULL, &negate, &finished))
 	{
-		const char *type;
-
 		if(negate)
 		{
 			if(HasCapabilityFlag(cap, CLICAP_FLAGS_STICKY))
@@ -343,7 +336,6 @@ cap_req(struct Client *source_p, const char *arg)
 				break;
 			}
 
-			type = "-";
 			capdel |= (1 << cap->value);
 		}
 		else
@@ -354,36 +346,9 @@ cap_req(struct Client *source_p, const char *arg)
 				break;
 			}
 
-			type = "";
 			capadd |= (1 << cap->value);
 		}
 
-		for (int attempts = 0; attempts < 2; attempts++) {
-			if (rb_snprintf_try_append(buf_list[i], max_list, "%s%s%s",
-					buf_list[i][0] == '\0' ? "" : " ", /* space between caps */
-					type,
-					cap->cap) < 0
-					&& buf_list[i][0] != '\0') {
-
-				if (!(source_p->flags & FLAGS_CLICAP_DATA)) {
-					/* the client doesn't support multiple lines */
-					break;
-				}
-
-				/* doesn't fit in the buffer, move to the next one */
-				if (i < 2) {
-					i++;
-				} else {
-					/* uh-oh */
-					break;
-				}
-
-				/* reset the buffer and go around the loop one more time */
-				buf_list[i][0] = '\0';
-			} else {
-				break;
-			}
-		}
 	}
 
 	if(!finished)
@@ -393,12 +358,7 @@ cap_req(struct Client *source_p, const char *arg)
 		return;
 	}
 
-	if (i) {
-		sendto_one(source_p, "%s%s%s", buf_prefix, str_cont, buf_list[0]);
-		sendto_one(source_p, "%s%s%s", buf_prefix, str_final, buf_list[1]);
-	} else {
-		sendto_one(source_p, "%s%s%s", buf_prefix, str_final, buf_list[0]);
-	}
+	sendto_one(source_p, "%s", ack_buf);
 
 	hdata.client = source_p;
 	hdata.oldcaps = source_p->localClient->caps;
