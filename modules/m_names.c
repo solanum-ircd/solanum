@@ -119,16 +119,11 @@ m_names(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 static void
 names_global(struct Client *source_p)
 {
-	int mlen;
-	int tlen;
-	int cur_len;
 	bool dont_show = false;
 	rb_dlink_node *lp, *ptr;
 	struct Client *target_p;
 	struct Channel *chptr = NULL;
 	struct membership *msptr;
-	char buf[BUFSIZE];
-	char *t;
 
 	/* first do all visible channels */
 	RB_DLINK_FOREACH(ptr, global_channel_list.head)
@@ -136,9 +131,12 @@ names_global(struct Client *source_p)
 		chptr = ptr->data;
 		channel_member_names(chptr, source_p, 0);
 	}
-	cur_len = mlen = sprintf(buf, form_str(RPL_NAMREPLY),
-				    me.name, source_p->name, "*", "*");
-	t = buf + mlen;
+
+	send_multiline_init(source_p, " ", form_str(RPL_NAMREPLY),
+				    me.name,
+				    source_p->name,
+				    "*",
+				    "*");
 
 	/* Second, do all clients in one big sweep */
 	RB_DLINK_FOREACH(ptr, global_client_list.head)
@@ -174,33 +172,16 @@ names_global(struct Client *source_p)
 
 		if (IsCapable(source_p, CLICAP_USERHOST_IN_NAMES))
 		{
-			if (cur_len + strlen(target_p->name) + strlen(target_p->username) + strlen(target_p->host) + strlen(" !@") >= BUFSIZE - strlen("\r\n"))
-			{
-				*(t - 1) = '\0';
-				sendto_one(source_p, "%s", buf);
-				cur_len = mlen;
-				t = buf + mlen;
-			}
-
-			tlen = sprintf(t, "%s!%s@%s ", target_p->name, target_p->username, target_p->host);
+			send_multiline_item(source_p, "%s!%s@%s",
+					target_p->name,
+					target_p->username,
+					target_p->host);
 		}
 		else
 		{
-			if(cur_len + strlen(target_p->name) + strlen(" ") >= BUFSIZE - strlen("\r\n"))
-			{
-				*(t - 1) = '\0';
-				sendto_one(source_p, "%s", buf);
-				cur_len = mlen;
-				t = buf + mlen;
-			}
-
-			tlen = sprintf(t, "%s ", target_p->name);
+			send_multiline_item(source_p, "%s", target_p->name);
 		}
-
-		cur_len += tlen;
-		t += tlen;
 	}
 
-	if(cur_len > mlen)
-		sendto_one(source_p, "%s", buf);
+	send_multiline_fini(source_p, NULL);
 }

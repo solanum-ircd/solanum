@@ -487,11 +487,6 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 	struct membership *msptr;
 	struct Client *target_p;
 	rb_dlink_node *ptr;
-	char lbuf[BUFSIZE];
-	char *t;
-	int mlen;
-	int tlen;
-	int cur_len;
 	int is_member;
 	int stack = IsCapable(client_p, CLICAP_MULTI_PREFIX);
 
@@ -499,11 +494,11 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 	{
 		is_member = IsMember(client_p, chptr);
 
-		cur_len = mlen = sprintf(lbuf, form_str(RPL_NAMREPLY),
-					    me.name, client_p->name,
-					    channel_pub_or_secret(chptr), chptr->chname);
-
-		t = lbuf + cur_len;
+		send_multiline_init(client_p, " ", form_str(RPL_NAMREPLY),
+				me.name,
+				client_p->name,
+				channel_pub_or_secret(chptr),
+				chptr->chname);
 
 		RB_DLINK_FOREACH(ptr, chptr->members.head)
 		{
@@ -515,49 +510,21 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 
 			if (IsCapable(client_p, CLICAP_USERHOST_IN_NAMES))
 			{
-				/* space, possible "@+" prefix */
-				if (cur_len + strlen(target_p->name) + strlen(target_p->username) + strlen(target_p->host) + 5 >= BUFSIZE - 5)
-				{
-					*(t - 1) = '\0';
-					sendto_one(client_p, "%s", lbuf);
-					cur_len = mlen;
-					t = lbuf + mlen;
-				}
-
-				tlen = sprintf(t, "%s%s!%s@%s ", find_channel_status(msptr, stack),
-						  target_p->name, target_p->username, target_p->host);
+				send_multiline_item(client_p, "%s%s!%s@%s",
+						find_channel_status(msptr, stack),
+						target_p->name,
+						target_p->username,
+						target_p->host);
 			}
 			else
 			{
-				/* space, possible "@+" prefix */
-				if(cur_len + strlen(target_p->name) + 3 >= BUFSIZE - 3)
-				{
-					*(t - 1) = '\0';
-					sendto_one(client_p, "%s", lbuf);
-					cur_len = mlen;
-					t = lbuf + mlen;
-				}
-
-				tlen = sprintf(t, "%s%s ", find_channel_status(msptr, stack),
-						  target_p->name);
+				send_multiline_item(client_p, "%s%s",
+						find_channel_status(msptr, stack),
+						target_p->name);
 			}
-
-			cur_len += tlen;
-			t += tlen;
 		}
 
-		/* The old behaviour here was to always output our buffer,
-		 * even if there are no clients we can show.  This happens
-		 * when a client does "NAMES" with no parameters, and all
-		 * the clients on a -sp channel are +i.  I dont see a good
-		 * reason for keeping that behaviour, as it just wastes
-		 * bandwidth.  --anfl
-		 */
-		if(cur_len != mlen)
-		{
-			*(t - 1) = '\0';
-			sendto_one(client_p, "%s", lbuf);
-		}
+		send_multiline_fini(client_p, NULL);
 	}
 
 	if(show_eon)
