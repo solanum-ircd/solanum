@@ -35,7 +35,6 @@
 #loadmodule "extensions/sno_globalkline";
 #loadmodule "extensions/sno_globalnickchange";
 #loadmodule "extensions/sno_globaloper";
-#loadmodule "extensions/sno_whois";
 #loadmodule "extensions/override";
 #loadmodule "extensions/no_kill_services";
 
