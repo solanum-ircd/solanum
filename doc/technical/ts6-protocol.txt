@@ -319,6 +319,13 @@ Sets a D:line (IP ban checked directly after accepting connection).
 
 The mask must be an IP address or CIDR mask.
 
+ECHO
+source: user
+parameters: "P"/"N", target, text
+
+As PRIVMSG, but delivers an echo-message echo to the target; they will see
+a PRIVMSG or NOTICE from themselves to the source.
+
 ENCAP
 source: any
 parameters: target server mask, subcommand, opt. parameters...
