@@ -93,6 +93,18 @@ extern void kill_client(struct Client *client_p, struct Client *diedie,
 extern void kill_client_serv_butone(struct Client *one, struct Client *source_p,
 				    const char *pattern, ...) AFP(3, 4);
 
+enum multiline_item_result {
+	MULTILINE_FAILURE,
+	MULTILINE_SUCCESS,
+	MULTILINE_WRAPPED,
+};
+
+extern bool send_multiline_init(struct Client *target_p, const char *separator, const char *format, ...) AFP(3, 4);
+extern bool send_multiline_remote_pad(struct Client *target_p, struct Client *client_p);
+extern enum multiline_item_result send_multiline_item(struct Client *target_p, const char *format, ...) AFP(2, 3);
+extern bool send_multiline_fini(struct Client *target_p, const char *format, ...) AFP(2, 3);
+extern void send_multiline_reset(void);
+
 #define L_ALL 	0
 #define L_OPER 	1
 #define L_ADMIN	2
