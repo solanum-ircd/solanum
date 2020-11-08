@@ -12,13 +12,10 @@ extension_LTLIBRARIES =		\
   chantype_dummy.la		\
   chm_adminonly.la		\
   chm_operonly.la		\
-  chm_operonly_compat.la	\
   chm_insecure.la		\
   chm_nonotice.la		\
   chm_operpeace.la		\
-  chm_quietunreg_compat.la	\
   chm_sslonly.la		\
-  chm_sslonly_compat.la		\
   createauthonly.la		\
   createoperonly.la		\
   extb_account.la		\
