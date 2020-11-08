@@ -1666,6 +1666,30 @@ conf_set_general_oper_snomask(void *data)
 }
 
 static void
+conf_set_general_hidden_caps(void *data)
+{
+	size_t n = 0;
+
+	for (conf_parm_t *arg = data; arg; arg = arg->next)
+		n += 1;
+
+	if (ConfigFileEntry.hidden_caps != NULL)
+	{
+		for (n = 0; ConfigFileEntry.hidden_caps[n] != NULL; n++)
+			rb_free(ConfigFileEntry.hidden_caps[n]);
+		rb_free(ConfigFileEntry.hidden_caps);
+	}
+	ConfigFileEntry.hidden_caps = rb_malloc(sizeof *ConfigFileEntry.hidden_caps * (n + 1));
+
+	n = 0;
+	for (conf_parm_t *arg = data; arg; arg = arg->next)
+	{
+		ConfigFileEntry.hidden_caps[n++] = rb_strdup(arg->v.string);
+	}
+	ConfigFileEntry.hidden_caps[n] = NULL;
+}
+
+static void
 conf_set_serverhide_links_delay(void *data)
 {
 	int val = *(unsigned int *) data;
@@ -2644,6 +2668,8 @@ static struct ConfEntry conf_general_table[] =
 	{ "min_nonwildcard_simple",	 CF_INT,   NULL, 0, &ConfigFileEntry.min_nonwildcard_simple },
 	{ "non_redundant_klines",	 CF_YESNO, NULL, 0, &ConfigFileEntry.non_redundant_klines },
 	{ "tkline_expire_notices",	 CF_YESNO, NULL, 0, &ConfigFileEntry.tkline_expire_notices },
+
+	{ "hidden_caps", CF_QSTRING | CF_FLIST, conf_set_general_hidden_caps, 0, NULL },
 
 	{ "anti_nick_flood",	CF_YESNO, NULL, 0, &ConfigFileEntry.anti_nick_flood	},
 	{ "burst_away",		CF_YESNO, NULL, 0, &ConfigFileEntry.burst_away		},

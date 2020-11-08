@@ -1535,6 +1535,14 @@ clear_out_old_conf(void)
 	rb_free(ConfigFileEntry.sasl_service);
 	ConfigFileEntry.sasl_service = NULL;
 
+	if (ConfigFileEntry.hidden_caps != NULL)
+	{
+		for (size_t i = 0; ConfigFileEntry.hidden_caps[i] != NULL; i++)
+			rb_free(ConfigFileEntry.hidden_caps[i]);
+		rb_free(ConfigFileEntry.hidden_caps);
+	}
+	ConfigFileEntry.hidden_caps = NULL;
+
 	/* clean out log */
 	rb_free(ConfigFileEntry.fname_userlog);
 	ConfigFileEntry.fname_userlog = NULL;

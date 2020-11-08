@@ -235,6 +235,8 @@ struct config_file_entry
 	int away_interval;
 	int tls_ciphers_oper_only;
 
+	char **hidden_caps;
+
 	int client_flood_max_lines;
 	int client_flood_burst_rate;
 	int client_flood_burst_max;
