@@ -542,51 +542,26 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 {
 	rb_dlink_node *ptr;
 	struct Ban *banptr;
-	char *t;
-	int tlen;
-	int mlen;
-	int cur_len;
 
-	cur_len = mlen = sprintf(buf, ":%s BMASK %ld %s %c :",
-				    me.id, (long) chptr->channelts, chptr->chname, flag);
-	t = buf + mlen;
+	send_multiline_init(client_p, " ", ":%s BMASK %ld %s %c :",
+			me.id,
+			(long)chptr->channelts,
+			chptr->chname,
+			flag);
 
 	RB_DLINK_FOREACH_PREV(ptr, list->tail)
 	{
 		banptr = ptr->data;
 
-		tlen = strlen(banptr->banstr) + (banptr->forward ? strlen(banptr->forward) + 1 : 0) + 1;
-
-		/* uh oh */
-		if(cur_len + tlen > BUFSIZE - 3)
-		{
-			/* the one we're trying to send doesnt fit at all! */
-			if(cur_len == mlen)
-			{
-				s_assert(0);
-				continue;
-			}
-
-			/* chop off trailing space and send.. */
-			*(t-1) = '\0';
-			sendto_one(client_p, "%s", buf);
-			cur_len = mlen;
-			t = buf + mlen;
-		}
-
 		if (banptr->forward)
-			sprintf(t, "%s$%s ", banptr->banstr, banptr->forward);
+			send_multiline_item(client_p, "%s$%s",
+					banptr->banstr,
+					banptr->forward);
 		else
-			sprintf(t, "%s ", banptr->banstr);
-		t += tlen;
-		cur_len += tlen;
+			send_multiline_item(client_p, "%s", banptr->banstr);
 	}
 
-	/* cant ever exit the loop above without having modified buf,
-	 * chop off trailing space and send.
-	 */
-	*(t-1) = '\0';
-	sendto_one(client_p, "%s", buf);
+	send_multiline_fini(client_p, NULL);
 }
 
 /*
