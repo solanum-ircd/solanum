@@ -1512,7 +1512,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 	for (ms = modesets; ms < mend; ms++)
 	{
-		ChannelModeFunc set_func = ms->cm->set_func;
+		ChannelModeFunc *set_func = ms->cm->set_func;
 		if (set_func == NULL)
 			set_func = chm_nosuch;
 		set_func(fakesource_p, chptr, alevel, ms->arg, &errors, ms->dir, ms->mode, ms->cm->mode_type);

@@ -34,30 +34,18 @@
 
 extern int chmode_flags[256];
 
-extern void chm_nosuch(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_orphaned(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_simple(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_ban(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_hidden(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_staff(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_forward(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_throttle(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_key(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_limit(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_op(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
-extern void chm_voice(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
+extern ChannelModeFunc chm_nosuch;
+extern ChannelModeFunc chm_orphaned;
+extern ChannelModeFunc chm_simple;
+extern ChannelModeFunc chm_ban;
+extern ChannelModeFunc chm_hidden;
+extern ChannelModeFunc chm_staff;
+extern ChannelModeFunc chm_forward;
+extern ChannelModeFunc chm_throttle;
+extern ChannelModeFunc chm_key;
+extern ChannelModeFunc chm_limit;
+extern ChannelModeFunc chm_op;
+extern ChannelModeFunc chm_voice;
 
 extern unsigned int cflag_add(char c, ChannelModeFunc function);
 extern void cflag_orphan(char c);

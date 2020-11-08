@@ -121,7 +121,7 @@ struct ChModeChange
 	int mems;
 };
 
-typedef void (*ChannelModeFunc)(struct Client *source_p, struct Channel *chptr,
+typedef void ChannelModeFunc(struct Client *source_p, struct Channel *chptr,
 		int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
 
 enum chm_flags
@@ -136,7 +136,7 @@ enum chm_flags
 
 struct ChannelMode
 {
-	ChannelModeFunc set_func;
+	ChannelModeFunc *set_func;
 	long mode_type;
 	enum chm_flags flags;
 };

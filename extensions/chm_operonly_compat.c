@@ -14,8 +14,7 @@ static const char chm_operonly_compat[] =
 
 static int _modinit(void);
 static void _moddeinit(void);
-static void chm_operonly(struct Client *source_p, struct Channel *chptr,
-	int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
+static ChannelModeFunc chm_operonly;
 
 DECLARE_MODULE_AV2(chm_operonly_compat, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, chm_operonly_compat);
 
