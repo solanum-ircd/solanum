@@ -303,7 +303,7 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 
 		if(EmptyString(oper_reason))
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					       "%s added temporary %d min. D-Line for [%s] [%s]",
 					       get_oper_name(source_p), tdline_time / 60,
 					       aconf->host, reason);
@@ -312,7 +312,7 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 		}
 		else
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					       "%s added temporary %d min. D-Line for [%s] [%s|%s]",
 					       get_oper_name(source_p), tdline_time / 60,
 					       aconf->host, reason, oper_reason);
@@ -333,7 +333,7 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 
 		if(EmptyString(oper_reason))
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					       "%s added D-Line for [%s] [%s]",
 					       get_oper_name(source_p), aconf->host, reason);
 			ilog(L_KLINE, "D %s 0 %s %s",
@@ -341,7 +341,7 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 		}
 		else
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					       "%s added D-Line for [%s] [%s|%s]",
 					       get_oper_name(source_p), aconf->host, reason, oper_reason);
 			ilog(L_KLINE, "D %s 0 %s %s|%s",
@@ -378,7 +378,7 @@ apply_undline(struct Client *source_p, const char *cidr)
 		sendto_one(source_p,
 			   ":%s NOTICE %s :Un-dlined [%s] from temporary D-lines",
 			   me.name, source_p->name, buf);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				       "%s has removed the temporary D-Line for: [%s]",
 				       get_oper_name(source_p), buf);
 		ilog(L_KLINE, "UD %s %s", get_oper_name(source_p), buf);
@@ -389,7 +389,7 @@ apply_undline(struct Client *source_p, const char *cidr)
 
 	sendto_one(source_p, ":%s NOTICE %s :D-Line for [%s] is removed", me.name, source_p->name,
 		   aconf->host);
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s has removed the D-Line for: [%s]",
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s has removed the D-Line for: [%s]",
 			       get_oper_name(source_p), aconf->host);
 	ilog(L_KLINE, "UD %s %s", get_oper_name(source_p), aconf->host);
 	delete_one_address_conf(aconf->host, aconf);

@@ -60,7 +60,7 @@ static const char challenge_desc[] = "Does nothing as OpenSSL was not enabled.";
 /* now it is	-larne	*/
 static int challenge_load(void)
 {
-	sendto_realops_snomask(SNO_GENERAL, L_ALL,
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 		"Challenge module not loaded because OpenSSL is not available.");
 	ilog(L_MAIN, "Challenge module not loaded because OpenSSL is not available.");
 	return -1;
@@ -231,7 +231,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		if(ConfigFileEntry.failed_oper_notice)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Failed CHALLENGE attempt - missing SSL/TLS by %s (%s@%s)",
 					     source_p->name, source_p->username, source_p->host);
 		}
@@ -249,7 +249,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 			if(ConfigFileEntry.failed_oper_notice)
 			{
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						     "Failed OPER attempt - client certificate fingerprint mismatch by %s (%s@%s)",
 						     source_p->name, source_p->username, source_p->host);
 			}

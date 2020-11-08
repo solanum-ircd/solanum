@@ -803,7 +803,7 @@ msg_client(enum message_type msgtype,
 	}
 	else if(source_p->from == target_p->from)
 	{
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Send message to %s[%s] dropped from %s(Fake Dir)",
 				     target_p->name, target_p->from->name, source_p->name);
 		return;

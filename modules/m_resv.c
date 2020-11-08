@@ -130,6 +130,13 @@ mo_resv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	/* remote resv.. */
 	if(target_server)
 	{
+		if (temp_time)
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is adding a %d min. RESV for [%s] on %s [%s]",
+					get_oper_name(source_p), temp_time / 60, name, target_server, reason);
+		else
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is adding a permanent RESV for [%s] on %s [%s]",
+					get_oper_name(source_p), name, target_server, reason);
+
 		propagate_resv(source_p, target_server, temp_time, name, reason);
 
 		if(match(target_server, me.name) == 0)

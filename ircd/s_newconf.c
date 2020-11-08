@@ -510,7 +510,7 @@ set_server_conf_autoconn(struct Client *source_p, const char *name, int newval)
 		else
 			server_p->flags &= ~SERVER_AUTOCONN;
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"%s has changed AUTOCONN for %s to %i",
 				get_oper_name(source_p), name, newval);
 	}
@@ -528,7 +528,7 @@ disable_server_conf_autoconn(const char *name)
 	{
 		server_p->flags &= ~SERVER_AUTOCONN;
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Disabling AUTOCONN for %s because of error",
 				name);
 		ilog(L_SERVER, "Disabling AUTOCONN for %s because of error",
