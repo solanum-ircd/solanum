@@ -68,25 +68,14 @@ static void monitor_deinit(void)
 static void
 add_monitor(struct Client *client_p, const char *nicks)
 {
-	char onbuf[BUFSIZE], offbuf[BUFSIZE];
+	rb_dlink_node *prev_head, *ptr;
 	struct Client *target_p;
 	struct monitor *monptr;
 	const char *name;
 	char *tmp;
 	char *p;
-	char *onptr, *offptr;
-	int mlen, arglen;
-	int cur_onlen, cur_offlen;
 
-	/* these two are same length, just diff numeric */
-	cur_offlen = cur_onlen = mlen = sprintf(onbuf, form_str(RPL_MONONLINE),
-						me.name, client_p->name, "");
-	sprintf(offbuf, form_str(RPL_MONOFFLINE),
-			me.name, client_p->name, "");
-
-	onptr = onbuf + mlen;
-	offptr = offbuf + mlen;
-
+	prev_head = client_p->localClient->monitor_list.head;
 	tmp = LOCAL_COPY(nicks);
 
 	for(name = rb_strtok_r(tmp, ",", &p); name; name = rb_strtok_r(NULL, ",", &p))
@@ -97,22 +86,7 @@ add_monitor(struct Client *client_p, const char *nicks)
 		if(rb_dlink_list_length(&client_p->localClient->monitor_list) >=
 			(unsigned long)ConfigFileEntry.max_monitor)
 		{
-			char buf[100];
-
-			if(cur_onlen != mlen)
-				sendto_one(client_p, "%s", onbuf);
-			if(cur_offlen != mlen)
-				sendto_one(client_p, "%s", offbuf);
-
-			if(p)
-				snprintf(buf, sizeof(buf), "%s,%s", name, p);
-			else
-				snprintf(buf, sizeof(buf), "%s", name);
-
-			sendto_one(client_p, form_str(ERR_MONLISTFULL),
-					me.name, client_p->name,
-					ConfigFileEntry.max_monitor, buf);
-			return;
+			break;
 		}
 
 		if (!clean_nick(name, 0))
@@ -126,54 +100,66 @@ add_monitor(struct Client *client_p, const char *nicks)
 
 		rb_dlinkAddAlloc(client_p, &monptr->users);
 		rb_dlinkAddAlloc(monptr, &client_p->localClient->monitor_list);
+	}
 
-		if((target_p = find_named_person(name)) != NULL)
+	send_multiline_init(client_p, ",", form_str(RPL_MONONLINE),
+			me.name,
+			client_p->name,
+			"");
+
+	if (prev_head != NULL)
+		prev_head = prev_head->prev;
+	else
+		prev_head = client_p->localClient->monitor_list.tail;
+
+	RB_DLINK_FOREACH_PREV(ptr, prev_head)
+	{
+		monptr = ptr->data;
+		target_p = find_named_person(monptr->name);
+
+		if (target_p != NULL)
 		{
-			if(cur_onlen + strlen(target_p->name) +
-			   strlen(target_p->username) + strlen(target_p->host) + 3 >= BUFSIZE-3)
-			{
-				sendto_one(client_p, "%s", onbuf);
-				cur_onlen = mlen;
-				onptr = onbuf + mlen;
-			}
-
-			if(cur_onlen != mlen)
-			{
-				*onptr++ = ',';
-				cur_onlen++;
-			}
-
-			arglen = sprintf(onptr, "%s!%s@%s",
-					target_p->name, target_p->username,
+			send_multiline_item(client_p, "%s!%s@%s",
+					target_p->name,
+					target_p->username,
 					target_p->host);
-			onptr += arglen;
-			cur_onlen += arglen;
-		}
-		else
-		{
-			if(cur_offlen + strlen(name) + 1 >= BUFSIZE-3)
-			{
-				sendto_one(client_p, "%s", offbuf);
-				cur_offlen = mlen;
-				offptr = offbuf + mlen;
-			}
-
-			if(cur_offlen != mlen)
-			{
-				*offptr++ = ',';
-				cur_offlen++;
-			}
-
-			arglen = sprintf(offptr, "%s", name);
-			offptr += arglen;
-			cur_offlen += arglen;
 		}
 	}
 
-	if(cur_onlen != mlen)
-		sendto_one(client_p, "%s", onbuf);
-	if(cur_offlen != mlen)
-		sendto_one(client_p, "%s", offbuf);
+	send_multiline_fini(client_p, NULL);
+
+	send_multiline_init(client_p, ",", form_str(RPL_MONOFFLINE),
+			me.name,
+			client_p->name,
+			"");
+
+	RB_DLINK_FOREACH_PREV(ptr, prev_head)
+	{
+		monptr = ptr->data;
+
+		if (find_named_person(monptr->name) == NULL)
+		{
+			send_multiline_item(client_p, "%s", monptr->name);
+		}
+	}
+
+	send_multiline_fini(client_p, NULL);
+
+	if (name)
+	{
+		char buf[400];
+
+		if (p)
+			snprintf(buf, sizeof buf, "%s,%s", name, p);
+		else
+			snprintf(buf, sizeof buf, "%s", name);
+
+		sendto_one(client_p, form_str(ERR_MONLISTFULL),
+				me.name,
+				client_p->name,
+				ConfigFileEntry.max_monitor,
+				buf);
+	}
 }
 
 static void
@@ -208,11 +194,8 @@ del_monitor(struct Client *client_p, const char *nicks)
 static void
 list_monitor(struct Client *client_p)
 {
-	char buf[BUFSIZE];
 	struct monitor *monptr;
-	char *nbuf;
 	rb_dlink_node *ptr;
-	int mlen, arglen, cur_len;
 
 	if(!rb_dlink_list_length(&client_p->localClient->monitor_list))
 	{
@@ -221,33 +204,19 @@ list_monitor(struct Client *client_p)
 		return;
 	}
 
-	cur_len = mlen = sprintf(buf, form_str(RPL_MONLIST),
-				me.name, client_p->name, "");
-	nbuf = buf + mlen;
+	send_multiline_init(client_p, ",", form_str(RPL_MONLIST),
+			me.name,
+			client_p->name,
+			"");
 
 	RB_DLINK_FOREACH(ptr, client_p->localClient->monitor_list.head)
 	{
 		monptr = ptr->data;
 
-		if(cur_len + strlen(monptr->name) + 1 >= BUFSIZE-3)
-		{
-			sendto_one(client_p, "%s", buf);
-			nbuf = buf + mlen;
-			cur_len = mlen;
-		}
-
-		if(cur_len != mlen)
-		{
-			*nbuf++ = ',';
-			cur_len++;
-		}
-
-		arglen = sprintf(nbuf, "%s", monptr->name);
-		cur_len += arglen;
-		nbuf += arglen;
+		send_multiline_item(client_p, "%s", monptr->name);
 	}
 
-	sendto_one(client_p, "%s", buf);
+	send_multiline_fini(client_p, NULL);
 	sendto_one(client_p, form_str(RPL_ENDOFMONLIST),
 			me.name, client_p->name);
 }
@@ -255,73 +224,47 @@ list_monitor(struct Client *client_p)
 static void
 show_monitor_status(struct Client *client_p)
 {
-	char onbuf[BUFSIZE], offbuf[BUFSIZE];
 	struct Client *target_p;
 	struct monitor *monptr;
-	char *onptr, *offptr;
-	int cur_onlen, cur_offlen;
-	int mlen, arglen;
 	rb_dlink_node *ptr;
 
-	mlen = cur_onlen = sprintf(onbuf, form_str(RPL_MONONLINE),
-					me.name, client_p->name, "");
-	cur_offlen = sprintf(offbuf, form_str(RPL_MONOFFLINE),
-				me.name, client_p->name, "");
+	send_multiline_init(client_p, ",", form_str(RPL_MONONLINE),
+			me.name,
+			client_p->name,
+			"");
 
-	onptr = onbuf + mlen;
-	offptr = offbuf + mlen;
+	RB_DLINK_FOREACH(ptr, client_p->localClient->monitor_list.head)
+	{
+		monptr = ptr->data;
+		target_p = find_named_person(monptr->name);
+
+		if (target_p != NULL)
+		{
+			send_multiline_item(client_p, "%s!%s@%s",
+					target_p->name,
+					target_p->username,
+					target_p->host);
+		}
+	}
+
+	send_multiline_fini(client_p, NULL);
+
+	send_multiline_init(client_p, ",", form_str(RPL_MONOFFLINE),
+			me.name,
+			client_p->name,
+			"");
 
 	RB_DLINK_FOREACH(ptr, client_p->localClient->monitor_list.head)
 	{
 		monptr = ptr->data;
 
-		if((target_p = find_named_person(monptr->name)) != NULL)
+		if (find_named_person(monptr->name) == NULL)
 		{
-			if(cur_onlen + strlen(target_p->name) +
-			   strlen(target_p->username) + strlen(target_p->host) + 3 >= BUFSIZE-3)
-			{
-				sendto_one(client_p, "%s", onbuf);
-				cur_onlen = mlen;
-				onptr = onbuf + mlen;
-			}
-
-			if(cur_onlen != mlen)
-			{
-				*onptr++ = ',';
-				cur_onlen++;
-			}
-
-			arglen = sprintf(onptr, "%s!%s@%s",
-					target_p->name, target_p->username,
-					target_p->host);
-			onptr += arglen;
-			cur_onlen += arglen;
-		}
-		else
-		{
-			if(cur_offlen + strlen(monptr->name) + 1 >= BUFSIZE-3)
-			{
-				sendto_one(client_p, "%s", offbuf);
-				cur_offlen = mlen;
-				offptr = offbuf + mlen;
-			}
-
-			if(cur_offlen != mlen)
-			{
-				*offptr++ = ',';
-				cur_offlen++;
-			}
-
-			arglen = sprintf(offptr, "%s", monptr->name);
-			offptr += arglen;
-			cur_offlen += arglen;
+			send_multiline_item(client_p, "%s", monptr->name);
 		}
 	}
 
-	if(cur_onlen != mlen)
-		sendto_one(client_p, "%s", onbuf);
-	if(cur_offlen != mlen)
-		sendto_one(client_p, "%s", offbuf);
+	send_multiline_fini(client_p, NULL);
 }
 
 static void
