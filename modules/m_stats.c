@@ -116,6 +116,7 @@ static void stats_operedup(struct Client *);
 static void stats_ports(struct Client *);
 static void stats_tresv(struct Client *);
 static void stats_resv(struct Client *);
+static void stats_secure(struct Client *);
 static void stats_ssld(struct Client *);
 static void stats_usage(struct Client *);
 static void stats_tstats(struct Client *);
@@ -177,7 +178,7 @@ static struct stats_cmd stats_cmd_table[256] = {
 	['Q'] = HANDLER_NORM(stats_resv,	false,	"oper:general"),
 	['r'] = HANDLER_NORM(stats_usage,	false,	"oper:general"),
 	['R'] = HANDLER_NORM(stats_usage,	false,	"oper:general"),
-	['s'] = HANDLER_NORM(stats_ssld,	true,	NULL),
+	['s'] = HANDLER_NORM(stats_secure,	false,	"oper:general"),
 	['S'] = HANDLER_NORM(stats_ssld,	true,	NULL),
 	['t'] = HANDLER_NORM(stats_tstats,	false,	"oper:general"),
 	['T'] = HANDLER_NORM(stats_tstats,	false,	"oper:general"),
@@ -485,7 +486,8 @@ stats_exempt(struct Client *source_p)
 						   'e', host, pass, "", "");
 			}
 		}
-	}}
+	}
+}
 
 
 static void
@@ -915,6 +917,26 @@ stats_resv(struct Client *source_p)
 			sendto_one_numeric(source_p, RPL_STATSQLINE,
 					form_str(RPL_STATSQLINE),
 					'Q', aconf->port, aconf->host, aconf->passwd);
+	}
+}
+
+static void
+stats_secure(struct Client *source_p)
+{
+	struct AddressRec *arec;
+	struct ConfItem *aconf;
+	size_t i;
+
+	for (i = 0; i < ATABLE_SIZE; i++)
+	{
+		for (arec = atable[i]; arec; arec = arec->next)
+		{
+			if(arec->type == CONF_SECURE)
+			{
+				aconf = arec->aconf;
+				sendto_one_numeric(source_p, RPL_STATSDEBUG, "s :%s", aconf->host);
+			}
+		}
 	}
 }
 
