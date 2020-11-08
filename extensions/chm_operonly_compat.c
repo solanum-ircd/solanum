@@ -28,7 +28,7 @@ _modinit(void)
 static void
 _moddeinit(void)
 {
-	chmode_table['O'] = (struct ChannelMode){chm_nosuch, 0, 0};
+	chmode_table['O'] = (struct ChannelMode){NULL, 0, 0};
 }
 
 static void
