@@ -2135,7 +2135,7 @@ error_exit_client(struct Client *client_p, int error)
 	{
 		if(error == 0)
 		{
-			sendto_realops_snomask(SNO_GENERAL, !IsServer(client_p) ? L_NETWIDE : L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Server %s closed the connection",
 					     client_p->name);
 
@@ -2144,7 +2144,7 @@ error_exit_client(struct Client *client_p, int error)
 		}
 		else
 		{
-			sendto_realops_snomask(SNO_GENERAL, !IsServer(client_p) ? L_NETWIDE : L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					"Lost connection to %s: %s",
 					client_p->name, strerror(current_error));
 			ilog(L_SERVER, "Lost connection to %s: %s",
