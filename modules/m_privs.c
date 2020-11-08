@@ -81,57 +81,49 @@ static struct mode_table auth_client_table[] = {
 
 DECLARE_MODULE_AV2(privs, NULL, NULL, privs_clist, NULL, NULL, NULL, NULL, privs_desc);
 
-static void append_priv(struct Client *source_p, struct Client *target_p, char *buf, const char *s1, const char *s2)
-{
-	/* 510 - ":" - " 270 " - " " - " :* " */
-	size_t sourcelen = strlen(source_p->name);
-	if (sourcelen < 9) sourcelen = 9;
-	size_t limit = 499 - strlen(me.name) - sourcelen - strlen(target_p->name);
-	if (strlen(s1) + strlen(s2) + strlen(buf) + 1 > limit)
-	{
-		sendto_one_numeric(source_p, RPL_PRIVS, "%s :* %s", target_p->name, buf);
-		buf[0] = '\0';
-	}
-	if (buf[0] != '\0')
-		rb_strlcat(buf, " ", BUFSIZE);
-	rb_strlcat(buf, s1, BUFSIZE);
-	rb_strlcat(buf, s2, BUFSIZE);
-}
-
 static void show_privs(struct Client *source_p, struct Client *target_p)
 {
-	char buf[BUFSIZE];
 	struct mode_table *p;
 
-	buf[0] = '\0';
+	send_multiline_init(source_p, " ", form_str(RPL_PRIVS),
+			get_id(&me, source_p),
+			get_id(source_p, source_p),
+			target_p->name,
+			"* ");
+
+	send_multiline_remote_pad(source_p, &me);
+	send_multiline_remote_pad(source_p, source_p);
 
 	if (target_p->user->privset)
 		for (char *s = target_p->user->privset->privs; s != NULL; (s = strchr(s, ' ')) && s++)
 		{
 			char *c = strchr(s, ' ');
 			if (c) *c = '\0';
-			append_priv(source_p, target_p, buf, s, "");
+			send_multiline_item(source_p, "%s", s);
 			if (c) *c = ' ';
 		}
 
 	if (IsOper(target_p))
 	{
 		if (target_p->user->opername)
-			append_priv(source_p, target_p, buf, "operator:", target_p->user->opername);
+			send_multiline_item(source_p, "operator:%s", target_p->user->opername);
 
 		if (target_p->user->privset)
-			append_priv(source_p, target_p, buf, "privset:", target_p->user->privset->name);
+			send_multiline_item(source_p, "privset:%s", target_p->user->privset->name);
 	}
 	p = &auth_client_table[0];
 	while (p->name != NULL)
 	{
 		if (target_p->flags & p->mode)
-			append_priv(source_p, target_p, buf, p->name, "");
+			send_multiline_item(source_p, "%s", p->name);
 		p++;
 	}
 
-	if (buf[0] != '\0')
-		sendto_one_numeric(source_p, RPL_PRIVS, "%s :%s", target_p->name, buf);
+	send_multiline_fini(source_p, form_str(RPL_PRIVS),
+			get_id(&me, source_p),
+			get_id(source_p, source_p),
+			target_p->name,
+			"");
 }
 
 static void
