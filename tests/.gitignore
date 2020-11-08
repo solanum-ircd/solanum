@@ -1,0 +1,13 @@
+/*
+
+!/*.*
+**/.deps/**
+/*.in
+/*.o
+/*.a
+/*.c.ban.db
+/*.c.ban.db-journal
+/*.c.log
+/*.c.pid
+
+!*/
