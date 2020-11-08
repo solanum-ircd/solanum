@@ -78,7 +78,7 @@
 #define NUMERIC_STR_263      ":%s 263 %s %s :This command could not be completed because it has been used recently, and is rate-limited."
 #define NUMERIC_STR_265      "%d %d :Current local users %d, max %d"
 #define NUMERIC_STR_266      "%d %d :Current global users %d, max %d"
-#define NUMERIC_STR_270      "%s :%s"
+#define NUMERIC_STR_270      ":%s 270 %s %s :%s"
 #define NUMERIC_STR_276      "%s :has client certificate fingerprint %s"
 #define NUMERIC_STR_281      ":%s 281 %s %s"
 #define NUMERIC_STR_282      ":%s 282 %s :End of /ACCEPT list."
