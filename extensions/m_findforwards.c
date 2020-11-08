@@ -59,9 +59,6 @@ m_findforwards(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 	struct Channel *chptr;
 	struct membership *msptr;
 	rb_dlink_node *ptr;
-	char buf[414];
-	char *p = buf, *end = buf + sizeof buf - 1;
-	*p = '\0';
 
 	/* Allow ircops to search for forwards to nonexistent channels */
 	if(!IsOperGeneral(source_p))
@@ -90,25 +87,19 @@ m_findforwards(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 			last_used = rb_current_time();
 	}
 
+	send_multiline_init(source_p, " ", ":%s NOTICE %s :Forwards for %s: ",
+			me.name,
+			source_p->name,
+			parv[1]);
+
 	RB_DLINK_FOREACH(ptr, global_channel_list.head)
 	{
 		chptr = ptr->data;
 		if(!irccmp(chptr->mode.forward, parv[1]))
 		{
-			if(p + strlen(chptr->chname) >= end - 13)
-			{
-				strcpy(p, "<truncated> ");
-				p += 12;
-				break;
-			}
-			strcpy(p, chptr->chname);
-			p += strlen(chptr->chname);
-			*p++ = ' ';
+			send_multiline_item(source_p, "%s", chptr->chname);
 		}
 	}
 
-	if(buf[0])
-		*(--p) = '\0';
-
-	sendto_one_notice(source_p, ":Forwards for %s: %s", parv[1], buf);
+	send_multiline_fini(source_p, NULL);
 }
