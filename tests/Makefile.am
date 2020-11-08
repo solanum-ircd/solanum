@@ -16,6 +16,8 @@ AM_CPPFLAGS = $(DEFAULT_INCLUDES) -I../librb/include -I..
 AM_LDFLAGS = -no-install
 LDADD = libutil.a tap/libtap.a ../librb/src/librb.la ../ircd/libircd.la -ldl
 
+CLEANFILES = TESTS
+
 # Override -rpath or programs will be linked to installed libraries
 libdir=$(abs_top_builddir)
 
@@ -26,7 +28,11 @@ tap_libtap_a_SOURCES = tap/basic.c tap/basic.h \
 	tap/float.c tap/float.h tap/macros.h
 libutil_a_SOURCES = ircd_util.c client_util.c
 
+TESTS: Makefile
+	printf '%s\n' $(check_PROGRAMS) | sed '/^runtests$$/d' > TESTS
+
 check-local: $(check_PROGRAMS) \
+	TESTS \
 	../authd/authd \
 	../bandb/bandb \
 	../ssld/ssld \
