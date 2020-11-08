@@ -323,7 +323,7 @@ unittimespec:	number string
 		;
 
 timespec: unittimespec
-        {
+		{
 			$$ = $1;
 		}
 		| timespec unittimespec
