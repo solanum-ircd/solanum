@@ -9,9 +9,6 @@
 
 /* Extensions */
 #loadmodule "extensions/chm_nonotice";
-#loadmodule "extensions/chm_operonly_compat";
-#loadmodule "extensions/chm_quietunreg_compat";
-#loadmodule "extensions/chm_sslonly_compat";
 #loadmodule "extensions/chm_operpeace";
 #loadmodule "extensions/createauthonly";
 #loadmodule "extensions/extb_account";

@@ -573,20 +573,6 @@ fix_key_remote(char *arg)
 	return arg;
 }
 
-/* chm_*()
- *
- * The handlers for each specific mode.
- */
-void
-chm_nosuch(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
-{
-	if(*errors & SM_ERR_UNKNOWN)
-		return;
-	*errors |= SM_ERR_UNKNOWN;
-	sendto_one(source_p, form_str(ERR_UNKNOWNMODE), me.name, source_p->name, c);
-}
-
 void
 chm_simple(struct Client *source_p, struct Channel *chptr,
 	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
@@ -1511,8 +1497,6 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	for (ms = modesets; ms < mend; ms++)
 	{
 		ChannelModeFunc *set_func = ms->cm->set_func;
-		if (set_func == NULL)
-			set_func = chm_nosuch;
 		set_func(fakesource_p, chptr, alevel, ms->arg, &errors, ms->dir, ms->mode, ms->cm->mode_type);
 	}
 
