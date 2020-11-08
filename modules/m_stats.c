@@ -1523,12 +1523,17 @@ stats_ltrace(struct Client *source_p, int parc, const char *parv[])
 	const char *name;
 	char statchar = parv[1][0];
 
+	if (ConfigFileEntry.stats_l_oper_only == STATS_L_OPER_ONLY_YES && !IsOperGeneral(source_p))
+	{
+		sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
+		return;
+	}
+
 	/* this is def targeted at us somehow.. */
-	if(parc > 2 && !EmptyString(parv[2]))
+	if (parc > 2 && !EmptyString(parv[2]))
 	{
 		/* directed at us generically? */
-		if(match(parv[2], me.name) ||
-		   (!MyClient(source_p) && !irccmp(parv[2], me.id)))
+		if (match(parv[2], me.name) || (!MyClient(source_p) && !irccmp(parv[2], me.id)))
 		{
 			name = me.name;
 			doall = true;
@@ -1540,24 +1545,31 @@ stats_ltrace(struct Client *source_p, int parc, const char *parv[])
 		}
 
 		/* must be directed at a specific person thats not us */
-		if(!doall && !wilds)
+		if (!doall && !wilds)
 		{
 			struct Client *target_p;
 
-			if(MyClient(source_p))
+			if (MyClient(source_p))
 				target_p = find_named_person(name);
 			else
 				target_p = find_person(name);
 
-			if(target_p != NULL)
+			if (target_p != source_p && ConfigFileEntry.stats_l_oper_only != STATS_L_OPER_ONLY_NO
+					&& !IsOperGeneral(source_p))
+			{
+				sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
+			}
+			else if (target_p != NULL)
 			{
 				stats_spy(source_p, statchar, target_p->name);
 				stats_l_client(source_p, target_p, statchar);
 			}
 			else
+			{
 				sendto_one_numeric(source_p, ERR_NOSUCHSERVER,
 						form_str(ERR_NOSUCHSERVER),
 						name);
+			}
 
 			return;
 		}
@@ -1570,7 +1582,16 @@ stats_ltrace(struct Client *source_p, int parc, const char *parv[])
 
 	stats_spy(source_p, statchar, name);
 
-	if(doall)
+	if (ConfigFileEntry.stats_l_oper_only != STATS_L_OPER_ONLY_NO && !IsOperGeneral(source_p))
+	{
+		if (doall && MyClient(source_p))
+			stats_l_client(source_p, source_p, statchar);
+		else
+			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
+		return;
+	}
+
+	if (doall)
 	{
 		/* local opers get everyone */
 		if(MyOper(source_p))

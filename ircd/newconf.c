@@ -1543,6 +1543,21 @@ conf_set_general_stats_i_oper_only(void *data)
 }
 
 static void
+conf_set_general_stats_l_oper_only(void *data)
+{
+	char *val = data;
+
+	if(rb_strcasecmp(val, "yes") == 0)
+		ConfigFileEntry.stats_l_oper_only = STATS_L_OPER_ONLY_YES;
+	else if(rb_strcasecmp(val, "self") == 0)
+		ConfigFileEntry.stats_l_oper_only = STATS_L_OPER_ONLY_SELF;
+	else if(rb_strcasecmp(val, "no") == 0)
+		ConfigFileEntry.stats_l_oper_only = STATS_L_OPER_ONLY_NO;
+	else
+		conf_report_error("Invalid setting '%s' for general::stats_l_oper_only.", val);
+}
+
+static void
 conf_set_general_compression_level(void *data)
 {
 #ifdef HAVE_LIBZ
@@ -2651,8 +2666,9 @@ static struct ConfEntry conf_general_table[] =
 	{ "compression_level", 	CF_INT,    conf_set_general_compression_level,	0, NULL },
 	{ "havent_read_conf", 	CF_YESNO,  conf_set_general_havent_read_conf,	0, NULL },
 	{ "hide_error_messages",CF_STRING, conf_set_general_hide_error_messages,0, NULL },
-	{ "stats_k_oper_only", 	CF_STRING, conf_set_general_stats_k_oper_only,	0, NULL },
 	{ "stats_i_oper_only", 	CF_STRING, conf_set_general_stats_i_oper_only,	0, NULL },
+	{ "stats_k_oper_only", 	CF_STRING, conf_set_general_stats_k_oper_only,	0, NULL },
+	{ "stats_l_oper_only", 	CF_STRING, conf_set_general_stats_l_oper_only,	0, NULL },
 	{ "default_umodes",	CF_QSTRING, conf_set_general_default_umodes, 0, NULL },
 
 	{ "default_operstring",	CF_QSTRING, NULL, REALLEN,    &ConfigFileEntry.default_operstring },

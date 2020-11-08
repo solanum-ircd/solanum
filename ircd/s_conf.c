@@ -738,6 +738,7 @@ set_default_conf(void)
 	ConfigFileEntry.stats_e_disabled = false;
 	ConfigFileEntry.stats_o_oper_only = false;
 	ConfigFileEntry.stats_k_oper_only = 1;	/* masked */
+	ConfigFileEntry.stats_l_oper_only = 1;	/* self */
 	ConfigFileEntry.stats_i_oper_only = 1;	/* masked */
 	ConfigFileEntry.stats_P_oper_only = false;
 	ConfigFileEntry.stats_c_oper_only = false;
