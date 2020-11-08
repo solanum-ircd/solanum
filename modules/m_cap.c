@@ -187,6 +187,18 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 		else if (pass == 1 && HasCapabilityFlag(entry, CLICAP_FLAGS_PRIORITY))
 			continue;
 
+		if (!IsCapableEntry(source_p, entry) && ConfigFileEntry.hidden_caps != NULL)
+		{
+			size_t i;
+			for (i = 0; ConfigFileEntry.hidden_caps[i] != NULL; i++)
+			{
+				if (!rb_strcasecmp(entry->cap, ConfigFileEntry.hidden_caps[i]))
+					break;
+			}
+			if (ConfigFileEntry.hidden_caps[i] != NULL)
+				continue;
+		}
+
 		if (flags && !IsCapableEntry(source_p, entry))
 			continue;
 
