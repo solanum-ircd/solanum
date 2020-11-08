@@ -140,6 +140,12 @@ struct ConfItem
 #define IsConfAllowSCTP(x)	((x)->flags & CONF_FLAGS_ALLOW_SCTP)
 #define IsConfKlineSpoof(x)	((x)->flags & CONF_FLAGS_KLINE_SPOOF)
 
+enum stats_l_oper_only {
+	STATS_L_OPER_ONLY_NO,
+	STATS_L_OPER_ONLY_SELF,
+	STATS_L_OPER_ONLY_YES,
+};
+
 /* flag definitions for opers now in client.h */
 
 struct config_file_entry
@@ -191,6 +197,7 @@ struct config_file_entry
 	int stats_h_oper_only;
 	int stats_o_oper_only;
 	int stats_k_oper_only;
+	enum stats_l_oper_only stats_l_oper_only;
 	int stats_i_oper_only;
 	int stats_P_oper_only;
 	int map_oper_only;
