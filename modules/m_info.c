@@ -65,17 +65,14 @@ mapi_hlist_av1 info_hlist[] = {
 
 DECLARE_MODULE_AV2(info, NULL, NULL, info_clist, info_hlist, NULL, NULL, NULL, info_desc);
 
-/*
- * jdc -- Structure for our configuration value table
- */
 struct InfoStruct
 {
-	const char *name;	/* Displayed variable name */
-	unsigned int output_type;	/* See below #defines */
-	void *option;		/* Pointer reference to the value */
-	const char *desc;	/* ASCII description of the variable */
+	const char *name;
+	unsigned int output_type;
+	void *option;
+	const char *desc;
 };
-/* Types for output_type in InfoStruct */
+
 #define OUTPUT_STRING      0x0001	/* Output option as %s w/ dereference */
 #define OUTPUT_STRING_PTR  0x0002	/* Output option as %s w/out deference */
 #define OUTPUT_DECIMAL     0x0004	/* Output option as decimal (%d) */
@@ -85,7 +82,7 @@ struct InfoStruct
 
 /* *INDENT-OFF* */
 static struct InfoStruct info_table[] = {
-	/* --[  START OF TABLE  ]-------------------------------------------- */
+
 	{
 		"opers_see_all_users",
 		OUTPUT_BOOLEAN_YN,
@@ -669,8 +666,8 @@ static struct InfoStruct info_table[] = {
 		&ConfigServerHide.links_delay,
 		"Links rehash delay"
 	},
-	/* --[  END OF TABLE  ]---------------------------------------------- */
-	{ (char *) 0, (unsigned int) 0, (void *) 0, (char *) 0}
+
+	{ NULL, 0, NULL, NULL },
 };
 /* *INDENT-ON* */
 
@@ -905,9 +902,9 @@ send_conf_options(struct Client *source_p)
 							info_table[i].name,
 							option ? ((option == 1) ? "MASK" : "YES") : "NO",
 							info_table[i].desc ? info_table[i].desc : "<none>");
-				}		/* switch (info_table[i].output_type) */
+				}
 		}
-	}			/* forloop */
+	}
 
 
 	/* Don't send oper_only_umodes...it's a bit mask, we will have to decode it
