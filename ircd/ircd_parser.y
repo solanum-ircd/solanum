@@ -170,7 +170,7 @@ static void	add_cur_list(int type, char *str, int number)
 %token <number> NUMBER
 
 %type <string> qstring string
-%type <number> number timespec
+%type <number> number timespec unittimespec
 %type <conf_parm> oneitem single itemlist
 
 %start conf
@@ -308,7 +308,7 @@ qstring: QSTRING { strcpy($$, $1); } ;
 string: STRING { strcpy($$, $1); } ;
 number: NUMBER { $$ = $1; } ;
 
-timespec:	number string
+unittimespec:	number string
 		{
 			time_t t;
 
@@ -320,7 +320,13 @@ timespec:	number string
 
 			$$ = $1 * t;
 		}
-		| timespec timespec
+		;
+
+timespec: unittimespec
+		{
+			$$ = $1;
+		}
+		| timespec unittimespec
 		{
 			$$ = $1 + $2;
 		}

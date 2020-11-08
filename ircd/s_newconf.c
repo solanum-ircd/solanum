@@ -46,7 +46,6 @@
 #include "logger.h"
 #include "dns.h"
 
-rb_dlink_list shared_conf_list;
 rb_dlink_list cluster_conf_list;
 rb_dlink_list oper_conf_list;
 rb_dlink_list hubleaf_conf_list;
@@ -81,13 +80,6 @@ clear_s_newconf(void)
 	struct server_conf *server_p;
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, shared_conf_list.head)
-	{
-		/* ptr here is ptr->data->node */
-		rb_dlinkDelete(ptr, &shared_conf_list);
-		free_remote_conf(ptr->data);
-	}
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, cluster_conf_list.head)
 	{
@@ -171,31 +163,6 @@ free_remote_conf(struct remote_conf *remote_p)
 	rb_free(remote_p->host);
 	rb_free(remote_p->server);
 	rb_free(remote_p);
-}
-
-bool
-find_shared_conf(const char *username, const char *host,
-		const char *server, int flags)
-{
-	struct remote_conf *shared_p;
-	rb_dlink_node *ptr;
-
-	RB_DLINK_FOREACH(ptr, shared_conf_list.head)
-	{
-		shared_p = ptr->data;
-
-		if(match(shared_p->username, username) &&
-		   match(shared_p->host, host) &&
-		   match(shared_p->server, server))
-		{
-			if(shared_p->flags & flags)
-				return true;
-			else
-				return false;
-		}
-	}
-
-	return false;
 }
 
 void

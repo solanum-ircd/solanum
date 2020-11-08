@@ -84,6 +84,7 @@ struct ConfItem
 
 #define CONF_DLINE		0x020000
 #define CONF_EXEMPTDLINE	0x100000
+#define CONF_SECURE		0x200000
 
 #define IsIllegal(x)    ((x)->status & CONF_ILLEGAL)
 
@@ -233,6 +234,8 @@ struct config_file_entry
 	int max_ratelimit_tokens;
 	int away_interval;
 	int tls_ciphers_oper_only;
+
+	char **hidden_caps;
 
 	int client_flood_max_lines;
 	int client_flood_burst_rate;

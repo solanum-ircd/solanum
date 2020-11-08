@@ -111,13 +111,6 @@ mo_modload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 static void
 me_modload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_MODULE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block "
-				"to load modules on this server.");
-		return;
-	}
-
 	do_modload(source_p, parv[1]);
 }
 
@@ -147,13 +140,6 @@ mo_modunload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 static void
 me_modunload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_MODULE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block "
-				"to load modules on this server.");
-		return;
-	}
-
 	do_modunload(source_p, parv[1]);
 }
 
@@ -182,13 +168,6 @@ mo_modreload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 static void
 me_modreload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_MODULE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block "
-				"to load modules on this server.");
-		return;
-	}
-
 	do_modreload(source_p, parv[1]);
 }
 
@@ -217,13 +196,6 @@ mo_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 static void
 me_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_MODULE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block "
-				"to load modules on this server.");
-		return;
-	}
-
 	do_modlist(source_p, parv[1]);
 }
 
@@ -252,13 +224,6 @@ mo_modrestart(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 static void
 me_modrestart(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_MODULE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block "
-				"to load modules on this server.");
-		return;
-	}
-
 	do_modrestart(source_p);
 }
 

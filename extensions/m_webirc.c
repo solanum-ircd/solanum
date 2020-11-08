@@ -75,8 +75,8 @@ DECLARE_MODULE_AV2(webirc, NULL, NULL, webirc_clist, NULL, webirc_hfnlist, NULL,
 
 /*
  * mr_webirc - webirc message handler
- *      parv[1] = password
- *      parv[2] = fake username (we ignore this)
+ *	parv[1] = password
+ *	parv[2] = fake username (we ignore this)
  *	parv[3] = fake hostname
  *	parv[4] = fake ip
  */
@@ -89,13 +89,20 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	int secure = 0;
 
+	if (source_p->flags & FLAGS_SENTUSER || !EmptyString(source_p->name))
+	{
+		exit_client(client_p, source_p, &me, "WEBIRC may not follow NICK/USER");
+	}
+
 	aconf = find_address_conf(client_p->host, client_p->sockhost,
 				IsGotId(client_p) ? client_p->username : "webirc",
 				IsGotId(client_p) ? client_p->username : "webirc",
 				(struct sockaddr *) &client_p->localClient->ip,
 				GET_SS_FAMILY(&client_p->localClient->ip), NULL);
+
 	if (aconf == NULL || !(aconf->status & CONF_CLIENT))
 		return;
+
 	if (!IsConfDoSpoofIp(aconf) || irccmp(aconf->info.name, "webirc."))
 	{
 		/* XXX */
@@ -107,7 +114,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		sendto_one(source_p, "NOTICE * :CGI:IRC auth blocks must have a password");
 		return;
 	}
-	if (!IsSSL(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
+	if (!IsSecure(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
 	{
 		sendto_one(source_p, "NOTICE * :Your CGI:IRC block requires TLS");
 		return;
@@ -133,6 +140,8 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	}
 
 	source_p->localClient->ip = addr;
+	source_p->username[0] = '\0';
+	ClearGotId(source_p);
 
 	if (parc >= 6)
 	{
@@ -144,7 +153,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		}
 	}
 
-	if (secure && !IsSSL(source_p))
+	if (secure && !IsSecure(source_p))
 	{
 		sendto_one(source_p, "NOTICE * :CGI:IRC is not connected securely; marking you as insecure");
 		secure = 0;
@@ -152,7 +161,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (!secure)
 	{
-		SetInsecure(source_p);
+		ClearSecure(source_p);
 	}
 
 	rb_inet_ntop_sock((struct sockaddr *)&source_p->localClient->ip, source_p->sockhost, sizeof(source_p->sockhost));

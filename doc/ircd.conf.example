@@ -35,7 +35,6 @@
 #loadmodule "extensions/sno_globalkline";
 #loadmodule "extensions/sno_globalnickchange";
 #loadmodule "extensions/sno_globaloper";
-#loadmodule "extensions/sno_whois";
 #loadmodule "extensions/override";
 #loadmodule "extensions/no_kill_services";
 
@@ -341,9 +340,8 @@ cluster {
 	flags = kline, tkline, unkline, xline, txline, unxline, resv, tresv, unresv;
 };
 
-shared {
-	oper = "*@*", "*";
-	flags = all, rehash;
+secure {
+	ip = "127.0.0.1";
 };
 
 /* exempt {}: IPs that are exempt from Dlines and rejectcache. (OLD d:) */

@@ -69,7 +69,6 @@ static void propagate_resv(struct Client *source_p, const char *target,
 static void cluster_resv(struct Client *source_p, int temp_time,
 			 const char *name, const char *reason);
 
-static void handle_remote_unresv(struct Client *source_p, const char *name);
 static void remove_resv(struct Client *source_p, const char *name, int propagated);
 
 /*
@@ -199,12 +198,6 @@ static void
 parse_resv(struct Client *source_p, const char *name, const char *reason, int temp_time, int propagated)
 {
 	struct ConfItem *aconf;
-
-	if(!MyClient(source_p) &&
-	   !find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name,
-			     (temp_time > 0) ? SHARED_TRESV : SHARED_PRESV))
-		return;
 
 	if(IsChannelName(name))
 	{
@@ -480,7 +473,7 @@ ms_unresv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!IsPerson(source_p))
 		return;
 
-	handle_remote_unresv(source_p, parv[2]);
+	remove_resv(source_p, parv[2], 0);
 }
 
 static void
@@ -490,19 +483,7 @@ me_unresv(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!IsPerson(source_p))
 		return;
 
-	handle_remote_unresv(source_p, parv[1]);
-}
-
-static void
-handle_remote_unresv(struct Client *source_p, const char *name)
-{
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name, SHARED_UNRESV))
-		return;
-
-	remove_resv(source_p, name, 0);
-
-	return;
+	remove_resv(source_p, parv[1], 0);
 }
 
 static void

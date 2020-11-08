@@ -222,11 +222,6 @@ handle_remote_xline(struct Client *source_p, int temp_time, const char *name, co
 {
 	struct ConfItem *aconf;
 
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name,
-			     (temp_time > 0) ? SHARED_TXLINE : SHARED_PXLINE))
-		return;
-
 	if(!valid_xline(source_p, name, reason))
 		return;
 
@@ -457,10 +452,6 @@ me_unxline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 static void
 handle_remote_unxline(struct Client *source_p, const char *name)
 {
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name, SHARED_UNXLINE))
-		return;
-
 	remove_xline(source_p, name, false);
 }
 

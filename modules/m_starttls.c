@@ -100,5 +100,6 @@ mr_starttls(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		client_p->localClient->F = F[0];
 		client_p->localClient->ssl_ctl = ctl;
 		SetSSL(client_p);
+		SetSecure(client_p);
 	}
 }

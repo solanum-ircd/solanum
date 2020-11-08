@@ -94,13 +94,6 @@ mo_restart(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 static void
 me_restart(struct MsgBuf *msgbuf_p __unused, struct Client *client_p __unused, struct Client *source_p, int parc, const char *parv[])
 {
-	if(!find_shared_conf(source_p->username, source_p->host, source_p->servptr->name, SHARED_DIE))
-	{
-		sendto_one_notice(source_p, ":*** You do not have an appropriate shared block to "
-				"remotely restart this server.");
-		return;
-	}
-
 	do_restart(source_p, parv[1]);
 }
 

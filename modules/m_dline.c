@@ -195,11 +195,6 @@ me_dline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(!IsPerson(source_p))
 		return;
 
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name,
-			     tdline_time > 0 ? SHARED_TDLINE : SHARED_PDLINE))
-		return;
-
 	apply_dline(source_p, parv[2], tdline_time, LOCAL_COPY(parv[3]));
 
 	check_dlines();
@@ -209,10 +204,6 @@ static void
 me_undline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
 	if(!IsPerson(source_p))
-		return;
-
-	if(!find_shared_conf(source_p->username, source_p->host,
-			     source_p->servptr->name, SHARED_UNDLINE))
 		return;
 
 	apply_undline(source_p, parv[1]);
