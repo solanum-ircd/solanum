@@ -224,12 +224,7 @@ static void
 single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 {
 	char buf[BUFSIZE];
-	int cur_len = 0;
-	int mlen;
-	char *t;
-	int tlen;
 	hook_data_client hdata;
-	int extra_space = 0;
 	struct sockaddr_in ip4;
 
 	if(target_p->user == NULL)
@@ -242,7 +237,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 			   target_p->name, target_p->username,
 			   target_p->host, target_p->info);
 
-	cur_len = mlen = sprintf(buf, form_str(RPL_WHOISCHANNELS),
+	send_multiline_init(source_p, " ", form_str(RPL_WHOISCHANNELS),
 				    get_id(&me, source_p), get_id(source_p, source_p),
 				    target_p->name);
 
@@ -250,16 +245,8 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 	 * in full names; note that serverhiding may require more space
 	 * for a different server name (not done here) -- jilles
 	 */
-	if (!MyConnect(source_p))
-	{
-		extra_space = strlen(source_p->name) - 9;
-		if (extra_space < 0)
-			extra_space = 0;
-		extra_space += strlen(me.name) - 2; /* make sure >= 0 */
-		cur_len += extra_space;
-	}
-
-	t = buf + mlen;
+	send_multiline_remote_pad(source_p, &me);
+	send_multiline_remote_pad(source_p, source_p);
 
 	hdata.client = source_p;
 	hdata.target = target_p;
@@ -288,25 +275,15 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 			if(hdata_vis.approved || operspy)
 			{
-				if((cur_len + strlen(chptr->chname) + strlen("!@+ ")) > (BUFSIZE - strlen("\r\n")))
-				{
-					sendto_one(source_p, "%s", buf);
-					cur_len = mlen + extra_space;
-					t = buf + mlen;
-				}
-
-				tlen = sprintf(t, "%s%s%s ",
+				send_multiline_item(source_p, "%s%s%s",
 						hdata_vis.approved ? "" : "!",
 						find_channel_status(mt, 1),
 						chptr->chname);
-				t += tlen;
-				cur_len += tlen;
 			}
 		}
 	}
 
-	if(cur_len > mlen + extra_space)
-		sendto_one(source_p, "%s", buf);
+	send_multiline_fini(source_p, NULL);
 
 	sendto_one_numeric(source_p, RPL_WHOISSERVER, form_str(RPL_WHOISSERVER),
 			   target_p->name, target_p->servptr->name,
