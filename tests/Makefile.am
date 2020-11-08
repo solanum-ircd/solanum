@@ -40,4 +40,11 @@ check-local: $(check_PROGRAMS) \
 	$(patsubst ../modules/%.c,../modules/.libs/%.so,$(wildcard ../modules/*.c)) \
 	$(patsubst ../modules/core/%.c,../modules/core/.libs/%.so,$(wildcard ../modules/core/*.c))
 
+	rm -rf runtime/modules && mkdir -p runtime/modules/autoload
+	for f in ../modules/core/.libs/*.so; do ln -s "../../../modules/core/.libs/$${f##*/}" "runtime/modules/$${f##*/}"; done
+	for f in ../modules/.libs/*.so; do ln -s "../../../../modules/.libs/$${f##*/}" "runtime/modules/autoload/$${f##*/}"; done
+
 	ASAN_OPTIONS="${ASAN_OPTIONS}:detect_leaks=false" ./runtests -l $(abs_top_srcdir)/tests/TESTS
+
+clean-local:
+	rm -rf runtime/modules
