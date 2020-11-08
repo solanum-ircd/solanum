@@ -731,110 +731,70 @@ send_conf_options(struct Client *source_p)
 	 */
 	for (i = 0; info_table[i].name; i++)
 	{
+		static char opt_buf[BUFSIZE];
+		char *opt_value = opt_buf;
+
+
 		switch (info_table[i].output_type)
 		{
 		case OUTPUT_STRING:
 		{
 			char *option = *info_table[i].option.string_p;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option ? option : "NONE",
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option != NULL ? option : "NONE";
 			break;
 		}
 		case OUTPUT_STRING_PTR:
 		{
 			char *option = info_table[i].option.string;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					EmptyString(option) ? "NONE" : option,
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option != NULL ? option : "NONE";
 			break;
 		}
 		case OUTPUT_DECIMAL:
 		{
 			int option = *info_table[i].option.int_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16d [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option,
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			snprintf(opt_buf, sizeof opt_buf, "%d", option);
 			break;
 		}
 		case OUTPUT_BOOLEAN:
 		{
 			bool option = *info_table[i].option.bool_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option ? "ON" : "OFF",
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option ? "ON" : "OFF";
 			break;
 		}
 		case OUTPUT_BOOLEAN_YN:
 		{
 			bool option = *info_table[i].option.bool_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option ? "YES" : "NO",
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option ? "YES" : "NO";
 			break;
 		}
 		case OUTPUT_YESNOMASK:
 		{
 			int option = *info_table[i].option.int_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					me.name, RPL_INFO, source_p->name,
-					info_table[i].name,
-					option ? ((option == 1) ? "MASK" : "YES") : "NO",
-					info_table[i].desc ? info_table[i].desc : "<none>");
+			opt_value = option == 0 ? "NO" :
+			            option == 1 ? "MASK" :
+			            "YES";
+			break;
 		}
 		case OUTPUT_INTBOOL:
 		{
 			bool option = *info_table[i].option.int_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option ? "ON" : "OFF",
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option ? "ON" : "OFF";
 			break;
 		}
 		case OUTPUT_INTBOOL_YN:
 		{
 			bool option = *info_table[i].option.int_;
-
-			sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-					get_id(&me, source_p), RPL_INFO,
-					get_id(source_p, source_p),
-					info_table[i].name,
-					option ? "YES" : "NO",
-					info_table[i].desc ? info_table[i].desc : "<none>");
-
+			opt_value = option ? "YES" : "NO";
 			break;
 		}
 		}
+
+		sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
+				get_id(&me, source_p), RPL_INFO,
+				get_id(source_p, source_p),
+				info_table[i].name,
+				opt_value,
+				info_table[i].desc ? info_table[i].desc : "<none>");
 	}
 
 
