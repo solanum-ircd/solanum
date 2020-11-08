@@ -34,7 +34,6 @@
 
 extern int chmode_flags[256];
 
-extern ChannelModeFunc chm_nosuch;
 extern ChannelModeFunc chm_orphaned;
 extern ChannelModeFunc chm_simple;
 extern ChannelModeFunc chm_ban;

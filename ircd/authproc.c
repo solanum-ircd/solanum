@@ -105,7 +105,7 @@ start_authd(void)
 			{
 				ierror("Unable to execute authd in %s or %s/bin",
 					ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						       "Unable to execute authd in %s or %s/bin",
 						       ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
 				return 1;
@@ -127,12 +127,12 @@ start_authd(void)
 	if(authd_helper == NULL)
 	{
 		ierror("Unable to start authd helper: %s", strerror(errno));
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "Unable to start authd helper: %s", strerror(errno));
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Unable to start authd helper: %s", strerror(errno));
 		return 1;
 	}
 
 	ilog(L_MAIN, "authd helper started");
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd helper started");
 	rb_helper_run(authd_helper);
 	return 0;
 }

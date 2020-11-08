@@ -223,7 +223,7 @@ handle_command(struct Message *mptr, struct MsgBuf *msgbuf_p, struct Client *cli
 				return (-1);
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				     "Dropping server %s due to (invalid) command '%s'"
 				     " with only %zu arguments (expecting %zu).",
 				     client_p->name, mptr->cmd, msgbuf_p->n_para, ehandler.min_para);
@@ -380,7 +380,7 @@ remove_unknown(struct Client *client_p, const char *lsender, char *lbuffer)
 	if((IsDigit(lsender[0]) && slen == 3) ||
 	   (strchr(lsender, '.') != NULL))
 	{
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Unknown prefix (%s) from %s, Squitting %s",
 				     lbuffer, client_p->name, lsender);
 
@@ -392,7 +392,7 @@ remove_unknown(struct Client *client_p, const char *lsender, char *lbuffer)
 	else if(!IsDigit(lsender[0]))
 		;
 	else if(slen != 9)
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Invalid prefix (%s) from %s",
 				     lbuffer, client_p->name);
 	else
@@ -481,7 +481,7 @@ do_numeric(int numeric, struct Client *client_p, struct Client *source_p, int pa
 			 */
 			if(numeric != ERR_NOSUCHNICK &&
 			   numeric != ERR_NOSUCHSERVER)
-				sendto_realops_snomask(SNO_GENERAL, L_ADMIN,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						     "*** %s(via %s) sent a %03d numeric to me: %s",
 						     source_p->name,
 						     client_p->name, numeric, buffer);

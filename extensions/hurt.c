@@ -615,7 +615,7 @@ heal_nick(struct Client *source_p, struct Client *target_p)
 {
 	if (rb_dlinkFindDestroy(target_p, &hurt_state.hurt_clients))
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s used HEAL on %s",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s used HEAL on %s",
 				get_oper_name(source_p), get_client_name(target_p, HIDE_IP));
 		sendto_one_notice(target_p, ":HURT restriction temporarily removed by operator");
 		sendto_one_notice(source_p, ":HURT restriction on %s temporarily removed", target_p->name);

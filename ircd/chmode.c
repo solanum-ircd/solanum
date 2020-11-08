@@ -118,7 +118,6 @@ construct_cflags_strings(void)
 
 		/* Should we leave orphaned check here? -- dwr */
 		if (chmode_table[i].set_func != NULL &&
-				chmode_table[i].set_func != chm_nosuch &&
 				chmode_table[i].set_func != chm_orphaned)
 		{
 		    *ptr2++ = (char) i;
@@ -157,11 +156,10 @@ cflag_add(char c_, ChannelModeFunc function)
 	int c = (unsigned char)c_;
 
 	if (chmode_table[c].set_func != NULL &&
-			chmode_table[c].set_func != chm_nosuch &&
 			chmode_table[c].set_func != chm_orphaned)
 		return 0;
 
-	if (chmode_table[c].set_func == NULL || chmode_table[c].set_func == chm_nosuch)
+	if (chmode_table[c].set_func == NULL)
 		chmode_table[c].mode_type = find_cflag_slot();
 	if (chmode_table[c].mode_type == 0)
 		return 0;
@@ -575,20 +573,6 @@ fix_key_remote(char *arg)
 	return arg;
 }
 
-/* chm_*()
- *
- * The handlers for each specific mode.
- */
-void
-chm_nosuch(struct Client *source_p, struct Channel *chptr,
-	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
-{
-	if(*errors & SM_ERR_UNKNOWN)
-		return;
-	*errors |= SM_ERR_UNKNOWN;
-	sendto_one(source_p, form_str(ERR_UNKNOWNMODE), me.name, source_p->name, c);
-}
-
 void
 chm_simple(struct Client *source_p, struct Channel *chptr,
 	   int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
@@ -813,7 +797,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		break;
 
 	default:
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "chm_ban() called with unknown type!");
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "chm_ban() called with unknown type!");
 		return;
 	}
 
@@ -1434,7 +1418,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 			bool use_arg = dir == MODE_ADD ? cm->flags & CHM_ARG_SET :
 			               dir == MODE_DEL ? cm->flags & CHM_ARG_DEL :
 			               false;
-			if (cm->set_func == NULL || cm->set_func == chm_nosuch)
+			if (cm->set_func == NULL)
 			{
 				sendto_one(source_p, form_str(ERR_UNKNOWNMODE), me.name, source_p->name, c);
 				return;
@@ -1513,8 +1497,6 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	for (ms = modesets; ms < mend; ms++)
 	{
 		ChannelModeFunc *set_func = ms->cm->set_func;
-		if (set_func == NULL)
-			set_func = chm_nosuch;
 		set_func(fakesource_p, chptr, alevel, ms->arg, &errors, ms->dir, ms->mode, ms->cm->mode_type);
 	}
 

@@ -148,6 +148,13 @@ mo_xline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if(target_server != NULL)
 	{
+		if (temp_time)
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is adding a temporary %d min. X-Line for [%s] on %s [%s]",
+					get_oper_name(source_p), temp_time / 60, name, target_server, reason);
+		else
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is adding a permanent X-Line for [%s] on %s [%s]",
+					get_oper_name(source_p), name, target_server, reason);
+
 		propagate_xline(source_p, target_server, temp_time, name, "2", reason);
 
 		if(!match(target_server, me.name))
@@ -395,6 +402,9 @@ mo_unxline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 				   me.name, source_p->name, "remoteban");
 			return;
 		}
+
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is removing the X-Line for [%s] on %s.",
+				get_oper_name(source_p), parv[1], parv[3]);
 
 		propagate_generic(source_p, "UNXLINE", parv[3], CAP_CLUSTER, "%s", parv[1]);
 

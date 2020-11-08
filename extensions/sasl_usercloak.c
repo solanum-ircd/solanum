@@ -125,7 +125,7 @@ check_new_user(void *vdata)
 			return;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					 "KLINE active for %s",
 					 get_client_name(source_p, HIDE_IP));
 

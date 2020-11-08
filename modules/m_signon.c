@@ -253,7 +253,7 @@ ms_signon(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!clean_nick(parv[1], 0))
 	{
 		ServerStats.is_kill++;
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				"Bad Nick from SIGNON: %s From: %s(via %s)",
 				parv[1], source_p->servptr->name, client_p->name);
 		/* if source_p has an id, kill_client_serv_butone() will
@@ -271,7 +271,7 @@ ms_signon(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(!clean_username(parv[2]) || !clean_host(parv[3]))
 	{
 		ServerStats.is_kill++;
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				"Bad user@host from SIGNON: %s@%s From: %s(via %s)",
 				parv[2], parv[3], source_p->servptr->name, client_p->name);
 		/* if source_p has an id, kill_client_serv_butone() will
@@ -311,7 +311,7 @@ ms_signon(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		{
 			if(!newts || !target_p->tsinfo || (newts == target_p->tsinfo) || !source_p->user)
 			{
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						     "Nick change collision from SIGNON from %s to %s(%s <- %s)(both killed)",
 						     source_p->name, target_p->name, target_p->from->name,
 						     client_p->name);
@@ -341,12 +341,12 @@ ms_signon(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 				   (!sameuser && newts > target_p->tsinfo))
 				{
 					if(sameuser)
-						sendto_realops_snomask(SNO_GENERAL, L_ALL,
+						sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 								     "Nick change collision from SIGNON from %s to %s(%s <- %s)(older killed)",
 								     source_p->name, target_p->name,
 								     target_p->from->name, client_p->name);
 					else
-						sendto_realops_snomask(SNO_GENERAL, L_ALL,
+						sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 								     "Nick change collision from SIGNON from %s to %s(%s <- %s)(newer killed)",
 								     source_p->name, target_p->name,
 								     target_p->from->name, client_p->name);
@@ -371,12 +371,12 @@ ms_signon(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 				else
 				{
 					if(sameuser)
-						sendto_realops_snomask(SNO_GENERAL, L_ALL,
+						sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 								     "Nick collision from SIGNON on %s(%s <- %s)(older killed)",
 								     target_p->name, target_p->from->name,
 								     client_p->name);
 					else
-						sendto_realops_snomask(SNO_GENERAL, L_ALL,
+						sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 								     "Nick collision from SIGNON on %s(%s <- %s)(newer killed)",
 								     target_p->name, target_p->from->name,
 								     client_p->name);

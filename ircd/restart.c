@@ -54,7 +54,7 @@ server_reboot(void)
 	int i;
 	char path[PATH_MAX+1];
 
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "Restarting server...");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Restarting server...");
 
 	ilog(L_MAIN, "Restarting server...");
 

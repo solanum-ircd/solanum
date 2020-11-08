@@ -185,7 +185,7 @@ inetport(struct Listener *listener)
 	}
 
 	if (F == NULL) {
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Cannot open socket for listener on %s port %d",
 				listener->sctp ? "SCTP" : "TCP",
 				get_listener_port(listener));
@@ -203,7 +203,7 @@ inetport(struct Listener *listener)
 
 	if (ret) {
 		errstr = strerror(rb_get_sockerr(F));
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Cannot bind for listener on %s port %d: %s",
 				listener->sctp ? "SCTP" : "TCP",
 				get_listener_port(listener), errstr);
@@ -217,7 +217,7 @@ inetport(struct Listener *listener)
 	if(rb_listen(F, SOMAXCONN, listener->defer_accept))
 	{
 		errstr = strerror(rb_get_sockerr(F));
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Cannot listen() for listener on %s port %d: %s",
 				listener->sctp ? "SCTP" : "TCP",
 				get_listener_port(listener), errstr);
@@ -609,7 +609,7 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 		 */
 		if((last_oper_notice + 20) <= rb_current_time())
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "All connections in use. (%s)",
 					     get_listener_name(listener));
 			last_oper_notice = rb_current_time();
