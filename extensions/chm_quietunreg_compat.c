@@ -15,8 +15,7 @@ static const char chm_quietunreg_compat_desc[] =
 
 static int _modinit(void);
 static void _moddeinit(void);
-static void chm_quietunreg(struct Client *source_p, struct Channel *chptr,
-	int alevel, const char *arg, int *errors, int dir, char c, long mode_type);
+static ChannelModeFunc chm_quietunreg;
 
 DECLARE_MODULE_AV2(chm_quietunreg_compat, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, chm_quietunreg_compat_desc);
 
