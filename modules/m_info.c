@@ -74,6 +74,7 @@ enum info_output_type {
 	OUTPUT_INTBOOL,    /* BOOLEAN encoded as an int */
 	OUTPUT_INTBOOL_YN, /* BOOLEAN_YN encoded as an int */
 	OUTPUT_YESNOMASK,  /* Output option as "YES/NO/MASKED" */
+	OUTPUT_STATSL,     /* Output as "YES/NO/SELF" */
 };
 
 #define INFO_STRING(ptr)      OUTPUT_STRING,     .option.string_p = (ptr)
@@ -84,6 +85,7 @@ enum info_output_type {
 #define INFO_INTBOOL_YN(ptr)  OUTPUT_INTBOOL_YN, .option.int_ = (ptr)
 #define INFO_YESNOMASK(ptr)   OUTPUT_YESNOMASK,  .option.int_ = (ptr)
 #define INFO_DECIMAL(ptr)     OUTPUT_DECIMAL,    .option.int_ = (ptr)
+#define INFO_STATSL(ptr)      OUTPUT_STATSL,     .option.statsl = (ptr)
 
 struct InfoStruct
 {
@@ -96,6 +98,7 @@ struct InfoStruct
 		const bool *bool_;
 		char *const *string_p;
 		const char *string;
+		const enum stats_l_oper_only *statsl;
 	} option;
 };
 
@@ -193,6 +196,11 @@ static struct InfoStruct info_table[] = {
 		INFO_STRING(&ConfigFileEntry.servicestring),
 	},
 	{
+		"drain_reason",
+		"Message to quit users with if this server is draining.",
+		INFO_STRING(&ConfigFileEntry.drain_reason),
+	},
+	{
 		"disable_auth",
 		"Controls whether auth checking is disabled or not",
 		INFO_INTBOOL_YN(&ConfigFileEntry.disable_auth),
@@ -287,6 +295,11 @@ static struct InfoStruct info_table[] = {
 		"kline_with_reason",
 		"Display K-line reason to client on disconnect",
 		INFO_INTBOOL_YN(&ConfigFileEntry.kline_with_reason),
+	},
+	{
+		"hide_tkdline_duration",
+		"Hide \"Temporary K-line 123 min.\" from user K/D-lline reasons",
+		INFO_INTBOOL_YN(&ConfigFileEntry.hide_tkdline_duration),
 	},
 	{
 		"max_accept",
@@ -407,6 +420,11 @@ static struct InfoStruct info_table[] = {
 		"stats_k_oper_only",
 		"STATS K output is only shown to operators",
 		INFO_YESNOMASK(&ConfigFileEntry.stats_k_oper_only),
+	},
+	{
+		"stats_l_oper_only",
+		"STATS l/L output is only shown to operators",
+		INFO_STATSL(&ConfigFileEntry.stats_l_oper_only),
 	},
 	{
 		"stats_o_oper_only",
@@ -567,6 +585,16 @@ static struct InfoStruct info_table[] = {
 		"opmod_send_statusmsg",
 		"Send messages to @#channel if affected by +z",
 		INFO_INTBOOL_YN(&ConfigChannel.opmod_send_statusmsg),
+	},
+	{
+		"hide_opers",
+		"Hide all opers from unprivileged users",
+		INFO_INTBOOL_YN(&ConfigFileEntry.hide_opers),
+	},
+	{
+		"hide_opers_in_whois",
+		"Don't send RPL_WHOISOPERATOR to non-opers",
+		INFO_INTBOOL_YN(&ConfigFileEntry.hide_opers_in_whois),
 	},
 	{
 		"disable_hidden",
@@ -785,6 +813,14 @@ send_conf_options(struct Client *source_p)
 		{
 			bool option = *info_table[i].option.int_;
 			opt_value = option ? "YES" : "NO";
+			break;
+		}
+		case OUTPUT_STATSL:
+		{
+			enum stats_l_oper_only option = *info_table[i].option.statsl;
+			opt_value = option == STATS_L_OPER_ONLY_NO ? "NO" :
+			            option == STATS_L_OPER_ONLY_SELF ? "SELF" :
+			            "YES";
 			break;
 		}
 		}
