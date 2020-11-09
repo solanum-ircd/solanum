@@ -9,6 +9,8 @@ helpdir=	@helpdir@
 uhelpdir=	${helpdir}/users
 ohelpdir=	${helpdir}/opers
 
+CLEANFILES= users/index users/index.tmp opers/index opers/index.tmp
+
 SYMLINKS=	topic accept cmode admin names links away whowas \
 		version kick who invite quit join list nick oper part \
 		time credits motd userhost users whois ison lusers \
@@ -19,9 +21,6 @@ all: index
 build:
 depend:
 lint:
-
-clean:
-	rm -f users/index users/index.tmp opers/index opers/index.tmp
 
 index:
 	@echo building index files
