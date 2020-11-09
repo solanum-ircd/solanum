@@ -65,10 +65,17 @@ These are known issues and workarounds for supported platforms.
  * **Solaris**: you may have to set your PATH to include /usr/gnu/bin and /usr/gnu/sbin before /usr/bin
    and /usr/sbin. Solaris's default tools don't seem to play nicely with the configure script.
 
-# building from git
+# building
 
-We no longer supply a prebuilt configure script in git, due to use of automake and libtool causing problems.
-You will need to run `autogen.sh` to build the autotools files prior to building solanum.
+```bash
+./autogen.sh
+./configure --prefix=/path/to/installation
+make
+make check # run tests
+make install
+```
+
+See `./configure --help` for build options.
 
 # feature specific requirements
 
