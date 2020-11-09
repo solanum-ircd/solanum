@@ -1535,6 +1535,8 @@ clear_out_old_conf(void)
 	ConfigFileEntry.kline_reason = NULL;
 	rb_free(ConfigFileEntry.sasl_service);
 	ConfigFileEntry.sasl_service = NULL;
+	rb_free(ConfigFileEntry.drain_reason);
+	ConfigFileEntry.drain_reason = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{
