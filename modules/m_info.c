@@ -65,612 +65,531 @@ mapi_hlist_av1 info_hlist[] = {
 
 DECLARE_MODULE_AV2(info, NULL, NULL, info_clist, info_hlist, NULL, NULL, NULL, info_desc);
 
-/*
- * jdc -- Structure for our configuration value table
- */
+enum info_output_type {
+	OUTPUT_STRING,     /* Output option as %s w/ dereference */
+	OUTPUT_STRING_PTR, /* Output option as %s w/out deference */
+	OUTPUT_DECIMAL,    /* Output option as decimal (%d) */
+	OUTPUT_BOOLEAN,    /* Output option as "ON" or "OFF" */
+	OUTPUT_BOOLEAN_YN, /* Output option as "YES" or "NO" */
+	OUTPUT_INTBOOL,    /* BOOLEAN encoded as an int */
+	OUTPUT_INTBOOL_YN, /* BOOLEAN_YN encoded as an int */
+	OUTPUT_YESNOMASK,  /* Output option as "YES/NO/MASKED" */
+};
+
+#define INFO_STRING(ptr)      OUTPUT_STRING,     .option.string_p = (ptr)
+#define INFO_STRING_PTR(ptr)  OUTPUT_STRING_PTR, .option.string = (ptr)
+#define INFO_BOOLEAN(ptr)     OUTPUT_BOOLEAN,    .option.bool_ = (ptr)
+#define INFO_BOOLEAN_YN(ptr)  OUTPUT_BOOLEAN_YN, .option.bool_ = (ptr)
+#define INFO_INTBOOL(ptr)     OUTPUT_INTBOOL,    .option.int_ = (ptr)
+#define INFO_INTBOOL_YN(ptr)  OUTPUT_INTBOOL_YN, .option.int_ = (ptr)
+#define INFO_YESNOMASK(ptr)   OUTPUT_YESNOMASK,  .option.int_ = (ptr)
+#define INFO_DECIMAL(ptr)     OUTPUT_DECIMAL,    .option.int_ = (ptr)
+
 struct InfoStruct
 {
-	const char *name;	/* Displayed variable name */
-	unsigned int output_type;	/* See below #defines */
-	void *option;		/* Pointer reference to the value */
-	const char *desc;	/* ASCII description of the variable */
+	const char *name;
+	const char *desc;
+	enum info_output_type output_type;
+	union
+	{
+		const int *int_;
+		const bool *bool_;
+		char *const *string_p;
+		const char *string;
+	} option;
 };
-/* Types for output_type in InfoStruct */
-#define OUTPUT_STRING      0x0001	/* Output option as %s w/ dereference */
-#define OUTPUT_STRING_PTR  0x0002	/* Output option as %s w/out deference */
-#define OUTPUT_DECIMAL     0x0004	/* Output option as decimal (%d) */
-#define OUTPUT_BOOLEAN     0x0008	/* Output option as "ON" or "OFF" */
-#define OUTPUT_BOOLEAN_YN  0x0010	/* Output option as "YES" or "NO" */
-#define OUTPUT_BOOLEAN2	   0x0020	/* Output option as "YES/NO/MASKED" */
 
 /* *INDENT-OFF* */
 static struct InfoStruct info_table[] = {
-	/* --[  START OF TABLE  ]-------------------------------------------- */
+
 	{
 		"opers_see_all_users",
-		OUTPUT_BOOLEAN_YN,
-		&opers_see_all_users,
-		"Farconnect notices available or operspy accountability limited"
+		"Farconnect notices available or operspy accountability limited",
+		INFO_BOOLEAN(&opers_see_all_users)
 	},
 	{
 		"max_connections",
-		OUTPUT_DECIMAL,
-		&maxconnections,
-		"Max number connections"
+		"Max number connections",
+		INFO_DECIMAL(&maxconnections),
 	},
 	{
 		"anti_nick_flood",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.anti_nick_flood,
-		"NICK flood protection"
+		"NICK flood protection",
+		INFO_INTBOOL(&ConfigFileEntry.anti_nick_flood),
 	},
 	{
 		"anti_spam_exit_message_time",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.anti_spam_exit_message_time,
-		"Duration a client must be connected for to have an exit message"
+		"Duration a client must be connected for to have an exit message",
+		INFO_DECIMAL(&ConfigFileEntry.anti_spam_exit_message_time),
 	},
 	{
 		"caller_id_wait",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.caller_id_wait,
-		"Minimum delay between notifying UMODE +g users of messages"
+		"Minimum delay between notifying UMODE +g users of messages",
+		INFO_DECIMAL(&ConfigFileEntry.caller_id_wait),
 	},
 	{
 		"client_exit",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.client_exit,
-		"Prepend 'Quit:' to user QUIT messages"
+		"Prepend 'Quit:' to user QUIT messages",
+		INFO_INTBOOL(&ConfigFileEntry.client_exit),
 	},
 	{
 		"client_flood_max_lines",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.client_flood_max_lines,
 		"Number of lines before a client Excess Flood's",
+		INFO_DECIMAL(&ConfigFileEntry.client_flood_max_lines),
 	},
 	{
 		"client_flood_burst_rate",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.client_flood_burst_rate,
 		"Maximum lines per second during flood grace period",
+		INFO_DECIMAL(&ConfigFileEntry.client_flood_burst_rate),
 	},
 	{
 		"client_flood_burst_max",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.client_flood_burst_max,
 		"Number of lines to process at once before delaying",
+		INFO_DECIMAL(&ConfigFileEntry.client_flood_burst_max),
 	},
 	{
 		"client_flood_message_num",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.client_flood_message_num,
 		"Number of messages to allow per client_flood_message_time outside of burst",
+		INFO_DECIMAL(&ConfigFileEntry.client_flood_message_num),
 	},
 	{
 		"client_flood_message_time",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.client_flood_message_time,
 		"Time to allow per client_flood_message_num outside of burst",
+		INFO_DECIMAL(&ConfigFileEntry.client_flood_message_time),
 	},
 	{
 		"post_registration_delay",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.post_registration_delay,
 		"Time to wait before processing commands from a new client",
+		INFO_DECIMAL(&ConfigFileEntry.post_registration_delay),
 	},
 	{
 		"connect_timeout",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.connect_timeout,
-		"Connect timeout for connections to servers"
+		"Connect timeout for connections to servers",
+		INFO_DECIMAL(&ConfigFileEntry.connect_timeout),
 	},
 	{
 		"default_ident_timeout",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.default_ident_timeout,
 		"Amount of time the server waits for ident responses from clients",
+		INFO_DECIMAL(&ConfigFileEntry.default_ident_timeout),
 	},
 	{
 		"default_floodcount",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.default_floodcount,
 		"Startup value of FLOODCOUNT",
+		INFO_DECIMAL(&ConfigFileEntry.default_floodcount),
 	},
 	{
 		"default_adminstring",
-		OUTPUT_STRING,
-		&ConfigFileEntry.default_adminstring,
 		"Default adminstring at startup.",
+		INFO_STRING(&ConfigFileEntry.default_adminstring),
 	},
 	{
 		"default_operstring",
-		OUTPUT_STRING,
-		&ConfigFileEntry.default_operstring,
 		"Default operstring at startup.",
+		INFO_STRING(&ConfigFileEntry.default_operstring),
 	},
 	{
 		"servicestring",
-		OUTPUT_STRING,
-		&ConfigFileEntry.servicestring,
 		"String shown in whois for opered services.",
+		INFO_STRING(&ConfigFileEntry.servicestring),
 	},
 	{
 		"disable_auth",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.disable_auth,
-		"Controls whether auth checking is disabled or not"
+		"Controls whether auth checking is disabled or not",
+		INFO_INTBOOL_YN(&ConfigFileEntry.disable_auth),
 	},
 	{
 		"disable_fake_channels",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.disable_fake_channels,
-		"Controls whether bold etc are disabled for JOIN"
+		"Controls whether bold etc are disabled for JOIN",
+		INFO_INTBOOL_YN(&ConfigFileEntry.disable_fake_channels),
 	},
 	{
 		"dots_in_ident",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.dots_in_ident,
-		"Number of permissible dots in an ident"
+		"Number of permissible dots in an ident",
+		INFO_DECIMAL(&ConfigFileEntry.dots_in_ident),
 	},
 	{
 		"failed_oper_notice",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.failed_oper_notice,
-		"Inform opers if someone /oper's with the wrong password"
+		"Inform opers if someone /oper's with the wrong password",
+		INFO_INTBOOL(&ConfigFileEntry.failed_oper_notice),
 	},
 	{
 		"fname_userlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_userlog,
-		"User log file"
+		"User log file",
+		INFO_STRING(&ConfigFileEntry.fname_userlog),
 	},
 	{
 		"fname_fuserlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_fuserlog,
-		"Failed user log file"
+		"Failed user log file",
+		INFO_STRING(&ConfigFileEntry.fname_fuserlog),
 	},
 
 	{
 		"fname_operlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_operlog,
-		"Operator log file"
+		"Operator log file",
+		INFO_STRING(&ConfigFileEntry.fname_operlog),
 	},
 	{
 		"fname_foperlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_foperlog,
-		"Failed operator log file"
+		"Failed operator log file",
+		INFO_STRING(&ConfigFileEntry.fname_foperlog),
 	},
 	{
 		"fname_serverlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_serverlog,
-		"Server connect/disconnect log file"
+		"Server connect/disconnect log file",
+		INFO_STRING(&ConfigFileEntry.fname_serverlog),
 	},
 	{
 		"fname_killlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_killlog,
-		"KILL log file"
+		"KILL log file",
+		INFO_STRING(&ConfigFileEntry.fname_killlog),
 	},
 	{
 		"fname_klinelog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_klinelog,
-		"KLINE etc log file"
+		"KLINE etc log file",
+		INFO_STRING(&ConfigFileEntry.fname_klinelog),
 	},
 	{
 		"fname_operspylog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_operspylog,
-		"Oper spy log file"
+		"Oper spy log file",
+		INFO_STRING(&ConfigFileEntry.fname_operspylog),
 	},
 	{
 		"fname_ioerrorlog",
-		OUTPUT_STRING,
-		&ConfigFileEntry.fname_ioerrorlog,
-		"IO error log file"
+		"IO error log file",
+		INFO_STRING(&ConfigFileEntry.fname_ioerrorlog),
 	},
 	{
 		"global_snotices",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.global_snotices,
-		"Send out certain server notices globally"
+		"Send out certain server notices globally",
+		INFO_INTBOOL_YN(&ConfigFileEntry.global_snotices),
 	},
 	{
 		"hide_error_messages",
-		OUTPUT_BOOLEAN2,
-		&ConfigFileEntry.hide_error_messages,
-		"Hide ERROR messages coming from servers"
+		"Hide ERROR messages coming from servers",
+		INFO_YESNOMASK(&ConfigFileEntry.hide_error_messages),
 	},
 	{
 		"hide_spoof_ips",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.hide_spoof_ips,
-		"Hide IPs of spoofed users"
+		"Hide IPs of spoofed users",
+		INFO_INTBOOL_YN(&ConfigFileEntry.hide_spoof_ips),
 	},
 	{
 		"kline_reason",
-		OUTPUT_STRING,
-		&ConfigFileEntry.kline_reason,
-		"K-lined clients sign off with this reason"
+		"K-lined clients sign off with this reason",
+		INFO_STRING(&ConfigFileEntry.kline_reason),
 	},
 	{
 		"dline_with_reason",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.dline_with_reason,
-		"Display D-line reason to client on disconnect"
+		"Display D-line reason to client on disconnect",
+		INFO_INTBOOL_YN(&ConfigFileEntry.dline_with_reason),
 	},
 	{
 		"kline_with_reason",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.kline_with_reason,
-		"Display K-line reason to client on disconnect"
+		"Display K-line reason to client on disconnect",
+		INFO_INTBOOL_YN(&ConfigFileEntry.kline_with_reason),
 	},
 	{
 		"max_accept",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.max_accept,
 		"Maximum nicknames on accept list",
+		INFO_DECIMAL(&ConfigFileEntry.max_accept),
 	},
 	{
 		"max_nick_changes",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.max_nick_changes,
-		"NICK change threshold setting"
+		"NICK change threshold setting",
+		INFO_DECIMAL(&ConfigFileEntry.max_nick_changes),
 	},
 	{
 		"max_nick_time",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.max_nick_time,
-		"NICK flood protection time interval"
+		"NICK flood protection time interval",
+		INFO_DECIMAL(&ConfigFileEntry.max_nick_time),
 	},
 	{
 		"max_targets",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.max_targets,
-		"The maximum number of PRIVMSG/NOTICE targets"
+		"The maximum number of PRIVMSG/NOTICE targets",
+		INFO_DECIMAL(&ConfigFileEntry.max_targets),
 	},
 	{
 		"min_nonwildcard",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.min_nonwildcard,
 		"Minimum non-wildcard chars in K lines",
+		INFO_DECIMAL(&ConfigFileEntry.min_nonwildcard),
 	},
 	{
 		"min_nonwildcard_simple",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.min_nonwildcard_simple,
 		"Minimum non-wildcard chars in xlines/resvs",
+		INFO_DECIMAL(&ConfigFileEntry.min_nonwildcard_simple),
 	},
 	{
 		"network_name",
-		OUTPUT_STRING,
-		&ServerInfo.network_name,
-		"Network name"
+		"Network name",
+		INFO_STRING(&ServerInfo.network_name),
 	},
 	{
 		"nick_delay",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.nick_delay,
 		"Delay nicks are locked for on split",
+		INFO_DECIMAL(&ConfigFileEntry.nick_delay),
 	},
 	{
 		"no_oper_flood",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.no_oper_flood,
 		"Disable flood control for operators",
+		INFO_INTBOOL(&ConfigFileEntry.no_oper_flood),
 	},
 	{
 		"non_redundant_klines",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.non_redundant_klines,
-		"Check for and disallow redundant K-lines"
+		"Check for and disallow redundant K-lines",
+		INFO_INTBOOL(&ConfigFileEntry.non_redundant_klines),
 	},
 	{
 		"operspy_admin_only",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.operspy_admin_only,
-		"Send +Z operspy notices to admins only"
+		"Send +Z operspy notices to admins only",
+		INFO_INTBOOL(&ConfigFileEntry.operspy_admin_only),
 	},
 	{
 		"operspy_dont_care_user_info",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.operspy_dont_care_user_info,
-		"Remove accountability and some '!' requirement from non-channel operspy"
+		"Remove accountability and some '!' requirement from non-channel operspy",
+		INFO_INTBOOL(&ConfigFileEntry.operspy_dont_care_user_info),
 	},
 	{
 		"pace_wait",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.pace_wait,
-		"Minimum delay between uses of certain commands"
+		"Minimum delay between uses of certain commands",
+		INFO_DECIMAL(&ConfigFileEntry.pace_wait),
 	},
 	{
 		"pace_wait_simple",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.pace_wait_simple,
-		"Minimum delay between less intensive commands"
+		"Minimum delay between less intensive commands",
+		INFO_DECIMAL(&ConfigFileEntry.pace_wait_simple),
 	},
 	{
 		"ping_cookie",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.ping_cookie,
 		"Require ping cookies to connect",
+		INFO_INTBOOL(&ConfigFileEntry.ping_cookie),
 	},
 	{
 		"reject_after_count",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.reject_after_count,
 		"Client rejection threshold setting",
+		INFO_DECIMAL(&ConfigFileEntry.reject_after_count),
 	},
 	{
 		"reject_ban_time",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.reject_ban_time,
 		"Client rejection time interval",
+		INFO_DECIMAL(&ConfigFileEntry.reject_ban_time),
 	},
 	{
 		"reject_duration",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.reject_duration,
 		"Client rejection cache duration",
+		INFO_DECIMAL(&ConfigFileEntry.reject_duration),
 	},
 	{
 		"short_motd",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.short_motd,
-		"Do not show MOTD; only tell clients they should read it"
+		"Do not show MOTD; only tell clients they should read it",
+		INFO_INTBOOL_YN(&ConfigFileEntry.short_motd),
 	},
 	{
 		"stats_e_disabled",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_e_disabled,
 		"STATS e output is disabled",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_e_disabled),
 	},
 	{
 		"stats_c_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_c_oper_only,
 		"STATS C output is only shown to operators",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_c_oper_only),
 	},
 	{
 		"stats_h_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_h_oper_only,
 		"STATS H output is only shown to operators",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_h_oper_only),
 	},
 	{
 		"stats_i_oper_only",
-		OUTPUT_BOOLEAN2,
-		&ConfigFileEntry.stats_i_oper_only,
 		"STATS I output is only shown to operators",
+		INFO_YESNOMASK(&ConfigFileEntry.stats_i_oper_only),
 	},
 	{
 		"stats_k_oper_only",
-		OUTPUT_BOOLEAN2,
-		&ConfigFileEntry.stats_k_oper_only,
 		"STATS K output is only shown to operators",
+		INFO_YESNOMASK(&ConfigFileEntry.stats_k_oper_only),
 	},
 	{
 		"stats_o_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_o_oper_only,
 		"STATS O output is only shown to operators",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_o_oper_only),
 	},
 	{
 		"stats_P_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_P_oper_only,
 		"STATS P is only shown to operators",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_P_oper_only),
 	},
 	{
 		"stats_y_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.stats_y_oper_only,
 		"STATS Y is only shown to operators",
+		INFO_INTBOOL_YN(&ConfigFileEntry.stats_y_oper_only),
 	},
 	{
 		"throttle_count",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.throttle_count,
 		"Connection throttle threshold",
+		INFO_DECIMAL(&ConfigFileEntry.throttle_count),
 	},
 	{
 		"throttle_duration",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.throttle_duration,
 		"Connection throttle duration",
+		INFO_DECIMAL(&ConfigFileEntry.throttle_duration),
 	},
 	{
 		"tkline_expire_notices",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.tkline_expire_notices,
-		"Notices given to opers when tklines expire"
+		"Notices given to opers when tklines expire",
+		INFO_INTBOOL(&ConfigFileEntry.tkline_expire_notices),
 	},
 	{
 		"ts_max_delta",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.ts_max_delta,
-		"Maximum permitted TS delta from another server"
+		"Maximum permitted TS delta from another server",
+		INFO_DECIMAL(&ConfigFileEntry.ts_max_delta),
 	},
 	{
 		"ts_warn_delta",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.ts_warn_delta,
-		"Maximum permitted TS delta before displaying a warning"
+		"Maximum permitted TS delta before displaying a warning",
+		INFO_DECIMAL(&ConfigFileEntry.ts_warn_delta),
 	},
 	{
 		"warn_no_nline",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.warn_no_nline,
-		"Display warning if connecting server lacks connect block"
+		"Display warning if connecting server lacks connect block",
+		INFO_INTBOOL(&ConfigFileEntry.warn_no_nline),
 	},
 	{
 		"use_propagated_bans",
-		OUTPUT_BOOLEAN,
-		&ConfigFileEntry.use_propagated_bans,
-		"KLINE sets fully propagated bans"
+		"KLINE sets fully propagated bans",
+		INFO_INTBOOL(&ConfigFileEntry.use_propagated_bans),
 	},
 	{
 		"max_ratelimit_tokens",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.max_ratelimit_tokens,
 		"The maximum number of tokens that can be accumulated for executing rate-limited commands",
+		INFO_DECIMAL(&ConfigFileEntry.max_ratelimit_tokens),
 	},
 	{
 		"away_interval",
-		OUTPUT_DECIMAL,
-		&ConfigFileEntry.away_interval,
 		"The minimum time between aways",
+		INFO_DECIMAL(&ConfigFileEntry.away_interval),
 	},
 	{
 		"tls_ciphers_oper_only",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigFileEntry.tls_ciphers_oper_only,
 		"TLS cipher strings are hidden in whois for non-opers",
+		INFO_INTBOOL_YN(&ConfigFileEntry.tls_ciphers_oper_only),
 	},
 	{
 		"default_split_server_count",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.default_split_server_count,
 		"Startup value of SPLITNUM",
+		INFO_DECIMAL(&ConfigChannel.default_split_server_count),
 	},
 	{
 		"default_split_user_count",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.default_split_user_count,
 		"Startup value of SPLITUSERS",
+		INFO_DECIMAL(&ConfigChannel.default_split_user_count),
 	},
 	{
 		"knock_delay",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.knock_delay,
-		"Delay between a users KNOCK attempts"
+		"Delay between a users KNOCK attempts",
+		INFO_DECIMAL(&ConfigChannel.knock_delay),
 	},
 	{
 		"knock_delay_channel",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.knock_delay_channel,
 		"Delay between KNOCK attempts to a channel",
+		INFO_DECIMAL(&ConfigChannel.knock_delay_channel),
 	},
 	{
 		"kick_on_split_riding",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.kick_on_split_riding,
-		"Kick users riding splits to join +i or +k channels"
+		"Kick users riding splits to join +i or +k channels",
+		INFO_INTBOOL_YN(&ConfigChannel.kick_on_split_riding),
 	},
 	{
 		"disable_local_channels",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.disable_local_channels,
-		"Disable local channels (&channels)"
+		"Disable local channels (&channels)",
+		INFO_INTBOOL_YN(&ConfigChannel.disable_local_channels),
 	},
 	{
 		"max_bans",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.max_bans,
 		"Total +b/e/I/q modes allowed in a channel",
+		INFO_DECIMAL(&ConfigChannel.max_bans),
 	},
 	{
 		"max_bans_large",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.max_bans_large,
 		"Total +b/e/I/q modes allowed in a +L channel",
+		INFO_DECIMAL(&ConfigChannel.max_bans_large),
 	},
 	{
 		"max_chans_per_user",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.max_chans_per_user,
 		"Maximum number of channels a user can join",
+		INFO_DECIMAL(&ConfigChannel.max_chans_per_user),
 	},
 	{
 		"max_chans_per_user_large",
-		OUTPUT_DECIMAL,
-		&ConfigChannel.max_chans_per_user_large,
 		"Maximum extended number of channels a user can join",
+		INFO_DECIMAL(&ConfigChannel.max_chans_per_user_large),
 	},
 	{
 		"no_create_on_split",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.no_create_on_split,
 		"Disallow creation of channels when split",
+		INFO_INTBOOL_YN(&ConfigChannel.no_create_on_split),
 	},
 	{
 		"no_join_on_split",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.no_join_on_split,
 		"Disallow joining channels when split",
+		INFO_INTBOOL_YN(&ConfigChannel.no_join_on_split),
 	},
 	{
 		"only_ascii_channels",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.only_ascii_channels,
-		"Controls whether non-ASCII is disabled for JOIN"
+		"Controls whether non-ASCII is disabled for JOIN",
+		INFO_INTBOOL_YN(&ConfigChannel.only_ascii_channels),
 	},
 	{
 		"use_except",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.use_except,
 		"Enable chanmode +e (ban exceptions)",
+		INFO_INTBOOL_YN(&ConfigChannel.use_except),
 	},
 	{
 		"use_invex",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.use_invex,
 		"Enable chanmode +I (invite exceptions)",
+		INFO_INTBOOL_YN(&ConfigChannel.use_invex),
 	},
 	{
 		"use_forward",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.use_forward,
 		"Enable chanmode +f (channel forwarding)",
+		INFO_INTBOOL_YN(&ConfigChannel.use_forward),
 	},
 	{
 		"use_knock",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.use_knock,
 		"Enable /KNOCK",
+		INFO_INTBOOL_YN(&ConfigChannel.use_knock),
 	},
 	{
 		"resv_forcepart",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.resv_forcepart,
-		"Force-part local users on channel RESV"
+		"Force-part local users on channel RESV",
+		INFO_INTBOOL_YN(&ConfigChannel.resv_forcepart),
 	},
 	{
 		"opmod_send_statusmsg",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigChannel.opmod_send_statusmsg,
-		"Send messages to @#channel if affected by +z"
+		"Send messages to @#channel if affected by +z",
+		INFO_INTBOOL_YN(&ConfigChannel.opmod_send_statusmsg),
 	},
 	{
 		"disable_hidden",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigServerHide.disable_hidden,
 		"Prevent servers from hiding themselves from a flattened /links",
+		INFO_INTBOOL_YN(&ConfigServerHide.disable_hidden),
 	},
 	{
 		"flatten_links",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigServerHide.flatten_links,
 		"Flatten /links list",
+		INFO_INTBOOL_YN(&ConfigServerHide.flatten_links),
 	},
 	{
 		"hidden",
-		OUTPUT_BOOLEAN_YN,
-		&ConfigServerHide.hidden,
 		"Hide this server from a flattened /links on remote servers",
+		INFO_INTBOOL_YN(&ConfigServerHide.hidden),
 	},
 	{
 		"links_delay",
-		OUTPUT_DECIMAL,
-		&ConfigServerHide.links_delay,
-		"Links rehash delay"
+		"Links rehash delay",
+		INFO_DECIMAL(&ConfigServerHide.links_delay),
 	},
-	/* --[  END OF TABLE  ]---------------------------------------------- */
-	{ (char *) 0, (unsigned int) 0, (void *) 0, (char *) 0}
+
+	{ NULL, NULL, 0, { NULL } },
 };
 /* *INDENT-ON* */
 
@@ -812,102 +731,71 @@ send_conf_options(struct Client *source_p)
 	 */
 	for (i = 0; info_table[i].name; i++)
 	{
+		static char opt_buf[BUFSIZE];
+		const char *opt_value = opt_buf;
+
+
 		switch (info_table[i].output_type)
 		{
-				/*
-				 * For "char *" references
-				 */
-			case OUTPUT_STRING:
-				{
-					char *option = *((char **) info_table[i].option);
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-							get_id(&me, source_p), RPL_INFO,
-							get_id(source_p, source_p),
-							info_table[i].name,
-							option ? option : "NONE",
-							info_table[i].desc ? info_table[i].desc : "<none>");
-
-					break;
-				}
-				/*
-				 * For "char foo[]" references
-				 */
-			case OUTPUT_STRING_PTR:
-				{
-					char *option = (char *) info_table[i].option;
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-							get_id(&me, source_p), RPL_INFO,
-							get_id(source_p, source_p),
-							info_table[i].name,
-							EmptyString(option) ? "NONE" : option,
-							info_table[i].desc ? info_table[i].desc : "<none>");
-
-					break;
-				}
-				/*
-				 * Output info_table[i].option as a decimal value.
-				 */
-			case OUTPUT_DECIMAL:
-				{
-					int option = *((int *) info_table[i].option);
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16d [%s]",
-							get_id(&me, source_p), RPL_INFO,
-							get_id(source_p, source_p),
-							info_table[i].name,
-							option,
-							info_table[i].desc ? info_table[i].desc : "<none>");
-
-					break;
-				}
-
-				/*
-				 * Output info_table[i].option as "ON" or "OFF"
-				 */
-			case OUTPUT_BOOLEAN:
-				{
-					int option = *((int *) info_table[i].option);
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-							get_id(&me, source_p), RPL_INFO,
-							get_id(source_p, source_p),
-							info_table[i].name,
-							option ? "ON" : "OFF",
-							info_table[i].desc ? info_table[i].desc : "<none>");
-
-					break;
-				}
-				/*
-				 * Output info_table[i].option as "YES" or "NO"
-				 */
-			case OUTPUT_BOOLEAN_YN:
-				{
-					int option = *((int *) info_table[i].option);
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-							get_id(&me, source_p), RPL_INFO,
-							get_id(source_p, source_p),
-							info_table[i].name,
-							option ? "YES" : "NO",
-							info_table[i].desc ? info_table[i].desc : "<none>");
-
-					break;
-				}
-
-			case OUTPUT_BOOLEAN2:
-				{
-					int option = *((int *) info_table[i].option);
-
-					sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
-							me.name, RPL_INFO, source_p->name,
-							info_table[i].name,
-							option ? ((option == 1) ? "MASK" : "YES") : "NO",
-							info_table[i].desc ? info_table[i].desc : "<none>");
-				}		/* switch (info_table[i].output_type) */
+		case OUTPUT_STRING:
+		{
+			const char *option = *info_table[i].option.string_p;
+			opt_value = option != NULL ? option : "NONE";
+			break;
 		}
-	}			/* forloop */
+		case OUTPUT_STRING_PTR:
+		{
+			const char *option = info_table[i].option.string;
+			opt_value = option != NULL ? option : "NONE";
+			break;
+		}
+		case OUTPUT_DECIMAL:
+		{
+			int option = *info_table[i].option.int_;
+			snprintf(opt_buf, sizeof opt_buf, "%d", option);
+			break;
+		}
+		case OUTPUT_BOOLEAN:
+		{
+			bool option = *info_table[i].option.bool_;
+			opt_value = option ? "ON" : "OFF";
+			break;
+		}
+		case OUTPUT_BOOLEAN_YN:
+		{
+			bool option = *info_table[i].option.bool_;
+			opt_value = option ? "YES" : "NO";
+			break;
+		}
+		case OUTPUT_YESNOMASK:
+		{
+			int option = *info_table[i].option.int_;
+			opt_value = option == 0 ? "NO" :
+			            option == 1 ? "MASK" :
+			            "YES";
+			break;
+		}
+		case OUTPUT_INTBOOL:
+		{
+			bool option = *info_table[i].option.int_;
+			opt_value = option ? "ON" : "OFF";
+			break;
+		}
+		case OUTPUT_INTBOOL_YN:
+		{
+			bool option = *info_table[i].option.int_;
+			opt_value = option ? "YES" : "NO";
+			break;
+		}
+		}
+
+		sendto_one(source_p, ":%s %d %s :%-30s %-16s [%s]",
+				get_id(&me, source_p), RPL_INFO,
+				get_id(source_p, source_p),
+				info_table[i].name,
+				opt_value,
+				info_table[i].desc ? info_table[i].desc : "<none>");
+	}
 
 
 	/* Don't send oper_only_umodes...it's a bit mask, we will have to decode it

@@ -308,7 +308,7 @@ main(int argc, char *argv[])
 		fprintf(stderr,
 			"This is the solanum bandb for internal ircd use.\n");
 		fprintf(stderr,
-			"You aren't supposed to run me directly (did you want bantool?). Exiting.\n");
+			"You aren't supposed to run me directly (did you want solanum-bantool?). Exiting.\n");
 		exit(1);
 	}
 	rsdb_init(db_error_cb);
