@@ -39,9 +39,11 @@ install-data-hook:
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
 
 install-exec-hook:
+	rm -f ${DESTDIR}${libdir}/*.la
 	rm -f ${DESTDIR}${moduledir}/*.la
 	rm -f ${DESTDIR}${moduledir}/autoload/*.la
 	rm -f ${DESTDIR}${moduledir}/extensions/*.la
+	rm -f ${DESTDIR}${libdir}/*.dll.a
 	rm -f ${DESTDIR}${moduledir}/*.dll.a
 	rm -f ${DESTDIR}${moduledir}/autoload/*.dll.a
 	rm -f ${DESTDIR}${moduledir}/extensions/*.dll.a
