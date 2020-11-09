@@ -48,3 +48,4 @@ check-local: $(check_PROGRAMS) \
 
 clean-local:
 	rm -rf runtime/modules
+	rm -rf *.db *.log
