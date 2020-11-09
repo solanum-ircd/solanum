@@ -94,8 +94,8 @@ struct InfoStruct
 	{
 		const int *int_;
 		const bool *bool_;
-		char **string_p;
-		char *string;
+		char *const *string_p;
+		const char *string;
 	} option;
 };
 
@@ -732,20 +732,20 @@ send_conf_options(struct Client *source_p)
 	for (i = 0; info_table[i].name; i++)
 	{
 		static char opt_buf[BUFSIZE];
-		char *opt_value = opt_buf;
+		const char *opt_value = opt_buf;
 
 
 		switch (info_table[i].output_type)
 		{
 		case OUTPUT_STRING:
 		{
-			char *option = *info_table[i].option.string_p;
+			const char *option = *info_table[i].option.string_p;
 			opt_value = option != NULL ? option : "NONE";
 			break;
 		}
 		case OUTPUT_STRING_PTR:
 		{
-			char *option = info_table[i].option.string;
+			const char *option = info_table[i].option.string;
 			opt_value = option != NULL ? option : "NONE";
 			break;
 		}
