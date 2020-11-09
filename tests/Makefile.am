@@ -9,6 +9,7 @@ check_PROGRAMS = runtests \
 	rb_snprintf_try_append1 \
 	sasl_abort1 \
 	send1 \
+	send_multiline1 \
 	serv_connect1 \
 	substitution1
 AM_CFLAGS=$(WARNFLAGS)
