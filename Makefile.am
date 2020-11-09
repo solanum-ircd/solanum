@@ -19,8 +19,6 @@ SUBDIRS += ircd \
            help \
            doc
 
-logdir = @prefix@/logs
-
 BUILT_SOURCES = include/serno.h
 
 include/serno.h:
