@@ -14,7 +14,7 @@ Makefile
 .libs
 authd/authd
 bandb/bandb
-bandb/bantool
+bandb/solanum-bantool
 autom4te.cache
 aclocal.m4
 compile
