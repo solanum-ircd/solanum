@@ -551,7 +551,7 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 				    me.id, (long) chptr->channelts, chptr->chname, flag);
 	t = buf + mlen;
 
-	RB_DLINK_FOREACH(ptr, list->head)
+	RB_DLINK_FOREACH_PREV(ptr, list->tail)
 	{
 		banptr = ptr->data;
 
