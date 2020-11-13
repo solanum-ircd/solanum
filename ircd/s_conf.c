@@ -1288,26 +1288,22 @@ reorganise_temp_kd(void *list)
 /* const char* get_oper_name(struct Client *client_p)
  * Input: A client to find the active oper{} name for.
  * Output: The nick!user@host{oper} of the oper.
- *         "oper" is server name for remote opers
+ *         "oper" is server name for unknown opers
  * Side effects: None.
  */
-char *
+const char *
 get_oper_name(struct Client *client_p)
 {
 	/* +5 for !,@,{,} and null */
-	static char buffer[NAMELEN + USERLEN + HOSTLEN + HOSTLEN + 5];
+	static char buffer[NAMELEN + USERLEN + HOSTLEN + MAX(HOSTLEN, OPERNICKLEN) + 5];
 
-	if(MyOper(client_p))
-	{
-		snprintf(buffer, sizeof(buffer), "%s!%s@%s{%s}",
-				client_p->name, client_p->username,
-				client_p->host, client_p->user->opername);
-		return buffer;
-	}
+	const char *opername = EmptyString(client_p->user->opername)
+			? client_p->servptr->name
+			: client_p->user->opername;
 
-	snprintf(buffer, sizeof(buffer), "%s!%s@%s{%s}",
-		   client_p->name, client_p->username,
-		   client_p->host, client_p->servptr->name);
+	snprintf(buffer, sizeof buffer, "%s!%s@%s{%s}",
+			client_p->name, client_p->username,
+			client_p->host, opername);
 	return buffer;
 }
 

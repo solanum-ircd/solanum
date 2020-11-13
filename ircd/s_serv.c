@@ -474,13 +474,8 @@ burst_ban(struct Client *client_p)
 {
 	rb_dlink_node *ptr;
 	struct ConfItem *aconf;
-	const char *type, *oper;
-	/* +5 for !,@,{,} and null */
-	char operbuf[NICKLEN + USERLEN + HOSTLEN + HOSTLEN + 5];
-	char *p;
-	size_t melen;
+	const char *type;
 
-	melen = strlen(me.name);
 	RB_DLINK_FOREACH(ptr, prop_bans.head)
 	{
 		aconf = ptr->data;
@@ -498,24 +493,6 @@ burst_ban(struct Client *client_p)
 			default:
 				continue;
 		}
-		oper = aconf->info.oper;
-		if(aconf->flags & CONF_FLAGS_MYOPER)
-		{
-			/* Our operator{} names may not be meaningful
-			 * to other servers, so rewrite to our server
-			 * name.
-			 */
-			rb_strlcpy(operbuf, aconf->info.oper, sizeof operbuf);
-			p = strrchr(operbuf, '{');
-			if (p != NULL &&
-					operbuf + sizeof operbuf - p > (ptrdiff_t)(melen + 2))
-			{
-				memcpy(p + 1, me.name, melen);
-				p[melen + 1] = '}';
-				p[melen + 2] = '\0';
-				oper = operbuf;
-			}
-		}
 		sendto_one(client_p, ":%s BAN %s %s %s %lu %d %d %s :%s%s%s",
 				me.id,
 				type,
@@ -523,7 +500,7 @@ burst_ban(struct Client *client_p)
 				(unsigned long)aconf->created,
 				(int)(aconf->hold - aconf->created),
 				(int)(aconf->lifetime - aconf->created),
-				oper,
+				aconf->info.oper,
 				aconf->passwd,
 				aconf->spasswd ? "|" : "",
 				aconf->spasswd ? aconf->spasswd : "");
