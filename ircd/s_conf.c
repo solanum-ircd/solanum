@@ -743,7 +743,6 @@ set_default_conf(void)
 	ConfigFileEntry.stats_P_oper_only = false;
 	ConfigFileEntry.stats_c_oper_only = false;
 	ConfigFileEntry.stats_y_oper_only = false;
-	ConfigFileEntry.stats_h_oper_only = false;
 	ConfigFileEntry.map_oper_only = true;
 	ConfigFileEntry.operspy_admin_only = false;
 	ConfigFileEntry.pace_wait = 10;

@@ -1350,38 +1350,6 @@ conf_set_connect_flags(void *data)
 }
 
 static void
-conf_set_connect_hub_mask(void *data)
-{
-	struct remote_conf *yy_hub;
-
-	if(EmptyString(yy_server->name))
-		return;
-
-	yy_hub = make_remote_conf();
-	yy_hub->flags = CONF_HUB;
-
-	yy_hub->host = rb_strdup(data);
-	yy_hub->server = rb_strdup(yy_server->name);
-	rb_dlinkAdd(yy_hub, &yy_hub->node, &hubleaf_conf_list);
-}
-
-static void
-conf_set_connect_leaf_mask(void *data)
-{
-	struct remote_conf *yy_leaf;
-
-	if(EmptyString(yy_server->name))
-		return;
-
-	yy_leaf = make_remote_conf();
-	yy_leaf->flags = CONF_LEAF;
-
-	yy_leaf->host = rb_strdup(data);
-	yy_leaf->server = rb_strdup(yy_server->name);
-	rb_dlinkAdd(yy_leaf, &yy_leaf->node, &hubleaf_conf_list);
-}
-
-static void
 conf_set_connect_class(void *data)
 {
 	rb_free(yy_server->class_name);
@@ -2652,8 +2620,6 @@ static struct ConfEntry conf_connect_table[] =
 	{ "vhost",	CF_QSTRING, conf_set_connect_vhost,	0, NULL },
 	{ "port",	CF_INT,     conf_set_connect_port,	0, NULL },
 	{ "aftype",	CF_STRING,  conf_set_connect_aftype,	0, NULL },
-	{ "hub_mask",	CF_QSTRING, conf_set_connect_hub_mask,	0, NULL },
-	{ "leaf_mask",	CF_QSTRING, conf_set_connect_leaf_mask,	0, NULL },
 	{ "class",	CF_QSTRING, conf_set_connect_class,	0, NULL },
 	{ "\0",	0, NULL, 0, NULL }
 };
@@ -2727,7 +2693,6 @@ static struct ConfEntry conf_general_table[] =
 	{ "short_motd",		CF_YESNO, NULL, 0, &ConfigFileEntry.short_motd		},
 	{ "stats_c_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_c_oper_only	},
 	{ "stats_e_disabled",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_e_disabled	},
-	{ "stats_h_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_h_oper_only	},
 	{ "stats_o_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_o_oper_only	},
 	{ "stats_P_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_P_oper_only	},
 	{ "stats_y_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.stats_y_oper_only	},

@@ -341,12 +341,8 @@ ms_server(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	/* same size as in s_misc.c */
 	const char *name;
 	struct Client *target_p;
-	struct remote_conf *hub_p;
 	hook_data_client hdata;
 	int hop;
-	int hlined = 0;
-	int llined = 0;
-	rb_dlink_node *ptr;
 	char squitreason[160];
 
 	name = parv[1];
@@ -412,82 +408,6 @@ ms_server(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	 * server links...
 	 */
 
-	/*
-	 * See if the newly found server is behind a guaranteed
-	 * leaf. If so, close the link.
-	 *
-	 */
-	RB_DLINK_FOREACH(ptr, hubleaf_conf_list.head)
-	{
-		hub_p = ptr->data;
-
-		if(match(hub_p->server, client_p->name) && match(hub_p->host, name))
-		{
-			if(hub_p->flags & CONF_HUB)
-				hlined++;
-			else
-				llined++;
-		}
-	}
-
-	/* Ok, this way this works is
-	 *
-	 * A server can have a CONF_HUB allowing it to introduce servers
-	 * behind it.
-	 *
-	 * connect {
-	 *            name = "irc.bighub.net";
-	 *            hub_mask="*";
-	 *            ...
-	 *
-	 * That would allow "irc.bighub.net" to introduce anything it wanted..
-	 *
-	 * However
-	 *
-	 * connect {
-	 *            name = "irc.somehub.fi";
-	 *            hub_mask="*";
-	 *            leaf_mask="*.edu";
-	 *...
-	 * Would allow this server in finland to hub anything but
-	 * .edu's
-	 */
-
-	/* Ok, check client_p can hub the new server */
-	if(!hlined)
-	{
-		/* OOOPs nope can't HUB */
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Non-Hub link %s introduced %s.",
-				     client_p->name, name);
-		ilog(L_SERVER, "Non-Hub link %s introduced %s.",
-			client_p->name, name);
-
-		snprintf(squitreason, sizeof squitreason,
-				"No matching hub_mask for %s",
-				name);
-		exit_client(NULL, client_p, &me, squitreason);
-		return;
-	}
-
-	/* Check for the new server being leafed behind this HUB */
-	if(llined)
-	{
-		/* OOOPs nope can't HUB this leaf */
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-				     "Link %s introduced leafed server %s.",
-				     client_p->name, name);
-		ilog(L_SERVER, "Link %s introduced leafed server %s.",
-			client_p->name, name);
-
-		snprintf(squitreason, sizeof squitreason,
-				"Matching leaf_mask for %s",
-				name);
-		exit_client(NULL, client_p, &me, squitreason);
-		return;
-	}
-
-
-
 	if(strlen(name) > HOSTLEN)
 	{
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
@@ -539,11 +459,7 @@ static void
 ms_sid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	struct Client *target_p;
-	struct remote_conf *hub_p;
 	hook_data_client hdata;
-	rb_dlink_node *ptr;
-	int hlined = 0;
-	int llined = 0;
 	char squitreason[160];
 
 	/* collision on the name? */
@@ -602,55 +518,6 @@ ms_sid(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 			client_p->name, parv[3]);
 
 		exit_client(NULL, client_p, &me, "Bogus SID");
-		return;
-	}
-
-	/* for the directly connected server:
-	 * H: allows it to introduce a server matching that mask
-	 * L: disallows it introducing a server matching that mask
-	 */
-	RB_DLINK_FOREACH(ptr, hubleaf_conf_list.head)
-	{
-		hub_p = ptr->data;
-
-		if(match(hub_p->server, client_p->name) && match(hub_p->host, parv[1]))
-		{
-			if(hub_p->flags & CONF_HUB)
-				hlined++;
-			else
-				llined++;
-		}
-	}
-
-	/* no matching hub_mask */
-	if(!hlined)
-	{
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-				     "Non-Hub link %s introduced %s.",
-				     client_p->name, parv[1]);
-		ilog(L_SERVER, "Non-Hub link %s introduced %s.",
-			client_p->name, parv[1]);
-
-		snprintf(squitreason, sizeof squitreason,
-				"No matching hub_mask for %s",
-				parv[1]);
-		exit_client(NULL, client_p, &me, squitreason);
-		return;
-	}
-
-	/* matching leaf_mask */
-	if(llined)
-	{
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-				     "Link %s introduced leafed server %s.",
-				     client_p->name, parv[1]);
-		ilog(L_SERVER, "Link %s introduced leafed server %s.",
-			client_p->name, parv[1]);
-
-		snprintf(squitreason, sizeof squitreason,
-				"Matching leaf_mask for %s",
-				parv[1]);
-		exit_client(NULL, client_p, &me, squitreason);
 		return;
 	}
 

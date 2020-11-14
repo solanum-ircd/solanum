@@ -48,7 +48,6 @@
 
 rb_dlink_list cluster_conf_list;
 rb_dlink_list oper_conf_list;
-rb_dlink_list hubleaf_conf_list;
 rb_dlink_list server_conf_list;
 rb_dlink_list xline_conf_list;
 rb_dlink_list resv_conf_list;	/* nicks only! */
@@ -84,12 +83,6 @@ clear_s_newconf(void)
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, cluster_conf_list.head)
 	{
 		rb_dlinkDelete(ptr, &cluster_conf_list);
-		free_remote_conf(ptr->data);
-	}
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, hubleaf_conf_list.head)
-	{
-		rb_dlinkDelete(ptr, &hubleaf_conf_list);
 		free_remote_conf(ptr->data);
 	}
 

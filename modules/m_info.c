@@ -407,11 +407,6 @@ static struct InfoStruct info_table[] = {
 		INFO_INTBOOL_YN(&ConfigFileEntry.stats_c_oper_only),
 	},
 	{
-		"stats_h_oper_only",
-		"STATS H output is only shown to operators",
-		INFO_INTBOOL_YN(&ConfigFileEntry.stats_h_oper_only),
-	},
-	{
 		"stats_i_oper_only",
 		"STATS I output is only shown to operators",
 		INFO_YESNOMASK(&ConfigFileEntry.stats_i_oper_only),
