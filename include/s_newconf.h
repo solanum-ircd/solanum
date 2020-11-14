@@ -44,7 +44,6 @@ struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;
 extern rb_dlink_list oper_conf_list;
-extern rb_dlink_list hubleaf_conf_list;
 extern rb_dlink_list server_conf_list;
 extern rb_dlink_list xline_conf_list;
 extern rb_dlink_list resv_conf_list;
@@ -68,7 +67,7 @@ typedef struct
 void add_tgchange(const char *host);
 tgchange *find_tgchange(const char *host);
 
-/* shared/cluster/hub/leaf confs */
+/* cluster confs */
 struct remote_conf
 {
 	char *username;
@@ -101,10 +100,6 @@ struct remote_conf
 			SHARED_PXLINE | SHARED_TXLINE | SHARED_UNXLINE |\
 			SHARED_TRESV | SHARED_PRESV | SHARED_UNRESV | SHARED_GRANT)
 #define CLUSTER_ALL	(SHARED_ALL | SHARED_LOCOPS)
-
-/* flags used in hub/leaf */
-#define CONF_HUB	0x0001
-#define CONF_LEAF	0x0002
 
 struct oper_conf
 {

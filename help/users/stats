@@ -7,7 +7,6 @@ server parameter is given) for info corresponding to
 LETTER
 ------ (^ = Can be configured to be oper only.)
 ^ c - Shows connect blocks
-^ h - Shows hub_mask/leaf_mask (Old H:/L: lines)
 ^ i - Shows auth blocks (or matched auth block)
 ^ K - Shows K lines (or matched klines)
 ^ k - Shows temporary K lines (or matched klines)

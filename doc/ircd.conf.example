@@ -311,7 +311,6 @@ connect "irc.uplink.com" {
 	send_password = "password";
 	accept_password = "anotherpassword";
 	port = 6666;
-	hub_mask = "*";
 	class = "server";
 	flags = compressed, topicburst;
 
@@ -323,7 +322,6 @@ connect "ssl.uplink.com" {
 	send_password = "password";
 	accept_password = "anotherpassword";
 	port = 9999;
-	hub_mask = "*";
 	class = "server";
 	flags = ssl, topicburst;
 };
@@ -586,7 +584,6 @@ general {
 	use_propagated_bans = yes;
 	stats_e_disabled = no;
 	stats_c_oper_only = no;
-	stats_h_oper_only = no;
 	stats_y_oper_only = no;
 	stats_o_oper_only = yes;
 	stats_P_oper_only = no;

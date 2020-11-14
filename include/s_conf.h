@@ -194,7 +194,6 @@ struct config_file_entry
 	int stats_e_disabled;
 	int stats_c_oper_only;
 	int stats_y_oper_only;
-	int stats_h_oper_only;
 	int stats_o_oper_only;
 	int stats_k_oper_only;
 	enum stats_l_oper_only stats_l_oper_only;
@@ -301,7 +300,6 @@ struct server_info
 	char sid[4];
 	char *description;
 	char *network_name;
-	int hub;
 	struct rb_sockaddr_storage bind4;
 	struct rb_sockaddr_storage bind6;
 	int default_max_clients;

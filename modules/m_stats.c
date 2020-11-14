@@ -104,7 +104,6 @@ static void stats_deny(struct Client *);
 static void stats_exempt(struct Client *);
 static void stats_events(struct Client *);
 static void stats_prop_klines(struct Client *);
-static void stats_hubleaf(struct Client *);
 static void stats_auth(struct Client *);
 static void stats_tklines(struct Client *);
 static void stats_klines(struct Client *);
@@ -159,8 +158,6 @@ static struct stats_cmd stats_cmd_table[256] = {
 	['f'] = HANDLER_NORM(stats_comm,	true,	NULL),
 	['F'] = HANDLER_NORM(stats_comm,	true,	NULL),
 	['g'] = HANDLER_NORM(stats_prop_klines,	false,	"oper:general"),
-	['h'] = HANDLER_NORM(stats_hubleaf,	false,	NULL),
-	['H'] = HANDLER_NORM(stats_hubleaf,	false,	NULL),
 	['i'] = HANDLER_NORM(stats_auth,	false,	NULL),
 	['I'] = HANDLER_NORM(stats_auth,	false,	NULL),
 	['k'] = HANDLER_NORM(stats_tklines,	false,	NULL),
@@ -527,37 +524,6 @@ stats_prop_klines(struct Client *source_p)
 				oper_reason ? oper_reason : "");
 	}
 }
-
-static void
-stats_hubleaf(struct Client *source_p)
-{
-	struct remote_conf *hub_p;
-	rb_dlink_node *ptr;
-
-	if((ConfigFileEntry.stats_h_oper_only ||
-	    (ConfigServerHide.flatten_links && !IsExemptShide(source_p))) &&
-	    !IsOperGeneral(source_p))
-	{
-		sendto_one_numeric(source_p, ERR_NOPRIVILEGES,
-				   form_str (ERR_NOPRIVILEGES));
-		return;
-	}
-
-	RB_DLINK_FOREACH(ptr, hubleaf_conf_list.head)
-	{
-		hub_p = ptr->data;
-
-		if(hub_p->flags & CONF_HUB)
-			sendto_one_numeric(source_p, RPL_STATSHLINE,
-					form_str(RPL_STATSHLINE),
-					hub_p->host, hub_p->server);
-		else
-			sendto_one_numeric(source_p, RPL_STATSLLINE,
-					form_str(RPL_STATSLLINE),
-					hub_p->host, hub_p->server);
-	}
-}
-
 
 static void
 stats_auth (struct Client *source_p)
