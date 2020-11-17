@@ -57,6 +57,9 @@ cap_server_time_process(void *data_)
 	struct MsgBuf *msgbuf = data->arg1;
 	struct timeval tv;
 
+	if (!IsMe(data->client) && !MyClient(data->client))
+		return;
+
 	if (!rb_gettimeofday(&tv, NULL)) {
 		if (strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.", gmtime(&tv.tv_sec)) == 0)
 			return;
