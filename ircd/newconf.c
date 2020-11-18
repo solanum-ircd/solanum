@@ -2714,6 +2714,7 @@ static struct ConfEntry conf_general_table[] =
 	{ "certfp_method",	CF_STRING, conf_set_general_certfp_method, 0, NULL },
 	{ "drain_reason",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.drain_reason	},
 	{ "tls_ciphers_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.tls_ciphers_oper_only	},
+	{ "oper_secure_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.oper_secure_only	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 

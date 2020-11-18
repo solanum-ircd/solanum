@@ -611,6 +611,11 @@ static struct InfoStruct info_table[] = {
 		"Links rehash delay",
 		INFO_DECIMAL(&ConfigServerHide.links_delay),
 	},
+	{
+		"oper_secure_only",
+		"Require TLS to become an oper",
+		INFO_YESNOMASK(&ConfigFileEntry.oper_secure_only),
+	},
 
 	{ NULL, NULL, 0, { NULL } },
 };
