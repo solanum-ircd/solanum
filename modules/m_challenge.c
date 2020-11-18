@@ -113,6 +113,18 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	size_t cnt;
 	int len = 0;
 
+        if (ConfigFileEntry.oper_secure_only && !IsSecureClient(source_p))
+        {
+                sendto_one_notice(source_p, ":You must be using a secure connection to /CHALLENGE on this server");
+                if(ConfigFileEntry.failed_oper_notice)
+                {
+                        sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+                                               "Failed CHALLENGE attempt - missing secure connection by %s (%s@%s)",
+                                               source_p->name, source_p->username, source_p->host);
+                }
+                return;
+        }
+
 	/* if theyre an oper, reprint oper motd and ignore */
 	if(IsOper(source_p))
 	{
@@ -222,7 +234,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		return;
 	}
 
-	if((ConfigFileEntry.oper_secure_only || IsOperConfNeedSSL(oper_p)) && !IsSecureClient(source_p))
+	if(IsOperConfNeedSSL(oper_p) && !IsSecureClient(source_p))
 	{
 		sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
 		ilog(L_FOPER, "FAILED CHALLENGE (%s) by (%s!%s@%s) (%s) -- requires SSL/TLS",

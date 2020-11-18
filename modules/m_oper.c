@@ -70,6 +70,18 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	name = parv[1];
 	password = parv[2];
 
+	if (ConfigFileEntry.oper_secure_only && !IsSecureClient(source_p))
+	{
+		sendto_one_notice(source_p, ":You must be using a secure connection to /OPER on this server");
+		if(ConfigFileEntry.failed_oper_notice)
+		{
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					       "Failed OPER attempt - missing secure connection by %s (%s@%s)",
+					       source_p->name, source_p->username, source_p->host);
+		}
+		return;
+	}
+
 	if(IsOper(source_p))
 	{
 		sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
@@ -101,7 +113,7 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		return;
 	}
 
-	if((ConfigFileEntry.oper_secure_only || IsOperConfNeedSSL(oper_p)) && !IsSecureClient(source_p))
+	if(IsOperConfNeedSSL(oper_p) && !IsSecureClient(source_p))
 	{
 		sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
 		ilog(L_FOPER, "FAILED OPER (%s) by (%s!%s@%s) (%s) -- requires SSL/TLS",
