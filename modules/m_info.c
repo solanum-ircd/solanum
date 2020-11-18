@@ -614,7 +614,7 @@ static struct InfoStruct info_table[] = {
 	{
 		"oper_secure_only",
 		"Require TLS to become an oper",
-		INFO_YESNOMASK(&ConfigFileEntry.oper_secure_only),
+		INFO_INTBOOL_YN(&ConfigFileEntry.oper_secure_only),
 	},
 
 	{ NULL, NULL, 0, { NULL } },
