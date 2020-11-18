@@ -773,6 +773,7 @@ set_default_conf(void)
 	ConfigFileEntry.max_ratelimit_tokens = 30;
 	ConfigFileEntry.away_interval = 30;
 	ConfigFileEntry.tls_ciphers_oper_only = false;
+	ConfigFileEntry.oper_secure_only = false;
 
 #ifdef HAVE_LIBZ
 	ConfigFileEntry.compression_level = 4;

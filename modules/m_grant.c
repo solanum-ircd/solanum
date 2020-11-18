@@ -109,6 +109,12 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 			sendto_one_notice(source_p, ":%s already has privilege set %s.", target_p->name, target_p->user->privset->name);
 			return 0;
 		}
+
+		if (ConfigFileEntry.oper_secure_only && !IsSecureClient(target_p))
+		{
+			sendto_one_notice(source_p, ":Cannot GRANT %s, opers must be using secure connections.", target_p->name);
+			return 0;
+		}
 	}
 
 	if (!dodeoper)

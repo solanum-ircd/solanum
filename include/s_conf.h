@@ -240,6 +240,7 @@ struct config_file_entry
 	int max_ratelimit_tokens;
 	int away_interval;
 	int tls_ciphers_oper_only;
+	int oper_secure_only;
 
 	char **hidden_caps;
 
