@@ -116,7 +116,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
         if (ConfigFileEntry.oper_secure_only && !IsSecureClient(source_p))
         {
                 sendto_one_notice(source_p, ":You must be using a secure connection to /CHALLENGE on this server");
-                if(ConfigFileEntry.failed_oper_notice)
+                if (ConfigFileEntry.failed_oper_notice)
                 {
                         sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
                                                "Failed CHALLENGE attempt - missing secure connection by %s (%s@%s)",
