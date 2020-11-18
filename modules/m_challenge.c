@@ -119,8 +119,8 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
                 if (ConfigFileEntry.failed_oper_notice)
                 {
                         sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-                                               "Failed CHALLENGE attempt - missing secure connection by %s (%s@%s)",
-                                               source_p->name, source_p->username, source_p->host);
+					"Failed CHALLENGE attempt - missing secure connection by %s (%s@%s)",
+					source_p->name, source_p->username, source_p->host);
                 }
                 return;
         }
