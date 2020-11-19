@@ -196,6 +196,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 						     "Failed CHALLENGE attempt - host mismatch by %s (%s@%s)",
 						     source_p->name, source_p->username,
 						     source_p->host);
+			cleanup_challenge(source_p);
 			return;
 		}
 
@@ -277,7 +278,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		{
 			cnt = rb_strlcpy(chal_line, chal, CHALLENGE_WIDTH);
 			sendto_one(source_p, form_str(RPL_RSACHALLENGE2), me.name, source_p->name, chal_line);
-			if(cnt > CHALLENGE_WIDTH)
+			if(cnt >= CHALLENGE_WIDTH)
 				chal += CHALLENGE_WIDTH - 1;
 			else
 				break;
@@ -308,7 +309,7 @@ generate_challenge(char **r_challenge, char **r_response, RSA * rsa)
 	{
 		SHA1_Init(&ctx);
 		SHA1_Update(&ctx, (uint8_t *)secret, CHALLENGE_SECRET_LENGTH);
-		*r_response = malloc(SHA_DIGEST_LENGTH);
+		*r_response = rb_malloc(SHA_DIGEST_LENGTH);
 		SHA1_Final((uint8_t *)*r_response, &ctx);
 
 		length = RSA_size(rsa);
