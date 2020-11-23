@@ -384,24 +384,10 @@ fi
 
 dnl Check for shared sqlite
 dnl ======================
-AC_ARG_WITH(shared-sqlite,
-AC_HELP_STRING([--with-shared-sqlite],[Use shared sqlite]),
-[shared_sqlite=$withval],[shared_sqlite=no])
-
-if test "$shared_sqlite" = yes; then
-	PKG_CHECK_MODULES(SQLITE, [sqlite3],
-	[
-		shared_sqlite=yes
-	], shared_sqlite=no)
-fi
-
-if test "$shared_sqlite" = no; then
-	SQLITE_OBJ='sqlite3.$(OBJEXT)'
-fi
+PKG_CHECK_MODULES(SQLITE, [sqlite3], [], AC_ERROR([sqlite3 is required]))
 
 AC_SUBST(SQLITE_LD, "$SQLITE_LIBS")
 AC_SUBST(SQLITE_INCLUDES, "$SQLITE_CFLAGS")
-AC_SUBST(SQLITE_OBJ)
 
 dnl **********************************************************************
 dnl Check for --with-confdir [deprecated, use --sysconfdir instead]
