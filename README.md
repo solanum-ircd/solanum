@@ -4,7 +4,7 @@ Solanum is an IRCv3 server designed to be highly scalable.  It implements IRCv3.
 
 It is meant to be used with an IRCv3-capable services implementation such as [Atheme][atheme] or [Anope][anope].
 
-   [atheme]: http://www.atheme.net/
+   [atheme]: https://atheme.github.io/
    [anope]: http://www.anope.org/
 
 # necessary requirements
