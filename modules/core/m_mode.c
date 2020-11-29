@@ -138,13 +138,6 @@ m_mode(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	{
 		msptr = find_channel_membership(chptr, source_p);
 
-		/* Finish the flood grace period... */
-		if(MyClient(source_p) && !IsFloodDone(source_p))
-		{
-			if(!((parc == 3) && (parv[2][0] == 'b' || parv[2][0] == 'q') && (parv[2][1] == '\0')))
-				flood_endgrace(source_p);
-		}
-
 		set_channel_mode(client_p, source_p, chptr, msptr, parc - n, parv + n);
 	}
 }
