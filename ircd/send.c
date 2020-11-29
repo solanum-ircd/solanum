@@ -70,6 +70,8 @@ _send_linebuf(struct Client *to, buf_head_t *linebuf)
 
 	if(rb_linebuf_len(&to->localClient->buf_sendq) > get_sendq(to))
 	{
+		dead_link(to, 1);
+
 		if(IsServer(to))
 		{
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
@@ -84,7 +86,6 @@ _send_linebuf(struct Client *to, buf_head_t *linebuf)
 			     get_sendq(to));
 		}
 
-		dead_link(to, 1);
 		return -1;
 	}
 	else
