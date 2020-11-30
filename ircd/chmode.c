@@ -42,6 +42,7 @@
 #include "s_assert.h"
 #include "parse.h"
 #include "msgbuf.h"
+#include "packet.h"
 
 /* bitmasks for error returns, so we send once per call */
 #define SM_ERR_NOTS             0x00000001	/* No TS on channel */
@@ -1363,7 +1364,8 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	int cur_len, mlen, paralen, paracount, arglen, len;
 	int i, j, flags;
 	int dir = MODE_ADD;
-	int access_dir = MODE_QUERY;
+	bool changes = false;
+	bool privileged_query = false;
 	int parn = 1;
 	int errors = 0;
 	int alevel;
@@ -1452,10 +1454,10 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 			*mbuf++ = c;
 
-			if (effective_dir != MODE_QUERY && access_dir == MODE_QUERY)
-				access_dir = effective_dir;
+			if (effective_dir != MODE_QUERY)
+				changes = true;
 			if (effective_dir == MODE_QUERY && cm->flags & CHM_OPS_QUERY)
-				access_dir = MODE_OP_QUERY;
+				privileged_query = true;
 
 			ms->cm = cm;
 			ms->dir = effective_dir;
@@ -1481,6 +1483,12 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 		/* XXX we could reject excess params here */
 	}
 
+	/* Finish the flood grace period if we were asked to do anything */
+	if (changes && MyClient(source_p) && !IsFloodDone(source_p))
+	{
+		flood_endgrace(source_p);
+	}
+
 	mend = ms;
 
 	if (parn > 1)
@@ -1492,6 +1500,9 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	{
 		*mbuf = '\0';
 	}
+	int access_dir = privileged_query ? MODE_OP_QUERY :
+	                 changes ? MODE_ADD :
+	                 MODE_QUERY;
 	alevel = get_channel_access(source_p, chptr, msptr, access_dir, modebuf);
 
 	for (ms = modesets; ms < mend; ms++)
