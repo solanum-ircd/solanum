@@ -555,7 +555,7 @@ check_klines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "KLINE active for %s",
 					     get_client_name(client_p, HIDE_IP));
 
@@ -638,7 +638,7 @@ check_one_kline(struct ConfItem *kline)
 			continue;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					 "KLINE active for %s",
 					 get_client_name(client_p, HIDE_IP));
 
@@ -673,7 +673,7 @@ check_dlines(void)
 			if(aconf->status & CONF_EXEMPTDLINE)
 				continue;
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "DLINE active for %s",
 					     get_client_name(client_p, HIDE_IP));
 
@@ -729,7 +729,7 @@ check_xlines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "XLINE active for %s",
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "XLINE active for %s",
 					     get_client_name(client_p, HIDE_IP));
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");
@@ -838,7 +838,7 @@ update_client_exit_stats(struct Client *client_p)
 {
 	if(IsServer(client_p))
 	{
-		sendto_realops_snomask(SNO_EXTERNAL, L_ALL,
+		sendto_realops_snomask(SNO_EXTERNAL, L_NETWIDE,
 				     "Server %s split from %s",
 				     client_p->name, client_p->servptr->name);
 		if(HasSentEob(client_p))
@@ -1142,11 +1142,11 @@ free_exited_clients(void *unused)
 				if(abt->client == target_p)
 				{
 					s_assert(0);
-					sendto_realops_snomask(SNO_GENERAL, L_ALL,
+					sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						"On abort_list: %s stat: %u flags: %llu handler: %c",
 						target_p->name, (unsigned int) target_p->status,
 						(unsigned long long)target_p->flags,  target_p->handler);
-					sendto_realops_snomask(SNO_GENERAL, L_ALL,
+					sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						"Please report this to the solanum developers!");
 					found++;
 				}
@@ -1162,7 +1162,7 @@ free_exited_clients(void *unused)
 
 		if(ptr->data == NULL)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Warning: null client on dead_list!");
 			rb_dlinkDestroy(ptr, &dead_list);
 			continue;
@@ -1179,7 +1179,7 @@ free_exited_clients(void *unused)
 
 		if(ptr->data == NULL)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Warning: null client on dead_list!");
 			rb_dlinkDestroy(ptr, &dead_list);
 			continue;
@@ -1286,11 +1286,11 @@ exit_aborted_clients(void *unused)
 			if(rb_dlinkFind(abt->client, &dead_list))
 			{
 				s_assert(0);
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					"On dead_list: %s stat: %u flags: %llu handler: %c",
 					abt->client->name, (unsigned int) abt->client->status,
 					(unsigned long long)abt->client->flags, abt->client->handler);
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					"Please report this to the solanum developers!");
 				continue;
 			}
@@ -1576,7 +1576,7 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 	if(source_p->serv != NULL)
 		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
 
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s was connected"
 			     " for %ld seconds.  %d/%d sendK/recvK.",
 			     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
 
@@ -1617,13 +1617,13 @@ exit_local_client(struct Client *client_p, struct Client *source_p, struct Clien
 	if(IsOper(source_p))
 		rb_dlinkFindDestroy(source_p, &local_oper_list);
 
-	sendto_realops_snomask(SNO_CCONN, L_ALL,
+	sendto_realops_snomask(SNO_CCONN, L_NETWIDE,
 			     "Client exiting: %s (%s@%s) [%s] [%s]",
 			     source_p->name,
 			     source_p->username, source_p->host, comment,
                              show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255");
 
-	sendto_realops_snomask(SNO_CCONNEXT, L_ALL,
+	sendto_realops_snomask(SNO_CCONNEXT, L_NETWIDE,
 			"CLIEXIT %s %s %s %s 0 %s",
 			source_p->name, source_p->username, source_p->host,
                         show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255",
@@ -1939,7 +1939,7 @@ free_user(struct User *user, struct Client *client_p)
 		 */
 		if(user->refcnt < 0 || user->invited.head || user->channel.head)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "* %p user (%s!%s@%s) %p %p %p %lu %d *",
 					     client_p,
 					     client_p ? client_p->

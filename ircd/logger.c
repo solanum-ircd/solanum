@@ -85,7 +85,7 @@ verify_logfile_access(const char *filename)
 		snprintf(buf, sizeof(buf), "WARNING: Unable to access logfile %s - parent directory %s does not exist", filename, dirname);
 		if(testing_conf || server_state_foreground)
 			fprintf(stderr, "%s\n", buf);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s", buf);
 		return;
 	}
 
@@ -97,7 +97,7 @@ verify_logfile_access(const char *filename)
 				    filename, dirname, strerror(errno));
 			if(testing_conf || server_state_foreground)
 				fprintf(stderr, "%s\n", buf);
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s", buf);
 		}
 		return;
 	}
@@ -107,7 +107,7 @@ verify_logfile_access(const char *filename)
 		snprintf(buf, sizeof(buf), "WARNING: Access denied for logfile %s: %s", filename, strerror(errno));
 		if(testing_conf || server_state_foreground)
 			fprintf(stderr, "%s\n", buf);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s", buf);
 		return;
 	}
 	return;
@@ -306,6 +306,6 @@ ilog_error(const char *error)
 	errstr = strerror(e);
 
 	ilog(L_IOERROR, "%s: %d (%s)", error, e, errstr);
-	sendto_realops_snomask(SNO_DEBUG, L_ALL, "%s: %d (%s)",
+	sendto_realops_snomask(SNO_DEBUG, L_NETWIDE, "%s: %d (%s)",
 			error, e, errstr);
 }

@@ -139,7 +139,7 @@ do_chghost(struct Client *source_p, struct Client *target_p,
 	if (MyClient(source_p))
 		sendto_one_notice(source_p, ":Changed hostname for %s to %s", target_p->name, target_p->host);
 	if (!IsServer(source_p) && !IsService(source_p))
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s changed hostname for %s to %s", get_oper_name(source_p), target_p->name, target_p->host);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s changed hostname for %s to %s", get_oper_name(source_p), target_p->name, target_p->host);
 	return true;
 }
 
