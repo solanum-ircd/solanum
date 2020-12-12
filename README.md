@@ -1,4 +1,4 @@
-# solanum [![Build Status](https://travis-ci.com/solanum-ircd/solanum.svg?branch=main)](https://travis-ci.com/solanum-ircd/solanum)
+# solanum [![Build Status](https://github.com/solanum-ircd/solanum/workflows/CI/badge.svg)]
 
 Solanum is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
 
