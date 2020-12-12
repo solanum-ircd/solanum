@@ -1,0 +1,29 @@
+name: Oper Guide
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'doc/oper-guide/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'doc/oper-guide/**'
+      
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python-sphinx \
+            texinfo \
+            # EOF
+      - uses: actions/checkout@v2
+      - name: Build
+        run: make -C doc/oper-guide html man info
