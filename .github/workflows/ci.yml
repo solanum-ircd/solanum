@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: 
+      - main
+    paths-ignore:
+      - 'doc/oper-guide/**'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'doc/oper-guide/**'
+
+jobs:
+  linux:
+    name: Linux
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc-6 # Debian 9 (OFTC)
+          - gcc-7
+          - gcc-8
+          - clang-7
+          - clang-8
+
+    env:
+      CC: ${{ matrix.compiler }}
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          ${CC} \
+          automake \
+          autoconf \
+          libtool \
+          libsqlite3-dev \
+          libhyperscan-dev \
+          # EOF
+    - uses: actions/checkout@v2
+    - name: autogen.sh
+      run: bash autogen.sh
+    - name: configure
+      run: CFLAGS="-Werror -Wno-unused-value -Wno-unused-parameter" ./configure --enable-assert=hard --enable-warnings
+    - name: make
+      run: make -j2
+    - name: make check
+      run: make check
+    - name: make install
+      run: make install
