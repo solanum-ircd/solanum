@@ -308,10 +308,8 @@ start_wsockd(int count)
 		snprintf(s_pid, sizeof(s_pid), "%d", (int)getpid());
 		rb_setenv("CTL_PPID", s_pid, 1);
 
-#ifdef _WIN32
-		SetHandleInformation((HANDLE) rb_get_fd(F2), HANDLE_FLAG_INHERIT, 1);
-		SetHandleInformation((HANDLE) rb_get_fd(P1), HANDLE_FLAG_INHERIT, 1);
-#endif
+		rb_clear_cloexec(F2);
+		rb_clear_cloexec(P1);
 
 		pid = rb_spawn_process(wsockd_path, (const char **) parv);
 		if(pid == -1)
