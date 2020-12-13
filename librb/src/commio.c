@@ -2390,6 +2390,7 @@ rb_select(unsigned long timeout)
 int
 rb_setup_fd(rb_fde_t *F)
 {
+	rb_set_cloexec(F);
 	return setup_fd_handler(F);
 }
 
