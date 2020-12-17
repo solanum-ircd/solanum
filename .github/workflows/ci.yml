@@ -16,17 +16,22 @@ jobs:
   linux:
     name: Linux
 
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-18.04
         compiler:
           - gcc-6 # Debian 9 (OFTC)
           - gcc-7
           - gcc-8
           - clang-7
           - clang-8
+        include:
+          - os: ubuntu-20.04
+            compiler: gcc-10
 
     env:
       CC: ${{ matrix.compiler }}
