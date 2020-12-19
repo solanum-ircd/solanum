@@ -66,6 +66,41 @@ test_chmode_parse(void)
 	remove_hook("get_channel_access", chmode_access_hook);
 }
 
+void
+test_chmode_limits(void)
+{
+	char chmode_buf[2 + MAXMODEPARAMS + 1] = "+";
+	const char *chmode_parv[1 + MAXMODEPARAMS + 1] = { chmode_buf };
+	add_hook_prio("get_channel_access", chmode_access_hook, HOOK_MONITOR);
+
+	for (size_t i = 0; i < MAXMODEPARAMS + 1; i++)
+	{
+		chmode_buf[i + 1] = 'l';
+		chmode_parv[i + 1] = "7";
+	}
+
+	set_channel_mode(client, client, channel, NULL, 1 + MAXMODEPARAMS + 1, chmode_parv);
+
+	is_int('+', chmode_hdata.modestr[0], MSG);
+
+	for (size_t i = 0; i < MAXMODEPARAMS; i++)
+	{
+		is_int('l', chmode_hdata.modestr[i + 1], MSG);
+	}
+
+	is_int(' ', chmode_hdata.modestr[MAXMODEPARAMS + 1], MSG);
+
+	for (size_t i = 0; i < MAXMODEPARAMS; i++)
+	{
+		is_int(' ', chmode_hdata.modestr[MAXMODEPARAMS + 1 + i * 2], MSG);
+		is_int('7', chmode_hdata.modestr[MAXMODEPARAMS + 2 + i * 2], MSG);
+	}
+
+	is_int('\0', chmode_hdata.modestr[MAXMODEPARAMS * 3 + 1], MSG);
+
+	remove_hook("get_channel_access", chmode_access_hook);
+}
+
 static void
 chmode_init(void)
 {
@@ -84,6 +119,7 @@ main(int argc, char *argv[])
 	chmode_init();
 
 	test_chmode_parse();
+	test_chmode_limits();
 
 	client_util_free();
 	ircd_util_free();

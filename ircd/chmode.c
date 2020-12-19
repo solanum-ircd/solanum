@@ -63,8 +63,6 @@
 
 static struct ChModeChange mode_changes[BUFSIZE];
 static int mode_count;
-static int mode_limit;
-static int mode_limit_simple;
 static int mask_pos;
 static int removed_mask_pos;
 
@@ -581,9 +579,6 @@ chm_simple(struct Client *source_p, struct Channel *chptr,
 	if(!allow_mode_change(source_p, chptr, alevel, errors, c))
 		return;
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
 	/* setting + */
 	if((dir == MODE_ADD) && !(chptr->mode.mode & mode_type))
 	{
@@ -661,9 +656,6 @@ chm_hidden(struct Client *source_p, struct Channel *chptr,
 		return;
 	}
 
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
 	/* setting + */
 	if((dir == MODE_ADD) && !(chptr->mode.mode & mode_type))
 	{
@@ -706,9 +698,6 @@ chm_staff(struct Client *source_p, struct Channel *chptr,
 		*errors |= SM_ERR_NOPRIVS;
 		return;
 	}
-
-	if(MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
 
 	/* setting + */
 	if((dir == MODE_ADD) && !(chptr->mode.mode & mode_type))
@@ -838,10 +827,6 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 	}
 
 	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
-		return;
-
-
-	if (MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
 		return;
 
 	/* empty ban, or starts with ':' which messes up s2s, ignore it */
@@ -1002,9 +987,6 @@ chm_op(struct Client *source_p, struct Channel *chptr,
 		return;
 	}
 
-	if(MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
-		return;
-
 	if(dir == MODE_ADD)
 	{
 		if(targ_p == source_p && mstptr->flags & CHFL_CHANOP)
@@ -1070,9 +1052,6 @@ chm_voice(struct Client *source_p, struct Channel *chptr,
 		return;
 	}
 
-	if(MyClient(source_p) && (++mode_limit > MAXMODEPARAMS))
-		return;
-
 	if(dir == MODE_ADD)
 	{
 		mode_changes[mode_count].letter = c;
@@ -1103,9 +1082,6 @@ chm_limit(struct Client *source_p, struct Channel *chptr,
 	int limit;
 
 	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
-		return;
-
-	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
 	if (dir == MODE_ADD)
@@ -1145,9 +1121,6 @@ chm_throttle(struct Client *source_p, struct Channel *chptr,
 	int joins = 0, timeslice = 0;
 
 	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
-		return;
-
-	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
 	if (dir == MODE_ADD)
@@ -1219,9 +1192,6 @@ chm_forward(struct Client *source_p, struct Channel *chptr,
 	}
 #endif
 
-	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
-		return;
-
 	if (dir == MODE_ADD)
 	{
 		if(EmptyString(arg))
@@ -1261,9 +1231,6 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 	char *key;
 
 	if (!allow_mode_change(source_p, chptr, alevel, errors, c))
-		return;
-
-	if (MyClient(source_p) && (++mode_limit_simple > MAXMODES_SIMPLE))
 		return;
 
 	if (dir == MODE_ADD)
@@ -1373,12 +1340,12 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 	char c;
 	struct Client *fakesource_p;
 	int flags_list[3] = { ALL_MEMBERS, ONLY_CHANOPS, ONLY_OPERS };
+	int mode_limit = 0;
+	int mode_limit_simple = 0;
 
 	mask_pos = 0;
 	removed_mask_pos = 0;
 	mode_count = 0;
-	mode_limit = 0;
-	mode_limit_simple = 0;
 
 	/* Hide connecting server on netburst -- jilles */
 	if (ConfigServerHide.flatten_links && IsServer(source_p) && !has_id(source_p) && !HasSentEob(source_p))
@@ -1443,6 +1410,14 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 				 * good to send an error here?
 				 */
 				continue;
+			}
+
+			if (MyClient(source_p))
+			{
+				if (use_arg && ++mode_limit > MAXMODEPARAMS)
+					continue;
+				if (!use_arg && ++mode_limit_simple > MAXMODES_SIMPLE)
+					continue;
 			}
 
 			char op = effective_dir == MODE_ADD ? '+' :
