@@ -965,7 +965,7 @@ handle_special(enum message_type msgtype, struct Client *client_p,
 		/* Check if someones msg'ing opers@our.server */
 		if(strncmp(nick, "opers@", 6) == 0)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "To opers: From: %s: %s",
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "To opers: From: %s: %s",
 					     source_p->name, text);
 			return;
 		}

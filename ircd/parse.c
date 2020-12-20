@@ -342,14 +342,14 @@ cancel_clients(struct Client *client_p, struct Client *source_p)
 	 */
 	if(IsServer(source_p) || IsMe(source_p))
 	{
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Message for %s[%s] from %s",
 				     source_p->name, source_p->from->name,
 				     client_p->name);
 	}
 	else
 	{
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				     "Message for %s[%s@%s!%s] from %s (TS, ignored)",
 				     source_p->name,
 				     source_p->username,

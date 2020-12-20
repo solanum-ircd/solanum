@@ -848,7 +848,7 @@ server_estab(struct Client *client_p)
 					rb_dlink_list_length(&serv_list);
 
 	/* Show the real host/IP to admins */
-	sendto_realops_snomask(SNO_GENERAL, L_ALL,
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"Link with %s established: (%s) link",
 			client_p->name,
 			show_capabilities(client_p));

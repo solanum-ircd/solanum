@@ -122,7 +122,7 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 		if(ConfigFileEntry.failed_oper_notice)
 		{
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					     "Failed OPER attempt - missing SSL/TLS by %s (%s@%s)",
 					     source_p->name, source_p->username, source_p->host);
 		}
@@ -140,7 +140,7 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 			if(ConfigFileEntry.failed_oper_notice)
 			{
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 						     "Failed OPER attempt - client certificate fingerprint mismatch by %s (%s@%s)",
 						     source_p->name, source_p->username, source_p->host);
 			}

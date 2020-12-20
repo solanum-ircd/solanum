@@ -502,17 +502,17 @@ ms_save(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if (target_p == NULL)
 		return;
 	if (!IsPerson(target_p))
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 				"Ignored SAVE message for non-person %s from %s",
 				target_p->name, source_p->name);
 	else if (IsDigit(target_p->name[0]))
-		sendto_realops_snomask(SNO_DEBUG, L_ALL,
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE,
 				"Ignored noop SAVE message for %s from %s",
 				target_p->name, source_p->name);
 	else if (target_p->tsinfo == atol(parv[2]))
 		save_user(client_p, source_p, target_p);
 	else
-		sendto_realops_snomask(SNO_SKILL, L_ALL,
+		sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 				"Ignored SAVE message for %s from %s",
 				target_p->name, source_p->name);
 }
@@ -673,7 +673,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	hook_info.arg2 = nick;
 	call_hook(h_local_nick_change, &hook_info);
 
-	sendto_realops_snomask(SNO_NCHANGE, L_ALL,
+	sendto_realops_snomask(SNO_NCHANGE, L_NETWIDE,
 			     "Nick change: From %s to %s [%s@%s]",
 			     source_p->name, nick, source_p->username, source_p->host);
 

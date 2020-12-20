@@ -123,7 +123,7 @@ me_svslogin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 	if(!(source_p->flags & FLAGS_SERVICE))
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			"Non-service server %s attempting to execute services-only command SVSLOGIN", source_p->name);
 		return;
 	}
@@ -187,7 +187,7 @@ me_svslogin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		exist_p->flags |= FLAGS_KILLED;
 		kill_client_serv_butone(NULL, exist_p, "%s (Nickname regained by services)",
 					me.name);
-		sendto_realops_snomask(SNO_SKILL, L_ALL,
+		sendto_realops_snomask(SNO_SKILL, L_NETWIDE,
 				"Nick collision due to SVSLOGIN on %s",
 				nick);
 

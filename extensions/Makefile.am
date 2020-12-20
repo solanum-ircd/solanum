@@ -41,10 +41,6 @@ extension_LTLIBRARIES =		\
   override_kick_immunity.la	\
   restrict-unauthenticated.la	\
   sno_channelcreate.la		\
-  sno_farconnect.la		\
-  sno_globalkline.la		\
-  sno_globalnickchange.la	\
-  sno_globaloper.la		\
   umode_noctcp.la		\
   m_adminwall.la		\
   m_echotags.la			\

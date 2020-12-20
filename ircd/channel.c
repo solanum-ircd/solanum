@@ -1336,7 +1336,7 @@ resv_chan_forcepart(const char *name, const char *reason, int temp_time)
 			remove_user_from_channel(msptr);
 
 			/* notify opers & user they were removed from the channel */
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 			                     "Forced PART for %s!%s@%s from %s (%s)",
 			                     target_p->name, target_p->username,
 			                     target_p->host, name, reason);

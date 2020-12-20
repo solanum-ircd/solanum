@@ -38,7 +38,7 @@
 				ilog(L_MAIN,						\
 				"file: %s line: %d (%s): Assertion failed: (%s)",	\
 				__FILE__, __LINE__, __PRETTY_FUNCTION__, #expr), 0) || (\
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,		\
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,		\
 				"file: %s line: %d (%s): Assertion failed: (%s)",	\
 				__FILE__, __LINE__, __PRETTY_FUNCTION__, #expr), 0)	\
 			)
@@ -48,7 +48,7 @@
 				ilog(L_MAIN,						\
 				"file: %s line: %d: Assertion failed: (%s)",		\
 				__FILE__, __LINE__, #expr), 0) || (			\
-				sendto_realops_snomask(SNO_GENERAL, L_ALL,		\
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,		\
 				"file: %s line: %d: Assertion failed: (%s)"		\
 				__FILE__, __LINE__, #expr), 0)				\
 			)

@@ -127,7 +127,7 @@ ms_squit(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	/* Server is closing its link */
 	if (target_p == client_p)
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "Server %s closing link (%s)",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Server %s closing link (%s)",
 				target_p->name, comment);
 	}
 	/*
