@@ -1403,8 +1403,8 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	unsigned int old = source_p->umodes, oldsnomask = source_p->snomask, i = 0;
 	rb_dlink_node *ptr;
 	struct Channel *chptr;
-	char cmode1[256], cmode2[256];
-	char *cmode_ptr = cmode1;
+	unsigned char cmode1[256], cmode2[256];
+	unsigned char *cmode_ptr = cmode1;
 
 	hook_data_umode_changed hdata;
 
