@@ -1400,11 +1400,13 @@ user_welcome(struct Client *source_p)
 void
 oper_up(struct Client *source_p, struct oper_conf *oper_p)
 {
-	unsigned int old = source_p->umodes, oldsnomask = source_p->snomask, i = 0;
+	unsigned int old = source_p->umodes, oldsnomask = source_p->snomask;
+	unsigned int i = 0;
 	rb_dlink_node *ptr;
+	struct membership *mscptr;
 	struct Channel *chptr;
-	unsigned char cmode1[256], cmode2[256];
-	unsigned char *cmode_ptr = cmode1;
+	unsigned char cmodes_hidden[256], cmodes_send[256];
+	unsigned char *cmode_ptr = cmodes_hidden;
 
 	hook_data_umode_changed hdata;
 
@@ -1484,16 +1486,17 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 
 		RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
 		{
-			chptr = ((struct membership *)ptr->data)->chptr;
-			cmode_ptr = cmode2;
+			mscptr = ptr->data;
+			chptr = mscptr->chptr;
+			cmode_ptr = cmodes_send;
 
-			for (i = 0; cmode1[i]; i++)
-				if (chptr->mode.mode & chmode_flags[cmode1[i]])
-					*cmode_ptr++ = cmode1[i];
+			for (i = 0; cmodes_hidden[i]; i++)
+				if (chptr->mode.mode & chmode_flags[cmodes_hidden[i]])
+					*cmode_ptr++ = cmodes_hidden[i];
 			*cmode_ptr = '\0';
 
-			if (*cmode2)
-				sendto_one(source_p, ":%s MODE %s +%s", me.name, chptr->chname, cmode2);
+			if (cmodes_send[0] != '\0')
+				sendto_one(source_p, ":%s MODE %s +%s", me.name, chptr->chname, cmodes_send);
 		}
 	}
 
