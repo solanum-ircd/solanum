@@ -1490,7 +1490,7 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 			chptr = mscptr->chptr;
 			cmode_ptr = cmodes_send;
 
-			for (i = 0; cmodes_hidden[i]; i++)
+			for (i = 0; cmodes_hidden[i] != '\0'; i++)
 				if (chptr->mode.mode & chmode_flags[cmodes_hidden[i]])
 					*cmode_ptr++ = cmodes_hidden[i];
 			*cmode_ptr = '\0';
