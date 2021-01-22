@@ -26,6 +26,7 @@
 #include "hook.h"
 #include "client.h"
 #include "ircd.h"
+#include "logger.h"
 #include "send.h"
 #include "s_conf.h"
 #include "s_user.h"
@@ -74,8 +75,10 @@ static int
 _modinit(void)
 {
 	mode_regmsg = cflag_add('R', chm_simple);
-	if (mode_regmsg == 0)
+	if (mode_regmsg == 0) {
+		ierror("chm_regmsg: unable to allocate cmode slot for +R, unloading module");
 		return -1;
+	}
 
 	return 0;
 }
