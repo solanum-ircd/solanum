@@ -15,7 +15,6 @@ auto_load_mod_LTLIBRARIES = \
   cap_server_time.la \
   chm_nocolour.la \
   chm_noctcp.la \
-  chm_regmsg.la \
   um_callerid.la \
   um_regonlymsg.la \
   m_accept.la \

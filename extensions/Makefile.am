@@ -15,6 +15,7 @@ extension_LTLIBRARIES =		\
   chm_insecure.la		\
   chm_nonotice.la		\
   chm_operpeace.la		\
+  chm_regmsg.la			\
   chm_sslonly.la		\
   createauthonly.la		\
   createoperonly.la		\
