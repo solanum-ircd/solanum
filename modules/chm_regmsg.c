@@ -39,7 +39,7 @@ static const char chm_regmsg_desc[] =
 
 static unsigned int mode_regmsg;
 
-static void chm_regmsg_process(hook_data_privmsg_channel *);
+static void chm_regmsg_process(void *);
 
 mapi_hfn_list_av1 chm_regmsg_hfnlist[] = {
 	{ "privmsg_channel", (hookfn) chm_regmsg_process },
@@ -47,8 +47,9 @@ mapi_hfn_list_av1 chm_regmsg_hfnlist[] = {
 };
 
 static void
-chm_regmsg_process(hook_data_privmsg_channel *data)
+chm_regmsg_process(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	struct membership *msptr;
 
 	/* message is already blocked, defer */
