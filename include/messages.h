@@ -153,6 +153,7 @@
 #define NUMERIC_STR_412      ":%s 412 %s :No text to send"
 #define NUMERIC_STR_413      "%s :No toplevel domain specified"
 #define NUMERIC_STR_414      "%s :Wildcard in toplevel Domain"
+#define NUMERIC_STR_415      "%s %s :Cannot send message to channel (+R) - you need to be identified with services"
 #define NUMERIC_STR_416      ":%s 416 %s %s :output too large, truncated"
 #define NUMERIC_STR_421      ":%s 421 %s %s :Unknown command"
 #define NUMERIC_STR_422      ":%s 422 %s :MOTD File is missing"
