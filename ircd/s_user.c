@@ -1644,3 +1644,20 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 		del_all_accepts(target_p);
 	}
 }
+
+bool
+has_common_channel(struct Client *source_p, struct Client *target_p)
+{
+        rb_dlink_node *ps, *pt;
+        struct membership *ms, *mt;
+        struct Channel *chptr;
+
+        ITER_COMM_CHANNELS(ps, pt, source_p->user->channel.head, target_p->user->channel.head, ms, mt, chptr)
+        {
+                if (ms != NULL && mt != NULL)
+                        return true;
+        }
+
+        return false;
+}
+
