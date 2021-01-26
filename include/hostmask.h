@@ -65,6 +65,8 @@ struct ConfItem *find_dline(struct sockaddr *, int);
 void report_auth(struct Client *);
 int match_ipv6(struct sockaddr *, struct sockaddr *, int);
 int match_ipv4(struct sockaddr *, struct sockaddr *, int);
+unsigned long hash_ipv6(struct sockaddr *, int);
+unsigned long hash_ipv4(struct sockaddr *, int);
 
 /* Hashtable stuff... */
 #define ATABLE_SIZE 0x1000 /* 2^12 */
