@@ -54,3 +54,5 @@ extern void construct_umodebuf(void);
 extern void oper_up(struct Client *, struct oper_conf *);
 
 #endif
+
+extern bool has_common_channel(struct Client *source_p, struct Client *target_p);
