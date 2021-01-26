@@ -260,6 +260,50 @@ rb_set_nb(rb_fde_t *F)
 	return 1;
 }
 
+int
+rb_set_cloexec(rb_fde_t *F)
+{
+#ifdef _WIN32
+	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 0);
+#else
+	int res;
+	rb_platform_fd_t fd;
+	if(F == NULL)
+		return 0;
+	fd = F->fd;
+
+	res = fcntl(fd, F_GETFD, NULL);
+	if(res == -1)
+		return 0;
+	if(fcntl(fd, F_SETFD, res | FD_CLOEXEC) == -1)
+		return 0;
+
+	return 1;
+#endif
+}
+
+int
+rb_clear_cloexec(rb_fde_t *F)
+{
+#ifdef _WIN32
+	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 1);
+#else
+	int res;
+	rb_platform_fd_t fd;
+	if(F == NULL)
+		return 0;
+	fd = F->fd;
+
+	res = fcntl(fd, F_GETFD, NULL);
+	if(res == -1)
+		return 0;
+	if(fcntl(fd, F_SETFD, res & ~FD_CLOEXEC) == -1)
+		return 0;
+
+	return 1;
+#endif
+}
+
 /*
  * rb_settimeout() - set the socket timeout
  *
@@ -2346,6 +2390,7 @@ rb_select(unsigned long timeout)
 int
 rb_setup_fd(rb_fde_t *F)
 {
+	rb_set_cloexec(F);
 	return setup_fd_handler(F);
 }
 

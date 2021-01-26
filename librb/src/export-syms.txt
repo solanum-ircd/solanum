@@ -13,6 +13,7 @@ rb_bh_usage
 rb_bh_usage_all
 rb_bind
 rb_checktimeouts
+rb_clear_cloexec
 rb_clear_patricia
 rb_close
 rb_connect_sockaddr
@@ -153,6 +154,7 @@ rb_sctp_bindx
 rb_select
 rb_send_fd_buf
 rb_set_buffers
+rb_set_cloexec
 rb_set_nb
 rb_set_time
 rb_set_type

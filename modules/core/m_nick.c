@@ -712,8 +712,11 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	{
 		target_p = ptr->data;
 
-		rb_dlinkFindDestroy(source_p, &target_p->localClient->allow_list);
-		rb_dlinkDestroy(ptr, &source_p->on_allow_list);
+		if (!has_common_channel(source_p, target_p))
+		{
+			rb_dlinkFindDestroy(source_p, &target_p->localClient->allow_list);
+			rb_dlinkDestroy(ptr, &source_p->on_allow_list);
+		}
 	}
 
 	snprintf(note, sizeof(note), "Nick: %s", nick);
@@ -729,6 +732,8 @@ static void
 change_remote_nick(struct Client *client_p, struct Client *source_p,
 		   time_t newts, const char *nick, int dosend)
 {
+	struct Client *target_p;
+	rb_dlink_node *ptr, *next_ptr;
 	struct nd_entry *nd;
 	int samenick = irccmp(source_p->name, nick) ? 0 : 1;
 	hook_cdata hook_info;
@@ -771,7 +776,16 @@ change_remote_nick(struct Client *client_p, struct Client *source_p,
 		monitor_signon(source_p);
 
 	/* remove all accepts pointing to the client */
-	del_all_accepts(source_p);
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, source_p->on_allow_list.head)
+	{
+		target_p = ptr->data;
+
+		if (!has_common_channel(source_p, target_p))
+		{
+			rb_dlinkFindDestroy(source_p, &target_p->localClient->allow_list);
+			rb_dlinkDestroy(ptr, &source_p->on_allow_list);
+		}
+	}
 }
 
 static void
