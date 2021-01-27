@@ -217,12 +217,12 @@ hack_can_send(void *vdata)
 	if (data->dir == MODE_QUERY)
 		return;
 
-	if (data->approved == CAN_SEND_NONOP || data->approved == CAN_SEND_OPV)
+	if (data->approved == CAN_SEND_OPV)
 		return;
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		data->approved = CAN_SEND_NONOP;
+		data->approved = CAN_SEND_OPV;
 
 		if (MyClient(data->client))
 		{
