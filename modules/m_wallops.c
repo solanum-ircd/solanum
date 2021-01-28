@@ -97,10 +97,10 @@ ms_wallops(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 {
 	const char *prefix = "";
 
-	if (MyClient(source_p) && !IsOperMassNotice(source_p))
+	if (MyClient(source_p) && !IsOperWallOps(source_p))
 	{
 		sendto_one(source_p, form_str(ERR_NOPRIVS),
-			   me.name, source_p->name, "mass_notice");
+			   me.name, source_p->name, "wallops");
 		return;
 	}
 
