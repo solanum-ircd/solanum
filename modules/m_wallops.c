@@ -97,7 +97,7 @@ ms_wallops(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 {
 	const char *prefix = "";
 
-	if (MyClient(source_p) && !IsOperWallOps(source_p))
+	if (MyClient(source_p) && !HasPrivilege(source_p, "oper:wallops"))
 	{
 		sendto_one(source_p, form_str(ERR_NOPRIVS),
 			   me.name, source_p->name, "wallops");
