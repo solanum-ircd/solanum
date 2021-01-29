@@ -4,6 +4,7 @@ check_PROGRAMS = runtests \
 	msgbuf_parse1 \
 	msgbuf_unparse1 \
 	hostmask1 \
+	privilege1 \
 	rb_dictionary1 \
 	rb_snprintf_append1 \
 	rb_snprintf_try_append1 \
