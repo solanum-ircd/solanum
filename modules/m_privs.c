@@ -95,13 +95,8 @@ static void show_privs(struct Client *source_p, struct Client *target_p)
 	send_multiline_remote_pad(source_p, source_p);
 
 	if (target_p->user->privset)
-		for (char *s = target_p->user->privset->privs; s != NULL; (s = strchr(s, ' ')) && s++)
-		{
-			char *c = strchr(s, ' ');
-			if (c) *c = '\0';
-			send_multiline_item(source_p, "%s", s);
-			if (c) *c = ' ';
-		}
+		for (const char **s = target_p->user->privset->privs; *s != NULL; s++)
+			send_multiline_item(source_p, "%s", *s);
 
 	if (IsOper(target_p))
 	{
