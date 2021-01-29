@@ -654,6 +654,8 @@ rehash(bool sig)
 
 	rehash_authd();
 
+	privilegeset_prepare_rehash();
+
 	/* don't close listeners until we know we can go ahead with the rehash */
 	read_conf_files(false);
 
@@ -667,12 +669,11 @@ rehash(bool sig)
 	RB_DLINK_FOREACH(n, local_oper_list.head)
 	{
 		struct Client *oper = n->data;
-		const char *modeparv[4];
-		modeparv[0] = modeparv[1] = oper->name;
-		modeparv[2] = "+";
-		modeparv[3] = NULL;
-		user_mode(oper, oper, 3, modeparv);
+		struct PrivilegeSet *privset = oper->user->privset;
+		report_priv_change(oper, privset ? privset->shadow : NULL, privset);
 	}
+
+	privilegeset_cleanup_rehash();
 
 	call_hook(h_rehash, &hdata);
 	return false;
@@ -862,7 +863,6 @@ read_conf(void)
 	validate_conf();	/* Check to make sure some values are still okay. */
 	/* Some global values are also loaded here. */
 	check_class();		/* Make sure classes are valid */
-	privilegeset_delete_all_illegal();
 	construct_cflags_strings();
 }
 
@@ -1576,8 +1576,6 @@ clear_out_old_conf(void)
 	}
 
 	del_dnsbl_entry_all();
-
-	privilegeset_mark_all_illegal();
 
 	/* OK, that should be everything... */
 }
