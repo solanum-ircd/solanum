@@ -1496,7 +1496,7 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
 	sendto_one_notice(source_p, ":*** Oper privilege set is %s", oper_p->privset->name);
 	send_multiline_init(source_p, " ", ":%s NOTICE %s :*** Oper privs are ", me.name, source_p->name);
-	for (const char **s = oper_p->privset->privs; s && *s; s++)
+	for (const char **s = privilegeset_privs(oper_p->privset); *s != NULL; s++)
 		send_multiline_item(source_p, "%s", *s);
 	send_multiline_fini(source_p, NULL);
 	send_oper_motd(source_p);
