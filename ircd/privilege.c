@@ -48,21 +48,6 @@
 
 static rb_dlink_list privilegeset_list = {NULL, NULL, 0};
 
-bool
-privilegeset_in_set(const struct PrivilegeSet *set, const char *priv)
-{
-	s_assert(set != NULL);
-	s_assert(priv != NULL);
-
-	if (set->privs == NULL)
-		return false;
-
-	for (const char **s = set->privs; *s != NULL; s++)
-		if (strcmp(*s, priv) == 0) return true;
-
-	return false;
-}
-
 static struct PrivilegeSet *
 privilegeset_get_any(const char *name)
 {
@@ -236,6 +221,16 @@ privilegeset_clear(struct PrivilegeSet *set)
 	set->privs = NULL;
 	set->size = 0;
 	set->stored_size = 0;
+}
+
+bool
+privilegeset_in_set(const struct PrivilegeSet *set, const char *priv)
+{
+	s_assert(set != NULL);
+	s_assert(priv != NULL);
+
+	const char **found = bsearch(&priv, set->privs, set->size, sizeof *set->privs, privilegeset_cmp_priv);
+	return found != NULL;
 }
 
 struct PrivilegeSet *
