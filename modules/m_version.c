@@ -81,8 +81,7 @@ m_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 #ifdef CUSTOM_BRANDING
 			   PACKAGE_NAME "-" PACKAGE_VERSION,
 #endif
-			   me.name, confopts(), TS_CURRENT,
-			   ServerInfo.sid);
+			   me.name, confopts(), TS_CURRENT);
 
 	show_isupport(source_p);
 }
@@ -101,8 +100,7 @@ mo_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 #ifdef CUSTOM_BRANDING
 				   PACKAGE_NAME "-" PACKAGE_VERSION,
 #endif
-				   me.name, confopts(), TS_CURRENT,
-				   ServerInfo.sid);
+				   me.name, confopts(), TS_CURRENT);
 		show_isupport(source_p);
 	}
 }
