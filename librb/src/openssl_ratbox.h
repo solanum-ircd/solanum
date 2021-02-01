@@ -95,6 +95,10 @@
 #  endif
 #endif
 
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10101000L)
+#  define LRB_HAVE_TLS13                1
+#endif
+
 
 
 /*
@@ -107,6 +111,11 @@
  */
 
 static const char rb_default_ciphers[] = ""
+#ifdef LRB_HAVE_TLS13
+	"TLS_AES_256_GCM_SHA384:"
+	"TLS_CHACHA20_POLY1305_SHA256:"
+	"TLS_AES_128_GCM_SHA256:"
+#endif
 	"aECDSA+kEECDH+CHACHA20:"
 	"aRSA+kEECDH+CHACHA20:"
 	"aRSA+kEDH+CHACHA20:"
