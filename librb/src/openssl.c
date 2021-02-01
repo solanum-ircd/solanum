@@ -413,12 +413,40 @@ rb_setup_ssl_server(const char *const certfile, const char *keyfile,
 		}
 	}
 
-	if(SSL_CTX_set_cipher_list(ssl_ctx_new, cipherlist) != 1)
+
+	int ret_old = SSL_CTX_set_cipher_list(ssl_ctx_new, cipherlist);
+
+	if (ret_old != 1)
 	{
-		rb_lib_log("%s: SSL_CTX_set_cipher_list: could not configure any ciphers", __func__);
+		(void) rb_lib_log("%s: no valid old-style ciphersuites found "
+		                  "in ssl_cipher_list; will use defaults",
+		                  __func__);
+
+		ret_old = SSL_CTX_set_cipher_list(ssl_ctx_new, rb_default_ciphers);
+	}
+
+	#ifndef LRB_HAVE_TLS13
+	int ret_new = 0;
+	#else
+	int ret_new = SSL_CTX_set_ciphersuites(ssl_ctx_new, cipherlist);
+
+	if (ret_new != 1)
+	{
+		(void) rb_lib_log("%s: no valid new-style ciphersuites found "
+		                  "in ssl_cipher_list; will use defaults",
+		                  __func__);
+
+		ret_new = SSL_CTX_set_ciphersuites(ssl_ctx_new, rb_default_ciphers);
+	}
+	#endif
+
+	if (ret_old != 1 && ret_new != 1)
+	{
+		rb_lib_log("%s: could not configure any ciphers", __func__);
 		SSL_CTX_free(ssl_ctx_new);
 		return 0;
 	}
+
 
 	SSL_CTX_set_session_cache_mode(ssl_ctx_new, SSL_SESS_CACHE_OFF);
 	SSL_CTX_set_verify(ssl_ctx_new, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_accept_all_cb);
