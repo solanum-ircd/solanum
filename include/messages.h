@@ -115,7 +115,7 @@
 #define NUMERIC_STR_348      ":%s 348 %s %s %s %s %lu"
 #define NUMERIC_STR_349      ":%s 349 %s %s :End of Channel Exception List"
 #ifndef CUSTOM_BRANDING
-#define NUMERIC_STR_351      "%s(%s). %s :%s TS%dow %s"
+#define NUMERIC_STR_351      "%s(%s). %s :%s TS%dow"
 #else
 #define NUMERIC_STR_351      "%s(%s,%s). %s :%s TS%dow %s"
 #endif
