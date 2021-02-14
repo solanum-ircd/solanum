@@ -319,7 +319,7 @@ privilegeset_unref(struct PrivilegeSet *set)
 	}
 }
 
-const struct PrivilegeSet **
+struct privset_diff
 privilegeset_diff(const struct PrivilegeSet *old, const struct PrivilegeSet *new)
 {
 	static const char *no_privs[] = { NULL };
@@ -327,16 +327,15 @@ privilegeset_diff(const struct PrivilegeSet *old, const struct PrivilegeSet *new
 	static struct PrivilegeSet *set_unchanged = NULL,
 	                           *set_added = NULL,
 	                           *set_removed = NULL;
-	static const struct PrivilegeSet *result_sets[3];
 	static size_t n_privs = 0;
 	size_t new_size = n_privs ? n_privs : 32;
 	size_t i = 0, j = 0;
 
-	if (result_sets[0] == NULL)
+	if (set_unchanged == NULL)
 	{
-		result_sets[0] = set_unchanged = privilegeset_new_orphan("<unchanged>");
-		result_sets[1] = set_added = privilegeset_new_orphan("<added>");
-		result_sets[2] = set_removed = privilegeset_new_orphan("<removed>");
+		set_unchanged = privilegeset_new_orphan("<unchanged>");
+		set_added = privilegeset_new_orphan("<added>");
+		set_removed = privilegeset_new_orphan("<removed>");
 	}
 
 	if (old == NULL)
@@ -390,7 +389,11 @@ privilegeset_diff(const struct PrivilegeSet *old, const struct PrivilegeSet *new
 	set_added->size = res_added - set_added->privs;
 	set_removed->size = res_removed - set_removed->privs;
 
-	return result_sets;
+	return (struct privset_diff){
+		.unchanged = set_unchanged,
+		.added = set_added,
+		.removed = set_removed,
+	};
 }
 
 void

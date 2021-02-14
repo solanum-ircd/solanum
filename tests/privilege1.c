@@ -84,23 +84,19 @@ static void test_privset_diff(void)
 {
 	struct PrivilegeSet *old = privilegeset_set_new("old", "foo bar", 0);
 	struct PrivilegeSet *new = privilegeset_set_new("new", "foo qux", 0);
-	const struct PrivilegeSet *added, *removed, *unchanged;
-	const struct PrivilegeSet **result = privilegeset_diff(old, new);
-	unchanged = result[0];
-	added = result[1];
-	removed = result[2];
+	struct privset_diff diff = privilegeset_diff(old, new);
 
-	is_bool(true, privilegeset_in_set(unchanged, "foo"), MSG);
-	is_bool(false, privilegeset_in_set(added, "foo"), MSG);
-	is_bool(false, privilegeset_in_set(removed, "foo"), MSG);
+	is_bool(true, privilegeset_in_set(diff.unchanged, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.removed, "foo"), MSG);
 
-	is_bool(false, privilegeset_in_set(unchanged, "bar"), MSG);
-	is_bool(false, privilegeset_in_set(added, "bar"), MSG);
-	is_bool(true, privilegeset_in_set(removed, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "bar"), MSG);
+	is_bool(true, privilegeset_in_set(diff.removed, "bar"), MSG);
 
-	is_bool(false, privilegeset_in_set(unchanged, "qux"), MSG);
-	is_bool(true, privilegeset_in_set(added, "qux"), MSG);
-	is_bool(false, privilegeset_in_set(removed, "qux"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "qux"), MSG);
+	is_bool(true, privilegeset_in_set(diff.added, "qux"), MSG);
+	is_bool(false, privilegeset_in_set(diff.removed, "qux"), MSG);
 
 	cleanup();
 }
@@ -108,44 +104,37 @@ static void test_privset_diff(void)
 static void test_privset_diff_rehash(void)
 {
 	struct PrivilegeSet *set = privilegeset_set_new("test", "foo bar", 0);
-	const struct PrivilegeSet *added, *removed, *unchanged;
-	const struct PrivilegeSet **result;
+	struct privset_diff diff;
 	privilegeset_ref(set);
 
 	privilegeset_prepare_rehash();
 
 	/* should have changed from foo, bar to nothing, i.e. -foo -bar */
-	result = privilegeset_diff(set->shadow, set);
-	unchanged = result[0];
-	added = result[1];
-	removed = result[2];
+	diff = privilegeset_diff(set->shadow, set);
 
-	is_bool(false, privilegeset_in_set(unchanged, "foo"), MSG);
-	is_bool(false, privilegeset_in_set(added, "foo"), MSG);
-	is_bool(true, privilegeset_in_set(removed, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "foo"), MSG);
+	is_bool(true, privilegeset_in_set(diff.removed, "foo"), MSG);
 
-	is_bool(false, privilegeset_in_set(unchanged, "bar"), MSG);
-	is_bool(false, privilegeset_in_set(added, "bar"), MSG);
-	is_bool(true, privilegeset_in_set(removed, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "bar"), MSG);
+	is_bool(true, privilegeset_in_set(diff.removed, "bar"), MSG);
 
 	privilegeset_set_new("test", "foo qux", 0);
-	result = privilegeset_diff(set->shadow, set);
-	unchanged = result[0];
-	added = result[1];
-	removed = result[2];
+	diff = privilegeset_diff(set->shadow, set);
 
 	/* should have changed from foo, bar to foo, qux, i.e. =foo -bar +qux */
-	is_bool(true, privilegeset_in_set(unchanged, "foo"), MSG);
-	is_bool(false, privilegeset_in_set(added, "foo"), MSG);
-	is_bool(false, privilegeset_in_set(removed, "foo"), MSG);
+	is_bool(true, privilegeset_in_set(diff.unchanged, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "foo"), MSG);
+	is_bool(false, privilegeset_in_set(diff.removed, "foo"), MSG);
 
-	is_bool(false, privilegeset_in_set(unchanged, "bar"), MSG);
-	is_bool(false, privilegeset_in_set(added, "bar"), MSG);
-	is_bool(true, privilegeset_in_set(removed, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "bar"), MSG);
+	is_bool(false, privilegeset_in_set(diff.added, "bar"), MSG);
+	is_bool(true, privilegeset_in_set(diff.removed, "bar"), MSG);
 
-	is_bool(false, privilegeset_in_set(unchanged, "qux"), MSG);
-	is_bool(true, privilegeset_in_set(added, "qux"), MSG);
-	is_bool(false, privilegeset_in_set(removed, "qux"), MSG);
+	is_bool(false, privilegeset_in_set(diff.unchanged, "qux"), MSG);
+	is_bool(true, privilegeset_in_set(diff.added, "qux"), MSG);
+	is_bool(false, privilegeset_in_set(diff.removed, "qux"), MSG);
 
 	privilegeset_cleanup_rehash();
 

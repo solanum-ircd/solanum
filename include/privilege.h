@@ -61,6 +61,12 @@ struct PrivilegeSet {
 	int refs;
 };
 
+struct privset_diff {
+	const struct PrivilegeSet *unchanged;
+	const struct PrivilegeSet *added;
+	const struct PrivilegeSet *removed;
+};
+
 bool privilegeset_in_set(const struct PrivilegeSet *set, const char *priv);
 const char **privilegeset_privs(const struct PrivilegeSet *set);
 struct PrivilegeSet *privilegeset_set_new(const char *name, const char *privs, PrivilegeFlags flags);
@@ -72,6 +78,6 @@ void privilegeset_prepare_rehash(void);
 void privilegeset_cleanup_rehash(void);
 void privilegeset_report(struct Client *source_p);
 
-const struct PrivilegeSet **privilegeset_diff(const struct PrivilegeSet *, const struct PrivilegeSet *);
+struct privset_diff privilegeset_diff(const struct PrivilegeSet *, const struct PrivilegeSet *);
 
 #endif
