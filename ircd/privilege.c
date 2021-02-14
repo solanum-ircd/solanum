@@ -233,7 +233,7 @@ privilegeset_in_set(const struct PrivilegeSet *set, const char *priv)
 	return found != NULL;
 }
 
-const char **
+const char *const *
 privilegeset_privs(const struct PrivilegeSet *set)
 {
 	static const char *no_privs[] = { NULL };
@@ -451,7 +451,7 @@ privilegeset_report(struct Client *source_p)
 				set->name);
 		send_multiline_remote_pad(source_p, &me);
 		send_multiline_remote_pad(source_p, source_p);
-		for (const char **s = privilegeset_privs(set); *s != NULL; s++)
+		for (const char *const *s = privilegeset_privs(set); *s != NULL; s++)
 			send_multiline_item(source_p, "%s", *s);
 		send_multiline_fini(source_p, NULL);
 	}

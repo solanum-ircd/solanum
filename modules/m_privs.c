@@ -95,7 +95,7 @@ static void show_privs(struct Client *source_p, struct Client *target_p)
 	send_multiline_remote_pad(source_p, source_p);
 
 	if (target_p->user->privset)
-		for (const char **s = privilegeset_privs(target_p->user->privset); *s != NULL; s++)
+		for (const char *const *s = privilegeset_privs(target_p->user->privset); *s != NULL; s++)
 			send_multiline_item(source_p, "%s", *s);
 
 	if (IsOper(target_p))
