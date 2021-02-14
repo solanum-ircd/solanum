@@ -975,19 +975,15 @@ report_and_set_user_flags(struct Client *source_p, struct ConfItem *aconf)
 void
 report_priv_change(struct Client *client, struct PrivilegeSet *old, struct PrivilegeSet *new)
 {
-	const struct PrivilegeSet *added, *removed, *unchanged;
-	const struct PrivilegeSet **result = privilegeset_diff(old, new);
-	unchanged = result[0];
-	added = result[1];
-	removed = result[2];
+	struct privset_diff diff = privilegeset_diff(old, new);
 
 	hook_data_priv_change hdata = {
 		.client = client,
 		.new = new,
 		.old = old,
-		.unchanged = unchanged,
-		.added = added,
-		.removed = removed,
+		.unchanged = diff.unchanged,
+		.added = diff.added,
+		.removed = diff.removed,
 	};
 	call_hook(h_priv_change, &hdata);
 }
