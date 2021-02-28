@@ -91,11 +91,10 @@ privilegeset_index(struct PrivilegeSet *set)
 	set->privs[set->size] = NULL;
 }
 
-static void
+void
 privilegeset_add_privs(struct PrivilegeSet *dst, const char *privs)
 {
-	size_t alloc_size;
-	size_t n;
+	size_t alloc_size, old_stored_size;
 
 	if (dst->priv_storage == NULL)
 	{
@@ -107,6 +106,7 @@ privilegeset_add_privs(struct PrivilegeSet *dst, const char *privs)
 		alloc_size = dst->allocated_size;
 	}
 
+	old_stored_size = dst->stored_size;
 	dst->stored_size += strlen(privs) + 1;
 
 	while (alloc_size < dst->stored_size)
@@ -119,14 +119,17 @@ privilegeset_add_privs(struct PrivilegeSet *dst, const char *privs)
 
 	const char *s;
 	char *d;
-	for (s = privs, d = dst->priv_storage; s < privs + strlen(privs); s += n , d += n)
-	{
-		const char *e = strchr(s, ' ');
-		/* up to space if there is one, else up to end of string */
-		n = 1 + (e != NULL ? e - s : strlen(s));
-		rb_strlcpy(d, s, n);
 
-		dst->size += 1;
+	for (s = privs, d = dst->priv_storage + old_stored_size;
+			s <= privs + strlen(privs);
+			s++, d++)
+	{
+		*d = *s;
+		if (*d == ' ' || *d == '\0')
+		{
+			*d = '\0';
+			if (s > privs) dst->size += 1;
+		}
 	}
 
 	privilegeset_index(dst);
