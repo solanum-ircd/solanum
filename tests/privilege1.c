@@ -28,6 +28,8 @@
 
 #define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
 
+void privilegeset_add_privs(struct PrivilegeSet *dst, const char *privs);
+
 struct Client me;
 
 static void cleanup(void)
@@ -44,6 +46,21 @@ static void test_privset_membership(void)
 	is_bool(true, privilegeset_in_set(set, "bar"), MSG);
 
 	is_bool(false, privilegeset_in_set(set, "qux"), MSG);
+
+	cleanup();
+}
+
+static void test_privset_add(void)
+{
+	struct PrivilegeSet *set = privilegeset_set_new("test", "foo bar", 0);
+	privilegeset_add_privs(set, "baz qux");
+
+	is_bool(true, privilegeset_in_set(set, "foo"), MSG);
+	is_bool(true, privilegeset_in_set(set, "bar"), MSG);
+	is_bool(true, privilegeset_in_set(set, "baz"), MSG);
+	is_bool(true, privilegeset_in_set(set, "qux"), MSG);
+
+	is_bool(false, privilegeset_in_set(set, "frob"), MSG);
 
 	cleanup();
 }
@@ -147,6 +164,7 @@ int main(int argc, char *argv[])
 	plan_lazy();
 
 	test_privset_membership();
+	test_privset_add();
 	test_privset_extend();
 	test_privset_persistence();
 	test_privset_diff();
