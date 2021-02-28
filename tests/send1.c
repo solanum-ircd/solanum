@@ -3534,7 +3534,7 @@ static void sendto_anywhere1__tags(void)
 	is_client_sendq_empty(server, MSG);
 
 	sendto_anywhere(local_chan_o, server, "TEST", "Hello %s!", "World");
-	is_client_sendq(":" TEST_SERVER_NAME " TEST LChanOp Hello World!" CRLF, local_chan_o, MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " TEST LChanOp Hello World!" CRLF, local_chan_o, MSG);
 	is_client_sendq_empty(server, MSG);
 
 	sendto_anywhere(local_chan_v, &me, "TEST", "Hello %s!", "World");
