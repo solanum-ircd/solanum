@@ -602,7 +602,7 @@ apply_prop_kline(struct Client *source_p, struct ConfItem *aconf,
 
 	replace_old_ban(aconf);
 
-	rb_dlinkAddAlloc(aconf, &prop_bans);
+	add_prop_ban(aconf);
 	add_conf_by_address(aconf->host, CONF_KILL, aconf->user, NULL, aconf);
 
 	/* no oper reason.. */
@@ -860,11 +860,9 @@ remove_temp_kline(struct Client *source_p, struct ConfItem *aconf)
 static void
 remove_prop_kline(struct Client *source_p, struct ConfItem *aconf)
 {
-	rb_dlink_node *ptr;
 	time_t now;
 
-	ptr = rb_dlinkFind(aconf, &prop_bans);
-	if (!ptr)
+	if (!lookup_prop_ban(aconf))
 		return;
 	sendto_one_notice(source_p,
 			  ":Un-klined [%s@%s] from global k-lines",
@@ -892,5 +890,5 @@ remove_prop_kline(struct Client *source_p, struct ConfItem *aconf)
 			0,
 			(int)(aconf->lifetime - aconf->created));
 	remove_reject_mask(aconf->user, aconf->host);
-	deactivate_conf(aconf, ptr, now);
+	deactivate_conf(aconf, now);
 }

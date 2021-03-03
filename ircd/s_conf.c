@@ -62,11 +62,11 @@ extern char yy_linebuf[16384];		/* defined in ircd_lexer.l */
 
 static rb_bh *confitem_heap = NULL;
 
-rb_dlink_list prop_bans;
-
 rb_dlink_list temp_klines[LAST_TEMP_TYPE];
 rb_dlink_list temp_dlines[LAST_TEMP_TYPE];
 rb_dlink_list service_list;
+
+rb_dictionary *prop_bans_dict;
 
 /* internally defined functions */
 static void set_default_conf(void);
@@ -74,9 +74,11 @@ static void validate_conf(void);
 static void read_conf(void);
 static void clear_out_old_conf(void);
 
-static void expire_prop_bans(void *list);
+static void expire_prop_bans(void *);
 static void expire_temp_kd(void *list);
 static void reorganise_temp_kd(void *list);
+
+static int cmp_prop_ban(const void *, const void *);
 
 FILE *conf_fbfile_in;
 extern char yytext[];
@@ -89,8 +91,9 @@ void
 init_s_conf(void)
 {
 	confitem_heap = rb_bh_create(sizeof(struct ConfItem), CONFITEM_HEAP_SIZE, "confitem_heap");
+	prop_bans_dict = rb_dictionary_create("prop_bans", cmp_prop_ban);
 
-	rb_event_addish("expire_prop_bans", expire_prop_bans, &prop_bans, 60);
+	rb_event_addish("expire_prop_bans", expire_prop_bans, NULL, 60);
 
 	rb_event_addish("expire_temp_klines", expire_temp_kd, &temp_klines[TEMP_MIN], 60);
 	rb_event_addish("expire_temp_dlines", expire_temp_kd, &temp_dlines[TEMP_MIN], 60);
@@ -1080,31 +1083,52 @@ valid_wild_card(const char *luser, const char *lhost)
 	return 0;
 }
 
-rb_dlink_node *
-find_prop_ban(unsigned int status, const char *user, const char *host)
+
+int cmp_prop_ban(const void *a_, const void *b_)
 {
-	rb_dlink_node *ptr;
-	struct ConfItem *aconf;
+	const struct ConfItem *a = a_, *b = b_;
+	int r;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
-	{
-		aconf = ptr->data;
+	if ((a->status & ~CONF_ILLEGAL) > (int)(b->status & ~CONF_ILLEGAL)) return 1;
+	if ((a->status & ~CONF_ILLEGAL) < (int)(b->status & ~CONF_ILLEGAL)) return -1;
 
-		if((aconf->status & ~CONF_ILLEGAL) == status &&
-				(!user || !aconf->user ||
-				 !irccmp(aconf->user, user)) &&
-				!irccmp(aconf->host, host))
-			return ptr;
-	}
-	return NULL;
+	r = irccmp(a->host, b->host);
+	if (r) return r;
+
+	if (a->user && b->user)
+		return irccmp(a->user, b->user);
+
+	return 0;
 }
 
 void
-deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
+add_prop_ban(struct ConfItem *aconf)
+{
+	rb_dictionary_add(prop_bans_dict, aconf, aconf);
+}
+
+struct ConfItem *
+find_prop_ban(unsigned status, const char *user, const char *host)
+{
+	struct ConfItem key = {.status = status, .user = (char *)user, .host = (char *)host};
+	return rb_dictionary_retrieve(prop_bans_dict, &key);
+}
+
+void
+remove_prop_ban(struct ConfItem *aconf)
+{
+	rb_dictionary_delete(prop_bans_dict, aconf);
+}
+
+bool lookup_prop_ban(struct ConfItem *aconf)
+{
+	return rb_dictionary_retrieve(prop_bans_dict, aconf) == aconf;
+}
+
+void
+deactivate_conf(struct ConfItem *aconf, time_t now)
 {
 	int i;
-
-	s_assert(ptr->data == aconf);
 
 	switch (aconf->status)
 	{
@@ -1146,7 +1170,7 @@ deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
 	else
 	{
 		if (aconf->lifetime != 0)
-			rb_dlinkDestroy(ptr, &prop_bans);
+			remove_prop_ban(aconf);
 		if (aconf->clients == 0)
 			free_conf(aconf);
 		else
@@ -1160,13 +1184,11 @@ deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
 void
 replace_old_ban(struct ConfItem *aconf)
 {
-	rb_dlink_node *ptr;
 	struct ConfItem *oldconf;
 
-	ptr = find_prop_ban(aconf->status, aconf->user, aconf->host);
-	if(ptr != NULL)
+	oldconf = find_prop_ban(aconf->status, aconf->user, aconf->host);
+	if (oldconf != NULL)
 	{
-		oldconf = ptr->data;
 		/* Remember at least as long as the old one. */
 		if(oldconf->lifetime > aconf->lifetime)
 			aconf->lifetime = oldconf->lifetime;
@@ -1180,23 +1202,21 @@ replace_old_ban(struct ConfItem *aconf)
 			aconf->lifetime = aconf->hold;
 		/* Tell deactivate_conf() to destroy it. */
 		oldconf->lifetime = rb_current_time();
-		deactivate_conf(oldconf, ptr, oldconf->lifetime);
+		deactivate_conf(oldconf, oldconf->lifetime);
 	}
 }
 
 static void
-expire_prop_bans(void *list)
+expire_prop_bans(void *unused)
 {
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
 	struct ConfItem *aconf;
 	time_t now;
+	rb_dictionary_iter state;
 
 	now = rb_current_time();
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, ((rb_dlink_list *) list)->head)
-	{
-		aconf = ptr->data;
 
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
+	{
 		if(aconf->lifetime <= now ||
 				(aconf->hold <= now &&
 				 !(aconf->status & CONF_ILLEGAL)))
@@ -1212,7 +1232,7 @@ expire_prop_bans(void *list)
 						     aconf->host ? aconf->host : "*");
 
 			/* will destroy or mark illegal */
-			deactivate_conf(aconf, ptr, now);
+			deactivate_conf(aconf, now);
 		}
 	}
 }
