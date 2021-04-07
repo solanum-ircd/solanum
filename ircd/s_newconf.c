@@ -685,23 +685,43 @@ time_t
 valid_temp_time(const char *p)
 {
 	time_t result = 0;
+	long current = 0;
+	char *ch = strdup(p), *och;
 
-	while(*p)
-	{
-		if(IsDigit(*p))
-		{
-			result *= 10;
-			result += ((*p) & 0xF);
-			p++;
-		}
-		else
+	while (*ch) {
+		och = ch;
+		current = strtol(ch, &ch, 10);
+		if (errno == ERANGE)
 			return -1;
+		if (och == ch)
+			/* No numbers were given so return invalid */
+			return -1;
+		if (current) {
+			switch (*ch) {
+				case '\0': /* No unit was given so send it back as minutes */
+				case 'm':
+					result += (current * 60);
+					break;
+				case 'h':
+					result += (current * 3600);
+					break;
+				case 'd':
+					result += (current * 86400);
+					break;
+				case 'w':
+					result += (current * 604800);
+					break;
+				default:
+					/* Bad time unit was given */
+					return -1;
+			}
+			if (*ch++ == '\0')
+				break;
+		}
 	}
-
-	if(result > (60 * 24 * 7 * 52))
-		result = (60 * 24 * 7 * 52);
-
-	return(result * 60);
+	if(result > (60 * 60 * 24 * 7 * 52))
+		result = (60 * 60 * 24 * 7 * 52);
+	return result;
 }
 
 /* Propagated bans are expired elsewhere. */
