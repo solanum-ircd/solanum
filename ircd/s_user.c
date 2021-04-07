@@ -609,19 +609,21 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	rb_inet_ntop_sock((struct sockaddr *)&source_p->localClient->ip, ipaddr, sizeof(ipaddr));
 
 	sendto_realops_snomask(SNO_CCONN, L_ALL,
-			     "Client connecting: %s (%s@%s) [%s] {%s} [%s] <%s>",
+			     "Client connecting: %s (%s@%s) [%s] {%s} <%s> [%s]",
 			     source_p->name, source_p->username, source_p->orighost,
 			     show_ip(NULL, source_p) ? ipaddr : "255.255.255.255",
-			     get_client_class(source_p), source_p->info,
-			     *source_p->user->suser ? source_p->user->suser : "*");
+			     get_client_class(source_p),
+			     *source_p->user->suser ? source_p->user->suser : "*",
+			     source_p->info);
 
 	sendto_realops_snomask(SNO_CCONNEXT, L_ALL,
-			"CLICONN %s %s %s %s %s %s 0 %s",
+			"CLICONN %s %s %s %s %s %s 0 %s %s",
 			source_p->name, source_p->username, source_p->orighost,
 			show_ip(NULL, source_p) ? ipaddr : "255.255.255.255",
 			get_client_class(source_p),
 			/* mirc can sometimes send ips here */
 			show_ip(NULL, source_p) ? source_p->localClient->fullcaps : "<hidden> <hidden>",
+			*source_p->user->suser ? source_p->user->suser : "*",
 			source_p->info);
 
 	add_to_hostname_hash(source_p->orighost, source_p);
