@@ -66,6 +66,7 @@ extension_LTLIBRARIES =		\
   no_locops.la			\
   no_oper_invis.la		\
   sasl_usercloak.la		\
+  shedding.la                   \
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
