@@ -1833,7 +1833,7 @@ show_ip(struct Client *source_p, struct Client *target_p)
 		 * to local opers.
 		 */
 		if(!ConfigFileEntry.hide_spoof_ips &&
-		   (source_p == NULL || (MyConnect(source_p) && HasPrivilege(source_p, "auspex:hostname"))))
+		   (source_p == NULL || HasPrivilege(source_p, "auspex:hostname")))
 			return 1;
 		return 0;
 	}
