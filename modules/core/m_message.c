@@ -56,6 +56,8 @@ static void echo_msg(struct Client *, struct Client *, enum message_type, const 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
+static unsigned int CAP_ECHO;
+
 static int
 modinit(void)
 {
@@ -85,7 +87,12 @@ struct Message echo_msgtab = {
 
 mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, NULL };
 
-DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, NULL, NULL, message_desc);
+mapi_cap_list_av2 message_cap_list[] = {
+	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
+	{ 0, NULL, NULL, NULL }
+};
+
+DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, message_cap_list, NULL, message_desc);
 
 struct entity
 {
@@ -741,6 +748,9 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 				text);
 		return;
 	}
+
+	if (!(target_p->from->serv->caps & CAP_ECHO))
+		return;
 
 	sendto_one(target_p, ":%s ECHO %c %s :%s",
 		use_id(source_p),
