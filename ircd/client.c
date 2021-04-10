@@ -555,9 +555,9 @@ check_klines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "KLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "KLINE active for %s (%s@%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->user, aconf->host);
 
 			notify_banned_client(client_p, aconf, K_LINED);
 			continue;
@@ -638,9 +638,9 @@ check_one_kline(struct ConfItem *kline)
 			continue;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					 "KLINE active for %s",
-					 get_client_name(client_p, HIDE_IP));
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					 "KLINE active for %s (%s@%s)",
+					 get_client_name(client_p, HIDE_IP), kline->user, kline->host);
 
 		notify_banned_client(client_p, kline, K_LINED);
 	}
@@ -673,9 +673,9 @@ check_dlines(void)
 			if(aconf->status & CONF_EXEMPTDLINE)
 				continue;
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "DLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "DLINE active for %s (%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->host);
 
 			notify_banned_client(client_p, aconf, D_LINED);
 			continue;
@@ -729,8 +729,9 @@ check_xlines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "XLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+						"XLINE active for %s (%s)",
+						get_client_name(client_p, HIDE_IP), aconf->host);
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");
 			continue;
