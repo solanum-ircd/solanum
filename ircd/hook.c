@@ -71,6 +71,7 @@ int h_conf_read_start;
 int h_conf_read_end;
 int h_outbound_msgbuf;
 int h_rehash;
+int h_priv_change;
 int h_cap_change;
 
 void
@@ -96,6 +97,7 @@ init_hook(void)
 	h_conf_read_end = register_hook("conf_read_end");
 	h_outbound_msgbuf = register_hook("outbound_msgbuf");
 	h_rehash = register_hook("rehash");
+	h_priv_change = register_hook("priv_change");
 	h_cap_change = register_hook("cap_change");
 }
 

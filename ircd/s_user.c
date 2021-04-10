@@ -972,6 +972,22 @@ report_and_set_user_flags(struct Client *source_p, struct ConfItem *aconf)
 	}
 }
 
+void
+report_priv_change(struct Client *client, struct PrivilegeSet *old, struct PrivilegeSet *new)
+{
+	struct privset_diff diff = privilegeset_diff(old, new);
+
+	hook_data_priv_change hdata = {
+		.client = client,
+		.new = new,
+		.old = old,
+		.unchanged = diff.unchanged,
+		.added = diff.added,
+		.removed = diff.removed,
+	};
+	call_hook(h_priv_change, &hdata);
+}
+
 static void
 show_other_user_mode(struct Client *source_p, struct Client *target_p)
 {
@@ -1129,6 +1145,8 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 
 				if(source_p->user->privset != NULL)
 				{
+					report_priv_change(source_p, source_p->user->privset, NULL);
+
 					privilegeset_unref(source_p->user->privset);
 					source_p->user->privset = NULL;
 				}
@@ -1435,6 +1453,8 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	source_p->user->opername = rb_strdup(oper_p->name);
 	source_p->user->privset = privilegeset_ref(oper_p->privset);
 
+	report_priv_change(source_p, NULL, source_p->user->privset);
+
 	rb_dlinkAddAlloc(source_p, &local_oper_list);
 	rb_dlinkAddAlloc(source_p, &oper_list);
 
@@ -1471,7 +1491,10 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 		   construct_snobuf(source_p->snomask));
 	sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
 	sendto_one_notice(source_p, ":*** Oper privilege set is %s", oper_p->privset->name);
-	sendto_one_notice(source_p, ":*** Oper privs are %s", oper_p->privset->privs);
+	send_multiline_init(source_p, " ", ":%s NOTICE %s :*** Oper privs are ", me.name, source_p->name);
+	for (const char *const *s = privilegeset_privs(oper_p->privset); *s != NULL; s++)
+		send_multiline_item(source_p, "%s", *s);
+	send_multiline_fini(source_p, NULL);
 	send_oper_motd(source_p);
 }
 

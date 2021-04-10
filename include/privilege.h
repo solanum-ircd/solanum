@@ -2,6 +2,23 @@
  * Solanum: a slightly advanced ircd
  * privilege.h: Dynamic privileges API.
  *
+ * Copyright (c) 2021 Ed Kellett <e@kellett.im>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ *
  * Copyright (c) 2008 William Pitcock <nenolod@dereferenced.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -32,22 +49,35 @@ enum {
 typedef unsigned int PrivilegeFlags;
 
 struct PrivilegeSet {
+	rb_dlink_node node;
+	size_t size;
+	const char **privs;
+	size_t stored_size, allocated_size;
+	char *priv_storage;
+	char *name;
+	struct PrivilegeSet *shadow;
+	PrivilegeFlags flags;
 	unsigned int status;	/* If CONF_ILLEGAL, delete when no refs */
 	int refs;
-	char *name;
-	char *privs;
-	PrivilegeFlags flags;
-	rb_dlink_node node;
 };
 
-int privilegeset_in_set(struct PrivilegeSet *set, const char *priv);
+struct privset_diff {
+	const struct PrivilegeSet *unchanged;
+	const struct PrivilegeSet *added;
+	const struct PrivilegeSet *removed;
+};
+
+bool privilegeset_in_set(const struct PrivilegeSet *set, const char *priv);
+const char *const *privilegeset_privs(const struct PrivilegeSet *set);
 struct PrivilegeSet *privilegeset_set_new(const char *name, const char *privs, PrivilegeFlags flags);
-struct PrivilegeSet *privilegeset_extend(struct PrivilegeSet *parent, const char *name, const char *privs, PrivilegeFlags flags);
+struct PrivilegeSet *privilegeset_extend(const struct PrivilegeSet *parent, const char *name, const char *privs, PrivilegeFlags flags);
 struct PrivilegeSet *privilegeset_get(const char *name);
 struct PrivilegeSet *privilegeset_ref(struct PrivilegeSet *set);
 void privilegeset_unref(struct PrivilegeSet *set);
-void privilegeset_mark_all_illegal(void);
-void privilegeset_delete_all_illegal(void);
+void privilegeset_prepare_rehash(void);
+void privilegeset_cleanup_rehash(void);
 void privilegeset_report(struct Client *source_p);
+
+struct privset_diff privilegeset_diff(const struct PrivilegeSet *, const struct PrivilegeSet *);
 
 #endif

@@ -29,7 +29,6 @@
 #loadmodule "extensions/m_locops";
 #loadmodule "extensions/no_oper_invis";
 #loadmodule "extensions/sno_farconnect";
-#loadmodule "extensions/sno_globalkline";
 #loadmodule "extensions/sno_globalnickchange";
 #loadmodule "extensions/sno_globaloper";
 #loadmodule "extensions/override";
@@ -48,7 +47,7 @@
 serverinfo {
 	name = "hades.arpa";
 	sid = "42X";
-	description = "charybdis test server";
+	description = "solanum test server";
 	network_name = "StaticBox";
 
 	/* On multi-homed hosts you may need the following. These define
@@ -244,7 +243,8 @@ privset "server_bot" {
 privset "global_op" {
 	extends = "local_op";
 	privs = oper:routing, oper:kline, oper:unkline, oper:xline,
-		oper:resv, oper:cmodes, oper:mass_notice, oper:remoteban;
+		oper:resv, oper:cmodes, oper:mass_notice, oper:wallops,
+		oper:remoteban;
 };
 
 privset "admin" {
