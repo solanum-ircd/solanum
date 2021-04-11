@@ -424,19 +424,22 @@ mo_unkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 		return;
 	}
 
-	if(aconf->lifetime)
+	do
 	{
-		if(propagated)
-			remove_prop_kline(source_p, aconf);
-		else
-			sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-		return;
-	}
+		if (aconf->lifetime)
+		{
+			if (propagated)
+				remove_prop_kline(source_p, aconf);
+			else
+				sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
+			continue;
+		}
 
-	if(remove_temp_kline(source_p, aconf))
-		return;
+		if(remove_temp_kline(source_p, aconf))
+			continue;
 
-	remove_permkline_match(source_p, aconf);
+		remove_permkline_match(source_p, aconf);
+	} while (aconf = find_exact_conf_by_address(host, CONF_KILL, user), aconf != NULL);
 }
 
 /* ms_unkline()
@@ -482,16 +485,20 @@ handle_remote_unkline(struct Client *source_p, const char *user, const char *hos
 		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
 		return;
 	}
-	if(aconf->lifetime)
+
+	do
 	{
-		sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-		return;
-	}
+		if(aconf->lifetime)
+		{
+			sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
+			continue;
+		}
 
-	if(remove_temp_kline(source_p, aconf))
-		return;
+		if(remove_temp_kline(source_p, aconf))
+			continue;
 
-	remove_permkline_match(source_p, aconf);
+		remove_permkline_match(source_p, aconf);
+	} while (aconf = find_exact_conf_by_address(host, CONF_KILL, user), aconf != NULL);
 }
 
 /* apply_kline()
