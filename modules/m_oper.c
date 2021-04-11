@@ -43,12 +43,13 @@ static const char oper_desc[] = "Provides the OPER command to become an IRC oper
 
 static void m_oper(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mc_oper(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void me_oper(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 static bool match_oper_password(const char *password, struct oper_conf *oper_p);
 
 struct Message oper_msgtab = {
 	"OPER", 0, 0, 0, 0,
-	{mg_unreg, {m_oper, 3}, {mc_oper, 3}, mg_ignore, mg_ignore, {m_oper, 3}}
+	{mg_unreg, {m_oper, 3}, {mc_oper, 3}, mg_ignore, {me_oper, 2}, {m_oper, 3}}
 };
 
 mapi_clist_av1 oper_clist[] = { &oper_msgtab, NULL };
@@ -201,6 +202,19 @@ mc_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		privilegeset_unref(source_p->user->privset);
 
 	source_p->user->privset = privset;
+
+	rb_free(source_p->user->opername);
+	source_p->user->opername = rb_strdup(parv[1]);
+}
+
+/*
+ * me_oper - ircd-seven-style OPER propagation
+ *     parv[1] = opername
+ */
+static void
+me_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+{
+	rb_free(source_p->user->opername);
 	source_p->user->opername = rb_strdup(parv[1]);
 }
 
