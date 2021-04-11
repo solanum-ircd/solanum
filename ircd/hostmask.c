@@ -478,13 +478,8 @@ find_dline(struct sockaddr *addr, int aftype)
 	return NULL;
 }
 
-/* void find_exact_conf_by_address(const char*, int, const char *)
- * Input:
- * Output: ConfItem if found
- * Side-effects: None
- */
 struct ConfItem *
-find_exact_conf_by_address(const char *address, int type, const char *username)
+find_exact_conf_by_address_filtered(const char *address, int type, const char *username, bool (*filter)(struct ConfItem *))
 {
 	int masktype, bits;
 	unsigned long hv;
@@ -514,6 +509,9 @@ find_exact_conf_by_address(const char *address, int type, const char *username)
 				arec->masktype == masktype &&
 				(arec->username == NULL || username == NULL ? arec->username == username : !irccmp(arec->username, username)))
 		{
+			if (filter && !filter(arec->aconf))
+				continue;
+
 			if (masktype == HM_HOST)
 			{
 				if (!irccmp(arec->Mask.hostname, address))
@@ -528,6 +526,17 @@ find_exact_conf_by_address(const char *address, int type, const char *username)
 		}
 	}
 	return NULL;
+}
+
+/* void find_exact_conf_by_address(const char*, int, const char *)
+ * Input:
+ * Output: ConfItem if found
+ * Side-effects: None
+ */
+struct ConfItem *
+find_exact_conf_by_address(const char *address, int type, const char *username)
+{
+	return find_exact_conf_by_address_filtered(address, type, username, NULL);
 }
 
 /* void add_conf_by_address(const char*, int, const char *,

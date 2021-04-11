@@ -81,6 +81,7 @@ static void apply_prop_kline(struct Client *source_p, struct ConfItem *aconf,
 static bool already_placed_kline(struct Client *, const char *, const char *, int);
 
 static void handle_remote_unkline(struct Client *source_p, const char *user, const char *host);
+static void remove_superseded_klines(const char *user, const char *host);
 static void remove_permkline_match(struct Client *, struct ConfItem *);
 static bool remove_temp_kline(struct Client *, struct ConfItem *);
 static void remove_prop_kline(struct Client *, struct ConfItem *);
@@ -209,6 +210,9 @@ mo_kline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(already_placed_kline(source_p, user, host, tkline_time))
 		return;
 
+	if (!propagated)
+		remove_superseded_klines(user, host);
+
 	rb_set_time();
 	aconf = make_conf();
 	aconf->status = CONF_KILL;
@@ -306,6 +310,8 @@ handle_remote_kline(struct Client *source_p, int tkline_time,
 
 	if(already_placed_kline(source_p, user, host, tkline_time))
 		return;
+
+	remove_superseded_klines(user, host);
 
 	aconf = make_conf();
 
@@ -756,6 +762,37 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 			  ":[%s@%s] already K-Lined by [%s@%s] - %s",
 			  luser, lhost, aconf->user, aconf->host, reason);
 	return true;
+}
+
+static bool
+is_temporary_kline(struct ConfItem *aconf)
+{
+	return !aconf->lifetime && (aconf->flags & CONF_FLAGS_TEMPORARY);
+}
+
+static void
+remove_superseded_klines(const char *user, const char *host)
+{
+	struct ConfItem *aconf;
+
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_temporary_kline), aconf != NULL)
+	{
+		rb_dlink_node *ptr;
+		int i;
+
+		for (i = 0; i < LAST_TEMP_TYPE; i++)
+		{
+			RB_DLINK_FOREACH(ptr, temp_klines[i].head)
+			{
+				if (aconf == ptr->data)
+				{
+					rb_dlinkDestroy(ptr, &temp_klines[i]);
+					delete_one_address_conf(aconf->host, aconf);
+					break;
+				}
+			}
+		}
+	}
 }
 
 /* remove_permkline_match()

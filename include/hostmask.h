@@ -46,6 +46,8 @@ struct ConfItem *find_conf_by_address(const char *host, const char *sockhost,
 				      int, int, const char *, const char *);
 struct ConfItem *find_exact_conf_by_address(const char *address, int type,
 					    const char *username);
+struct ConfItem *find_exact_conf_by_address_filtered(const char *address, int type,
+		const char *username, bool (*filter)(struct ConfItem *));
 void add_conf_by_address(const char *, int, const char *, const char *, struct ConfItem *);
 void delete_one_address_conf(const char *, struct ConfItem *);
 void clear_out_address_conf(enum aconf_category);
