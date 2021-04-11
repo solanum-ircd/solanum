@@ -734,21 +734,21 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 				aconf = NULL;
 		}
 	}
-	if(aconf != NULL)
-	{
-		/* setting a tkline, or existing one is perm */
-		if(tkline || ((aconf->flags & CONF_FLAGS_TEMPORARY) == 0))
-		{
-			reason = aconf->passwd ? aconf->passwd : "<No Reason>";
 
-			sendto_one_notice(source_p,
-					  ":[%s@%s] already K-Lined by [%s@%s] - %s",
-					  luser, lhost, aconf->user, aconf->host, reason);
-			return true;
-		}
-	}
+	if (aconf == NULL)
+		return false;
 
-	return false;
+	/* allow klines to be duplicated by longer ones */
+	if ((aconf->flags & CONF_FLAGS_TEMPORARY) &&
+			(tkline == 0 || tkline > aconf->hold - rb_current_time()))
+		return false;
+
+	reason = aconf->passwd ? aconf->passwd : "<No Reason>";
+
+	sendto_one_notice(source_p,
+			  ":[%s@%s] already K-Lined by [%s@%s] - %s",
+			  luser, lhost, aconf->user, aconf->host, reason);
+	return true;
 }
 
 /* remove_permkline_match()
