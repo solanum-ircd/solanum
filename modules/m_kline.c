@@ -86,6 +86,18 @@ static void remove_permkline_match(struct Client *, struct ConfItem *);
 static bool remove_temp_kline(struct Client *, struct ConfItem *);
 static void remove_prop_kline(struct Client *, struct ConfItem *);
 
+static bool
+is_local_kline(struct ConfItem *aconf)
+{
+	return aconf->lifetime == 0;
+}
+
+static bool
+is_temporary_kline(struct ConfItem *aconf)
+{
+	return aconf->lifetime == 0 && (aconf->flags & CONF_FLAGS_TEMPORARY);
+}
+
 
 /* mo_kline()
  *
@@ -424,28 +436,30 @@ mo_unkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 		cluster_generic(source_p, "UNKLINE", SHARED_UNKLINE, CAP_UNKLN,
 				"%s %s", user, host);
 
-	if(aconf == NULL)
-	{
-		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
-		return;
-	}
+	bool removed_kline = false;
 
-	do
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_local_kline), aconf != NULL)
 	{
-		if (aconf->lifetime)
-		{
-			if (propagated)
-				remove_prop_kline(source_p, aconf);
-			else
-				sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-			continue;
-		}
+		removed_kline = true;
 
 		if(remove_temp_kline(source_p, aconf))
 			continue;
 
 		remove_permkline_match(source_p, aconf);
-	} while (aconf = find_exact_conf_by_address(host, CONF_KILL, user), aconf != NULL);
+	}
+
+	aconf = find_exact_conf_by_address(host, CONF_KILL, user);
+	if (aconf)
+	{
+		if (propagated)
+			remove_prop_kline(source_p, aconf);
+		else
+			sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
+	}
+	else if (!removed_kline)
+	{
+		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
+	}
 }
 
 /* ms_unkline()
@@ -484,27 +498,22 @@ static void
 handle_remote_unkline(struct Client *source_p, const char *user, const char *host)
 {
 	struct ConfItem *aconf;
+	bool removed_kline = false;
 
-	aconf = find_exact_conf_by_address(host, CONF_KILL, user);
-	if(aconf == NULL)
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_local_kline), aconf != NULL)
 	{
-		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
-		return;
-	}
-
-	do
-	{
-		if(aconf->lifetime)
-		{
-			sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-			continue;
-		}
+		removed_kline = true;
 
 		if(remove_temp_kline(source_p, aconf))
 			continue;
 
 		remove_permkline_match(source_p, aconf);
-	} while (aconf = find_exact_conf_by_address(host, CONF_KILL, user), aconf != NULL);
+	}
+
+	if (find_exact_conf_by_address(host, CONF_KILL, user))
+		sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
+	else if (!removed_kline)
+		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
 }
 
 /* apply_kline()
@@ -762,12 +771,6 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 			  ":[%s@%s] already K-Lined by [%s@%s] - %s",
 			  luser, lhost, aconf->user, aconf->host, reason);
 	return true;
-}
-
-static bool
-is_temporary_kline(struct ConfItem *aconf)
-{
-	return !aconf->lifetime && (aconf->flags & CONF_FLAGS_TEMPORARY);
 }
 
 static void
