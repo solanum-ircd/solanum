@@ -582,6 +582,11 @@ static struct InfoStruct info_table[] = {
 		INFO_INTBOOL_YN(&ConfigChannel.opmod_send_statusmsg),
 	},
 	{
+		"ip_bans_through_vhost",
+		"Channel IP bans see through dynamic spoofs",
+		INFO_INTBOOL_YN(&ConfigChannel.ip_bans_through_vhost),
+	},
+	{
 		"hide_opers",
 		"Hide all opers from unprivileged users",
 		INFO_INTBOOL_YN(&ConfigFileEntry.hide_opers),
