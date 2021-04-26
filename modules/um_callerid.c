@@ -103,7 +103,7 @@ allow_message(struct Client *source_p, struct Client *target_p)
 		return true;
 
 	/* XXX: controversial?  allow opers to send through +g */
-	if (IsOperGeneral(source_p))
+	if (HasPrivilege(source_p, "oper:message"))
 		return true;
 
 	if (accept_message(source_p, target_p))
