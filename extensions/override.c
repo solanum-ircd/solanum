@@ -55,21 +55,19 @@ struct OverrideSession {
 rb_dlink_list overriding_opers = { NULL, NULL, 0 };
 
 static void
-update_session_deadline(struct Client *source_p, struct OverrideSession *session_p)
+update_session_deadline(struct Client *source_p)
 {
-	if (session_p == NULL)
+	struct OverrideSession *session_p = NULL;
+	rb_dlink_node *n;
+
+	RB_DLINK_FOREACH(n, overriding_opers.head)
 	{
-		rb_dlink_node *n;
+		struct OverrideSession *s = n->data;
 
-		RB_DLINK_FOREACH(n, overriding_opers.head)
+		if (s->client == source_p)
 		{
-			struct OverrideSession *s = n->data;
-
-			if (s->client == source_p)
-			{
-				session_p = s;
-				break;
-			}
+			session_p = s;
+			break;
 		}
 	}
 
@@ -135,7 +133,7 @@ check_umode_change(void *vdata)
 
 		if (changed)
 		{
-			update_session_deadline(source_p, NULL);
+			update_session_deadline(source_p);
 		}
 	}
 	else if (changed && !(source_p->umodes & user_modes['p']))
@@ -168,7 +166,7 @@ hack_channel_access(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		data->approved = CHFL_OVERRIDE;
 
 		/* we only want to report modehacks, which are always non-NULL */
@@ -188,7 +186,7 @@ hack_can_join(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		data->approved = 0;
 
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (banwalking)",
@@ -208,7 +206,7 @@ hack_can_kick(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (KICK %s)",
 				       get_oper_name(data->client), data->chptr->chname, data->target->name);
 	}
@@ -231,7 +229,7 @@ hack_can_send(void *vdata)
 
 		if (MyClient(data->client))
 		{
-			update_session_deadline(data->client, NULL);
+			update_session_deadline(data->client);
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (forcing message)",
 					       get_oper_name(data->client), data->chptr->chname);
 		}
@@ -272,7 +270,7 @@ _modinit(void)
 	{
 		struct Client *client_p = ptr->data;
 		if (IsPerson(client_p) && (client_p->umodes & user_modes['p']))
-			update_session_deadline(client_p, NULL);
+			update_session_deadline(client_p);
 	}
 
 	expire_override_deadlines_ev = rb_event_add("expire_override_deadlines", expire_override_deadlines, NULL, 60);
