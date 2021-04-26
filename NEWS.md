@@ -41,7 +41,6 @@ bolded warnings in the full release notes below.
 - **Breaking:** helpops now uses +h instead of +H
 - **Breaking:** sno\_whois and the spy\_ extensions have been removed
 - **Breaking:** Using /wallops now requires the oper:wallops privilege instead of oper:massnotice
-- **Breaking:** Opers wanting to override CALLERID (usermode +g) need oper:message
 - Opers now have their privset (identified by name) on remote servers
 - Oper-only umodes are refreshed after rehash and /grant
 - Extension modules can be reloaded
