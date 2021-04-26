@@ -115,9 +115,9 @@
 #define NUMERIC_STR_348      ":%s 348 %s %s %s %s %lu"
 #define NUMERIC_STR_349      ":%s 349 %s %s :End of Channel Exception List"
 #ifndef CUSTOM_BRANDING
-#define NUMERIC_STR_351      "%s(%s). %s :%s TS%dow %s"
+#define NUMERIC_STR_351      "%s(%s). %s :%s TS%dow"
 #else
-#define NUMERIC_STR_351      "%s(%s,%s). %s :%s TS%dow %s"
+#define NUMERIC_STR_351      "%s(%s,%s). %s :%s TS%dow"
 #endif
 #define NUMERIC_STR_352      ":%s 352 %s %s %s %s %s %s %s :%d %s"
 #define NUMERIC_STR_353      ":%s 353 %s %s %s :"
@@ -173,7 +173,7 @@
 #define NUMERIC_STR_457      ":%s 457 %s %s :is already on your accept list"
 #define NUMERIC_STR_458      ":%s 458 %s %s :is not on your accept list"
 #define NUMERIC_STR_461      ":%s 461 %s %s :Not enough parameters"
-#define NUMERIC_STR_462      ":%s 462 %s :You may not reregister"
+#define NUMERIC_STR_462      ":%s 462 %s :You are already connected and cannot handshake again"
 #define NUMERIC_STR_464      ":%s 464 %s :Password Incorrect"
 #define NUMERIC_STR_465      ":%s 465 %s :You are banned from this server- %s"
 #define NUMERIC_STR_470      "%s %s :Forwarding to another channel"
