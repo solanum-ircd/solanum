@@ -73,7 +73,11 @@ update_session_deadline(struct Client *source_p, struct OverrideSession *session
 		}
 	}
 
-	if (session_p == NULL)
+	if (session_p != NULL)
+	{
+		rb_dlinkDelete(&session_p->node, &overriding_opers);
+	}
+	else
 	{
 		session_p = rb_malloc(sizeof(struct OverrideSession));
 		session_p->client = source_p;
@@ -81,8 +85,7 @@ update_session_deadline(struct Client *source_p, struct OverrideSession *session
 
 	session_p->deadline = rb_current_time() + 1800;
 
-	rb_dlinkDelete(&session_p->node, &overriding_opers);
-	rb_dlinkAdd(session_p, &session_p->node, &overriding_opers);
+	rb_dlinkAddTail(session_p, &session_p->node, &overriding_opers);
 }
 
 static void
@@ -94,9 +97,11 @@ expire_override_deadlines(void *unused)
 	{
 		struct OverrideSession *session_p = n->data;
 
-		if (session_p->deadline > rb_current_time())
+		if (session_p->deadline >= rb_current_time())
+		{
 			break;
-		else if (session_p->deadline < rb_current_time())
+		}
+		else
 		{
 			const char *parv[4] = {session_p->client->name, session_p->client->name, "-p", NULL};
 			user_mode(session_p->client, session_p->client, 3, parv);
