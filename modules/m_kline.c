@@ -81,9 +81,22 @@ static void apply_prop_kline(struct Client *source_p, struct ConfItem *aconf,
 static bool already_placed_kline(struct Client *, const char *, const char *, int);
 
 static void handle_remote_unkline(struct Client *source_p, const char *user, const char *host);
+static void remove_superseded_klines(const char *user, const char *host);
 static void remove_permkline_match(struct Client *, struct ConfItem *);
 static bool remove_temp_kline(struct Client *, struct ConfItem *);
 static void remove_prop_kline(struct Client *, struct ConfItem *);
+
+static bool
+is_local_kline(struct ConfItem *aconf)
+{
+	return aconf->lifetime == 0;
+}
+
+static bool
+is_temporary_kline(struct ConfItem *aconf)
+{
+	return aconf->lifetime == 0 && (aconf->flags & CONF_FLAGS_TEMPORARY);
+}
 
 
 /* mo_kline()
@@ -209,6 +222,9 @@ mo_kline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(already_placed_kline(source_p, user, host, tkline_time))
 		return;
 
+	if (!propagated)
+		remove_superseded_klines(user, host);
+
 	rb_set_time();
 	aconf = make_conf();
 	aconf->status = CONF_KILL;
@@ -306,6 +322,8 @@ handle_remote_kline(struct Client *source_p, int tkline_time,
 
 	if(already_placed_kline(source_p, user, host, tkline_time))
 		return;
+
+	remove_superseded_klines(user, host);
 
 	aconf = make_conf();
 
@@ -418,25 +436,30 @@ mo_unkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 		cluster_generic(source_p, "UNKLINE", SHARED_UNKLINE, CAP_UNKLN,
 				"%s %s", user, host);
 
-	if(aconf == NULL)
+	bool removed_kline = false;
+
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_local_kline), aconf != NULL)
 	{
-		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
-		return;
+		removed_kline = true;
+
+		if(remove_temp_kline(source_p, aconf))
+			continue;
+
+		remove_permkline_match(source_p, aconf);
 	}
 
-	if(aconf->lifetime)
+	aconf = find_exact_conf_by_address(host, CONF_KILL, user);
+	if (aconf)
 	{
-		if(propagated)
+		if (propagated)
 			remove_prop_kline(source_p, aconf);
 		else
 			sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-		return;
 	}
-
-	if(remove_temp_kline(source_p, aconf))
-		return;
-
-	remove_permkline_match(source_p, aconf);
+	else if (!removed_kline)
+	{
+		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
+	}
 }
 
 /* ms_unkline()
@@ -475,23 +498,22 @@ static void
 handle_remote_unkline(struct Client *source_p, const char *user, const char *host)
 {
 	struct ConfItem *aconf;
+	bool removed_kline = false;
 
-	aconf = find_exact_conf_by_address(host, CONF_KILL, user);
-	if(aconf == NULL)
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_local_kline), aconf != NULL)
 	{
-		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
-		return;
+		removed_kline = true;
+
+		if(remove_temp_kline(source_p, aconf))
+			continue;
+
+		remove_permkline_match(source_p, aconf);
 	}
-	if(aconf->lifetime)
-	{
+
+	if (find_exact_conf_by_address(host, CONF_KILL, user))
 		sendto_one_notice(source_p, ":Cannot remove global K-Line %s@%s on specific servers", user, host);
-		return;
-	}
-
-	if(remove_temp_kline(source_p, aconf))
-		return;
-
-	remove_permkline_match(source_p, aconf);
+	else if (!removed_kline)
+		sendto_one_notice(source_p, ":No K-Line for %s@%s", user, host);
 }
 
 /* apply_kline()
@@ -734,21 +756,46 @@ already_placed_kline(struct Client *source_p, const char *luser, const char *lho
 				aconf = NULL;
 		}
 	}
-	if(aconf != NULL)
-	{
-		/* setting a tkline, or existing one is perm */
-		if(tkline || ((aconf->flags & CONF_FLAGS_TEMPORARY) == 0))
-		{
-			reason = aconf->passwd ? aconf->passwd : "<No Reason>";
 
-			sendto_one_notice(source_p,
-					  ":[%s@%s] already K-Lined by [%s@%s] - %s",
-					  luser, lhost, aconf->user, aconf->host, reason);
-			return true;
+	if (aconf == NULL)
+		return false;
+
+	/* allow klines to be duplicated by longer ones */
+	if ((aconf->flags & CONF_FLAGS_TEMPORARY) &&
+			(tkline == 0 || tkline > aconf->hold - rb_current_time()))
+		return false;
+
+	reason = aconf->passwd ? aconf->passwd : "<No Reason>";
+
+	sendto_one_notice(source_p,
+			  ":[%s@%s] already K-Lined by [%s@%s] - %s",
+			  luser, lhost, aconf->user, aconf->host, reason);
+	return true;
+}
+
+static void
+remove_superseded_klines(const char *user, const char *host)
+{
+	struct ConfItem *aconf;
+
+	while (aconf = find_exact_conf_by_address_filtered(host, CONF_KILL, user, is_temporary_kline), aconf != NULL)
+	{
+		rb_dlink_node *ptr;
+		int i;
+
+		for (i = 0; i < LAST_TEMP_TYPE; i++)
+		{
+			RB_DLINK_FOREACH(ptr, temp_klines[i].head)
+			{
+				if (aconf == ptr->data)
+				{
+					rb_dlinkDestroy(ptr, &temp_klines[i]);
+					delete_one_address_conf(aconf->host, aconf);
+					break;
+				}
+			}
 		}
 	}
-
-	return false;
 }
 
 /* remove_permkline_match()
