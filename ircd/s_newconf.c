@@ -685,30 +685,42 @@ time_t
 valid_temp_time(const char *p)
 {
 	time_t result = 0;
-	int current = 0;
-	char *ch = (char *)p, *och;
+	long current = 0;
+	char *ch = strdup(p), *och;
 
 	while (*ch) {
 		och = ch;
 		current = strtol(ch, &ch, 10);
+		if (errno == ERANGE)
+			return -1;
 		if (och == ch)
 			/* No numbers were given so return invalid */
 			return -1;
 		if (current) {
 			switch (*ch++) {
 				case '\0':
-					/* No unit was given so send it back as seconds */
+					/* No unit was given so send it back as minutes */
+					if (errno == ERANGE)
+						return -1;
 					return (current * 60);
 				case 'm':
+					if (errno == ERANGE)
+						return -1;
 					result += (current * 60);
 					break;
 				case 'h':
+					if (errno == ERANGE)
+						return -1;
 					result += (current * 3600);
 					break;
 				case 'd':
+					if (errno == ERANGE)
+						return -1;
 					result += (current * 86400);
 					break;
 				case 'w':
+					if (errno == ERANGE)
+						return -1;
 					result += (current * 604800);
 					break;
 				default:
@@ -717,6 +729,8 @@ valid_temp_time(const char *p)
 			}
 		}
 	}
+	if(result > (60 * 24 * 7 * 52))
+		result = (60 * 24 * 7 * 52);
 	return result;
 }
 
