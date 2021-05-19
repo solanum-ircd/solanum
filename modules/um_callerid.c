@@ -102,6 +102,10 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	if (IsServer(source_p))
 		return true;
 
+	/* always allow services through */
+	if (IsService(source_p))
+		return true;
+
 	/* XXX: controversial?  allow opers to send through +g */
 	if (HasPrivilege(source_p, "oper:message"))
 		return true;
