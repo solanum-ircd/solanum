@@ -540,7 +540,7 @@ void
 deref_conf(struct ConfItem *aconf)
 {
 	aconf->clients--;
-	if(!aconf->clients && IsIllegal(aconf))
+	if(!aconf->clients && IsIllegal(aconf) && !lookup_prop_ban(aconf))
 		free_conf(aconf);
 }
 
