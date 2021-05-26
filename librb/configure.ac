@@ -623,7 +623,7 @@ fi
 	if test x$ac_cv_header_sys_time_h = xyes; then
 		rb_sys_time_h=yes
 	fi
-	if test x$ac_cv_header_time = xyes; then
+	if test x$ac_cv_header_time_h = xyes; then
 		rb_time_h=yes
 	fi
 
