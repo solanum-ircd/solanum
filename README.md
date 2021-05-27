@@ -1,4 +1,4 @@
-# solanum [![Build Status](https://github.com/solanum-ircd/solanum/workflows/CI/badge.svg)]
+# solanum ![Build Status](https://github.com/solanum-ircd/solanum/workflows/CI/badge.svg)
 
 Solanum is an IRCv3 server designed to be highly scalable.  It implements IRCv3.1 and some parts of IRCv3.2.
 
@@ -96,7 +96,7 @@ See `./configure --help` for build options.
 
 # tips
 
- * To report bugs in solanum, visit us at chat.freenode.net #solanum
+ * To report bugs in solanum, visit us at irc.libera.chat #solanum
 
  * Please read doc/index.txt to get an overview of the current documentation.
 
