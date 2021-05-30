@@ -639,8 +639,8 @@ rb_radixtree_foreach_start_from(rb_radixtree *dtree, rb_radixtree_iteration_stat
 
 	if (key != NULL)
 	{
-		STATE_CUR(state) = NULL;
 		STATE_NEXT(state) = rb_radixtree_elem_find(dtree, key, 1);
+		STATE_CUR(state) = STATE_NEXT(state);
 
 		/* make STATE_CUR point to selected item and STATE_NEXT point to
 		 * next item in the tree */
