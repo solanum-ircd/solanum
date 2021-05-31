@@ -1,7 +1,7 @@
 account-notify client capability specification
 ----------------------------------------------
 
-Copyright (c) 2010 William Pitcock <nenolod@atheme.org>.
+Copyright (c) 2010 Ariadne Conill <ariadne@dereferenced.org>.
 
 Unlimited redistribution and modification of this document is allowed
 provided that the above copyright notice and this permission notice
