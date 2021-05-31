@@ -68,6 +68,7 @@ extension_LTLIBRARIES =		\
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
+  m_invex_regonly.la		\
   example_module.la
 
 if HAVE_HYPERSCAN
