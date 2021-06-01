@@ -2,7 +2,7 @@
  *  wsockd.c: solanum websockets helper
  *  Copyright (C) 2007 Aaron Sethman <androsyn@ratbox.org>
  *  Copyright (C) 2007 ircd-ratbox development team
- *  Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>
+ *  Copyright (C) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

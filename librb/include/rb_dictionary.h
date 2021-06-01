@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * rb_dictionary.h: Dictionary-based storage.
  *
- * Copyright (c) 2007 William Pitcock <nenolod -at- sacredspiral.co.uk>
+ * Copyright (c) 2007 Ariadne Conill <ariadne -at- dereferenced.org>
  * Copyright (c) 2007 Jilles Tjoelker <jilles -at- stack.nl>
  *
  * Permission to use, copy, modify, and/or distribute this software for any

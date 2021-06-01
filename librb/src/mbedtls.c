@@ -4,7 +4,7 @@
  *
  *  Copyright (C) 2007-2008 ircd-ratbox development team
  *  Copyright (C) 2007-2008 Aaron Sethman <androsyn@ratbox.org>
- *  Copyright (C) 2015 William Pitcock <nenolod@dereferenced.org>
+ *  Copyright (C) 2015 Ariadne Conill <ariadne@dereferenced.org>
  *  Copyright (C) 2016 Aaron Jones <aaronmdjones@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
