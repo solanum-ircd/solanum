@@ -370,13 +370,13 @@ rb_make_certfp(const mbedtls_x509_crt *const peer_cert, uint8_t certfp[const RB_
 	int ret;
 	void* data = peer_cert->raw.p;
 	size_t datalen = peer_cert->raw.len;
+	unsigned char der_pubkey[8192];
 
 	if(spki)
 	{
 		// Compiler may complain about dropping const qualifier on the cast below
 		// See <https://github.com/ARMmbed/mbedtls/issues/396> -- this is okay
 
-		unsigned char der_pubkey[8192];
 		if((ret = mbedtls_pk_write_pubkey_der((mbedtls_pk_context *)&peer_cert->pk,
 		                                       der_pubkey, sizeof der_pubkey)) < 0)
 		{
