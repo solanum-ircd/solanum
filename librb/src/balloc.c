@@ -61,16 +61,6 @@ static void _rb_bh_fail(const char *reason, const char *file, int line) __attrib
 
 static uintptr_t offset_pad;
 
-/* status information for an allocated block in heap */
-struct rb_heap_block
-{
-	size_t alloc_size;
-	rb_dlink_node node;
-	unsigned long free_count;
-	void *elems;		/* Points to allocated memory */
-};
-typedef struct rb_heap_block rb_heap_block;
-
 /* information for the root node of the heap */
 struct rb_bh
 {
