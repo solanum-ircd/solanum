@@ -202,7 +202,7 @@ m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 		sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s H %s %s %c",
 					me.id, saslserv_p->servptr->name, source_p->id, saslserv_p->id,
 					source_p->host, source_p->sockhost,
-					IsSSL(source_p) ? 'S' : 'P');
+					IsSecure(source_p) ? 'S' : 'P');
 
 		if (source_p->certfp != NULL)
 			sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s S %s %s",
