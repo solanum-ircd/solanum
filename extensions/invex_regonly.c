@@ -38,8 +38,9 @@ h_can_join(hook_data_channel *data)
 		invex = ptr->data;
 		if (matches_mask(&ms, invex->banstr) ||
 				match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
+		{
+			data->approved = 0;
 			break;
+		}
 	}
-	if(ptr != NULL)
-		data->approved=0;
 }
