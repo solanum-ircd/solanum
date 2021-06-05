@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * rb_radixtree.c: Dictionary-based information storage.
  *
- * Copyright (c) 2007-2016 William Pitcock <nenolod -at- dereferenced.org>
+ * Copyright (c) 2007-2016 Ariadne Conill <ariadne -at- dereferenced.org>
  * Copyright (c) 2007-2016 Jilles Tjoelker <jilles -at- stack.nl>
  *
  * Redistribution and use in source and binary forms, with or without

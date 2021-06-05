@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2005 Lee Hardy <lee -at- leeh.co.uk>
  * Copyright (C) 2005-2016 ircd-ratbox development team
- * Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>
+ * Copyright (C) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
