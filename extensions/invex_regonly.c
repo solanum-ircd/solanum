@@ -26,12 +26,12 @@ h_can_join(hook_data_channel *data)
 	struct matchset ms;
 	rb_dlink_node *ptr;
 	
-	matchset_for_client(source_p, &ms);
-
 	if(data->approved != ERR_NEEDREGGEDNICK)
 		return;
 	if(!ConfigChannel.use_invex)
 		return;
+
+	matchset_for_client(source_p, &ms);
 
 	RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
 	{
@@ -43,4 +43,3 @@ h_can_join(hook_data_channel *data)
 	if(ptr != NULL)
 		data->approved=0;
 }
-
