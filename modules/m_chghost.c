@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 William Pitcock <nenolod -at- nenolod.net>
+ * Copyright (c) 2005 Ariadne Conill <ariadne -at- dereferenced.org>
  * and Jilles Tjoelker <jilles -at- stack.nl>
  * All rights reserved.
  *

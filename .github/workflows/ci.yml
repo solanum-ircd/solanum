@@ -6,11 +6,19 @@ on:
       - main
     paths-ignore:
       - 'doc/oper-guide/**'
+      - 'CREDITS'
+      - 'LICENSE'
+      - 'NEWS.md'
+      - 'README.md'
   pull_request:
     branches:
       - main
     paths-ignore:
       - 'doc/oper-guide/**'
+      - 'CREDITS'
+      - 'LICENSE'
+      - 'NEWS.md'
+      - 'README.md'
 
 jobs:
   linux:
