@@ -60,10 +60,10 @@ These are known issues and workarounds for supported platforms.
 
  * **FreeBSD**: if you are compiling with ipv6 you may experience
    problems with ipv4 due to the way the socket code is written.  To
-   fix this you must: "sysctl net.inet6.ip6.v6only=0"
+   fix this you must: `sysctl net.inet6.ip6.v6only=0`
 
- * **Solaris**: you may have to set your PATH to include /usr/gnu/bin and /usr/gnu/sbin before /usr/bin
-   and /usr/sbin. Solaris's default tools don't seem to play nicely with the configure script.
+ * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
+   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script.
 
 # building
 
@@ -81,10 +81,10 @@ See `./configure --help` for build options.
 
  * For SSL/TLS client and server connections, one of:
 
-   * OpenSSL 1.0.0 or newer (--enable-openssl)
-   * LibreSSL (--enable-openssl)
-   * mbedTLS (--enable-mbedtls)
-   * GnuTLS (--enable-gnutls)
+   * OpenSSL 1.0.0 or newer (`--enable-openssl`)
+   * LibreSSL (`--enable-openssl`)
+   * mbedTLS (`--enable-mbedtls`)
+   * GnuTLS (`--enable-gnutls`)
 
  * For certificate-based oper CHALLENGE, OpenSSL 1.0.0 or newer.
    (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
@@ -96,16 +96,16 @@ See `./configure --help` for build options.
 
 # tips
 
- * To report bugs in solanum, visit us at irc.libera.chat #solanum
+ * To report bugs in Solanum, visit us at `#solanum` on [Libera Chat](https://libera.chat)
 
- * Please read doc/index.txt to get an overview of the current documentation.
+ * Please read [doc/index.txt](doc/index.txt) to get an overview of the current documentation.
 
- * Read the NEWS file for what's new in this release.
+ * Read the [NEWS.md](NEWS.md) file for what's new in this release.
 
- * The files, /etc/services, /etc/protocols, and /etc/resolv.conf, SHOULD be
+ * The files, `/etc/services`, `/etc/protocols`, and `/etc/resolv.conf`, SHOULD be
    readable by the user running the server in order for ircd to start with
-   the correct settings.  If these files are wrong, solanum will try to use
-   127.0.0.1 for a resolver as a last-ditch effort.
+   the correct settings.  If these files are wrong, Solanum will try to use
+   `127.0.0.1` for a resolver as a last-ditch effort.
 
 # git access
 

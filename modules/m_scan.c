@@ -2,7 +2,7 @@
  *  Solanum: a slightly advanced ircd
  *  m_scan.c: Provides information about various targets on various topics
  *
- *  Copyright (c) 2006 William Pitcock <nenolod -at- nenolod.net>
+ *  Copyright (c) 2006 Ariadne Conill <ariadne -at- dereferenced.org>
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
