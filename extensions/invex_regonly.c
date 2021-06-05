@@ -35,10 +35,10 @@ h_can_join(hook_data_channel *data)
 
 	RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
 	{
-	invex = ptr->data;
-	if (matches_mask(&ms, invex->banstr) ||
-			match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
-				break;
+		invex = ptr->data;
+		if (matches_mask(&ms, invex->banstr) ||
+				match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
+			break;
 	}
 	if(ptr != NULL)
 		data->approved=0;
