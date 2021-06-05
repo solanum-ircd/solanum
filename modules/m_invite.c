@@ -218,9 +218,7 @@ m_invite(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		}
 
 		add_reply_target(target_p, source_p);
-		sendto_one(target_p, ":%s!%s@%s INVITE %s :%s",
-			   source_p->name, source_p->username, source_p->host,
-			   target_p->name, chptr->chname);
+		sendto_anywhere(target_p, source_p, "INVITE", ":%s", chptr->chname);
 
 		if(store_invite)
 			add_invite(chptr, target_p);
