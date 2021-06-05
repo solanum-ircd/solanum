@@ -32,16 +32,15 @@ h_can_join(hook_data_channel *data)
 		if(!ConfigChannel.use_invex)
 				return;
 
-	RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
-	{
+		RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
+		{
 		invex = ptr->data;
 		if (matches_mask(&ms, invex->banstr) ||
 				match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
 					break;
+		}
+		if(ptr != NULL)
+			data->approved=0;
 	}
-	if(ptr != NULL)
-		data->approved=0;
-	}
-
 }
 
