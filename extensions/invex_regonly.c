@@ -1,5 +1,5 @@
 /*
- * m_invex_regonly.c Allow invite exemptions to bypass registered-only (+r)
+ * invex_regonly.c Allow invite exemptions to bypass registered-only (+r)
  */
 #include "stdinc.h"
 #include "modules.h"
