@@ -293,10 +293,13 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 		sendto_one_numeric(source_p, RPL_AWAY, form_str(RPL_AWAY),
 				   target_p->name, target_p->user->away);
 
+	char *s = NULL;
+	if (IsService(target_p))
+	{
+		s = ConfigFileEntry.servicestring;
+	}
 	if (!EmptyString(target_p->user->opername) && IsOper(target_p))
 	{
-		char buf[512];
-		char *s = NULL;
 		if (target_p == source_p || HasPrivilege(source_p, "oper:privs"))
 		{
 			const char *privset = "(missing)";
@@ -312,13 +315,14 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 		}
 		else if (!ConfigFileEntry.hide_opers_in_whois && SeesOper(target_p, source_p))
 		{
-			s = IsService(target_p) ? ConfigFileEntry.servicestring :
-			    IsAdmin(target_p) ? GlobalSetOptions.adminstring :
+			s = IsAdmin(target_p) ? GlobalSetOptions.adminstring :
 			    GlobalSetOptions.operstring;
 		}
-		if (s != NULL)
-			sendto_one_numeric(source_p, RPL_WHOISOPERATOR, form_str(RPL_WHOISOPERATOR),
-					target_p->name, s);
+	}
+	if (s != NULL)
+	{
+		sendto_one_numeric(source_p, RPL_WHOISOPERATOR, form_str(RPL_WHOISOPERATOR),
+				target_p->name, s);
 	}
 
 	if(IsSecureClient(target_p))
