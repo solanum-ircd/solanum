@@ -472,14 +472,12 @@ send_capabilities(struct Client *client_p, unsigned int cap_can_send)
 static void
 burst_ban(struct Client *client_p)
 {
-	rb_dlink_node *ptr;
 	struct ConfItem *aconf;
 	const char *type;
+	rb_dictionary_iter state;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
 	{
-		aconf = ptr->data;
-
 		/* Skip expired stuff. */
 		if(aconf->lifetime < rb_current_time())
 			continue;
