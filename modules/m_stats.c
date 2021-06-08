@@ -503,15 +503,13 @@ static void
 stats_prop_klines(struct Client *source_p)
 {
 	struct ConfItem *aconf;
-	rb_dlink_node *ptr;
 	char *user, *host, *pass, *oper_reason;
+	rb_dictionary_iter state;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
 	{
-		aconf = ptr->data;
-
 		/* Skip non-klines and deactivated klines. */
-		if(aconf->status != CONF_KILL)
+		if (aconf->status != CONF_KILL)
 			continue;
 
 		get_printable_kline(source_p, aconf, &host, &pass,
