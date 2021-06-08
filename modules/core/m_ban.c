@@ -82,7 +82,6 @@ m_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 static void
 ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	rb_dlink_node *ptr;
 	struct ConfItem *aconf;
 	unsigned int ntype;
 	const char *oper, *stype;
@@ -90,6 +89,7 @@ ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	char *p;
 	int act;
 	int valid;
+	bool new = false;
 
 	now = rb_current_time();
 	if (strlen(parv[1]) != 1)
@@ -127,11 +127,10 @@ ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		oper = IsServer(source_p) ? source_p->name : get_oper_name(source_p);
 	else
 		oper = parv[7];
-	ptr = find_prop_ban(ntype, parv[2], parv[3]);
-	if (ptr != NULL)
+	aconf = find_prop_ban(ntype, parv[2], parv[3]);
+	if (aconf != NULL)
 	{
 		/* We already know about this ban mask. */
-		aconf = ptr->data;
 		if (aconf->created > created ||
 				(aconf->created == created &&
 				 aconf->lifetime >= lifetime))
@@ -158,7 +157,7 @@ ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		if (aconf->lifetime <= now)
 			return;
 		/* Deactivate, it will be reactivated later if appropriate. */
-		deactivate_conf(aconf, ptr, now);
+		deactivate_conf(aconf, now);
 		rb_free(aconf->user);
 		aconf->user = NULL;
 		rb_free(aconf->host);
@@ -176,8 +175,8 @@ ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		aconf = make_conf();
 		aconf->status = CONF_ILLEGAL | ntype;
 		aconf->lifetime = lifetime;
-		rb_dlinkAddAlloc(aconf, &prop_bans);
 		act = hold != created && hold > now;
+		new = true;
 	}
 	aconf->flags &= ~CONF_FLAGS_MYOPER;
 	aconf->flags |= CONF_FLAGS_TEMPORARY;
@@ -186,6 +185,8 @@ ms_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	aconf->info.oper = operhash_add(oper);
 	aconf->created = created;
 	aconf->hold = hold;
+	if (new)
+		add_prop_ban(aconf);
 	if (ntype != CONF_KILL || (p = strchr(parv[parc - 1], '|')) == NULL)
 		aconf->passwd = rb_strdup(parv[parc - 1]);
 	else
