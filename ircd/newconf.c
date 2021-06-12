@@ -439,6 +439,53 @@ set_modes_from_table(int *modes, const char *whatis, struct mode_table *tab, con
 }
 
 static void
+parse_umodes(const char *pm, int *values, int *mask)
+{
+	int what = MODE_ADD, flag;
+
+	*values = 0;
+
+	if (NULL != mask)
+		*mask = 0;
+
+	for (; *pm; pm++)
+	{
+		switch (*pm)
+		{
+		case '+':
+			what = MODE_ADD;
+			break;
+		case '-':
+			what = MODE_DEL;
+			break;
+
+		/* don't allow +o */
+		case 'o':
+		case 'S':
+		case 'Z':
+		case ' ':
+			break;
+
+		default:
+			flag = user_modes[(unsigned char) *pm];
+			if (flag)
+			{
+				/* Proper value has probably not yet been set
+				 * so don't check oper_only_umodes -- jilles */
+				if (what == MODE_ADD)
+					*values |= flag;
+				else
+					*values &= ~flag;
+
+				if (NULL != mask)
+					*mask |= flag;
+			}
+			break;
+		}
+	}
+}
+
+static void
 conf_set_privset_extends(void *data)
 {
 	yy_privset_extends = rb_strdup((char *) data);
@@ -1157,6 +1204,14 @@ conf_set_auth_class(void *data)
 	yy_aconf->className = rb_strdup(data);
 }
 
+static void
+conf_set_auth_umodes(void *data)
+{
+	char *umodes = data;
+
+	parse_umodes(umodes, &yy_aconf->umodes, &yy_aconf->umodes_mask);
+}
+
 static int
 conf_begin_connect(struct TopConf *tc)
 {
@@ -1546,41 +1601,9 @@ conf_set_general_compression_level(void *data)
 static void
 conf_set_general_default_umodes(void *data)
 {
-	char *pm;
-	int what = MODE_ADD, flag;
+	char *umodes = data;
 
-	ConfigFileEntry.default_umodes = 0;
-	for (pm = (char *) data; *pm; pm++)
-	{
-		switch (*pm)
-		{
-		case '+':
-			what = MODE_ADD;
-			break;
-		case '-':
-			what = MODE_DEL;
-			break;
-
-		/* don't allow +o */
-		case 'o':
-		case 'S':
-		case 'Z':
-		case ' ':
-			break;
-
-		default:
-			if ((flag = user_modes[(unsigned char) *pm]))
-			{
-				/* Proper value has probably not yet been set
-				 * so don't check oper_only_umodes -- jilles */
-				if (what == MODE_ADD)
-					ConfigFileEntry.default_umodes |= flag;
-				else
-					ConfigFileEntry.default_umodes &= ~flag;
-			}
-			break;
-		}
-	}
+	parse_umodes(umodes, &ConfigFileEntry.default_umodes, NULL);
 }
 
 static void
@@ -2607,6 +2630,7 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirserv",	CF_QSTRING, conf_set_auth_redir_serv,	0, NULL },
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
+	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
 
@@ -2744,6 +2768,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "displayed_usercount",	CF_INT, NULL, 0, &ConfigChannel.displayed_usercount	},
 	{ "strip_topic_colors",	CF_YESNO, NULL, 0, &ConfigChannel.strip_topic_colors	},
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
+	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 

@@ -2,7 +2,7 @@
  *  Solanum: a slightly advanced ircd
  *  m_snote.c: Server notice listener
  *
- *  Copyright (c) 2006 William Pitcock <nenolod -at- nenolod.net>
+ *  Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are

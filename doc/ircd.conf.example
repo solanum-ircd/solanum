@@ -29,7 +29,6 @@
 #loadmodule "extensions/m_locops";
 #loadmodule "extensions/no_oper_invis";
 #loadmodule "extensions/sno_farconnect";
-#loadmodule "extensions/sno_globalkline";
 #loadmodule "extensions/sno_globalnickchange";
 #loadmodule "extensions/sno_globaloper";
 #loadmodule "extensions/override";
@@ -232,8 +231,8 @@ auth {
  * means they must be defined before operator {}.
  */
 privset "local_op" {
-	privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, usermode:servnotice,
-		auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes;
+	privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, oper:message,
+		usermode:servnotice, auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes;
 };
 
 privset "server_bot" {

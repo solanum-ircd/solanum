@@ -43,7 +43,6 @@ extension_LTLIBRARIES =		\
   restrict-unauthenticated.la	\
   sno_channelcreate.la		\
   sno_farconnect.la		\
-  sno_globalkline.la		\
   sno_globalnickchange.la	\
   sno_globaloper.la		\
   umode_noctcp.la		\
@@ -69,6 +68,7 @@ extension_LTLIBRARIES =		\
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
+  invex_regonly.la		\
   example_module.la
 
 if HAVE_HYPERSCAN

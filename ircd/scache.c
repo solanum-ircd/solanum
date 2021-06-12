@@ -174,7 +174,7 @@ scache_send_missing(struct Client *source_p)
 	RB_RADIXTREE_FOREACH(scache_ptr, &iter, scache_tree)
 	{
 		if (!(scache_ptr->flags & SC_ONLINE) && scache_ptr->last_split > rb_current_time() - MISSING_TIMEOUT)
-			sendto_one_numeric(source_p, RPL_MAP, "** %s (recently split)",
+			sendto_one_numeric(source_p, RPL_MAP, ":** %s (recently split)",
 					   scache_ptr->name);
 	}
 }

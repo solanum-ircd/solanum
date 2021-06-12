@@ -5,7 +5,7 @@
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
  *  Copyright (C) 1996-2002 Hybrid Development Team
  *  Copyright (C) 2002-2005 ircd-ratbox development team
- *  Copyright (C) 2007 William Pitcock
+ *  Copyright (C) 2007 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -555,9 +555,9 @@ check_klines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "KLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "KLINE active for %s (%s@%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->user, aconf->host);
 
 			notify_banned_client(client_p, aconf, K_LINED);
 			continue;
@@ -638,9 +638,9 @@ check_one_kline(struct ConfItem *kline)
 			continue;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					 "KLINE active for %s",
-					 get_client_name(client_p, HIDE_IP));
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					 "KLINE active for %s (%s@%s)",
+					 get_client_name(client_p, HIDE_IP), kline->user, kline->host);
 
 		notify_banned_client(client_p, kline, K_LINED);
 	}
@@ -673,9 +673,9 @@ check_dlines(void)
 			if(aconf->status & CONF_EXEMPTDLINE)
 				continue;
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "DLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "DLINE active for %s (%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->host);
 
 			notify_banned_client(client_p, aconf, D_LINED);
 			continue;
@@ -729,8 +729,9 @@ check_xlines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "XLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+						"XLINE active for %s (%s)",
+						get_client_name(client_p, HIDE_IP), aconf->host);
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");
 			continue;
@@ -1833,7 +1834,7 @@ show_ip(struct Client *source_p, struct Client *target_p)
 		 * to local opers.
 		 */
 		if(!ConfigFileEntry.hide_spoof_ips &&
-		   (source_p == NULL || (MyConnect(source_p) && HasPrivilege(source_p, "auspex:hostname"))))
+		   (source_p == NULL || HasPrivilege(source_p, "auspex:hostname")))
 			return 1;
 		return 0;
 	}

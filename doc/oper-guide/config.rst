@@ -255,6 +255,9 @@ flags
 class
     A name of a class to put users matching this auth{} block into.
 
+umodes
+    Additional umodes to apply to the default_umodes upon connect.
+
 auth {} flags
 ~~~~~~~~~~~~~
 

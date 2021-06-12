@@ -1,6 +1,6 @@
 /*
  * solanum - an advanced ircd.
- * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>.
+ * Copyright (c) 2016 Ariadne Conill <ariadne@dereferenced.org>.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -440,6 +440,7 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 	struct MsgBuf_cache_entry *entry = cache->head;
 	struct MsgBuf_cache_entry *prev = NULL;
 	struct MsgBuf_cache_entry *result = NULL;
+	struct MsgBuf_cache_entry *tail = NULL;
 	int n = 0;
 
 	while (entry != NULL) {
@@ -449,6 +450,7 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 			break;
 		}
 
+		tail = prev;
 		prev = entry;
 		entry = entry->next;
 		n++;
@@ -462,6 +464,8 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 		} else {
 			/* Cache full, replace the last entry */
 			result = prev;
+			if (tail != NULL)
+				tail->next = NULL;
 			prev = NULL;
 
 			rb_linebuf_donebuf(&result->linebuf);

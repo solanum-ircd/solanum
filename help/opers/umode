@@ -16,6 +16,8 @@ User modes: (* designates that the umode is oper only)
        * +a     - Is marked as a server admin in whois.
        * +l     - Can see oper locops (local wallops).
        * +s     - Can see server notices (see /quote help snomask).
+       ? +u     - Receive messages that are filtered server side based
+                  on content
        * +z     - Can see operwalls.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
