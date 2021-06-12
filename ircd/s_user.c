@@ -598,7 +598,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	umodes |= aconf->umodes;
 	umodes &= ~ConfigFileEntry.oper_only_umodes;
 	umodes &= ~orphaned_umodes;
-	source_p->umodes = umodes;
+	source_p->umodes |= umodes;
 
 	call_hook(h_new_local_user, source_p);
 
