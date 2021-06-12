@@ -412,5 +412,10 @@ send_signon(struct Client *client_p, struct Client *target_p,
 
 	rb_strlcpy(target_p->user->suser, login, sizeof(target_p->user->suser));
 
+	if (irccmp(target_p->orighost, host))
+		SetDynSpoof(target_p);
+	else
+		ClearDynSpoof(target_p);
+
 	change_nick_user_host(target_p, nick, user, host, newts, "Signing %s (%s)", *login ?  "in" : "out", nick);
 }
