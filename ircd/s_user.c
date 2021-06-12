@@ -351,7 +351,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	char tmpstr2[BUFSIZE];
 	char ipaddr[HOSTIPLEN];
 	char myusername[USERLEN+1];
-	int status;
+	int status, umodes;
 
 	s_assert(NULL != source_p);
 	s_assert(MyConnect(source_p));
@@ -594,11 +594,11 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 			SetDynSpoof(source_p);
 	}
 
-	source_p->umodes
-	  |= ( (ConfigFileEntry.default_umodes & ~aconf->umodes_mask)
-	     | (aconf->umodes                  &  aconf->umodes_mask))
-          & ~ConfigFileEntry.oper_only_umodes
-	  & ~orphaned_umodes;
+	umodes = ConfigFileEntry.default_umodes & ~aconf->umodes_mask;
+	umodes |= aconf->umodes;
+	umodes &= ~ConfigFileEntry.oper_only_umodes;
+	umodes &= ~orphaned_umodes;
+	source_p->umodes = umodes;
 
 	call_hook(h_new_local_user, source_p);
 
