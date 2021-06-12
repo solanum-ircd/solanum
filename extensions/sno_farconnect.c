@@ -57,10 +57,11 @@ h_gcn_new_remote_user(struct Client *source_p)
 	if (!HasSentEob(source_p->servptr))
 		return;
 	sendto_realops_snomask_from(snomask_modes['F'], L_ALL, source_p->servptr,
-			"Client connecting: %s (%s@%s) [%s] {%s} [%s]",
+			"Client connecting: %s (%s@%s) [%s] {%s} <%s> [%s]",
 			source_p->name, source_p->username, source_p->orighost,
 			show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255",
-			"?", source_p->info);
+			"?", *source_p->user->suser ? source_p->user->suser : "*",
+			source_p->info);
 }
 
 static void
