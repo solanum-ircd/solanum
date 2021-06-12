@@ -467,7 +467,8 @@ parse_umodes(const char *pm, int *values, int *mask)
 			break;
 
 		default:
-			if ((flag = user_modes[(unsigned char) *pm]))
+			flag = user_modes[(unsigned char) *pm];
+			if (flag)
 			{
 				/* Proper value has probably not yet been set
 				 * so don't check oper_only_umodes -- jilles */
