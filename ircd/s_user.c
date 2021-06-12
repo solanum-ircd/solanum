@@ -595,8 +595,8 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	}
 
 	source_p->umodes
-	  |= (ConfigFileEntry.default_umodes & ~aconf->umodes_mask |
-	      aconf->umodes                  &  aconf->umodes_mask )
+	  |= ( (ConfigFileEntry.default_umodes & ~aconf->umodes_mask)
+	     | (aconf->umodes                  &  aconf->umodes_mask))
           & ~ConfigFileEntry.oper_only_umodes
 	  & ~orphaned_umodes;
 
