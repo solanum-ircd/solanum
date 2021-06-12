@@ -443,6 +443,8 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 	struct MsgBuf_cache_entry *tail = NULL;
 	int n = 0;
 
+	caps &= cache->overall_capmask;
+
 	while (entry != NULL) {
 		if (entry->caps == caps) {
 			/* Cache hit */
