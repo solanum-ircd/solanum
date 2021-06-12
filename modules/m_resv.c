@@ -228,7 +228,7 @@ parse_resv(struct Client *source_p, const char *name, const char *reason, int te
 			aconf->hold = rb_current_time() + temp_time;
 			aconf->lifetime = aconf->hold;
 			replace_old_ban(aconf);
-			rb_dlinkAddAlloc(aconf, &prop_bans);
+			add_prop_ban(aconf);
 
 			sendto_realops_snomask(SNO_GENERAL, L_ALL,
 					       "%s added global %d min. RESV for [%s] [%s]",
@@ -312,7 +312,7 @@ parse_resv(struct Client *source_p, const char *name, const char *reason, int te
 			aconf->hold = rb_current_time() + temp_time;
 			aconf->lifetime = aconf->hold;
 			replace_old_ban(aconf);
-			rb_dlinkAddAlloc(aconf, &prop_bans);
+			add_prop_ban(aconf);
 
 			sendto_realops_snomask(SNO_GENERAL, L_ALL,
 					       "%s added global %d min. RESV for [%s] [%s]",
@@ -511,8 +511,7 @@ remove_resv(struct Client *source_p, const char *name, int propagated)
 				sendto_one_notice(source_p, ":Cannot remove global RESV %s on specific servers", name);
 				return;
 			}
-			ptr = rb_dlinkFind(aconf, &prop_bans);
-			if(ptr == NULL)
+			if (!lookup_prop_ban(aconf))
 				return;
 			sendto_one_notice(source_p, ":RESV for [%s] is removed", name);
 			sendto_realops_snomask(SNO_GENERAL, L_ALL,
@@ -534,7 +533,7 @@ remove_resv(struct Client *source_p, const char *name, int propagated)
 					(unsigned long)aconf->created,
 					0,
 					(int)(aconf->lifetime - aconf->created));
-			deactivate_conf(aconf, ptr, now);
+			deactivate_conf(aconf, now);
 			return;
 		}
 		else if(propagated && rb_dlink_list_length(&cluster_conf_list) > 0)
@@ -585,8 +584,7 @@ remove_resv(struct Client *source_p, const char *name, int propagated)
 				sendto_one_notice(source_p, ":Cannot remove global RESV %s on specific servers", name);
 				return;
 			}
-			ptr = rb_dlinkFind(aconf, &prop_bans);
-			if(ptr == NULL)
+			if (!lookup_prop_ban(aconf))
 				return;
 			sendto_one_notice(source_p, ":RESV for [%s] is removed", name);
 			sendto_realops_snomask(SNO_GENERAL, L_ALL,
@@ -608,7 +606,7 @@ remove_resv(struct Client *source_p, const char *name, int propagated)
 					(unsigned long)aconf->created,
 					0,
 					(int)(aconf->lifetime - aconf->created));
-			deactivate_conf(aconf, ptr, now);
+			deactivate_conf(aconf, now);
 			return;
 		}
 		else if(propagated && rb_dlink_list_length(&cluster_conf_list) > 0)

@@ -472,14 +472,12 @@ send_capabilities(struct Client *client_p, unsigned int cap_can_send)
 static void
 burst_ban(struct Client *client_p)
 {
-	rb_dlink_node *ptr;
 	struct ConfItem *aconf;
 	const char *type;
+	rb_dictionary_iter state;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
 	{
-		aconf = ptr->data;
-
 		/* Skip expired stuff. */
 		if(aconf->lifetime < rb_current_time())
 			continue;
@@ -622,11 +620,18 @@ burst_TS6(struct Client *client_p)
 				   use_id(target_p),
 				   target_p->user->away);
 
-		if(IsOper(target_p) && target_p->user && target_p->user->opername && target_p->user->privset)
-			sendto_one(client_p, ":%s OPER %s %s",
-					use_id(target_p),
-					target_p->user->opername,
-					target_p->user->privset->name);
+		if (IsOper(target_p) && target_p->user && target_p->user->opername)
+		{
+			if (target_p->user->privset)
+				sendto_one(client_p, ":%s OPER %s %s",
+						use_id(target_p),
+						target_p->user->opername,
+						target_p->user->privset->name);
+			else
+				sendto_one(client_p, ":%s OPER %s",
+						use_id(target_p),
+						target_p->user->opername);
+		}
 
 		hclientinfo.target = target_p;
 		call_hook(h_burst_client, &hclientinfo);

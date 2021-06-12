@@ -20,8 +20,8 @@ X f - Shows File Descriptors
 ^ i - Shows auth blocks (Old I: lines)
 ^ K - Shows K lines (or matched klines)
 ^ k - Shows temporary K lines (or matched klines)
-  L - Shows IP and generic info about [nick]
-  l - Shows hostname and generic info about [nick]
+^ L - Shows IP and generic info about [nick]
+^ l - Shows hostname and generic info about [nick]
   m - Shows commands and their usage
   n - Shows DNS blacklists
 * O - Shows privset blocks
