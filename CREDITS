@@ -1,10 +1,10 @@
 Solanum is based on Charybdis, which was based on ircd-ratbox.
 
-Development is led by a group of representatives from freenode
+Development is led by a group of representatives from Libera Chat
 and OFTC:
 
 dwfreed, Doug Freed <dwfreed@mtu.edu>
-edk, Ed Kellett <edk@freenode.net>
+edk, Ed Kellett <edk@libera.chat>
 tomaw, Tom Wesley <tom@tomaw.net>
 
 The Charybdis team was:
