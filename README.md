@@ -81,8 +81,8 @@ See `./configure --help` for build options.
 
 # git access
 
- * The Solanum GIT repository can be checked out using the following command:
+ * The Solanum git repository can be checked out using the following command:
 	`git clone https://github.com/solanum-ircd/solanum`
 
- * Solanum's GIT repository can be browsed over the Internet at the following address:
+ * Solanum's git repository can be browsed over the Internet at the following address:
 	https://github.com/solanum-ircd/solanum
