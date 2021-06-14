@@ -653,9 +653,10 @@ void matchset_for_client(struct Client *who, struct matchset *m)
 	if (!hide_ip && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
 			rb_ipv4_from_ipv6((const struct sockaddr_in6 *)&who->localClient->ip, &ip4))
 	{
-		int n = sprintf(m->ip[ipn++], "%s!%s@", who->name, who->username);
+		int n = sprintf(m->ip[ipn], "%s!%s@", who->name, who->username);
 		rb_inet_ntop_sock((struct sockaddr *)&ip4,
 				m->ip[ipn] + n, sizeof m->ip[ipn] - n);
+		ipn++;
 	}
 
 	for (int i = hostn; i < ARRAY_SIZE(m->host); i++)

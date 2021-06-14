@@ -159,6 +159,12 @@ read_ident_reply(rb_fde_t *F, void *data)
 			message = REPORT_INVALID;
 	}
 
+	if (*auth->username == '\0')
+	{
+		auth->username[0] = '*';
+		auth->username[1] = '\0';
+	}
+
 	if(s == NULL)
 		client_fail(auth, message);
 	else
