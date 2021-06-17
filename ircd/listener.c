@@ -480,6 +480,7 @@ close_listeners()
 		listener_next = listener->next;
 		close_listener(listener);
 	}
+	rb_select(1);
 }
 
 /*
