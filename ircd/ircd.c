@@ -353,18 +353,6 @@ initialize_global_set_options(void)
 
 }
 
-/*
- * initialize_server_capabs
- *
- * inputs       - none
- * output       - none
- */
-static void
-initialize_server_capabs(void)
-{
-	default_server_capabs &= ~CAP_ZIP;
-}
-
 #ifdef _WIN32
 /*
  * relocate_paths
@@ -786,7 +774,6 @@ solanum_main(int argc, char * const argv[])
 
 	rehash_bans();
 
-	initialize_server_capabs();	/* Set up default_server_capabs */
 	initialize_global_set_options();
 
 	if(ServerInfo.name == NULL)
