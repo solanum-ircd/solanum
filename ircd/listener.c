@@ -5,6 +5,7 @@
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
  *  Copyright (C) 1996-2002 Hybrid Development Team
  *  Copyright (C) 2002-2005 ircd-ratbox development team
+ *  Copyright (C) 2021 Ariadne Conill
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,7 +44,7 @@
 #include "s_assert.h"
 #include "logger.h"
 
-static struct Listener *ListenerPollList = NULL;
+static rb_dlink_list listener_list = {};
 static int accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, void *data);
 static void accept_callback(rb_fde_t *F, int status, struct sockaddr *addr, rb_socklen_t addrlen, void *data);
 static SSL_OPEN_CB accept_sslcallback;
@@ -57,7 +58,6 @@ make_listener(struct rb_sockaddr_storage *addr)
 	listener->F = NULL;
 
 	memcpy(&listener->addr, addr, sizeof(listener->addr));
-	listener->next = NULL;
 	return listener;
 }
 
@@ -67,25 +67,8 @@ free_listener(struct Listener *listener)
 	s_assert(NULL != listener);
 	if(listener == NULL)
 		return;
-	/*
-	 * remove from listener list
-	 */
-	if(listener == ListenerPollList)
-		ListenerPollList = listener->next;
-	else
-	{
-		struct Listener *prev = ListenerPollList;
-		for (; prev; prev = prev->next)
-		{
-			if(listener == prev->next)
-			{
-				prev->next = listener->next;
-				break;
-			}
-		}
-	}
 
-	/* free */
+	rb_dlinkDelete(&listener->lnode, &listener_list);
 	rb_free(listener);
 }
 
@@ -122,10 +105,12 @@ get_listener_name(const struct Listener *listener)
 void
 show_ports(struct Client *source_p)
 {
-	struct Listener *listener = 0;
+	rb_dlink_node *n;
 
-	for (listener = ListenerPollList; listener; listener = listener->next)
+	RB_DLINK_FOREACH(n, listener_list.head)
 	{
+		struct Listener *listener = n->data;
+
 		sendto_one_numeric(source_p, RPL_STATSPLINE,
 			   form_str(RPL_STATSPLINE), 'P',
 			   get_listener_port(listener),
@@ -237,10 +222,12 @@ inetport(struct Listener *listener)
 static struct Listener *
 find_listener(struct rb_sockaddr_storage *addr, int sctp)
 {
-	struct Listener *listener = NULL;
+	rb_dlink_node *n;
 	struct Listener *last_closed = NULL;
 
-	for (listener = ListenerPollList; listener; listener = listener->next) {
+	RB_DLINK_FOREACH(n, listener_list.head) {
+		struct Listener *listener = n->data;
+
 		if (listener->sctp != sctp)
 			continue;
 
@@ -353,8 +340,7 @@ add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_
 			return;
 	} else {
 		listener = make_listener(vaddr);
-		listener->next = ListenerPollList;
-		ListenerPollList = listener;
+		rb_dlinkAdd(listener, &listener->lnode, &listener_list);
 	}
 
 	listener->F = NULL;
@@ -424,8 +410,7 @@ add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ss
 			return;
 	} else {
 		listener = make_listener(vaddr);
-		listener->next = ListenerPollList;
-		ListenerPollList = listener;
+		rb_dlinkAdd(listener, &listener->lnode, &listener_list);
 	}
 
 	listener->F = NULL;
@@ -468,18 +453,20 @@ close_listener(struct Listener *listener)
  * close_listeners - close and free all listeners that are not being used
  */
 void
-close_listeners()
+close_listeners(void)
 {
-	struct Listener *listener;
-	struct Listener *listener_next = 0;
+	rb_dlink_node *n, *tn;
+
 	/*
 	 * close all 'extra' listening ports we have
 	 */
-	for (listener = ListenerPollList; listener; listener = listener_next)
+	RB_DLINK_FOREACH_SAFE(n, tn, listener_list.head)
 	{
-		listener_next = listener->next;
+		struct Listener *listener = n->data;
+
 		close_listener(listener);
 	}
+
 	rb_close_pending_fds();
 }
 
