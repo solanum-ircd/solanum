@@ -895,7 +895,7 @@ start_zlib_session(void *data)
 	}
 
 	buf = rb_malloc(len);
-	level = ConfigFileEntry.compression_level;
+	level = 4;
 
 	uint32_to_buf(&buf[1], rb_get_fd(server->localClient->F));
 	buf[5] = (char) level;
