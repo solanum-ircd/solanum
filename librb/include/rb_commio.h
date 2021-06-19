@@ -90,6 +90,7 @@ rb_fde_t *rb_open(int, uint8_t, const char *);
 void rb_close(rb_fde_t *);
 void rb_dump_fd(DUMPCB *, void *xdata);
 void rb_note(rb_fde_t *, const char *);
+void rb_close_pending_fds(void);
 
 /* Type of IO */
 #define	RB_SELECT_READ		0x1

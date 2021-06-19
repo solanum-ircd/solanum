@@ -100,8 +100,8 @@ remove_fd(rb_fde_t *F)
 	rb_dlinkMoveNode(&F->node, &rb_fd_table[rb_hash_fd(F->fd)], &closed_list);
 }
 
-static void
-free_fds(void)
+void
+rb_close_pending_fds(void)
 {
 	rb_fde_t *F;
 	rb_dlink_node *ptr, *next;
@@ -2239,7 +2239,7 @@ int
 rb_select(unsigned long timeout)
 {
 	int ret = select_handler(timeout);
-	free_fds();
+	rb_close_pending_fds();
 	return ret;
 }
 
