@@ -35,9 +35,6 @@
 #include "packet.h"
 #include "certfp.h"
 
-#define ZIPSTATS_TIME           60
-
-static void collect_zipstats(void *unused);
 static void ssl_read_ctl(rb_fde_t * F, void *data);
 static int ssld_count;
 
@@ -350,41 +347,6 @@ start_ssldaemon(int count)
 }
 
 static void
-ssl_process_zipstats(ssl_ctl_t * ctl, ssl_ctl_buf_t * ctl_buf)
-{
-	struct Client *server;
-	struct ZipStats *zips;
-	char *parv[6];
-	int parc = rb_string_to_array(ctl_buf->buf, parv, sizeof(parv));
-
-	if (parc < sizeof(parv))
-		return;
-
-	server = find_server(NULL, parv[1]);
-	if(server == NULL || server->localClient == NULL || !IsCapable(server, CAP_ZIP))
-		return;
-	if(server->localClient->zipstats == NULL)
-		server->localClient->zipstats = rb_malloc(sizeof(struct ZipStats));
-
-	zips = server->localClient->zipstats;
-
-	zips->in += strtoull(parv[2], NULL, 10);
-	zips->in_wire += strtoull(parv[3], NULL, 10);
-	zips->out += strtoull(parv[4], NULL, 10);
-	zips->out_wire += strtoull(parv[5], NULL, 10);
-
-	if(zips->in > 0)
-		zips->in_ratio = ((double) (zips->in - zips->in_wire) / (double) zips->in) * 100.00;
-	else
-		zips->in_ratio = 0;
-
-	if(zips->out > 0)
-		zips->out_ratio = ((double) (zips->out - zips->out_wire) / (double) zips->out) * 100.00;
-	else
-		zips->out_ratio = 0;
-}
-
-static void
 ssl_process_open_fd(ssl_ctl_t * ctl, ssl_ctl_buf_t * ctl_buf)
 {
 	struct Client *client_p;
@@ -565,9 +527,6 @@ ssl_process_cmd_recv(ssl_ctl_t * ctl)
 			break;
 		case 'F':
 			ssl_process_certfp(ctl, ctl_buf);
-			break;
-		case 'S':
-			ssl_process_zipstats(ctl, ctl_buf);
 			break;
 		case 'I':
 			ircd_ssl_ok = false;
@@ -944,35 +903,6 @@ start_zlib_session(void *data)
 }
 
 static void
-collect_zipstats(void *unused)
-{
-	rb_dlink_node *ptr;
-	struct Client *target_p;
-	char buf[sizeof(uint8_t) + sizeof(uint32_t) + HOSTLEN];
-	void *odata;
-	size_t len;
-	uint32_t id;
-
-	buf[0] = 'S';
-	odata = buf + sizeof(uint8_t) + sizeof(uint32_t);
-
-	RB_DLINK_FOREACH(ptr, serv_list.head)
-	{
-		target_p = ptr->data;
-		if(IsCapable(target_p, CAP_ZIP))
-		{
-			len = sizeof(uint8_t) + sizeof(uint32_t);
-
-			id = rb_get_fd(target_p->localClient->F);
-			uint32_to_buf(&buf[1], id);
-			rb_strlcpy(odata, target_p->name, (sizeof(buf) - len));
-			len += strlen(odata) + 1;	/* Get the \0 as well */
-			ssl_cmd_write_queue(target_p->localClient->z_ctl, NULL, 0, buf, len);
-		}
-	}
-}
-
-static void
 cleanup_dead_ssl(void *unused)
 {
 	rb_dlink_node *ptr, *next;
@@ -1011,6 +941,5 @@ ssld_foreach_info(void (*func)(void *data, pid_t pid, int cli_count, enum ssld_s
 void
 init_ssld(void)
 {
-	rb_event_addish("collect_zipstats", collect_zipstats, NULL, ZIPSTATS_TIME);
 	rb_event_addish("cleanup_dead_ssld", cleanup_dead_ssl, NULL, 60);
 }
