@@ -1570,24 +1570,6 @@ conf_set_general_stats_l_oper_only(void *data)
 }
 
 static void
-conf_set_general_compression_level(void *data)
-{
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = *(unsigned int *) data;
-
-	if((ConfigFileEntry.compression_level < 1) || (ConfigFileEntry.compression_level > 9))
-	{
-		conf_report_error
-			("Invalid general::compression_level %d -- using default.",
-			 ConfigFileEntry.compression_level);
-		ConfigFileEntry.compression_level = 0;
-	}
-#else
-	conf_report_error("Ignoring general::compression_level -- zlib not available.");
-#endif
-}
-
-static void
 conf_set_general_default_umodes(void *data)
 {
 	char *umodes = data;
@@ -2642,7 +2624,6 @@ static struct ConfEntry conf_general_table[] =
 	{ "oper_only_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_only_umodes, 0, NULL },
 	{ "oper_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_umodes,	 0, NULL },
 	{ "oper_snomask",	CF_QSTRING, conf_set_general_oper_snomask, 0, NULL },
-	{ "compression_level", 	CF_INT,    conf_set_general_compression_level,	0, NULL },
 	{ "havent_read_conf", 	CF_YESNO,  conf_set_general_havent_read_conf,	0, NULL },
 	{ "hide_error_messages",CF_STRING, conf_set_general_hide_error_messages,0, NULL },
 	{ "stats_i_oper_only", 	CF_STRING, conf_set_general_stats_i_oper_only,	0, NULL },
