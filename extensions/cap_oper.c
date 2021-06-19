@@ -76,7 +76,7 @@ cap_oper_outbound_msgbuf(void *data_)
 	{
 		/* send all oper data to auspex */
 		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->client->user->opername, CLICAP_OPER_AUSPEX);
-		if (HasPrivilege(data->client, "oper:hidden"))
+		if (HasPrivilege(data->client, "oper:hidden") || ConfigFileEntry.hide_opers)
 			/* these people aren't allowed to see hidden opers */
 			return;
 		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->client->user->opername, CLICAP_OPER_JUSTOPER);
@@ -96,11 +96,6 @@ update_clicap_oper(struct Client *client)
 	{
 		/* if the client is an oper with auspex, let them see everything */
 		client->localClient->caps |= CLICAP_OPER_AUSPEX;
-	}
-	else if (ConfigFileEntry.hide_opers)
-	{
-		/* none of the other stuff matters if oper hiding is enabled */
-		return;
 	}
 	else if (client->localClient->caps & CLICAP_OPER && IsOper(client))
 	{
