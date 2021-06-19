@@ -356,7 +356,7 @@ static struct mode_table auth_table[] = {
 
 static struct mode_table connect_table[] = {
 	{ "autoconn",	SERVER_AUTOCONN		},
-	{ "compressed",	SERVER_COMPRESSED	},
+	{ "compressed",	0			},
 	{ "encrypted",	SERVER_ENCRYPTED	},
 	{ "topicburst",	SERVER_TB		},
 	{ "sctp",	SERVER_SCTP		},
@@ -1268,14 +1268,6 @@ conf_end_connect(struct TopConf *tc)
 		return 0;
 	}
 
-#ifndef HAVE_LIBZ
-	if(ServerConfCompressed(yy_server))
-	{
-		conf_report_error("Ignoring connect::flags::compressed -- zlib not available.");
-		yy_server->flags &= ~SERVER_COMPRESSED;
-	}
-#endif
-
 	add_server_conf(yy_server);
 	rb_dlinkAdd(yy_server, &yy_server->node, &server_conf_list);
 
@@ -1398,9 +1390,6 @@ conf_set_connect_flags(void *data)
 {
 	conf_parm_t *args = data;
 
-	/* note, we allow them to set compressed, then remove it later if
-	 * they do and LIBZ isnt available
-	 */
 	set_modes_from_table(&yy_server->flags, "flag", connect_table, args);
 }
 
