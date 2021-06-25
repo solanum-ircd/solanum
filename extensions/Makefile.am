@@ -22,6 +22,7 @@ extension_LTLIBRARIES =		\
   extb_account.la		\
   extb_canjoin.la		\
   extb_channel.la		\
+  extb_gateway.la		\
   extb_hostmask.la		\
   extb_oper.la			\
   extb_server.la		\
@@ -68,6 +69,7 @@ extension_LTLIBRARIES =		\
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
+  cap_gateway.la		\
   invex_regonly.la		\
   example_module.la
 

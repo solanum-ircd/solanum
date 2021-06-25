@@ -73,6 +73,7 @@ struct ConfItem
 	struct Class *c_class;	/* Class of connection */
 	rb_patricia_node_t *pnode;	/* Our patricia node */
 	int umodes, umodes_mask;	/* Override umodes specified by mask */
+	char *gateway;
 };
 
 #define CONF_ILLEGAL		0x80000000

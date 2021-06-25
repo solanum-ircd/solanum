@@ -373,6 +373,13 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 					target_p->name, buf);
 		}
 
+		if (!EmptyString(target_p->gateway))
+		{
+			sendto_one_numeric(source_p, RPL_WHOISGATEWAY,
+						form_str(RPL_WHOISGATEWAY),
+						target_p->name, target_p->gateway);
+		}
+
 		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
 				   target_p->name,
 				   (long)(rb_current_time() - target_p->localClient->last),

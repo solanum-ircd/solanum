@@ -145,6 +145,7 @@ struct Client
 	char orighost[HOSTLEN + 1]; /* original hostname (before dynamic spoofing) */
 	char sockhost[HOSTIPLEN + 1]; /* clients ip */
 	char info[REALLEN + 1];	/* Free form additional client info */
+	char gateway[REALLEN + 1]; /* name of the gateway in i:line */
 
 	char id[IDLEN];	/* UID/SID, unique on the network */
 

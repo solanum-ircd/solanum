@@ -53,6 +53,7 @@
 #define FIELD_USER       0x0400
 #define FIELD_ACCOUNT    0x0800
 #define FIELD_OPLEVEL    0x1000 /* meaningless and stupid, but whatever */
+#define FIELD_GATEWAY	 0x2000
 
 static const char who_desc[] =
 	"Provides the WHO command to display information for users on a channel";
@@ -137,6 +138,7 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 				case 'u': fmt.fields |= FIELD_USER; break;
 				case 'a': fmt.fields |= FIELD_ACCOUNT; break;
 				case 'o': fmt.fields |= FIELD_OPLEVEL; break;
+				case 'g': fmt.fields |= FIELD_GATEWAY; break;
 				case ',':
 					  s++;
 					  fmt.querytype = s;
@@ -486,6 +488,7 @@ do_who(struct Client *source_p, struct Client *target_p, struct membership *mspt
 	char str[510 + 1]; /* linebuf.c will add \r\n */
 	size_t pos;
 	const char *q;
+	const char *g;
 
 	sprintf(status, "%c%s%s",
 		   target_p->user->away ? 'G' : 'H', SeesOper(target_p, source_p) ? "*" : "", msptr ? find_channel_status(msptr, fmt->fields || IsCapable(source_p, CLICAP_MULTI_PREFIX)) : "");
@@ -542,6 +545,21 @@ do_who(struct Client *source_p, struct Client *target_p, struct membership *mspt
 			else
 				q = "0";
 			append_format(str, sizeof str, &pos, " %s", q);
+		}
+		if (fmt->fields & FIELD_GATEWAY)
+		{
+			/* use same the logic as account */
+			g = target_p->gateway;
+			if (!EmptyString(g))
+			{
+				while(IsDigit(*g))
+					g++;
+				if(*g == '\0')
+					g = target_p->gateway;
+			}
+			else
+				g = "0";
+			append_format(str, sizeof str, &pos, " %s", g);
 		}
 		if (fmt->fields & FIELD_OPLEVEL)
 			append_format(str, sizeof str, &pos, " %s", is_chanop(msptr) ? "999" : "n/a");
