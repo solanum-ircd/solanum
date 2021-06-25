@@ -2215,25 +2215,6 @@ try_win32(void)
 	return -1;
 }
 
-static int
-try_select(void)
-{
-	if(!rb_init_netio_select())
-	{
-		setselect_handler = rb_setselect_select;
-		select_handler = rb_select_select;
-		setup_fd_handler = rb_setup_fd_select;
-		io_sched_event = NULL;
-		io_unsched_event = NULL;
-		io_init_event = NULL;
-		io_supports_event = rb_unsupported_event;
-		rb_strlcpy(iotype, "select", sizeof(iotype));
-		return 0;
-	}
-	return -1;
-}
-
-
 int
 rb_io_sched_event(struct ev_entry *ev, int when)
 {
@@ -2306,11 +2287,6 @@ rb_init_netio(void)
 			if(!try_sigio())
 				return;
 		}
-		else if(!strcmp("select", ioenv))
-		{
-			if(!try_select())
-				return;
-		}
 		if(!strcmp("win32", ioenv))
 		{
 			if(!try_win32())
@@ -2332,8 +2308,6 @@ rb_init_netio(void)
 	if(!try_poll())
 		return;
 	if(!try_win32())
-		return;
-	if(!try_select())
 		return;
 
 	rb_lib_log("rb_init_netio: Could not find any io handlers...giving up");
