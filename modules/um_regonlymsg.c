@@ -78,7 +78,7 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	if (!IsSetRegOnlyMsg(target_p))
 		return true;
 
-	if (IsServer(source_p))
+	if (!IsPerson(source_p))
 		return true;
 
 	/* XXX: controversial?  allow opers to send through +R */

@@ -36,7 +36,12 @@ These are known issues and workarounds for various platforms.
    fix this you must: `sysctl net.inet6.ip6.v6only=0`
 
  * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
-   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script.
+   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script. When running
+   as a 32-bit binary, it should be started as:
+
+   ```bash
+   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./solanum
+   ```
 
 # building
 
