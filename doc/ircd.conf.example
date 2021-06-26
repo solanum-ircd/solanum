@@ -312,7 +312,7 @@ connect "irc.uplink.com" {
 	accept_password = "anotherpassword";
 	port = 6666;
 	class = "server";
-	flags = compressed, topicburst;
+	flags = topicburst;
 
 	#fingerprint = "c77106576abf7f9f90cca0f63874a60f2e40a64b";
 };
