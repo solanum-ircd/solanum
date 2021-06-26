@@ -73,7 +73,6 @@ unsigned int CAP_EX;
 unsigned int CAP_CHW;
 unsigned int CAP_IE;
 unsigned int CAP_KLN;
-unsigned int CAP_ZIP;
 unsigned int CAP_KNOCK;
 unsigned int CAP_TB;
 unsigned int CAP_UNKLN;
@@ -116,7 +115,6 @@ init_builtin_capabs(void)
 	CAP_IE = capability_put(serv_capindex, "IE", NULL);
 	CAP_KLN = capability_put(serv_capindex, "KLN", NULL);
 	CAP_KNOCK = capability_put(serv_capindex, "KNOCK", NULL);
-	CAP_ZIP = capability_put(serv_capindex, "ZIP", NULL);
 	CAP_TB = capability_put(serv_capindex, "TB", NULL);
 	CAP_UNKLN = capability_put(serv_capindex, "UNKLN", NULL);
 	CAP_CLUSTER = capability_put(serv_capindex, "CLUSTER", NULL);
@@ -443,12 +441,7 @@ check_server(const char *name, struct Client *client_p)
 	}
 	attach_server_conf(client_p, server_p);
 
-	/* clear ZIP/TB if they support but we dont want them */
-#ifdef HAVE_LIBZ
-	if(!ServerConfCompressed(server_p))
-#endif
-		ClearCap(client_p, CAP_ZIP);
-
+	/* clear TB if they support but we dont want it */
 	if(!ServerConfTb(server_p))
 		ClearCap(client_p, CAP_TB);
 
@@ -797,7 +790,6 @@ server_estab(struct Client *client_p)
 
 		/* pass info to new server */
 		send_capabilities(client_p, default_server_capabs | CAP_MASK
-				  | (ServerConfCompressed(server_p) ? CAP_ZIP_SUPPORTED : 0)
 				  | (ServerConfTb(server_p) ? CAP_TB : 0));
 
 		sendto_one(client_p, "SERVER %s 1 :%s%s",
@@ -808,12 +800,6 @@ server_estab(struct Client *client_p)
 
 	if(!rb_set_buffers(client_p->localClient->F, READBUF_SIZE))
 		ilog_error("rb_set_buffers failed for server");
-
-	/* Enable compression now */
-	if(IsCapable(client_p, CAP_ZIP))
-	{
-		start_zlib_session(client_p);
-	}
 
 	client_p->servptr = &me;
 
@@ -1316,7 +1302,6 @@ serv_connect_callback(rb_fde_t *F, int status, void *data)
 
 	/* pass my info to the new server */
 	send_capabilities(client_p, default_server_capabs | CAP_MASK
-			  | (ServerConfCompressed(server_p) ? CAP_ZIP_SUPPORTED : 0)
 			  | (ServerConfTb(server_p) ? CAP_TB : 0));
 
 	sendto_one(client_p, "SERVER %s 1 :%s%s",

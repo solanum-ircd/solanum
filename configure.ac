@@ -342,26 +342,6 @@ AS_IF([test "$hyperscan" = no], [
 AM_CONDITIONAL([HAVE_HYPERSCAN], [test "$hyperscan" = "yes"])
 
 
-AC_ARG_WITH(zlib-path,
-AC_HELP_STRING([--with-zlib-path=DIR],[Path to libz.so for ziplinks support.]),
-[LIBS="$LIBS -L$withval"],)
-
-AC_ARG_ENABLE(zlib,
-AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
-[zlib=$enableval],[zlib=yes])
-
-if test "$zlib" = yes; then
-
-AC_CHECK_HEADER(zlib.h, [
-	AC_CHECK_LIB(z, zlibVersion,
-	[
-		AC_SUBST(ZLIB_LD, -lz)
-		AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
-	], zlib=no)
-], zlib=no)
-
-fi
-
 AC_ARG_WITH(sctp-path,
 AC_HELP_STRING([--with-sctp-path=DIR],[Path to libsctp.so for SCTP support.]),
 [LIBS="$LIBS -L$withval"],)
@@ -713,7 +693,6 @@ echo "
 Configuration of ${BRANDING_NAME}-${BRANDING_VERSION}:
 	Install directory  : $prefix
 
-	Ziplinks           : $zlib
 	OpenSSL            : $openssl
 	SCTP               : $sctp
 
