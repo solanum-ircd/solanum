@@ -55,6 +55,7 @@ bolded warnings in the full release notes below.
 - Add extensions/drain to reject new connections
 - Add extensions/filter to filter messages, parts and quits with a Hyperscan database
 - Add extensions/sasl\_usercloak to interpolate SASL account names into I-line spoofs
+- oper:override now overrides chanop requirement with cmode +f (forward).
 
 ### conf
 - **Breaking:** Completely overhaul oper privs. All privset configs will need to be rewritten.

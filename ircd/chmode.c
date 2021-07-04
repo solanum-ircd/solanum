@@ -515,8 +515,9 @@ check_forward(struct Client *source_p, struct Channel *chptr,
 	}
 	if(MyClient(source_p) && !(targptr->mode.mode & MODE_FREETARGET))
 	{
-		if((msptr = find_channel_membership(targptr, source_p)) == NULL ||
-			get_channel_access(source_p, targptr, msptr, MODE_QUERY, NULL) < CHFL_CHANOP)
+		if(!HasPrivilege(source_p, "oper:override")
+			&& ((msptr = find_channel_membership(targptr, source_p)) == NULL ||
+			get_channel_access(source_p, targptr, msptr, MODE_QUERY, NULL) < CHFL_CHANOP))
 		{
 			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
 				   me.name, source_p->name, targptr->chname);
