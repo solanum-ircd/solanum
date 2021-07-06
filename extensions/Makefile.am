@@ -70,6 +70,7 @@ extension_LTLIBRARIES =		\
   cap_realhost.la		\
   invex_regonly.la		\
   hide_idle_time.la             \
+  cap_oper.la			\
   example_module.la
 
 if HAVE_HYPERSCAN

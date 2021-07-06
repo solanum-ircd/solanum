@@ -307,11 +307,6 @@ free_local_client(struct Client *client_p)
 
 	rb_free(client_p->localClient->cipher_string);
 
-	if (IsCapable(client_p, CAP_ZIP))
-		ssld_decrement_clicount(client_p->localClient->z_ctl);
-
-	rb_free(client_p->localClient->zipstats);
-
 	if (client_p->localClient->ws_ctl != NULL)
 		wsockd_decrement_clicount(client_p->localClient->ws_ctl);
 

@@ -356,7 +356,7 @@ static struct mode_table auth_table[] = {
 
 static struct mode_table connect_table[] = {
 	{ "autoconn",	SERVER_AUTOCONN		},
-	{ "compressed",	SERVER_COMPRESSED	},
+	{ "compressed",	0			},
 	{ "encrypted",	SERVER_ENCRYPTED	},
 	{ "topicburst",	SERVER_TB		},
 	{ "sctp",	SERVER_SCTP		},
@@ -1268,14 +1268,6 @@ conf_end_connect(struct TopConf *tc)
 		return 0;
 	}
 
-#ifndef HAVE_LIBZ
-	if(ServerConfCompressed(yy_server))
-	{
-		conf_report_error("Ignoring connect::flags::compressed -- zlib not available.");
-		yy_server->flags &= ~SERVER_COMPRESSED;
-	}
-#endif
-
 	add_server_conf(yy_server);
 	rb_dlinkAdd(yy_server, &yy_server->node, &server_conf_list);
 
@@ -1398,9 +1390,6 @@ conf_set_connect_flags(void *data)
 {
 	conf_parm_t *args = data;
 
-	/* note, we allow them to set compressed, then remove it later if
-	 * they do and LIBZ isnt available
-	 */
 	set_modes_from_table(&yy_server->flags, "flag", connect_table, args);
 }
 
@@ -1578,24 +1567,6 @@ conf_set_general_stats_l_oper_only(void *data)
 		ConfigFileEntry.stats_l_oper_only = STATS_L_OPER_ONLY_NO;
 	else
 		conf_report_error("Invalid setting '%s' for general::stats_l_oper_only.", val);
-}
-
-static void
-conf_set_general_compression_level(void *data)
-{
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = *(unsigned int *) data;
-
-	if((ConfigFileEntry.compression_level < 1) || (ConfigFileEntry.compression_level > 9))
-	{
-		conf_report_error
-			("Invalid general::compression_level %d -- using default.",
-			 ConfigFileEntry.compression_level);
-		ConfigFileEntry.compression_level = 0;
-	}
-#else
-	conf_report_error("Ignoring general::compression_level -- zlib not available.");
-#endif
 }
 
 static void
@@ -2653,7 +2624,6 @@ static struct ConfEntry conf_general_table[] =
 	{ "oper_only_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_only_umodes, 0, NULL },
 	{ "oper_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_umodes,	 0, NULL },
 	{ "oper_snomask",	CF_QSTRING, conf_set_general_oper_snomask, 0, NULL },
-	{ "compression_level", 	CF_INT,    conf_set_general_compression_level,	0, NULL },
 	{ "havent_read_conf", 	CF_YESNO,  conf_set_general_havent_read_conf,	0, NULL },
 	{ "hide_error_messages",CF_STRING, conf_set_general_hide_error_messages,0, NULL },
 	{ "stats_i_oper_only", 	CF_STRING, conf_set_general_stats_i_oper_only,	0, NULL },

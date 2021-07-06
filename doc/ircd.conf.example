@@ -306,13 +306,15 @@ operator "god" {
 	privset = "admin";
 };
 
+// See connecting-servers.rst for an introduction to using these files.
+
 connect "irc.uplink.com" {
 	host = "203.0.113.3";
 	send_password = "password";
 	accept_password = "anotherpassword";
 	port = 6666;
 	class = "server";
-	flags = compressed, topicburst;
+	flags = topicburst;
 
 	#fingerprint = "c77106576abf7f9f90cca0f63874a60f2e40a64b";
 };
