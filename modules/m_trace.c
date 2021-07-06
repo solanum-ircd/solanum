@@ -52,10 +52,12 @@ struct Message trace_msgtab = {
 };
 
 int doing_trace_hook;
+int doing_trace_show_idle_hook;
 
 mapi_clist_av1 trace_clist[] = { &trace_msgtab, NULL };
 mapi_hlist_av1 trace_hlist[] = {
 	{ "doing_trace",	&doing_trace_hook },
+	{ "doing_trace_show_idle", &doing_trace_show_idle_hook },
 	{ NULL, NULL }
 };
 DECLARE_MODULE_AV2(trace, NULL, NULL, trace_clist, trace_hlist, NULL, NULL, NULL, trace_desc);
@@ -381,13 +383,22 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 
 	case STAT_CLIENT:
 		{
+			/* fire the doing_trace_show_idle hook to allow modules to tell us whether to show the idle time */
+	                hook_data_client_approval hdata_showidle;
+
+	                hdata_showidle.client = source_p;
+	                hdata_showidle.target = target_p;
+	                hdata_showidle.approved = 1;
+
+			call_hook(doing_trace_show_idle_hook, &hdata_showidle);
+
 			sendto_one_numeric(source_p,
 					SeesOper(target_p, source_p) ? RPL_TRACEOPERATOR : RPL_TRACEUSER,
 					SeesOper(target_p, source_p) ? form_str(RPL_TRACEOPERATOR) : form_str(RPL_TRACEUSER),
 					class_name, name,
 					show_ip(source_p, target_p) ? ip : empty_sockhost,
-					(unsigned long)(rb_current_time() - target_p->localClient->lasttime),
-					(unsigned long)(rb_current_time() - target_p->localClient->last));
+					hdata_showidle.approved ? (unsigned long)(rb_current_time() - target_p->localClient->lasttime) : 0,
+					hdata_showidle.approved ? (unsigned long)(rb_current_time() - target_p->localClient->last) : 0);
 
 			cnt++;
 		}

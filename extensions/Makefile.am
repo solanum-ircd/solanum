@@ -69,6 +69,7 @@ extension_LTLIBRARIES =		\
   identify_msg.la		\
   cap_realhost.la		\
   invex_regonly.la		\
+  hide_idle_time.la             \
   example_module.la
 
 if HAVE_HYPERSCAN
