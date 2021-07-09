@@ -38,8 +38,7 @@
  *
  * 1. mmap() anonymous pages with the MMAP_ANON flag.
  * 2. mmap() via the /dev/zero trick.
- * 3. HeapCreate/HeapAlloc (on win32)
- * 4. malloc()
+ * 3. malloc()
  *
  * The advantages of 1 and 2 are this.  We can munmap() the pages which will
  * return the pages back to the operating system, thus reducing the size
