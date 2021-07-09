@@ -201,6 +201,11 @@ static struct InfoStruct info_table[] = {
 		INFO_STRING(&ConfigFileEntry.drain_reason),
 	},
 	{
+		"sasl_only_client_message",
+		"Message to quit users with if they require SASL authentication.",
+		INFO_STRING(&ConfigFileEntry.sasl_only_client_message),
+	},
+	{
 		"disable_auth",
 		"Controls whether auth checking is disabled or not",
 		INFO_INTBOOL_YN(&ConfigFileEntry.disable_auth),
