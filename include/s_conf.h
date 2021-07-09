@@ -257,6 +257,7 @@ struct config_file_entry
 	int hide_opers;
 
 	char *drain_reason;
+	char *sasl_only_client_message;
 };
 
 struct config_channel_entry
