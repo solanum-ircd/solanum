@@ -679,7 +679,7 @@ echo )
                 term_bold=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
                 term_norm=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
                 ;;
-            vt100|vt100*|cygwin)
+            vt100|vt100*)
                 term_bold=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
                 term_norm=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
                 ;;
@@ -3013,36 +3013,6 @@ platform )
                 SP="[Apple ]Mac OS X ${v1}${v2+.$v2}${v3+[.$v3]}"
             fi
             SC="4.4BSD/Mach3.0"
-            ;;
-
-        #   Windows/Cygwin
-        *:CYGWIN*:* )
-            #   determine architecture
-            AT="`uname -m`"
-            AP="${AT}"
-            case "${AP}" in
-                i?86 ) AP="iX86" ;;
-            esac
-            AC="${AP}"
-            #   determine system
-            unset v1; unset v2; unset v3
-            eval `echo "${UNAME_RELEASE}" |\
-                  sed -e 's/^/#/' \
-                      -e 's/^#\([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\).*$/v1="\1"; v2="\2"; v3="\3"/' \
-                      -e 's/^#\([0-9][0-9]*\)\.\([0-9][0-9]*\).*$/v1="\1"; v2="\2"/' \
-                      -e 's/^#\([0-9][0-9]*\).*$/v1="\1"/' \
-                      -e 's/^#.*$/v1="0"/'`
-            ST="Cygwin ${v1}${v2+.$v2}${v3+[.$v3]}"
-            SP="$ST"
-            SC="Windows"
-            v=`echo "${UNAME_SYSTEM}" | sed -e 's/^CYGWIN_NT-//' |\
-               sed -e 's/^/#/' -e 's/^#\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/' -e 's/^#.*$//'`
-            case "$v" in
-                4.0 ) SC="$SC[ NT]"    ;;
-                5.0 ) SC="$SC[ 2000]"  ;;
-                5.1 ) SC="$SC[ XP]"    ;;
-                6.0 ) SC="$SC[ Vista]" ;;
-            esac
             ;;
 
         #   TODO ...ADD YOUR NEW PLATFORM CHECK HERE... TODO

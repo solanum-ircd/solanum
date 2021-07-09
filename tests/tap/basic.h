@@ -142,11 +142,10 @@ char *bstrndup(const char *, size_t)
 
 /*
  * Find a test file under C_TAP_BUILD or C_TAP_SOURCE, returning the full
- * path.  The returned path should be freed with test_file_path_free().
+ * path.  The returned path should be freed with free().
  */
 char *test_file_path(const char *file)
     __attribute__((__malloc__, __nonnull__, __warn_unused_result__));
-void test_file_path_free(char *path);
 
 /*
  * Create a temporary directory relative to C_TAP_BUILD and return the path.
