@@ -93,16 +93,6 @@ struct Server
 	struct scache_entry *nameinfo;
 };
 
-struct ZipStats
-{
-	unsigned long long in;
-	unsigned long long in_wire;
-	unsigned long long out;
-	unsigned long long out_wire;
-	double in_ratio;
-	double out_ratio;
-};
-
 struct Client
 {
 	rb_dlink_node node;
@@ -277,7 +267,6 @@ struct LocalUser
 	struct ws_ctl *ws_ctl;			/* ctl for wsockd */
 	SSL_OPEN_CB *ssl_callback;		/* ssl connection is now open */
 	uint32_t localflags;
-	struct ZipStats *zipstats;		/* zipstats */
 	uint16_t cork_count;			/* used for corking/uncorking connections */
 	struct ev_entry *event;			/* used for associated events */
 

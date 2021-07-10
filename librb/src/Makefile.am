@@ -33,7 +33,6 @@ librb_la_SOURCES =			\
 	poll.c				\
 	ports.c				\
 	sigio.c				\
-	select.c			\
 	kqueue.c			\
 	rawbuf.c			\
 	patricia.c			\

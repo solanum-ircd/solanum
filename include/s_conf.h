@@ -174,7 +174,6 @@ struct config_file_entry
 	char *fname_operspylog;
 	char *fname_ioerrorlog;
 
-	unsigned char compression_level;
 	int disable_fake_channels;
 	int dots_in_ident;
 	int failed_oper_notice;
