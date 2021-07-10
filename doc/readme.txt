@@ -12,8 +12,10 @@ Files:
 ircd.conf.example       - An example ircd.conf file describing most of the
                           user settable options
 ircd.motd               - A default ircd.motd used by make install
+reference.conf          - A complete example showing all possible config
+                          options
 credits-past.txt        - Credits for the predecessors to Charybdis
-logfiles.txt		- Description of formatting of some logfiles
+logfiles.txt            - Description of formatting of some logfiles
 server-version-info.txt - Overview of the flags shown in /version
 
 Also in the contrib/ directory you will find:
