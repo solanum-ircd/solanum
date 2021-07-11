@@ -1550,6 +1550,8 @@ clear_out_old_conf(void)
 	ConfigFileEntry.sasl_service = NULL;
 	rb_free(ConfigFileEntry.drain_reason);
 	ConfigFileEntry.drain_reason = NULL;
+	rb_free(ConfigFileEntry.sasl_only_client_message);
+	ConfigFileEntry.sasl_only_client_message = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{

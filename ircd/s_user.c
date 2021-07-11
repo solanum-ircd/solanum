@@ -491,9 +491,16 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(IsNeedSasl(aconf) && !*source_p->user->suser)
 	{
+
+		const char *sasl_only_client_message = ConfigFileEntry.sasl_only_client_message;
+
+		if (sasl_only_client_message == NULL)
+			sasl_only_client_message = "You need to identify via SASL to use to use this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You need to identify via SASL to use this server");
-		exit_client(client_p, source_p, &me, "SASL access only");
+		sendto_one_notice(source_p, ":*** Notice -- %s", sasl_only_client_message);
+
+		exit_client(client_p, source_p, &me, sasl_only_client_message);
 		return (CLIENT_EXITED);
 	}
 
