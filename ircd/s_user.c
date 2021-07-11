@@ -555,6 +555,10 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	   (xconf = find_xline(source_p->info, 1)) != NULL)
 	{
 		ServerStats.is_ref++;
+		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
+			"Rejecting X-Lined user %s [%s]",
+			get_client_name(client_p, HIDE_IP), xconf->host);
+
 		add_reject(source_p, xconf->host, NULL, NULL, NULL);
 		exit_client(client_p, source_p, &me, "Bad user info");
 		return CLIENT_EXITED;
