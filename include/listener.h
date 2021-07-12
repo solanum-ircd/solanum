@@ -31,7 +31,7 @@ struct Client;
 
 struct Listener
 {
-	struct Listener *next;	/* list node pointer */
+	rb_dlink_node lnode;	/* list node */
 	const char *name;	/* listener name */
 	rb_fde_t *F;		/* file descriptor */
 	int ref_count;		/* number of connection references */

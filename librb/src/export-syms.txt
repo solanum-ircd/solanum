@@ -16,6 +16,7 @@ rb_checktimeouts
 rb_clear_cloexec
 rb_clear_patricia
 rb_close
+rb_close_pending_fds
 rb_connect_sockaddr
 rb_connect_tcp
 rb_connect_tcp_ssl
