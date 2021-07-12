@@ -26,9 +26,6 @@
 #include "s_conf.h"
 #include "client.h"
 #include "send.h"
-
-#ifndef _WIN32
-
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -179,17 +176,3 @@ setup_signals()
 
 	sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 }
-
-#else
-void
-setup_signals()
-{
-/* this is a stub for mingw32 */
-}
-
-void
-setup_reboot_signals()
-{
-/* this is a stub for mingw32 */
-}
-#endif

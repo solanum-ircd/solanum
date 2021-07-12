@@ -266,7 +266,7 @@ load_help(void)
 	{
 		if(ldirent->d_name[0] == '.')
 			continue;
-		snprintf(filename, sizeof(filename), "%s%c%s", ircd_paths[IRCD_PATH_OPERHELP], RB_PATH_SEPARATOR, ldirent->d_name);
+		snprintf(filename, sizeof(filename), "%s/%s", ircd_paths[IRCD_PATH_OPERHELP], ldirent->d_name);
 		cacheptr = cache_file(filename, ldirent->d_name, HELP_OPER);
 		rb_dictionary_add(help_dict_oper, cacheptr->name, cacheptr);
 	}
@@ -281,7 +281,7 @@ load_help(void)
 	{
 		if(ldirent->d_name[0] == '.')
 			continue;
-		snprintf(filename, sizeof(filename), "%s%c%s", ircd_paths[IRCD_PATH_USERHELP], RB_PATH_SEPARATOR, ldirent->d_name);
+		snprintf(filename, sizeof(filename), "%s/%s", ircd_paths[IRCD_PATH_USERHELP], ldirent->d_name);
 
 #if defined(S_ISLNK) && defined(HAVE_LSTAT)
 		if(lstat(filename, &sb) < 0)

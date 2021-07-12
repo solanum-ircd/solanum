@@ -14,7 +14,6 @@ version.lo: version.c ../include/serno.h
 
 librb_la_SOURCES =			\
 	unix.c				\
-	win32.c				\
 	crypt.c				\
 	balloc.c			\
 	commio.c			\

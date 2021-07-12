@@ -51,9 +51,6 @@ If aes256 is not available, the following is used instead:
 
 - Building ratbox-respond -
 ---------------------------
-If you are using the unix based ratbox-respond this must be built.  For the
-windows version, ratbox-winrespond, please see http://respond.ircd-ratbox.org
-
 ratbox-respond takes the challenge from the server, and together with your 
 private key file generates a response to be sent back.  ratbox-respond
 requires the openssl headers (ie, development files) and openssl libraries

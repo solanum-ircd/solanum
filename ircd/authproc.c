@@ -88,19 +88,14 @@ static int
 start_authd(void)
 {
 	char fullpath[PATH_MAX + 1];
-#ifdef _WIN32
-	const char *suffix = ".exe";
-#else
-	const char *suffix = "";
-#endif
+
 	if(authd_path == NULL)
 	{
-		snprintf(fullpath, sizeof(fullpath), "%s%cauthd%s", ircd_paths[IRCD_PATH_LIBEXEC], RB_PATH_SEPARATOR, suffix);
+		snprintf(fullpath, sizeof(fullpath), "%s/authd", ircd_paths[IRCD_PATH_LIBEXEC]);
 
 		if(access(fullpath, X_OK) == -1)
 		{
-			snprintf(fullpath, sizeof(fullpath), "%s%cbin%cauthd%s",
-				 ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR, suffix);
+			snprintf(fullpath, sizeof(fullpath), "%s/bin/authd", ConfigFileEntry.dpath);
 			if(access(fullpath, X_OK) == -1)
 			{
 				ierror("Unable to execute authd in %s or %s/bin",

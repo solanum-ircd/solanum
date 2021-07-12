@@ -62,67 +62,6 @@ char *alloca();
 #define rb_unlikely(x)	(x)
 #endif
 
-#ifdef _WIN32
-#define rb_get_errno() do { errno = WSAGetLastError(); WSASetLastError(errno); } while(0)
-typedef SOCKET rb_platform_fd_t;
-#define RB_PATH_SEPARATOR '\\'
-#else
-#define rb_get_errno()
-typedef int rb_platform_fd_t;
-#define RB_PATH_SEPARATOR '/'
-#endif
-
-#ifdef _WIN32
-#include <process.h>
-
-#ifndef PATH_MAX
-#define PATH_MAX 128
-#endif
-
-#ifdef strerror
-#undef strerror
-#endif
-
-#define strerror(x) rb_strerror(x)
-char *rb_strerror(int error);
-
-#undef ENOBUFS
-#define ENOBUFS	    WSAENOBUFS
-
-#undef EINPROGRESS
-#define EINPROGRESS WSAEINPROGRESS
-
-#undef EWOULDBLOCK
-#define EWOULDBLOCK WSAEWOULDBLOCK
-
-#undef EMSGSIZE
-#define EMSGSIZE    WSAEMSGSIZE
-
-#undef EALREADY
-#define EALREADY    WSAEALREADY
-
-#undef EISCONN
-#define EISCONN     WSAEISCONN
-
-#undef EADDRINUSE
-#define EADDRINUSE  WSAEADDRINUSE
-
-#undef EAFNOSUPPORT
-#define EAFNOSUPPORT WSAEAFNOSUPPORT
-
-#define pipe(x)  _pipe(x, 1024, O_BINARY)
-#define ioctl(x,y,z)  ioctlsocket(x,y, (unsigned long *)z)
-
-#define WNOHANG 1
-
-#ifndef SIGKILL
-#define SIGKILL SIGTERM
-#endif
-
-#endif /* _WIN32 */
-
-
-
 #ifndef HOSTIPLEN
 #define HOSTIPLEN	53
 #endif

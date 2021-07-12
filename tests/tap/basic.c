@@ -42,21 +42,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
-# include <direct.h>
-#else
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #include <tests/tap/basic.h>
-
-/* Windows provides mkdir and rmdir under different names. */
-#ifdef _WIN32
-# define mkdir(p, m) _mkdir(p)
-# define rmdir(p)    _rmdir(p)
-#endif
 
 /*
  * The test count.  Always contains the number that will be used for the next
@@ -849,7 +838,7 @@ bstrndup(const char *s, size_t n)
  * Locate a test file.  Given the partial path to a file, look under
  * C_TAP_BUILD and then C_TAP_SOURCE for the file and return the full path to
  * the file.  Returns NULL if the file doesn't exist.  A non-NULL return
- * should be freed with test_file_path_free().
+ * should be freed with free().
  */
 char *
 test_file_path(const char *file)
@@ -870,18 +859,6 @@ test_file_path(const char *file)
         path = NULL;
     }
     return path;
-}
-
-
-/*
- * Free a path returned from test_file_path().  This function exists primarily
- * for Windows, where memory must be freed from the same library domain that
- * it was allocated from.
- */
-void
-test_file_path_free(char *path)
-{
-    free(path);
 }
 
 

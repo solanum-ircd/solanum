@@ -63,22 +63,22 @@ void ircd_util_init(const char *name)
 	ircd_paths[IRCD_PATH_IRCD_EXEC] = argv0;
 	ircd_paths[IRCD_PATH_PREFIX] = ".";
 
-	snprintf(buf, sizeof(buf), "runtime%cmodules", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/modules");
 	ircd_paths[IRCD_PATH_MODULES] = rb_strdup(buf);
 
-	snprintf(buf, sizeof(buf), "runtime%1$cmodules%1$cautoload", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/modules/autoload");
 	ircd_paths[IRCD_PATH_AUTOLOAD_MODULES] = rb_strdup(buf);
 
 	ircd_paths[IRCD_PATH_ETC] = "runtime";
 	ircd_paths[IRCD_PATH_LOG] = "runtime";
 
-	snprintf(buf, sizeof(buf), "runtime%1$chelp%1$cusers", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/help/users");
 	ircd_paths[IRCD_PATH_USERHELP] = rb_strdup(buf);
 
-	snprintf(buf, sizeof(buf), "runtime%1$chelp%1$copers", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/help/opers");
 	ircd_paths[IRCD_PATH_OPERHELP] = rb_strdup(buf);
 
-	snprintf(buf, sizeof(buf), "runtime%cmotd", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/motd");
 	ircd_paths[IRCD_PATH_IRCD_MOTD] = rb_strdup(buf);
 	ircd_paths[IRCD_PATH_IRCD_OMOTD] = rb_strdup(buf);
 
@@ -90,7 +90,7 @@ void ircd_util_init(const char *name)
 	ircd_paths[IRCD_PATH_IRCD_PID] = rb_strdup(pidfile);
 	ircd_paths[IRCD_PATH_IRCD_LOG] = rb_strdup(logfile);
 
-	snprintf(buf, sizeof(buf), "runtime%cbin", RB_PATH_SEPARATOR);
+	snprintf(buf, sizeof(buf), "runtime/bin");
 	ircd_paths[IRCD_PATH_BIN] = rb_strdup(buf);
 	ircd_paths[IRCD_PATH_LIBEXEC] = rb_strdup(buf);
 

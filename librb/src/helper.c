@@ -62,7 +62,6 @@ rb_helper_child(rb_helper_cb * read_cb, rb_helper_cb * error_cb, log_cb * ilog,
 	ofd = (int)strtol(tofd, NULL, 10);
 	maxfd = (int)strtol(tmaxfd, NULL, 10);
 
-#ifndef _WIN32
 	for(x = 0; x < maxfd; x++)
 	{
 		if(x != ifd && x != ofd)
@@ -77,9 +76,6 @@ rb_helper_child(rb_helper_cb * read_cb, rb_helper_cb * error_cb, log_cb * ilog,
 		dup2(x, 2);
 	if(x > 2)		/* don't undo what we just did */
 		close(x);
-#else
-	(void) x;	/* shut gcc up */
-#endif
 
 	rb_lib_init(ilog, irestart, idie, 0, maxfd, dh_size, fd_heap_size);
 	rb_linebuf_init(lb_heap_size);

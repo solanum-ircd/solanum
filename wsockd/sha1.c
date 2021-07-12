@@ -12,13 +12,7 @@
  */
 
 #include "stdinc.h"
-
-#ifdef _WIN32
-	#include <winsock2.h> // for htonl()
-#else
-	#include <netinet/in.h> // for htonl()
-#endif
-
+#include <netinet/in.h> // for htonl()
 #include "sha1.h"
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))

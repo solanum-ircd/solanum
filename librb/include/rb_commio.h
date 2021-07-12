@@ -63,11 +63,7 @@ enum
 #define RB_FD_NONE		0x01
 #define RB_FD_FILE		0x02
 #define RB_FD_SOCKET		0x04
-#ifndef _WIN32
 #define RB_FD_PIPE		0x08
-#else
-#define RB_FD_PIPE		RB_FD_SOCKET
-#endif
 #define	RB_FD_LISTEN		0x10
 #define RB_FD_SSL		0x20
 #define RB_FD_UNKNOWN		0x40
@@ -90,7 +86,7 @@ struct rb_iovec
 
 void rb_fdlist_init(int closeall, int maxfds, size_t heapsize);
 
-rb_fde_t *rb_open(rb_platform_fd_t, uint8_t, const char *);
+rb_fde_t *rb_open(int, uint8_t, const char *);
 void rb_close(rb_fde_t *);
 void rb_dump_fd(DUMPCB *, void *xdata);
 void rb_note(rb_fde_t *, const char *);
@@ -163,12 +159,12 @@ void rb_setselect(rb_fde_t *, unsigned int type, PF * handler, void *client_data
 void rb_init_netio(void);
 int rb_select(unsigned long);
 int rb_fd_ssl(rb_fde_t *F);
-rb_platform_fd_t rb_get_fd(rb_fde_t *F);
+int rb_get_fd(rb_fde_t *F);
 const char *rb_get_ssl_strerror(rb_fde_t *F);
 int rb_get_ssl_certfp(rb_fde_t *F, uint8_t certfp[RB_SSL_CERTFP_LEN], int method);
 int rb_get_ssl_certfp_file(const char *filename, uint8_t certfp[RB_SSL_CERTFP_LEN], int method);
 
-rb_fde_t *rb_get_fde(rb_platform_fd_t fd);
+rb_fde_t *rb_get_fde(int fd);
 
 int rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasize, pid_t pid);
 int rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int count);
@@ -181,9 +177,6 @@ const char *rb_get_iotype(void);
 typedef enum
 {
 	RB_PRNG_FILE,
-#ifdef _WIN32
-	RB_PRNGWIN32,
-#endif
 	RB_PRNG_DEFAULT,
 } prng_seed_t;
 

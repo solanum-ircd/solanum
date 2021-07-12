@@ -16,9 +16,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "rb_lib.h"
-#ifndef __MINGW32__
 #include <pwd.h>
-#endif
 
 #define FLAG_MD5      0x00000001
 #define FLAG_SALT     0x00000002
@@ -46,42 +44,6 @@ static void brief_usage(void) __attribute__((noreturn));
 
 static char saltChars[] = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
        /* 0 .. 63, ascii - 64 */
-
-#ifdef __MINGW32__
-#include <conio.h>
-#ifdef PASS_MAX
-#undef PASS_MAX
-#endif
-#define PASS_MAX 256
-static char getpassbuf[PASS_MAX + 1];
-
-static char *
-getpass(const char *prompt)
-{
-	int c;
-	int i = 0;
-
-	memset(getpassbuf, 0, sizeof(getpassbuf));
-	fputs(prompt, stderr);
-	for(;;)
-	{
-		c = _getch();
-		if(c == '\r')
-		{
-			getpassbuf[i] = '\0';
-			break;
-		}
-		else if(i < PASS_MAX)
-		{
-			getpassbuf[i++] = c;
-		}
-	}
-	fputs("\r\n", stderr);
-
-	return getpassbuf;
-}
-#endif
-
 
 int
 main(int argc, char *argv[])

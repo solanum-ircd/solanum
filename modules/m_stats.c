@@ -924,7 +924,6 @@ stats_ssld(struct Client *source_p)
 static void
 stats_usage (struct Client *source_p)
 {
-#ifndef _WIN32
 	struct rusage rus;
 	time_t secs;
 	time_t rup;
@@ -976,7 +975,6 @@ stats_usage (struct Client *source_p)
 			   "R :Signals %d Context Vol. %d Invol %d",
 			   (int) rus.ru_nsignals, (int) rus.ru_nvcsw,
 			   (int) rus.ru_nivcsw);
-#endif
 }
 
 static void

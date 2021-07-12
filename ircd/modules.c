@@ -225,8 +225,8 @@ load_all_modules(bool warn)
 		if(len > module_ext_len &&
 			rb_strncasecmp(ldirent->d_name + (len - module_ext_len), LT_MODULE_EXT, module_ext_len) == 0)
 		{
-			(void) snprintf(module_fq_name, sizeof(module_fq_name), "%s%c%s",
-					ircd_paths[IRCD_PATH_AUTOLOAD_MODULES], RB_PATH_SEPARATOR, ldirent->d_name);
+			(void) snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
+					ircd_paths[IRCD_PATH_AUTOLOAD_MODULES], ldirent->d_name);
 			(void) load_a_module(module_fq_name, warn, MAPI_ORIGIN_CORE, false);
 		}
 
@@ -249,8 +249,7 @@ load_core_modules(bool warn)
 
 	for (i = 0; core_module_table[i]; i++)
 	{
-		snprintf(module_name, sizeof(module_name), "%s%c%s", ircd_paths[IRCD_PATH_MODULES], RB_PATH_SEPARATOR,
-			    core_module_table[i]);
+		snprintf(module_name, sizeof(module_name), "%s/%s", ircd_paths[IRCD_PATH_MODULES], core_module_table[i]);
 
 		if(load_a_module(module_name, warn, MAPI_ORIGIN_CORE, true) == false)
 		{
@@ -285,7 +284,7 @@ load_one_module(const char *path, int origin, bool coremodule)
 		struct stat statbuf;
 		const char *mpath = pathst->data;
 
-		snprintf(modpath, sizeof(modpath), "%s%c%s%s", mpath, RB_PATH_SEPARATOR, path, LT_MODULE_EXT);
+		snprintf(modpath, sizeof(modpath), "%s/%s%s", mpath, path, LT_MODULE_EXT);
 		if((strstr(modpath, "../") == NULL) && (strstr(modpath, "/..") == NULL))
 		{
 			if(stat(modpath, &statbuf) == 0 && S_ISREG(statbuf.st_mode))

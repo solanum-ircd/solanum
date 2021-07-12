@@ -134,7 +134,6 @@ rb_string_to_array(char *string, char **parv, int maxpara)
 }
 
 #ifndef HAVE_STRCASECMP
-#ifndef _WIN32
 /* Fallback taken from FreeBSD. --Elizafox */
 int
 rb_strcasecmp(const char *s1, const char *s2)
@@ -150,14 +149,7 @@ rb_strcasecmp(const char *s1, const char *s2)
 
 	return (tolower(*us1) - tolower(*--us2));
 }
-#else /* _WIN32 */
-int
-rb_strcasecmp(const char *s1, const char *s2)
-{
-	return stricmp(s1, s2);
-}
-#endif /* _WIN32 */
-#else /* HAVE_STRCASECMP */
+#else
 int
 rb_strcasecmp(const char *s1, const char *s2)
 {
@@ -166,7 +158,6 @@ rb_strcasecmp(const char *s1, const char *s2)
 #endif
 
 #ifndef HAVE_STRNCASECMP
-#ifndef _WIN32
 /* Fallback taken from FreeBSD. --Elizafox */
 int
 rb_strncasecmp(const char *s1, const char *s2, size_t n)
@@ -186,14 +177,7 @@ rb_strncasecmp(const char *s1, const char *s2, size_t n)
 	}
 	return 0;
 }
-#else /* _WIN32 */
-int
-rb_strncasecmp(const char *s1, const char *s2, size_t n)
-{
-	return strnicmp(s1, s2, n);
-}
-#endif /* _WIN32 */
-#else /* HAVE_STRNCASECMP */
+#else
 int
 rb_strncasecmp(const char *s1, const char *s2, size_t n)
 {
