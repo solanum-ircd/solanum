@@ -201,6 +201,51 @@ static struct InfoStruct info_table[] = {
 		INFO_STRING(&ConfigFileEntry.drain_reason),
 	},
 	{
+		"sasl_only_client_message",
+		"Message to quit users with if they require SASL authentication.",
+		INFO_STRING(&ConfigFileEntry.sasl_only_client_message),
+	},
+	{
+		"identd_only_client_message",
+		"Message to quit users with if they require Identd.",
+		INFO_STRING(&ConfigFileEntry.identd_only_client_message),
+	},
+	{
+		"sctp_forbidden_client_message",
+		"Message to quit users with if they attempt using SCTP.",
+		INFO_STRING(&ConfigFileEntry.sctp_forbidden_client_message),
+	},
+	{
+		"ssltls_only_client_message",
+		"Message to quit users with if they require SSL/TLS.",
+		INFO_STRING(&ConfigFileEntry.ssltls_only_client_message),
+	},
+	{
+		"not_authorised_client_message",
+		"Message to quit users with if they are not authorised.",
+		INFO_STRING(&ConfigFileEntry.not_authorised_client_message),
+	},
+	{
+		"illegal_hostname_client_message",
+		"Message to users when their hostname contains illegal characters.",
+		INFO_STRING(&ConfigFileEntry.illegal_hostname_client_message),
+	},
+	{
+		"server_full_client_message",
+		"Message to users when the server is full.",
+		INFO_STRING(&ConfigFileEntry.server_full_client_message),
+	},
+	{
+		"illegal_name_long_client_message",
+		"Long message to users when their username contains illegal characters.",
+		INFO_STRING(&ConfigFileEntry.illegal_name_long_client_message),
+	},
+	{
+		"illegal_name_short_client_message",
+		"Short message to users when their username contains illegal characters.",
+		INFO_STRING(&ConfigFileEntry.illegal_name_short_client_message),
+	},
+	{
 		"disable_auth",
 		"Controls whether auth checking is disabled or not",
 		INFO_INTBOOL_YN(&ConfigFileEntry.disable_auth),
