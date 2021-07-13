@@ -280,7 +280,6 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 	aconf->status = CONF_DLINE;
 	aconf->created = rb_current_time();
 	aconf->host = rb_strdup(dlhost);
-	aconf->passwd = rb_strdup(reason);
 	aconf->info.oper = operhash_add(get_oper_name(source_p));
 
 	if(strlen(reason) > BANREASONLEN)
@@ -295,6 +294,8 @@ apply_dline(struct Client *source_p, const char *dlhost, int tdline_time, char *
 		if(!EmptyString(oper_reason))
 			aconf->spasswd = rb_strdup(oper_reason);
 	}
+
+	aconf->passwd = rb_strdup(reason);
 
 	if(tdline_time > 0)
 	{
