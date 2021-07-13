@@ -15,40 +15,13 @@ It is meant to be used with an IRCv3-capable services implementation such as [At
 
 # platforms
 
-Solanum is designed with portability in mind, but does not target older systems nor those of solely academic
-interest.
-
-Do note that operating systems are only supported if they are supported by their vendor.
-
-## Tier 1
-
-These platforms are the best supported, and should always work. They are actively tested. If you encounter
-problems, please file a bug.
-
-* FreeBSD 10.x and above (i386 and amd64)
-* Linux 2.6.x and above with glibc or musl (i386, x86_64, and ARM)
-* macOS 10.7 and above
-* Windows Vista/Server 2008 and above (x86 or x64)
-
-## Tier 2
-
-These platforms are supported and occasionally tested, and most features should work, but this is not
-guaranteed. If you find any problems, file a bug, but as these are not regularly tested platforms, a timely
-resolution may not be possible.
-
-* DragonflyBSD 4.4 and above (i386)
-* Linux with uClibc (i386 or x86_64)
-* NetBSD 6.1.x and above (i386, amd64)
-* OpenBSD 5.6 and above (i386, amd64)
-* Solaris 10 and above (i386)
-
-## Tier 3
-
-Anything else that hasn't been tested. Solanum may or may not work on it; patches welcome if they don't.
+Solanum is developed on Linux with glibc, but is currently portable to most POSIX-compatible operating systems.
+However, this portability is likely to be removed unless someone is willing to maintain it.  If you'd like to be that
+person, please let us know on IRC.
 
 # platform specific errata
 
-These are known issues and workarounds for supported platforms.
+These are known issues and workarounds for various platforms.
 
  * **macOS**: you must set the `LIBTOOLIZE` environment variable to point to glibtoolize before running autogen.sh:
 
@@ -63,7 +36,12 @@ These are known issues and workarounds for supported platforms.
    fix this you must: `sysctl net.inet6.ip6.v6only=0`
 
  * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
-   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script.
+   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script. When running
+   as a 32-bit binary, it should be started as:
+
+   ```bash
+   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./solanum
+   ```
 
 # building
 
@@ -90,9 +68,8 @@ See `./configure --help` for build options.
    (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
     feel free.)
 
- * For ECDHE under OpenSSL, on Solaris and RHEL/Fedora (and its derivatives such as CentOS) you will
-   need to compile your own OpenSSL on these systems, as they have removed support for ECC/ECDHE.
-   Alternatively, consider using another library (see above).
+ * For ECDHE under OpenSSL, on Solaris you will need to compile your own OpenSSL on these systems, as they
+   have removed support for ECC/ECDHE.  Alternatively, consider using another library (see above).
 
 # tips
 
@@ -109,8 +86,8 @@ See `./configure --help` for build options.
 
 # git access
 
- * The Solanum GIT repository can be checked out using the following command:
+ * The Solanum git repository can be checked out using the following command:
 	`git clone https://github.com/solanum-ircd/solanum`
 
- * Solanum's GIT repository depot can be browsed over the Internet at the following address:
+ * Solanum's git repository can be browsed over the Internet at the following address:
 	https://github.com/solanum-ircd/solanum
