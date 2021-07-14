@@ -384,14 +384,11 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 		call_hook(doing_whois_show_idle_hook, &hdata_showidle);
 
-		if (hdata_showidle.approved || operspy)
-		{
-			/* operspies are always allowed to see idle time */
-			sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
-					   target_p->name,
-					   (long)(rb_current_time() - target_p->localClient->last),
-					   (unsigned long)target_p->localClient->firsttime);
-		}
+		/* operspies are always allowed to see idle time */
+		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
+			   target_p->name,
+			   hdata_showidle.approved || operspy ? (long)(rb_current_time() - target_p->localClient->lasttime) : 0,
+			   (unsigned long)target_p->localClient->firsttime);
 	}
 	else
 	{
