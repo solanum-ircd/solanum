@@ -60,12 +60,14 @@ struct Message whois_msgtab = {
 int doing_whois_hook;
 int doing_whois_global_hook;
 int doing_whois_channel_visibility_hook;
+int doing_whois_show_idle_hook;
 
 mapi_clist_av1 whois_clist[] = { &whois_msgtab, NULL };
 mapi_hlist_av1 whois_hlist[] = {
 	{ "doing_whois",			&doing_whois_hook },
 	{ "doing_whois_global",			&doing_whois_global_hook },
 	{ "doing_whois_channel_visibility",	&doing_whois_channel_visibility_hook },
+	{ "doing_whois_show_idle",		&doing_whois_show_idle_hook },
 	{ NULL, NULL }
 };
 
@@ -373,10 +375,23 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 					target_p->name, buf);
 		}
 
-		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
-				   target_p->name,
-				   (long)(rb_current_time() - target_p->localClient->last),
-				   (unsigned long)target_p->localClient->firsttime);
+		/* fire the doing_whois_show_idle hook to allow modules to tell us whether to show the idle time */
+		hook_data_client_approval hdata_showidle;
+
+		hdata_showidle.client = source_p;
+		hdata_showidle.target = target_p;
+		hdata_showidle.approved = 1;
+
+		call_hook(doing_whois_show_idle_hook, &hdata_showidle);
+
+		if (hdata_showidle.approved || operspy)
+		{
+			/* operspies are always allowed to see idle time */
+			sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
+					   target_p->name,
+					   (long)(rb_current_time() - target_p->localClient->last),
+					   (unsigned long)target_p->localClient->firsttime);
+		}
 	}
 	else
 	{
