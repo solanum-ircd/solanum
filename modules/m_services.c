@@ -248,7 +248,8 @@ doit:
 	del_from_client_hash(target_p->name, target_p);
 
 	/* invalidate nick delay because we're forcing this nick to be used */
-	if((nd = rb_dictionary_retrieve(nd_dict, parv[2])))
+	nd = rb_dictionary_retrieve(nd_dict, parv[2]);
+	if (nd != NULL)
 		free_nd_entry(nd);
 
 	rb_strlcpy(target_p->name, parv[2], NICKLEN);
