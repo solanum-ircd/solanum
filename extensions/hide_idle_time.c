@@ -29,16 +29,17 @@
 
 static const char hide_desc[] = "Provides user mode +I to hide a user's idle time";
 
-static void h_huc_doing_trace_or_whois(void *);
+static void h_huc_doing_idle_time_hook(void *);
 
 mapi_hfn_list_av1 huc_hfnlist[] = {
-	{ "doing_whois_show_idle", h_huc_doing_trace_or_whois },
-	{ "doing_trace_show_idle", h_huc_doing_trace_or_whois },
+	{ "doing_whois_show_idle", h_huc_doing_idle_time_hook },
+	{ "doing_trace_show_idle", h_huc_doing_idle_time_hook },
+	{ "doing_stats_show_idle", h_huc_doing_idle_time_hook },
 	{ NULL, NULL }
 };
 
 static void
-h_huc_doing_trace_or_whois(void *data_)
+h_huc_doing_idle_time_hook(void *data_)
 {
 	hook_data_client_approval *data = data_;
 
