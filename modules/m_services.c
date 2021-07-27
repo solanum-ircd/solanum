@@ -139,6 +139,11 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	sendto_common_channels_local(target_p, CLICAP_ACCOUNT_NOTIFY, NOCAPS, ":%s!%s@%s ACCOUNT %s",
 					    target_p->name, target_p->username, target_p->host,
 					    EmptyString(target_p->user->suser) ? "*" : target_p->user->suser);
+	struct monitor *monptr = find_monitor(target_p->name, 0);
+	if(monptr)
+		sendto_monitor_with_capability_butserial(target_p, monptr, CLICAP_EXTENDED_MONITOR | CLICAP_ACCOUNT_NOTIFY, NOCAPS, true, ":%s!%s@%s ACCOUNT %s",
+					    target_p->name, target_p->username, target_p->host,
+					    EmptyString(target_p->user->suser) ? "*" : target_p->user->suser);
 
 	invalidate_bancache_user(target_p);
 }
