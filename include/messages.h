@@ -159,7 +159,7 @@
 #define NUMERIC_STR_431      ":%s 431 %s :No nickname given"
 #define NUMERIC_STR_432      ":%s 432 %s %s :Erroneous Nickname"
 #define NUMERIC_STR_433      ":%s 433 %s %s :Nickname is already in use."
-#define NUMERIC_STR_435      "%s %s :Cannot change nickname while banned on channel"
+#define NUMERIC_STR_435      "%s %s :Cannot change nickname because you are banned or quieted while in this channel."
 #define NUMERIC_STR_436      "%s :Nickname collision KILL"
 #define NUMERIC_STR_437      ":%s 437 %s %s :Nick/channel is temporarily unavailable"
 #define NUMERIC_STR_438      ":%s 438 %s %s %s :Nick change too fast. Please wait %d seconds."
