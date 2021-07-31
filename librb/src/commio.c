@@ -72,12 +72,12 @@ static PF rb_connect_outcome;
 static void mangle_mapped_sockaddr(struct sockaddr *in);
 
 #ifndef HAVE_SOCKETPAIR
-static int rb_inet_socketpair(int d, int type, int protocol, rb_platform_fd_t sv[2]);
+static int rb_inet_socketpair(int d, int type, int protocol, int sv[2]);
 static int rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2);
 #endif
 
 static inline rb_fde_t *
-add_fd(rb_platform_fd_t fd)
+add_fd(int fd)
 {
 	rb_fde_t *F = rb_find_fd(fd);
 
@@ -100,8 +100,8 @@ remove_fd(rb_fde_t *F)
 	rb_dlinkMoveNode(&F->node, &rb_fd_table[rb_hash_fd(F->fd)], &closed_list);
 }
 
-static void
-free_fds(void)
+void
+rb_close_pending_fds(void)
 {
 	rb_fde_t *F;
 	rb_dlink_node *ptr, *next;
@@ -110,14 +110,7 @@ free_fds(void)
 		F = ptr->data;
 
 		number_fd--;
-
-#ifdef _WIN32
-		if(F->type & (RB_FD_SOCKET | RB_FD_PIPE))
-			closesocket(F->fd);
-		else
-#endif
-			close(F->fd);
-
+		close(F->fd);
 		rb_dlinkDelete(ptr, &closed_list);
 		rb_bh_free(fd_heap, F);
 	}
@@ -128,7 +121,6 @@ free_fds(void)
 static void
 rb_close_all(void)
 {
-#ifndef _WIN32
 	int i;
 
 	/* XXX someone tell me why we care about 4 fd's ? */
@@ -137,7 +129,6 @@ rb_close_all(void)
 	{
 		close(i);
 	}
-#endif
 }
 
 /*
@@ -156,8 +147,6 @@ rb_get_sockerr(rb_fde_t *F)
 
 	if(!(F->type & RB_FD_SOCKET))
 		return errno;
-
-	rb_get_errno();
 	errtmp = errno;
 
 #ifdef SO_ERROR
@@ -214,7 +203,7 @@ rb_set_nb(rb_fde_t *F)
 {
 	int nonb = 0;
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -239,11 +228,8 @@ rb_set_nb(rb_fde_t *F)
 int
 rb_set_cloexec(rb_fde_t *F)
 {
-#ifdef _WIN32
-	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 0);
-#else
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -255,17 +241,13 @@ rb_set_cloexec(rb_fde_t *F)
 		return 0;
 
 	return 1;
-#endif
 }
 
 int
 rb_clear_cloexec(rb_fde_t *F)
 {
-#ifdef _WIN32
-	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 1);
-#else
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -277,7 +259,6 @@ rb_clear_cloexec(rb_fde_t *F)
 		return 0;
 
 	return 1;
-#endif
 }
 
 /*
@@ -546,7 +527,6 @@ static void rb_accept_tryaccept(rb_fde_t *F, void *data __attribute__((unused)))
 		addrlen = sizeof(st);
 
 		new_fd = accept(F->fd, (struct sockaddr *)&st, &addrlen);
-		rb_get_errno();
 		if(new_fd < 0)
 		{
 			rb_setselect(F, RB_SELECT_ACCEPT, rb_accept_tryaccept, NULL);
@@ -566,7 +546,6 @@ static void rb_accept_tryaccept(rb_fde_t *F, void *data __attribute__((unused)))
 
 		if(rb_unlikely(!rb_set_nb(new_F)))
 		{
-			rb_get_errno();
 			rb_lib_log("rb_accept: Couldn't set FD %d non blocking!", new_F->fd);
 			rb_close(new_F);
 		}
@@ -609,7 +588,7 @@ rb_accept_tcp(rb_fde_t *F, ACPRE * precb, ACCB * callback, void *data)
 }
 
 /*
- * void rb_connect_tcp(rb_platform_fd_t fd, struct sockaddr *dest,
+ * void rb_connect_tcp(int fd, struct sockaddr *dest,
  *                       struct sockaddr *clocal,
  *                       CNCB *callback, void *data, int timeout)
  * Input: An fd to connect with, a host and port to connect to,
@@ -666,7 +645,6 @@ rb_connect_tcp(rb_fde_t *F, struct sockaddr *dest,
 		 * which is a good thing.
 		 *   -- adrian
 		 */
-		rb_get_errno();
 		if (errno == EISCONN) {
 			rb_connect_callback(F, RB_OK);
 		} else if (rb_ignore_errno(errno)) {
@@ -738,7 +716,6 @@ rb_connect_sctp(rb_fde_t *F, struct sockaddr_storage *dest, size_t dest_len,
 		 * which is a good thing.
 		 *   -- adrian
 		 */
-		rb_get_errno();
 		if (errno == EISCONN) {
 			rb_connect_callback(F, RB_OK);
 		} else if (rb_ignore_errno(errno)) {
@@ -806,9 +783,7 @@ rb_connect_outcome(rb_fde_t *F, void *notused __attribute__((unused)))
 	if(F == NULL || F->connect == NULL || F->connect->callback == NULL)
 		return;
 	retval = getsockopt(F->fd, SOL_SOCKET, SO_ERROR, &err, &len);
-	if (retval < 0) {
-		rb_get_errno();
-	} else if (err != 0) {
+	if ((retval >= 0) && (err != 0)) {
 		errno = err;
 		retval = -1;
 	}
@@ -847,7 +822,7 @@ rb_errstr(int error)
 int
 rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t **F2, const char *note)
 {
-	rb_platform_fd_t nfd[2];
+	int nfd[2];
 	if(number_fd >= rb_maxconnections)
 	{
 		errno = ENFILE;
@@ -906,8 +881,7 @@ rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t **F2
 int
 rb_pipe(rb_fde_t **F1, rb_fde_t **F2, const char *desc)
 {
-#ifndef _WIN32
-	rb_platform_fd_t fd[2];
+	int fd[2];
 	if(number_fd >= rb_maxconnections)
 	{
 		errno = ENFILE;
@@ -936,12 +910,6 @@ rb_pipe(rb_fde_t **F1, rb_fde_t **F2, const char *desc)
 
 
 	return 0;
-#else
-	/* Its not a pipe..but its selectable.  I'll take dirty hacks
-	 * for $500 Alex.
-	 */
-	return rb_socketpair(AF_INET, SOCK_STREAM, 0, F1, F2, desc);
-#endif
 }
 
 /*
@@ -955,7 +923,7 @@ rb_fde_t *
 rb_socket(int family, int sock_type, int proto, const char *note)
 {
 	rb_fde_t *F;
-	rb_platform_fd_t fd;
+	int fd;
 	/* First, make sure we aren't going to run out of file descriptors */
 	if(rb_unlikely(number_fd >= rb_maxconnections))
 	{
@@ -1081,18 +1049,7 @@ void
 rb_fdlist_init(int closeall, int maxfds, size_t heapsize)
 {
 	static int initialized = 0;
-#ifdef _WIN32
-	WSADATA wsaData;
-	int err;
-	int vers = MAKEWORD(2, 0);
 
-	err = WSAStartup(vers, &wsaData);
-	if(err != 0)
-	{
-		rb_lib_die("WSAStartup failed");
-	}
-
-#endif
 	if(!initialized)
 	{
 		rb_maxconnections = maxfds;
@@ -1108,7 +1065,7 @@ rb_fdlist_init(int closeall, int maxfds, size_t heapsize)
 
 /* Called to open a given filedescriptor */
 rb_fde_t *
-rb_open(rb_platform_fd_t fd, uint8_t type, const char *desc)
+rb_open(int fd, uint8_t type, const char *desc)
 {
 	rb_fde_t *F;
 	lrb_assert(fd >= 0);
@@ -1253,7 +1210,7 @@ rb_fd_ssl(rb_fde_t *F)
 	return 0;
 }
 
-rb_platform_fd_t
+int
 rb_get_fd(rb_fde_t *F)
 {
 	if(F == NULL)
@@ -1262,7 +1219,7 @@ rb_get_fd(rb_fde_t *F)
 }
 
 rb_fde_t *
-rb_get_fde(rb_platform_fd_t fd)
+rb_get_fde(int fd)
 {
 	return rb_find_fd(fd);
 }
@@ -1286,10 +1243,6 @@ rb_read(rb_fde_t *F, void *buf, int count)
 	if(F->type & RB_FD_SOCKET)
 	{
 		ret = recv(F->fd, buf, count, 0);
-		if(ret < 0)
-		{
-			rb_get_errno();
-		}
 		return ret;
 	}
 
@@ -1315,17 +1268,13 @@ rb_write(rb_fde_t *F, const void *buf, int count)
 	if(F->type & RB_FD_SOCKET)
 	{
 		ret = send(F->fd, buf, count, MSG_NOSIGNAL);
-		if(ret < 0)
-		{
-			rb_get_errno();
-		}
 		return ret;
 	}
 
 	return write(F->fd, buf, count);
 }
 
-#if defined(HAVE_SSL) || defined(WIN32) || !defined(HAVE_WRITEV)
+#if defined(HAVE_SSL) || !defined(HAVE_WRITEV)
 static ssize_t
 rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 {
@@ -1349,7 +1298,7 @@ rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 }
 #endif
 
-#if defined(WIN32) || !defined(HAVE_WRITEV)
+#ifndef HAVE_WRITEV
 ssize_t
 rb_writev(rb_fde_t *F, struct rb_iovec * vecount, int count)
 {
@@ -1875,7 +1824,7 @@ rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2)
 	struct sockaddr_in addr[2];
 	rb_socklen_t size = sizeof(struct sockaddr_in);
 	rb_fde_t *F[2];
-	rb_platform_fd_t fd[2];
+	int fd[2];
 	int i, got;
 	unsigned short port;
 	struct timeval wait = { 0, 100000 };
@@ -1958,18 +1907,9 @@ rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2)
 	*newF2 = F[1];
 	return 0;
 
-#ifdef _WIN32
-#ifndef ECONNABORTED
-#define	ECONNABORTED WSAECONNABORTED
-#endif
-#endif
-
       abort_failed:
-	rb_get_errno();
 	errno = ECONNABORTED;
       failed:
-	if(errno != ECONNABORTED)
-		rb_get_errno();
 	o_errno = errno;
 	if(F[0] != NULL)
 		rb_close(F[0]);
@@ -1981,7 +1921,7 @@ rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2)
 
 
 int
-rb_inet_socketpair(int family, int type, int protocol, rb_platform_fd_t fd[2])
+rb_inet_socketpair(int family, int type, int protocol, int fd[2])
 {
 	int listener = -1;
 	int connector = -1;
@@ -2197,24 +2137,6 @@ try_poll(void)
 	return -1;
 }
 
-static int
-try_win32(void)
-{
-	if(!rb_init_netio_win32())
-	{
-		setselect_handler = rb_setselect_win32;
-		select_handler = rb_select_win32;
-		setup_fd_handler = rb_setup_fd_win32;
-		io_sched_event = NULL;
-		io_unsched_event = NULL;
-		io_init_event = NULL;
-		io_supports_event = rb_unsupported_event;
-		rb_strlcpy(iotype, "win32", sizeof(iotype));
-		return 0;
-	}
-	return -1;
-}
-
 int
 rb_io_sched_event(struct ev_entry *ev, int when)
 {
@@ -2287,12 +2209,6 @@ rb_init_netio(void)
 			if(!try_sigio())
 				return;
 		}
-		if(!strcmp("win32", ioenv))
-		{
-			if(!try_win32())
-				return;
-		}
-
 	}
 
 	if(!try_kqueue())
@@ -2306,8 +2222,6 @@ rb_init_netio(void)
 	if(!try_sigio())
 		return;
 	if(!try_poll())
-		return;
-	if(!try_win32())
 		return;
 
 	rb_lib_log("rb_init_netio: Could not find any io handlers...giving up");
@@ -2325,7 +2239,7 @@ int
 rb_select(unsigned long timeout)
 {
 	int ret = select_handler(timeout);
-	free_fds();
+	rb_close_pending_fds();
 	return ret;
 }
 
@@ -2368,7 +2282,7 @@ rb_ignore_errno(int error)
 }
 
 
-#if defined(HAVE_SENDMSG) && !defined(WIN32)
+#ifdef HAVE_SENDMSG
 int
 rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
 {
@@ -2378,7 +2292,7 @@ rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds
 	struct stat st;
 	uint8_t stype = RB_FD_UNKNOWN;
 	const char *desc;
-	rb_platform_fd_t fd, len, x, rfds;
+	int fd, len, x, rfds;
 
 	int control_len = CMSG_SPACE(sizeof(int) * nfds);
 
@@ -2483,8 +2397,7 @@ rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasiz
 	}
 	return sendmsg(rb_get_fd(xF), &msg, MSG_NOSIGNAL);
 }
-#else /* defined(HAVE_SENDMSG) && !defined(WIN32) */
-#ifndef _WIN32
+#else
 int
 rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
 {
@@ -2498,8 +2411,7 @@ rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasiz
 	errno = ENOSYS;
 	return -1;
 }
-#endif /* _WIN32 */
-#endif /* defined(HAVE_SENDMSG) && !defined(WIN32) */
+#endif
 
 int
 rb_ipv4_from_ipv6(const struct sockaddr_in6 *restrict ip6, struct sockaddr_in *restrict ip4)

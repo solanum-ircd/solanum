@@ -30,6 +30,7 @@ static void hack_channel_access(void *data);
 static void hack_can_join(void *data);
 static void hack_can_kick(void *data);
 static void hack_can_send(void *data);
+static void hack_can_invite(void *data);
 static void handle_client_exit(void *data);
 
 mapi_hfn_list_av1 override_hfnlist[] = {
@@ -38,6 +39,7 @@ mapi_hfn_list_av1 override_hfnlist[] = {
 	{ "can_join", (hookfn) hack_can_join, HOOK_HIGHEST },
 	{ "can_kick", (hookfn) hack_can_kick, HOOK_HIGHEST },
 	{ "can_send", (hookfn) hack_can_send, HOOK_HIGHEST },
+	{ "can_invite", (hookfn) hack_can_invite, HOOK_HIGHEST },
 	{ "client_exit", (hookfn) handle_client_exit },
 	{ NULL, NULL }
 };
@@ -233,6 +235,23 @@ hack_can_send(void *vdata)
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (forcing message)",
 					       get_oper_name(data->client), data->chptr->chname);
 		}
+	}
+}
+
+static void
+hack_can_invite(void *vdata)
+{
+	hook_data_channel_approval *data = vdata;
+
+	if (data->approved == 0)
+		return;
+
+	if (data->client->umodes & user_modes['p'])
+	{
+		data->approved = 0;
+		update_session_deadline(data->client);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (invite: %s)",
+				       get_oper_name(data->client), data->chptr->chname, data->target->name);
 	}
 }
 

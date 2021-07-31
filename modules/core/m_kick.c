@@ -60,7 +60,7 @@ DECLARE_MODULE_AV2(kick, NULL, NULL, kick_clist, NULL, NULL, NULL, NULL, kick_de
 static void
 m_kick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	struct membership *msptr;
+	struct membership *sourcems, *targetms;
 	struct Client *who;
 	struct Channel *chptr;
 	int chasing = 0;
@@ -88,16 +88,16 @@ m_kick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	if(!IsServer(source_p))
 	{
-		msptr = find_channel_membership(chptr, source_p);
+		sourcems = find_channel_membership(chptr, source_p);
 
-		if((msptr == NULL) && MyConnect(source_p))
+		if((sourcems == NULL) && MyConnect(source_p))
 		{
 			sendto_one_numeric(source_p, ERR_NOTONCHANNEL,
 					   form_str(ERR_NOTONCHANNEL), name);
 			return;
 		}
 
-		if(get_channel_access(source_p, chptr, msptr, MODE_ADD, NULL) < CHFL_CHANOP)
+		if(get_channel_access(source_p, chptr, sourcems, MODE_ADD, NULL) < CHFL_CHANOP)
 		{
 			if(MyConnect(source_p))
 			{
@@ -127,9 +127,9 @@ m_kick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		return;
 	}
 
-	msptr = find_channel_membership(chptr, who);
+	targetms = find_channel_membership(chptr, who);
 
-	if(msptr != NULL)
+	if(targetms != NULL)
 	{
 		if(MyClient(source_p) && IsService(who))
 		{
@@ -144,7 +144,7 @@ m_kick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 			hookdata.client = source_p;
 			hookdata.chptr = chptr;
-			hookdata.msptr = msptr;
+			hookdata.msptr = sourcems;
 			hookdata.target = who;
 			hookdata.approved = 1;
 			hookdata.dir = MODE_ADD;	/* ensure modules like override speak up */
@@ -178,7 +178,7 @@ m_kick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
 			      ":%s KICK %s %s :%s",
 			      use_id(source_p), chptr->chname, use_id(who), comment);
-		remove_user_from_channel(msptr);
+		remove_user_from_channel(targetms);
 	}
 	else if (MyClient(source_p))
 		sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
