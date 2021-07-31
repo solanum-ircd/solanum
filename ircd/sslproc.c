@@ -245,12 +245,6 @@ start_ssldaemon(int count)
 {
 	rb_fde_t *F1, *F2;
 	rb_fde_t *P1, *P2;
-#ifdef _WIN32
-	const char *suffix = ".exe";
-#else
-	const char *suffix = "";
-#endif
-
 	char fullpath[PATH_MAX + 1];
 	char fdarg[6];
 	const char *parv[2];
@@ -277,17 +271,16 @@ start_ssldaemon(int count)
 
 	if(ssld_path == NULL)
 	{
-		snprintf(fullpath, sizeof(fullpath), "%s%cssld%s", ircd_paths[IRCD_PATH_LIBEXEC], RB_PATH_SEPARATOR, suffix);
+		snprintf(fullpath, sizeof(fullpath), "%s/ssld", ircd_paths[IRCD_PATH_LIBEXEC]);
 
 		if(access(fullpath, X_OK) == -1)
 		{
-			snprintf(fullpath, sizeof(fullpath), "%s%cbin%cssld%s",
-				    ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR, suffix);
+			snprintf(fullpath, sizeof(fullpath), "%s/bin/ssld", ConfigFileEntry.dpath);
 			if(access(fullpath, X_OK) == -1)
 			{
 				ilog(L_MAIN,
-				     "Unable to execute ssld%s in %s or %s/bin",
-				     suffix, ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
+				     "Unable to execute ssld in %s or %s/bin",
+				     ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
 				return 0;
 			}
 		}
