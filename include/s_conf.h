@@ -257,6 +257,15 @@ struct config_file_entry
 	int hide_opers;
 
 	char *drain_reason;
+	char *sasl_only_client_message;
+	char *identd_only_client_message;
+	char *sctp_forbidden_client_message;
+	char *ssltls_only_client_message;
+	char *not_authorised_client_message;
+	char *illegal_hostname_client_message;
+	char *server_full_client_message;
+	char *illegal_name_long_client_message;
+	char *illegal_name_short_client_message;
 };
 
 struct config_channel_entry

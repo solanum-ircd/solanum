@@ -77,24 +77,7 @@
  */
 
 #include <rb_lib.h>
-
-#ifndef _WIN32
-
 #include <netdb.h>
-
-typedef struct addrinfo rb_addrinfo;
-
-#else
-#include "getaddrinfo.h"
-#include "getnameinfo.h"
-#define getaddrinfo rb_getaddrinfo
-#define getnameinfo rb_getnameinfo
-#define freeaddrinfo rb_freeaddrinfo
-
-extern const char * get_windows_nameservers(void);
-typedef struct rb_addrinfo rb_addrinfo;
-#endif
-
 #include "stdinc.h"
 #include "ircd_defs.h"
 #include "ircd.h"
@@ -130,15 +113,10 @@ static const char digitvalue[256] = {
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*256*/
 };
 
-#ifndef _WIN32
-static int parse_resvconf(void);
-#else
-static void parse_windows_resolvers(void);
-#endif
-
-static void add_nameserver(const char *);
-
 static const char digits[] = "0123456789";
+
+static int parse_resvconf(void);
+static void add_nameserver(const char *);
 static int labellen(const unsigned char *lp);
 static int special(int ch);
 static int printable(int ch);
@@ -162,31 +140,12 @@ int
 irc_res_init(void)
 {
   irc_nscount = 0;
-#ifndef _WIN32
   parse_resvconf();
-#else
-  parse_windows_resolvers();
-#endif
   if (irc_nscount == 0)
     add_nameserver("127.0.0.1");
   return 0;
 }
 
-#ifdef _WIN32
-static void
-parse_windows_resolvers(void)
-{
-        const char *ns = get_windows_nameservers();
-        char *server;
-        char *p;
-        char *buf = rb_strdup(ns);
-        for(server = rb_strtok_r(buf, " ", &p); server != NULL;server = rb_strtok_r(NULL, " ", &p))
-        {
-                add_nameserver(server);
-        }
-        rb_free(buf);
-}
-#else
 /* parse_resvconf()
  *
  * inputs - NONE
@@ -202,9 +161,6 @@ parse_resvconf(void)
   char input[DNS_MAXLINE];
   FILE *file;
 
-  /* XXX "/etc/resolv.conf" should be from a define in setup.h perhaps
-   * for cygwin support etc. this hardcodes it to unix for now -db
-   */
   if ((file = fopen("/etc/resolv.conf", "r")) == NULL)
     return -1;
 
@@ -252,7 +208,6 @@ parse_resvconf(void)
   fclose(file);
   return 0;
 }
-#endif
 
 /* add_nameserver()
  *
@@ -264,7 +219,7 @@ parse_resvconf(void)
 static void
 add_nameserver(const char *arg)
 {
-  rb_addrinfo hints, *res;
+  struct addrinfo hints, *res;
 
   /* Done max number of nameservers? */
   if (irc_nscount >= IRCD_MAXNS)
