@@ -2,9 +2,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/librb/include $(LTDLINCL)
 AM_LDFLAGS  = -module -export-dynamic -avoid-version -no-undefined -shared
 AM_LDFLAGS += -export-symbols-regex _mheader
 LIBS += $(top_srcdir)/ircd/libircd.la
-if MINGW
-LIBS += $(top_srcdir)/librb/src/librb.la
-endif
 
 extensiondir=@moduledir@/extensions
 
@@ -69,6 +66,7 @@ extension_LTLIBRARIES =		\
   identify_msg.la		\
   cap_realhost.la		\
   invex_regonly.la		\
+  cap_oper.la			\
   example_module.la
 
 if HAVE_HYPERSCAN

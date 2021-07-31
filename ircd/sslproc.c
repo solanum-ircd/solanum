@@ -35,9 +35,6 @@
 #include "packet.h"
 #include "certfp.h"
 
-#define ZIPSTATS_TIME           60
-
-static void collect_zipstats(void *unused);
 static void ssl_read_ctl(rb_fde_t * F, void *data);
 static int ssld_count;
 
@@ -248,12 +245,6 @@ start_ssldaemon(int count)
 {
 	rb_fde_t *F1, *F2;
 	rb_fde_t *P1, *P2;
-#ifdef _WIN32
-	const char *suffix = ".exe";
-#else
-	const char *suffix = "";
-#endif
-
 	char fullpath[PATH_MAX + 1];
 	char fdarg[6];
 	const char *parv[2];
@@ -280,17 +271,16 @@ start_ssldaemon(int count)
 
 	if(ssld_path == NULL)
 	{
-		snprintf(fullpath, sizeof(fullpath), "%s%cssld%s", ircd_paths[IRCD_PATH_LIBEXEC], RB_PATH_SEPARATOR, suffix);
+		snprintf(fullpath, sizeof(fullpath), "%s/ssld", ircd_paths[IRCD_PATH_LIBEXEC]);
 
 		if(access(fullpath, X_OK) == -1)
 		{
-			snprintf(fullpath, sizeof(fullpath), "%s%cbin%cssld%s",
-				    ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR, suffix);
+			snprintf(fullpath, sizeof(fullpath), "%s/bin/ssld", ConfigFileEntry.dpath);
 			if(access(fullpath, X_OK) == -1)
 			{
 				ilog(L_MAIN,
-				     "Unable to execute ssld%s in %s or %s/bin",
-				     suffix, ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
+				     "Unable to execute ssld in %s or %s/bin",
+				     ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
 				return 0;
 			}
 		}
@@ -347,41 +337,6 @@ start_ssldaemon(int count)
 
 	}
 	return started;
-}
-
-static void
-ssl_process_zipstats(ssl_ctl_t * ctl, ssl_ctl_buf_t * ctl_buf)
-{
-	struct Client *server;
-	struct ZipStats *zips;
-	char *parv[6];
-	int parc = rb_string_to_array(ctl_buf->buf, parv, sizeof(parv));
-
-	if (parc < sizeof(parv))
-		return;
-
-	server = find_server(NULL, parv[1]);
-	if(server == NULL || server->localClient == NULL || !IsCapable(server, CAP_ZIP))
-		return;
-	if(server->localClient->zipstats == NULL)
-		server->localClient->zipstats = rb_malloc(sizeof(struct ZipStats));
-
-	zips = server->localClient->zipstats;
-
-	zips->in += strtoull(parv[2], NULL, 10);
-	zips->in_wire += strtoull(parv[3], NULL, 10);
-	zips->out += strtoull(parv[4], NULL, 10);
-	zips->out_wire += strtoull(parv[5], NULL, 10);
-
-	if(zips->in > 0)
-		zips->in_ratio = ((double) (zips->in - zips->in_wire) / (double) zips->in) * 100.00;
-	else
-		zips->in_ratio = 0;
-
-	if(zips->out > 0)
-		zips->out_ratio = ((double) (zips->out - zips->out_wire) / (double) zips->out) * 100.00;
-	else
-		zips->out_ratio = 0;
 }
 
 static void
@@ -565,9 +520,6 @@ ssl_process_cmd_recv(ssl_ctl_t * ctl)
 			break;
 		case 'F':
 			ssl_process_certfp(ctl, ctl_buf);
-			break;
-		case 'S':
-			ssl_process_zipstats(ctl, ctl_buf);
 			break;
 		case 'I':
 			ircd_ssl_ok = false;
@@ -852,126 +804,6 @@ ssld_decrement_clicount(ssl_ctl_t * ctl)
 	}
 }
 
-/*
- * what we end up sending to the ssld process for ziplinks is the following
- * Z[ourfd][level][RECVQ]
- * Z = ziplinks command	= buf[0]
- * ourfd = Our end of the socketpair = buf[1..4]
- * level = zip level buf[5]
- * recvqlen = our recvq len = buf[6-7]
- * recvq = any data we read prior to starting ziplinks
- */
-void
-start_zlib_session(void *data)
-{
-	struct Client *server = (struct Client *) data;
-	uint16_t recvqlen;
-	uint8_t level;
-	void *xbuf;
-
-	rb_fde_t *F[2];
-	rb_fde_t *xF1, *xF2;
-	char *buf;
-	void *recvq_start;
-
-	size_t hdr = (sizeof(uint8_t) * 2) + sizeof(uint32_t);
-	size_t len;
-	int cpylen, left;
-
-	server->localClient->event = NULL;
-
-	recvqlen = rb_linebuf_len(&server->localClient->buf_recvq);
-
-	len = recvqlen + hdr;
-
-	if(len > READBUF_SIZE)
-	{
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-				       "ssld - attempted to pass message of %zd len, max len %d, giving up",
-				       len, READBUF_SIZE);
-		ilog(L_MAIN, "ssld - attempted to pass message of %zd len, max len %d, giving up", len, READBUF_SIZE);
-		exit_client(server, server, server, "ssld readbuf exceeded");
-		return;
-	}
-
-	buf = rb_malloc(len);
-	level = ConfigFileEntry.compression_level;
-
-	uint32_to_buf(&buf[1], rb_get_fd(server->localClient->F));
-	buf[5] = (char) level;
-
-	recvq_start = &buf[6];
-	server->localClient->zipstats = rb_malloc(sizeof(struct ZipStats));
-
-	xbuf = recvq_start;
-	left = recvqlen;
-
-	do
-	{
-		cpylen = rb_linebuf_get(&server->localClient->buf_recvq, xbuf, left, LINEBUF_PARTIAL, LINEBUF_RAW);
-		left -= cpylen;
-		xbuf = (void *) (((uintptr_t) xbuf) + cpylen);
-	}
-	while(cpylen > 0);
-
-	/* Pass the socket to ssld. */
-	*buf = 'Z';
-	if(rb_socketpair(AF_UNIX, SOCK_STREAM, 0, &xF1, &xF2, "Initial zlib socketpairs") == -1)
-	{
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Error creating zlib socketpair - %s", strerror(errno));
-		ilog(L_MAIN, "Error creating zlib socketpairs - %s", strerror(errno));
-		exit_client(server, server, server, "Error creating zlib socketpair");
-		rb_free(buf);
-		return;
-	}
-
-	F[0] = server->localClient->F;
-	F[1] = xF1;
-	server->localClient->F = xF2;
-	/* need to redo as what we did before isn't valid now */
-	uint32_to_buf(&buf[1], connid_get(server));
-
-	server->localClient->z_ctl = which_ssld();
-	if(!server->localClient->z_ctl)
-	{
-		exit_client(server, server, server, "Error finding available ssld");
-		rb_free(buf);
-		return;
-	}
-	server->localClient->z_ctl->cli_count++;
-	ssl_cmd_write_queue(server->localClient->z_ctl, F, 2, buf, len);
-	rb_free(buf);
-}
-
-static void
-collect_zipstats(void *unused)
-{
-	rb_dlink_node *ptr;
-	struct Client *target_p;
-	char buf[sizeof(uint8_t) + sizeof(uint32_t) + HOSTLEN];
-	void *odata;
-	size_t len;
-	uint32_t id;
-
-	buf[0] = 'S';
-	odata = buf + sizeof(uint8_t) + sizeof(uint32_t);
-
-	RB_DLINK_FOREACH(ptr, serv_list.head)
-	{
-		target_p = ptr->data;
-		if(IsCapable(target_p, CAP_ZIP))
-		{
-			len = sizeof(uint8_t) + sizeof(uint32_t);
-
-			id = rb_get_fd(target_p->localClient->F);
-			uint32_to_buf(&buf[1], id);
-			rb_strlcpy(odata, target_p->name, (sizeof(buf) - len));
-			len += strlen(odata) + 1;	/* Get the \0 as well */
-			ssl_cmd_write_queue(target_p->localClient->z_ctl, NULL, 0, buf, len);
-		}
-	}
-}
-
 static void
 cleanup_dead_ssl(void *unused)
 {
@@ -1011,6 +843,5 @@ ssld_foreach_info(void (*func)(void *data, pid_t pid, int cli_count, enum ssld_s
 void
 init_ssld(void)
 {
-	rb_event_addish("collect_zipstats", collect_zipstats, NULL, ZIPSTATS_TIME);
 	rb_event_addish("cleanup_dead_ssld", cleanup_dead_ssl, NULL, 60);
 }

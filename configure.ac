@@ -34,24 +34,6 @@ LTDL_INIT
 build_ltdl=$with_included_ltdl
 AM_CONDITIONAL([BUILD_LTDL], [test x"$build_ltdl" = x"yes"])
 
-case "$host_os" in
-*cygwin*)
-     AC_DEFINE_UNQUOTED(CYGWIN,1,[This is a Cygwin system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     ;;
-*mingw* | *msys*)
-     AC_DEFINE_UNQUOTED(MINGW,1,[This is a MinGW system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     AC_CHECK_HEADER(winsock2.h, , [AC_MSG_ERROR([** MinGW and no winsock2.h.  I give up.])])
-     LIBS="$LIBS -lws2_32 -liphlpapi"
-     is_mingw="yes"
-     ;;
-*)
-     ;;
-esac
-
-AM_CONDITIONAL([MINGW], [test "$is_mingw" = "yes"])
-
 if test "$ac_cv_c_compiler_gnu" = yes; then
 	IRC_CFLAGS="$IRC_CFLAGS -O0 -Wall"
 fi
@@ -341,26 +323,6 @@ AS_IF([test "$hyperscan" = no], [
 
 AM_CONDITIONAL([HAVE_HYPERSCAN], [test "$hyperscan" = "yes"])
 
-
-AC_ARG_WITH(zlib-path,
-AC_HELP_STRING([--with-zlib-path=DIR],[Path to libz.so for ziplinks support.]),
-[LIBS="$LIBS -L$withval"],)
-
-AC_ARG_ENABLE(zlib,
-AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
-[zlib=$enableval],[zlib=yes])
-
-if test "$zlib" = yes; then
-
-AC_CHECK_HEADER(zlib.h, [
-	AC_CHECK_LIB(z, zlibVersion,
-	[
-		AC_SUBST(ZLIB_LD, -lz)
-		AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
-	], zlib=no)
-], zlib=no)
-
-fi
 
 AC_ARG_WITH(sctp-path,
 AC_HELP_STRING([--with-sctp-path=DIR],[Path to libsctp.so for SCTP support.]),
@@ -673,15 +635,10 @@ AC_SUBST(SEDOBJ)
 
 if test "$prefix" = "NONE"; then
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$ac_default_prefix", [Prefix where the ircd is installed.])
-
 else
-
-dnl Don't get bitten by Cygwin's stupidity if the user specified
-dnl a custom prefix with a trailing slash
-
+	dnl Strip trailing slashes to prevent a path of '//'
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
-
 fi
 
 AC_CONFIG_FILES(			\
@@ -713,7 +670,6 @@ echo "
 Configuration of ${BRANDING_NAME}-${BRANDING_VERSION}:
 	Install directory  : $prefix
 
-	Ziplinks           : $zlib
 	OpenSSL            : $openssl
 	SCTP               : $sctp
 

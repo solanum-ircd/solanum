@@ -779,10 +779,6 @@ set_default_conf(void)
 	ConfigFileEntry.tls_ciphers_oper_only = false;
 	ConfigFileEntry.oper_secure_only = false;
 
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = 4;
-#endif
-
 	ConfigFileEntry.oper_umodes = UMODE_LOCOPS | UMODE_SERVNOTICE |
 		UMODE_OPERWALL | UMODE_WALLOP;
 	ConfigFileEntry.oper_only_umodes = UMODE_SERVNOTICE;
@@ -1554,6 +1550,24 @@ clear_out_old_conf(void)
 	ConfigFileEntry.sasl_service = NULL;
 	rb_free(ConfigFileEntry.drain_reason);
 	ConfigFileEntry.drain_reason = NULL;
+	rb_free(ConfigFileEntry.sasl_only_client_message);
+	ConfigFileEntry.sasl_only_client_message = NULL;
+	rb_free(ConfigFileEntry.identd_only_client_message);
+	ConfigFileEntry.identd_only_client_message = NULL;
+	rb_free(ConfigFileEntry.sctp_forbidden_client_message);
+	ConfigFileEntry.sctp_forbidden_client_message = NULL;
+	rb_free(ConfigFileEntry.ssltls_only_client_message);
+	ConfigFileEntry.ssltls_only_client_message = NULL;
+	rb_free(ConfigFileEntry.not_authorised_client_message);
+	ConfigFileEntry.not_authorised_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_hostname_client_message);
+	ConfigFileEntry.illegal_hostname_client_message = NULL;
+	rb_free(ConfigFileEntry.server_full_client_message);
+	ConfigFileEntry.server_full_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_long_client_message);
+	ConfigFileEntry.illegal_name_long_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_short_client_message);
+	ConfigFileEntry.illegal_name_short_client_message = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{
