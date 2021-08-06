@@ -23,6 +23,7 @@
 #include "hook.h"
 #include "ircd.h"
 #include "send.h"
+#include "numeric.h"
 #include "s_conf.h"
 #include "s_user.h"
 #include "s_newconf.h"
@@ -35,6 +36,7 @@ mapi_hfn_list_av1 huc_hfnlist[] = {
 	{ "doing_whois_show_idle", h_huc_doing_idle_time_hook },
 	{ "doing_trace_show_idle", h_huc_doing_idle_time_hook },
 	{ "doing_stats_show_idle", h_huc_doing_idle_time_hook },
+	{ "doing_who_show_idle", h_huc_doing_idle_time_hook },
 	{ NULL, NULL }
 };
 
@@ -45,8 +47,10 @@ h_huc_doing_idle_time_hook(void *data_)
 
 	if (data->target->umodes & user_modes['I'])
 	{
-		if ((data->client != data->target) || !HasPrivilege(data->client, "auspex:usertimes"))
+		if ((data->client != data->target) && !HasPrivilege(data->client, "auspex:usertimes"))
 			data->approved = 0;
+		else if (HasPrivilege(data->client, "auspex:usertimes"))
+			data->approved = 2;
 	}
 }
 

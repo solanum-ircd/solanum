@@ -384,11 +384,14 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 		call_hook(doing_whois_show_idle_hook, &hdata_showidle);
 
-		/* operspies are always allowed to see idle time */
 		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
 			   target_p->name,
-			   hdata_showidle.approved || operspy ? (long)(rb_current_time() - target_p->localClient->lasttime) : 0,
+			   hdata_showidle.approved ? (long)(rb_current_time() - target_p->localClient->last) : 0,
 			   (unsigned long)target_p->localClient->firsttime);
+
+		if (hdata_showidle.approved == 2 || hdata_showidle.approved == 0)
+			/* if the target has hidden their idle time, notify the source */
+			sendto_one_numeric(source_p, RPL_WHOISTEXT, "%s :is using a private idle time", target_p->name);
 	}
 	else
 	{

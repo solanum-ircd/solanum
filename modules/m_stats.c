@@ -1622,11 +1622,11 @@ stats_l_client(struct Client *source_p, struct Client *target_p,
 	else
 	{
 		/* fire the doing_stats_show_idle hook to allow modules to tell us whether to show the idle time */
-                hook_data_client_approval hdata_showidle;
+		hook_data_client_approval hdata_showidle;
 
-                hdata_showidle.client = source_p;
-                hdata_showidle.target = target_p;
-                hdata_showidle.approved = 1;
+		hdata_showidle.client = source_p;
+		hdata_showidle.target = target_p;
+		hdata_showidle.approved = 1;
 
 		call_hook(doing_stats_show_idle_hook, &hdata_showidle);
 		sendto_one_numeric(source_p, RPL_STATSLINKINFO, Lformat,

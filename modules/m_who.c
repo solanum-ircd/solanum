@@ -91,8 +91,14 @@ _moddeinit(void)
 	delete_isupport("WHOX");
 }
 
+int doing_who_show_idle_hook;
+
 mapi_clist_av1 who_clist[] = { &who_msgtab, NULL };
-DECLARE_MODULE_AV2(who, _modinit, _moddeinit, who_clist, NULL, NULL, NULL, NULL, who_desc);
+mapi_hlist_av1 who_hlist[] = {
+	{ "doing_who_show_idle", &doing_who_show_idle_hook },
+	{ NULL, NULL }
+};
+DECLARE_MODULE_AV2(who, _modinit, _moddeinit, who_clist, who_hlist, NULL, NULL, NULL, who_desc);
 
 /*
 ** m_who
@@ -527,7 +533,19 @@ do_who(struct Client *source_p, struct Client *target_p, struct membership *mspt
 		if (fmt->fields & FIELD_HOP)
 			append_format(str, sizeof str, &pos, " %d", ConfigServerHide.flatten_links && !IsOperGeneral(source_p) && !IsExemptShide(source_p) ? 0 : target_p->hopcount);
 		if (fmt->fields & FIELD_IDLE)
-			append_format(str, sizeof str, &pos, " %d", (int)(MyClient(target_p) ? rb_current_time() - target_p->localClient->last : 0));
+		{
+			/* fire the doing_who_show_idle hook to allow modules to tell us whether to show the idle time */
+	                hook_data_client_approval hdata_showidle;
+
+	                hdata_showidle.client = source_p;
+	                hdata_showidle.target = target_p;
+	                hdata_showidle.approved = 1;
+
+			call_hook(doing_who_show_idle_hook, &hdata_showidle);
+
+			append_format(str, sizeof str, &pos, " %d",
+				hdata_showidle.approved ? (int)(MyClient(target_p) ? rb_current_time() - target_p->localClient->last : 0) : 0);
+		}
 		if (fmt->fields & FIELD_ACCOUNT)
 		{
 			/* display as in whois */
