@@ -23,7 +23,6 @@
 #include "hook.h"
 #include "ircd.h"
 #include "send.h"
-#include "numeric.h"
 #include "s_conf.h"
 #include "s_user.h"
 #include "s_newconf.h"
