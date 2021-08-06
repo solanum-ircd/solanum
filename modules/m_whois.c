@@ -391,7 +391,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 		if (hdata_showidle.approved == 2 || hdata_showidle.approved == 0)
 			/* if the target has hidden their idle time, notify the source */
-			sendto_one_numeric(source_p, RPL_WHOISTEXT, "%s :is using a private idle time", target_p->name);
+			sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "is using a private idle time");
 	}
 	else
 	{

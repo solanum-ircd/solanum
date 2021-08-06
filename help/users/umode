@@ -22,4 +22,5 @@ User modes: (? designates that the umode is provided by an extension
          +Q     - Prevents you from being affected by channel forwarding.
          +R     - Prevents unidentified users that you have not accepted from
                   messaging you.
+         +I     - Hides your idle time.
          +Z     - Is connected via SSL (cannot be set or unset).
