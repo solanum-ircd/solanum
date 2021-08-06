@@ -19,8 +19,8 @@ User modes: (? designates that the umode is provided by an extension
          +G     - Deny users not on your /ACCEPT list and not in a channel
                   with you from messaging you and inviting you to channels.
                   This is a softer form of +g.
+       ? +I     - Hides your idle time.
          +Q     - Prevents you from being affected by channel forwarding.
          +R     - Prevents unidentified users that you have not accepted from
                   messaging you.
-         +I     - Hides your idle time.
          +Z     - Is connected via SSL (cannot be set or unset).
