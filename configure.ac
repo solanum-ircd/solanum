@@ -124,7 +124,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
 
-AC_CHECK_HEADERS([crypt.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h sys/wait.h wait.h sys/epoll.h sys/uio.h machine/endian.h])
+AC_CHECK_HEADERS([crypt.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h sys/wait.h wait.h sys/epoll.h sys/uio.h machine/endian.h netinet/tcp.h])
 
 dnl Stuff that the memory manager (imalloc) depends on
 dnl ==================================================

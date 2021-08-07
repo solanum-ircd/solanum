@@ -61,7 +61,7 @@ static time_t event_time_min = -1;
  * Side Effects: None
  */
 static struct ev_entry *
-rb_event_find(EVH * func, void *arg)
+rb_event_find(EVH * func, const void *arg)
 {
 	rb_dlink_node *ptr;
 	struct ev_entry *ev;

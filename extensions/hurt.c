@@ -203,7 +203,7 @@ mo_hurt(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if (!expire)
 		expire_time = HURT_DEFAULT_EXPIRE;
-	if (expire && (expire_time = valid_temp_time(expire)) < 1) {
+	else if ((expire_time = valid_temp_time(expire)) < 1) {
 		sendto_one_notice(source_p, ":Permanent HURTs are not supported");
 		return;
 	}

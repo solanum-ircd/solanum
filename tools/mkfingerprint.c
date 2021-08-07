@@ -24,7 +24,7 @@
 #include "rb_lib.h"
 #include "certfp.h"
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	uint8_t certfp[RB_SSL_CERTFP_LEN+1] = { 0 };
 	const char *method_str;

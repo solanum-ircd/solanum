@@ -37,7 +37,7 @@ typedef void rb_bh_usage_cb (size_t bused, size_t bfree, size_t bmemusage, size_
 			     const char *desc, void *data);
 
 
-int rb_bh_free(rb_bh *, void *);
+int rb_bh_free(const rb_bh *, void *);
 void *rb_bh_alloc(rb_bh *);
 
 rb_bh *rb_bh_create(size_t elemsize, int elemsperblock, const char *desc);

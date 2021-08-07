@@ -116,7 +116,7 @@ m_whowas(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	RB_DLINK_FOREACH(ptr, whowas_list->head)
 	{
 		struct Whowas *temp = ptr->data;
-		if(cur > 0 && rb_linebuf_len(&client_p->localClient->buf_sendq) > sendq_limit)
+		if(rb_linebuf_len(&client_p->localClient->buf_sendq) > sendq_limit)
 		{
 			sendto_one(source_p, form_str(ERR_TOOMANYMATCHES),
 				   me.name, source_p->name, "WHOWAS");

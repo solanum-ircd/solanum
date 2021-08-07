@@ -25,6 +25,9 @@
 #include "authd.h"
 #include "notice.h"
 #include "provider.h"
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
 
 #define SELF_PID (opm_provider.id)
 

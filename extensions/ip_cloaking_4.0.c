@@ -77,7 +77,7 @@ static void
 do_host_cloak_ip(const char *inbuf, char *outbuf)
 {
 	/* None of the characters in this table can be valid in an IP */
-	char chartable[] = "ghijklmnopqrstuvwxyz";
+	const char chartable[] = "ghijklmnopqrstuvwxyz";
 	char *tptr;
 	uint32_t accum = fnv_hash((const unsigned char*) inbuf, 32);
 	int sepcount = 0;
@@ -127,7 +127,7 @@ do_host_cloak_ip(const char *inbuf, char *outbuf)
 static void
 do_host_cloak_host(const char *inbuf, char *outbuf)
 {
-	char b26_alphabet[] = "abcdefghijklmnopqrstuvwxyz";
+	const char b26_alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 	char *tptr;
 	uint32_t accum = fnv_hash((const unsigned char*) inbuf, 32);
 

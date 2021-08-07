@@ -351,7 +351,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	char tmpstr2[BUFSIZE];
 	char ipaddr[HOSTIPLEN];
 	char myusername[USERLEN+1];
-	int status, umodes;
+	int umodes;
 
 	s_assert(NULL != source_p);
 	s_assert(MyConnect(source_p));
@@ -410,7 +410,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	else
 		rb_strlcpy(myusername, source_p->username, sizeof myusername);
 
-	if((status = check_client(client_p, source_p, myusername)) < 0)
+	if(check_client(client_p, source_p, myusername) < 0)
 		return (CLIENT_EXITED);
 
 	/* Apply nick override */

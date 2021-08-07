@@ -191,7 +191,7 @@ rb_bh_alloc(rb_bh *bh)
 /*    0 if successful, 1 if element not contained within rb_bh.           */
 /* ************************************************************************ */
 int
-rb_bh_free(rb_bh *bh, void *ptr)
+rb_bh_free(const rb_bh *bh, void *ptr)
 {
 	lrb_assert(bh != NULL);
 	lrb_assert(ptr != NULL);

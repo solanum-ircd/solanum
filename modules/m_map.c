@@ -153,30 +153,30 @@ dump_map(struct Client *client_p, struct Client *root_p, char *pbuf)
 static void
 flattened_map(struct Client *client_p)
 {
-	char buf[BUFSIZE];
+	char lbuf[BUFSIZE];
 	rb_dlink_node *ptr;
 	struct Client *target_p;
 	int i, len;
 	unsigned long cnt = 0;
 
 	/* First display me as the root */
-	rb_strlcpy(buf, me.name, BUFSIZE);
-	len = strlen(buf);
-	buf[len] = ' ';
+	rb_strlcpy(lbuf, me.name, BUFSIZE);
+	len = strlen(lbuf);
+	lbuf[len] = ' ';
 
 	if(len < USER_COL)
 	{
 		for (i = len + 1; i < USER_COL; i++)
 		{
-			buf[i] = '-';
+			lbuf[i] = '-';
 		}
 	}
 
-	snprintf(buf + USER_COL, BUFSIZE - USER_COL,
+	snprintf(lbuf + USER_COL, BUFSIZE - USER_COL,
 		" | Users: %5lu (%4.1f%%)", rb_dlink_list_length(&me.serv->users),
 		100 * (float) rb_dlink_list_length(&me.serv->users) / (float) Count.total);
 
-	sendto_one_numeric(client_p, RPL_MAP, form_str(RPL_MAP), buf);
+	sendto_one_numeric(client_p, RPL_MAP, form_str(RPL_MAP), lbuf);
 
 	/* Next, we run through every other server and list them */
 	RB_DLINK_FOREACH(ptr, global_serv_list.head)
@@ -194,26 +194,26 @@ flattened_map(struct Client *client_p)
 			continue;
 
 		if (cnt == rb_dlink_list_length(&global_serv_list))
-			rb_strlcpy(buf, " `- ", BUFSIZE);
+			rb_strlcpy(lbuf, " `- ", BUFSIZE);
 		else
-			rb_strlcpy(buf, " |- ", BUFSIZE);
+			rb_strlcpy(lbuf, " |- ", BUFSIZE);
 
-		rb_strlcat(buf, target_p->name, BUFSIZE);
-		len = strlen(buf);
-		buf[len] = ' ';
+		rb_strlcat(lbuf, target_p->name, BUFSIZE);
+		len = strlen(lbuf);
+		lbuf[len] = ' ';
 
 		if(len < USER_COL)
 		{
 			for (i = len + 1; i < USER_COL; i++)
 			{
-				buf[i] = '-';
+				lbuf[i] = '-';
 			}
 		}
 
-		snprintf(buf + USER_COL, BUFSIZE - USER_COL,
+		snprintf(lbuf + USER_COL, BUFSIZE - USER_COL,
 			" | Users: %5lu (%4.1f%%)", rb_dlink_list_length(&target_p->serv->users),
 			100 * (float) rb_dlink_list_length(&target_p->serv->users) / (float) Count.total);
 
-		sendto_one_numeric(client_p, RPL_MAP, form_str(RPL_MAP), buf);
+		sendto_one_numeric(client_p, RPL_MAP, form_str(RPL_MAP), lbuf);
 	}
 }

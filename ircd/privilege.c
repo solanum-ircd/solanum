@@ -142,7 +142,7 @@ privilegeset_add_privilegeset(struct PrivilegeSet *dst, const struct PrivilegeSe
 
 	if (dst->priv_storage == NULL)
 	{
-		dst->stored_size = dst->allocated_size = 0;
+		dst->allocated_size = 0;
 		cur_size = 0;
 		alloc_size = 256;
 	}
@@ -330,8 +330,7 @@ privilegeset_diff(const struct PrivilegeSet *old, const struct PrivilegeSet *new
 	static struct PrivilegeSet *set_unchanged = NULL,
 	                           *set_added = NULL,
 	                           *set_removed = NULL;
-	static size_t n_privs = 0;
-	size_t new_size = n_privs ? n_privs : 32;
+	size_t new_size = 32;
 	size_t i = 0, j = 0;
 
 	if (set_unchanged == NULL)
@@ -349,12 +348,9 @@ privilegeset_diff(const struct PrivilegeSet *old, const struct PrivilegeSet *new
 	while (new_size < MAX(old->size, new->size) + 1)
 		new_size *= 2;
 
-	if (new_size > n_privs)
-	{
-		set_unchanged->privs = rb_realloc(set_unchanged->privs, sizeof *set_unchanged->privs * new_size);
-		set_added->privs = rb_realloc(set_added->privs, sizeof *set_added->privs * new_size);
-		set_removed->privs = rb_realloc(set_removed->privs, sizeof *set_removed->privs * new_size);
-	}
+	set_unchanged->privs = rb_realloc(set_unchanged->privs, sizeof *set_unchanged->privs * new_size);
+	set_added->privs = rb_realloc(set_added->privs, sizeof *set_added->privs * new_size);
+	set_removed->privs = rb_realloc(set_removed->privs, sizeof *set_removed->privs * new_size);
 
 	const char **res_unchanged = set_unchanged->privs;
 	const char **res_added = set_added->privs;

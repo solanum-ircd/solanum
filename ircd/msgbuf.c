@@ -427,9 +427,9 @@ void
 msgbuf_cache_initf(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message, const char *format, ...)
 {
 	va_list va;
-	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 
 	va_start(va, format);
+	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 	msgbuf_cache_init(cache, msgbuf, &strings);
 	va_end(va);
 }

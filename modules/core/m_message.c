@@ -119,7 +119,7 @@ static bool flood_attack_client(enum message_type msgtype, struct Client *source
 static struct entity targets[512];
 static int ntargets = 0;
 
-static bool duplicate_ptr(void *);
+static bool duplicate_ptr(const void *);
 
 static void msg_channel(enum message_type msgtype,
 			struct Client *client_p,
@@ -483,7 +483,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
  * side effects	- NONE
  */
 static bool
-duplicate_ptr(void *ptr)
+duplicate_ptr(const void *ptr)
 {
 	int i;
 	for(i = 0; i < ntargets; i++)
@@ -774,7 +774,7 @@ static void
 msg_client(enum message_type msgtype,
 	   struct Client *source_p, struct Client *target_p, const char *text)
 {
-	int do_floodcount = 0;
+	int do_floodcount;
 	hook_data_privmsg_user hdata;
 
 	if(MyClient(source_p))

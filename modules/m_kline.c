@@ -110,10 +110,9 @@ is_temporary_kline(struct ConfItem *aconf)
 static void
 mo_kline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	char def[] = "No Reason";
 	char user[USERLEN + 2];
 	char host_buf[HOSTLEN + 3], *host = host_buf + 1;
-	char *reason = def;
+	char *reason;
 	char *oper_reason;
 	const char *target_server = NULL;
 	struct ConfItem *aconf;

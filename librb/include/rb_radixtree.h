@@ -120,12 +120,12 @@ extern void rb_radixtree_foreach_start_from(rb_radixtree *dtree, rb_radixtree_it
  * rb_radixtree_foreach_cur() returns the current element of the iteration,
  * or NULL if there are no more elements.
  */
-extern void *rb_radixtree_foreach_cur(rb_radixtree *dtree, rb_radixtree_iteration_state *state);
+extern void *rb_radixtree_foreach_cur(const rb_radixtree *dtree, rb_radixtree_iteration_state *state);
 
 /*
  * rb_radixtree_foreach_next() moves to the next element.
  */
-extern void rb_radixtree_foreach_next(rb_radixtree *dtree, rb_radixtree_iteration_state *state);
+extern void rb_radixtree_foreach_next(const rb_radixtree *dtree, rb_radixtree_iteration_state *state);
 
 /*
  * rb_radixtree_add() adds a key->value entry to the patricia tree.

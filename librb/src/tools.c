@@ -438,10 +438,10 @@ int rb_fsnprint(char *buf, size_t len, const rb_strf_t *strings)
 int rb_fsnprintf(char *buf, size_t len, const rb_strf_t *strings, const char *format, ...)
 {
 	va_list args;
-	rb_strf_t prepend_string = { .format = format, .format_args = &args, .next = strings };
 	int ret;
 
 	va_start(args, format);
+	rb_strf_t prepend_string = { .format = format, .format_args = &args, .next = strings };
 	ret = rb_fsnprint(buf, len, &prepend_string);
 	va_end(args);
 

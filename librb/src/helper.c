@@ -27,7 +27,6 @@
 
 struct _rb_helper
 {
-	char *path;
 	buf_head_t sendq;
 	buf_head_t recvq;
 	rb_fde_t *ifd;
@@ -208,9 +207,9 @@ void
 rb_helper_write_queue(rb_helper *helper, const char *format, ...)
 {
 	va_list ap;
-	rb_strf_t strings = { .format = format, .format_args = &ap, .next = NULL };
 
 	va_start(ap, format);
+	rb_strf_t strings = { .format = format, .format_args = &ap, .next = NULL };
 	rb_linebuf_put(&helper->sendq, &strings);
 	va_end(ap);
 }
@@ -226,9 +225,9 @@ void
 rb_helper_write(rb_helper *helper, const char *format, ...)
 {
 	va_list ap;
-	rb_strf_t strings = { .format = format, .format_args = &ap, .next = NULL };
 
 	va_start(ap, format);
+	rb_strf_t strings = { .format = format, .format_args = &ap, .next = NULL };
 	rb_linebuf_put(&helper->sendq, &strings);
 	va_end(ap);
 

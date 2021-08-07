@@ -361,7 +361,7 @@ conn_plain_read_cb(rb_fde_t *fd, void *data)
 {
 	char inbuf[READBUF_SIZE];
 	conn_t *conn = data;
-	int length = 0;
+	int length;
 	if(conn == NULL)
 		return;
 
@@ -405,7 +405,7 @@ conn_plain_read_shutdown_cb(rb_fde_t *fd, void *data)
 {
 	char inbuf[READBUF_SIZE];
 	conn_t *conn = data;
-	int length = 0;
+	int length;
 
 	if(conn == NULL)
 		return;

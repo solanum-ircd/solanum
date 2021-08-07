@@ -205,7 +205,7 @@ rb_dictionary_retune(rb_dictionary *dict, const void *key)
 			if (node->left == NULL)
 				break;
 
-			if ((ret = dict->compare_cb(key, node->left->key)) < 0)
+			if (dict->compare_cb(key, node->left->key) < 0)
 			{
 				tn = node->left;
 				node->left = tn->right;
@@ -225,7 +225,7 @@ rb_dictionary_retune(rb_dictionary *dict, const void *key)
 			if (node->right == NULL)
 				break;
 
-			if ((ret = dict->compare_cb(key, node->right->key)) > 0)
+			if (dict->compare_cb(key, node->right->key) > 0)
 			{
 				tn = node->right;
 				node->right = tn->left;
@@ -586,7 +586,7 @@ void rb_dictionary_foreach_start(rb_dictionary *dtree,
  * Side Effects:
  *     - none
  */
-void *rb_dictionary_foreach_cur(rb_dictionary *dtree __attribute__((unused)),
+void *rb_dictionary_foreach_cur(const rb_dictionary *dtree __attribute__((unused)),
 	rb_dictionary_iter *state)
 {
 	lrb_assert(dtree != NULL);
@@ -817,7 +817,7 @@ void rb_dictionary_stats(rb_dictionary *dict, void (*cb)(const char *line, void 
 	{
 		maxdepth = 0;
 		sum = stats_recurse(dict->root, 0, &maxdepth);
-		snprintf(str, sizeof str, "%-30s %-15s %-10u %-10d %-10d %-10d", dict->id, "DICT", dict->count, sum, sum / dict->count, maxdepth);
+		snprintf(str, sizeof str, "%-30s %-15s %-10u %-10d %-10u %-10d", dict->id, "DICT", dict->count, sum, sum / dict->count, maxdepth);
 	}
 	else
 	{

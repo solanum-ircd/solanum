@@ -120,7 +120,7 @@ extern void rb_dictionary_foreach_start(rb_dictionary *dtree,
  * rb_dictionary_foreach_cur() returns the current element of the iteration,
  * or NULL if there are no more elements.
  */
-extern void *rb_dictionary_foreach_cur(rb_dictionary *dtree,
+extern void *rb_dictionary_foreach_cur(const rb_dictionary *dtree,
 	rb_dictionary_iter *state);
 
 /*

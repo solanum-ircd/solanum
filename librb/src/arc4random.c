@@ -69,7 +69,7 @@ arc4_init(struct arc4_stream *as)
 }
 
 static inline void
-arc4_addrandom(struct arc4_stream *as, uint8_t *dat, int datlen)
+arc4_addrandom(struct arc4_stream *as, const uint8_t *dat, int datlen)
 {
 	int n;
 	uint8_t si;

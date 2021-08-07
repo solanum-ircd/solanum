@@ -136,7 +136,7 @@ do_host_cloak_ip(const char *inbuf, char *outbuf)
 static void
 do_host_cloak_host(const char *inbuf, char *outbuf)
 {
-	char b26_alphabet[] = "abcdefghijklmnopqrstuvwxyz";
+	const char b26_alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 	char *tptr;
 	unsigned int accum = get_string_weighted_entropy(inbuf);
 

@@ -422,7 +422,7 @@ check_authd(void)
 static inline uint32_t
 generate_cid(void)
 {
-	if(++cid == 0)
+	if(cid++ == UINT32_MAX)
 		cid = 1;
 
 	return cid;

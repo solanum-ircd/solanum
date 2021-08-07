@@ -43,7 +43,7 @@ static void client_dopacket(struct Client *client_p, char *buffer, size_t length
 static void
 parse_client_queued(struct Client *client_p)
 {
-	int dolen = 0;
+	int dolen;
 	int allow_read;
 
 	if(IsAnyDead(client_p))
@@ -238,7 +238,7 @@ void
 read_packet(rb_fde_t * F, void *data)
 {
 	struct Client *client_p = data;
-	int length = 0;
+	int length;
 	int binary = 0;
 
 	while(1)

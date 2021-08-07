@@ -70,7 +70,7 @@ extern void sendto_common_channels_local(struct Client *, int cap, int negcap, c
 extern void sendto_common_channels_local_butone(struct Client *, int cap, int negcap, const char *, ...) AFP(4, 5);
 
 
-extern void sendto_match_butone(struct Client *, struct Client *,
+extern void sendto_match_butone(const struct Client *, struct Client *,
 				const char *, int, const char *, ...) AFP(5, 6);
 extern void sendto_match_servs(struct Client *source_p, const char *mask,
 				int capab, int, const char *, ...) AFP(5, 6);

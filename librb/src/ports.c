@@ -122,7 +122,7 @@ rb_setselect_ports(rb_fde_t *F, unsigned int type, PF * handler, void *client_da
 int
 rb_select_ports(long delay)
 {
-	int i, fd = -1;
+	int i;
 	unsigned int nget = 1;
 	struct timespec poll_time;
 	struct timespec *p = NULL;
@@ -146,7 +146,6 @@ rb_select_ports(long delay)
 	{
 		if(pelst[i].portev_source == PORT_SOURCE_FD)
 		{
-			fd = pelst[i].portev_object;
 			PF *hdl = NULL;
 			rb_fde_t *F = pelst[i].portev_user;
 			if((pelst[i].portev_events & (POLLIN | POLLHUP | POLLERR)) && (hdl = F->read_handler))
@@ -172,7 +171,7 @@ int
 rb_ports_supports_event(void)
 {
 	return 1;
-};
+}
 
 void
 rb_ports_init_event(void)

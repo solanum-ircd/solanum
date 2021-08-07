@@ -341,7 +341,7 @@ unsigned match_message(const char *prefix,
                        const char *target,
                        const char *msg)
 {
-	unsigned state = 0;
+	unsigned context = 0;
 	if (!filter_enable)
 		return 0;
 	if (!filter_db)
@@ -370,10 +370,10 @@ unsigned match_message(const char *prefix,
 	         target ? " " : "",
 	         target ? target : "",
 	         msg);
-	hs_error_t r = hs_scan(filter_db, check_buffer, strlen(check_buffer), 0, filter_scratch, match_callback, &state);
+	hs_error_t r = hs_scan(filter_db, check_buffer, strlen(check_buffer), 0, filter_scratch, match_callback, &context);
 	if (r != HS_SUCCESS && r != HS_SCAN_TERMINATED)
 		return 0;
-	return state;
+	return context;
 }
 
 void

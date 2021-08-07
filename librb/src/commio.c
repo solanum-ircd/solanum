@@ -217,7 +217,6 @@ rb_set_nb(rb_fde_t *F)
 		return 0;
 #else
 	nonb = 1;
-	res = 0;
 	if(ioctl(fd, FIONBIO, (char *)&nonb) == -1)
 		return 0;
 #endif
@@ -2290,7 +2289,7 @@ rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds
 	struct cmsghdr *cmsg;
 	struct iovec iov[1];
 	struct stat st;
-	uint8_t stype = RB_FD_UNKNOWN;
+	uint8_t stype;
 	const char *desc;
 	int fd, len, x, rfds;
 

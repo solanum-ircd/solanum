@@ -1164,7 +1164,6 @@ irc_res_mkquery(
 	  return (-1);
 
 	cp += n;
-	buflen -= n;
 	IRC_NS_PUT16(type, cp);
 	IRC_NS_PUT16(class, cp);
 	hp->qdcount = htons(1);

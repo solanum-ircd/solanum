@@ -67,7 +67,7 @@ ms_operspy(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 {
 	static char buffer[BUFSIZE];
 	char *ptr;
-	int cur_len = 0;
+	int cur_len;
 	int len, i;
 
 	if(parc < 4)

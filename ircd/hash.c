@@ -202,7 +202,7 @@ add_to_resv_hash(const char *name, struct ConfItem *aconf)
  * removes an id from the id hash table
  */
 void
-del_from_id_hash(const char *id, struct Client *client_p)
+del_from_id_hash(const char *id, const struct Client *client_p)
 {
 	s_assert(id != NULL);
 	s_assert(client_p != NULL);
@@ -217,7 +217,7 @@ del_from_id_hash(const char *id, struct Client *client_p)
  * removes a client/server from the client hash table
  */
 void
-del_from_client_hash(const char *name, struct Client *client_p)
+del_from_client_hash(const char *name, const struct Client *client_p)
 {
 	/* no s_asserts, this can happen when removing a client that
 	 * is unregistered.
@@ -233,7 +233,7 @@ del_from_client_hash(const char *name, struct Client *client_p)
  * removes a channel from the channel hash table
  */
 void
-del_from_channel_hash(const char *name, struct Channel *chptr)
+del_from_channel_hash(const char *name, const struct Channel *chptr)
 {
 	s_assert(name != NULL);
 	s_assert(chptr != NULL);
@@ -274,7 +274,7 @@ del_from_hostname_hash(const char *hostname, struct Client *client_p)
  * removes a resv entry from the resv hash table
  */
 void
-del_from_resv_hash(const char *name, struct ConfItem *aconf)
+del_from_resv_hash(const char *name, const struct ConfItem *aconf)
 {
 	s_assert(name != NULL);
 	s_assert(aconf != NULL);

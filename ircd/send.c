@@ -232,9 +232,9 @@ static void
 linebuf_put_tagsf(buf_head_t *linebuf, const struct MsgBuf *msgbuf, const struct Client *target_p, const rb_strf_t *message, const char *format, ...)
 {
 	va_list va;
-	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 
 	va_start(va, format);
+	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 	linebuf_put_tags(linebuf, msgbuf, target_p, &strings);
 	va_end(va);
 }
@@ -250,9 +250,9 @@ static void
 linebuf_put_msgf(buf_head_t *linebuf, const rb_strf_t *message, const char *format, ...)
 {
 	va_list va;
-	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 
 	va_start(va, format);
+	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
 	linebuf_put_msg(linebuf, &strings);
 	va_end(va);
 }
@@ -289,7 +289,6 @@ sendto_one(struct Client *target_p, const char *pattern, ...)
 	va_list args;
 	struct MsgBuf msgbuf;
 	buf_head_t linebuf;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	/* send remote if to->from non NULL */
 	if(target_p->from != NULL)
@@ -302,6 +301,7 @@ sendto_one(struct Client *target_p, const char *pattern, ...)
 
 	build_msgbuf_tags(&msgbuf, &me);
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_tags(&linebuf, &msgbuf, target_p, &strings);
 	va_end(args);
 
@@ -324,7 +324,6 @@ sendto_one_prefix(struct Client *target_p, struct Client *source_p,
 	va_list args;
 	struct MsgBuf msgbuf;
 	buf_head_t linebuf;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	if(IsIOError(dest_p))
 		return;
@@ -339,6 +338,7 @@ sendto_one_prefix(struct Client *target_p, struct Client *source_p,
 
 	rb_linebuf_newbuf(&linebuf);
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_tagsf(&linebuf, &msgbuf, target_p, &strings,
 		":%s %s %s ", get_id(source_p, target_p),
 		command, get_id(target_p, target_p));
@@ -361,7 +361,6 @@ sendto_one_notice(struct Client *target_p, const char *pattern, ...)
 	va_list args;
 	struct MsgBuf msgbuf;
 	buf_head_t linebuf;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	char *to;
 
 	if(IsIOError(dest_p))
@@ -377,6 +376,7 @@ sendto_one_notice(struct Client *target_p, const char *pattern, ...)
 
 	rb_linebuf_newbuf(&linebuf);
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_tagsf(&linebuf, &msgbuf, target_p, &strings,
 		":%s NOTICE %s ", get_id(&me, target_p),
 		*(to = get_id(target_p, target_p)) != '\0' ? to : "*");
@@ -400,7 +400,6 @@ sendto_one_numeric(struct Client *target_p, int numeric, const char *pattern, ..
 	va_list args;
 	struct MsgBuf msgbuf;
 	buf_head_t linebuf;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	char *to;
 
 	if(IsIOError(dest_p))
@@ -416,6 +415,7 @@ sendto_one_numeric(struct Client *target_p, int numeric, const char *pattern, ..
 
 	rb_linebuf_newbuf(&linebuf);
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_tagsf(&linebuf, &msgbuf, target_p, &strings,
 		":%s %03d %s ", get_id(&me, target_p), numeric,
 		*(to = get_id(target_p, target_p)) != '\0' ? to : "*");
@@ -451,7 +451,6 @@ sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	buf_head_t linebuf;
-	rb_strf_t strings = { .format = format, .format_args = &args, .next = NULL };
 
 	/* noone to send to.. */
 	if(rb_dlink_list_length(&serv_list) == 0)
@@ -462,6 +461,7 @@ sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
 
 	rb_linebuf_newbuf(&linebuf);
 	va_start(args, format);
+	rb_strf_t strings = { .format = format, .format_args = &args, .next = NULL };
 	linebuf_put_msg(&linebuf, &strings);
 	va_end(args);
 
@@ -753,7 +753,7 @@ sendto_channel_local(struct Client *source_p, int type, struct Channel *chptr, c
  * Shared implementation of sendto_channel_local_with_capability and sendto_channel_local_with_capability_butone
  */
 static void
-_sendto_channel_local_with_capability_butone(struct Client *source_p, struct Client *one, int type,
+_sendto_channel_local_with_capability_butone(struct Client *source_p, const struct Client *one, int type,
 	int caps, int negcaps, struct Channel *chptr, const char *pattern, va_list * args)
 {
 	struct membership *msptr;
@@ -841,11 +841,11 @@ sendto_channel_local_butone(struct Client *one, int type, struct Channel *chptr,
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, one);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
 	va_end(args);
 
@@ -896,11 +896,11 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 	struct membership *mscptr;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, user);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
 	va_end(args);
 
@@ -963,11 +963,11 @@ sendto_common_channels_local_butone(struct Client *user, int cap, int negcap, co
 	struct membership *mscptr;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, user);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
 	va_end(args);
 
@@ -1006,7 +1006,7 @@ sendto_common_channels_local_butone(struct Client *user, int cap, int negcap, co
  * side effects - message is sent to matching clients
  */
 void
-sendto_match_butone(struct Client *one, struct Client *source_p,
+sendto_match_butone(const struct Client *one, struct Client *source_p,
 		    const char *mask, int what, const char *pattern, ...)
 {
 	static char buf[BUFSIZE];
@@ -1142,11 +1142,11 @@ sendto_local_clients_with_capability(int cap, const char *pattern, ...)
 	struct Client *target_p;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, &me);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
 	va_end(args);
 
@@ -1178,11 +1178,11 @@ sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *patt
 	rb_dlink_node *next_ptr;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, source_p);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
 	va_end(args);
 
@@ -1358,11 +1358,11 @@ sendto_realops_snomask_from(int flags, int level, struct Client *source_p,
 	va_list args;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, &me);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	msgbuf_cache_initf(&msgbuf_cache, &msgbuf, &strings,
 		       ":%s NOTICE * :*** Notice -- ", source_p->name);
 	va_end(args);
@@ -1404,11 +1404,11 @@ sendto_wallops_flags(int flags, struct Client *source_p, const char *pattern, ..
 	va_list args;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, source_p);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	if (IsPerson(source_p)) {
 		msgbuf_cache_initf(&msgbuf_cache, &msgbuf, &strings,
 			       ":%s!%s@%s WALLOPS :", source_p->name,
@@ -1443,13 +1443,13 @@ kill_client(struct Client *target_p, struct Client *diedie, const char *pattern,
 	va_list args;
 	buf_head_t linebuf;
 	struct MsgBuf msgbuf;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	build_msgbuf_tags(&msgbuf, &me);
 
 	rb_linebuf_newbuf(&linebuf);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_tagsf(&linebuf, &msgbuf, target_p, &strings,
 		":%s KILL %s :", get_id(&me, target_p), get_id(diedie, target_p));
 	va_end(args);
@@ -1479,11 +1479,11 @@ kill_client_serv_butone(struct Client *one, struct Client *target_p, const char 
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	buf_head_t rb_linebuf_id;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	rb_linebuf_newbuf(&rb_linebuf_id);
 
 	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 	linebuf_put_msgf(&rb_linebuf_id, &strings, ":%s KILL %s :%s",
 		       use_id(&me), use_id(target_p), buf);
 	va_end(args);
