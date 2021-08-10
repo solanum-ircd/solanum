@@ -1234,9 +1234,10 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 	{
 		key = LOCAL_COPY(arg);
 
-		if(MyClient(source_p))
+		if(MyClient(source_p)) {
 			if (!check_key(key))
 				sendto_one(source_p, form_str(ERR_INVALIDMODEPARAM), me.name, source_p->name, chptr->chname, 'k', "*", "Invalid key mode parameter, invalid character(s).");
+		}
 		else
 			fix_key_remote(key);
 
