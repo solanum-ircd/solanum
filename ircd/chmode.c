@@ -526,27 +526,24 @@ check_forward(struct Client *source_p, struct Channel *chptr,
 	return true;
 }
 
-/* fix_key()
+/* check_key()
  *
- * input	- key to fix
- * output	- the same key, fixed
- * side effects - anything below ascii 13 is discarded, ':' discarded,
- *                high ascii is dropped to lower half of ascii table
+ * input	- key to check
+ * output	- whether it is valid
  */
-static char *
-fix_key(char *arg)
+bool
+check_key(const char *arg)
 {
-	unsigned char *s, *t, c;
+	unsigned char *s, c;
 
-	for(s = t = (unsigned char *) arg; (c = *s); s++)
+	for(s = (unsigned char *) arg; (c = *s); s++)
 	{
 		c &= 0x7f;
-		if(c != ':' && c != ',' && c > ' ')
-			*t++ = c;
+		if(c == ':' || c == ',' || c <= ' ')
+			return false;
 	}
 
-	*t = '\0';
-	return arg;
+	return true;
 }
 
 /* fix_key_remote()
@@ -1238,14 +1235,24 @@ chm_key(struct Client *source_p, struct Channel *chptr,
 		key = LOCAL_COPY(arg);
 
 		if(MyClient(source_p))
-			fix_key(key);
+			if (!check_key(key))
+				sendto_one(source_p, form_str(ERR_INVALIDMODEPARAM), me.name, source_p->name, chptr->chname, 'k', "*", "Invalid key mode parameter, invalid character(s).");
 		else
 			fix_key_remote(key);
 
-		if(EmptyString(key))
+		if(EmptyString(key)) {
+			if(MyClient(source_p))
+				sendto_one(source_p, form_str(ERR_INVALIDMODEPARAM), me.name, source_p->name, chptr->chname, 'k', "*", "Invalid key mode parameter, it is empty.");
 			return;
+		}
 
 		s_assert(key[0] != ' ');
+
+		if (strlen(key) > sizeof(chptr->mode.key)) {
+			sendto_one(source_p, form_str(ERR_INVALIDMODEPARAM), me.name, source_p->name, chptr->chname, 'k', "*", "Invalid key mode parameter, it is too long.");
+			return;
+		}
+
 		rb_strlcpy(chptr->mode.key, key, sizeof(chptr->mode.key));
 
 		mode_changes[mode_count].letter = c;

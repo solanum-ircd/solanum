@@ -317,6 +317,8 @@
 
 #define ERR_STARTTLS         691 /* ircv3.atheme.org tls-3.2 */
 
+#define ERR_INVALIDMODEPARAM 696 /* InspIRCd, Ergo */
+
 #define RPL_MODLIST          702
 #define RPL_ENDOFMODLIST     703
 
