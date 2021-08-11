@@ -160,6 +160,7 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	struct Client *target_p;
 	struct Client *exist_p;
 	time_t newts, curts;
+	struct nd_entry *nd;
 	char note[NAMELEN + 10];
 
 	if(!(source_p->flags & FLAGS_SERVICE))
@@ -245,6 +246,12 @@ doit:
 			use_id(target_p), parv[2], (long) target_p->tsinfo);
 
 	del_from_client_hash(target_p->name, target_p);
+
+	/* invalidate nick delay because we're forcing this nick to be used */
+	nd = rb_dictionary_retrieve(nd_dict, parv[2]);
+	if (nd != NULL)
+		free_nd_entry(nd);
+
 	rb_strlcpy(target_p->name, parv[2], NICKLEN);
 	add_to_client_hash(target_p->name, target_p);
 

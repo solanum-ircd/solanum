@@ -25,9 +25,6 @@
 
 #include <librb_config.h>
 #include <rb_lib.h>
-
-#ifndef _WIN32
-
 #include <sys/wait.h>
 
 #ifdef HAVE_DLINFO
@@ -200,5 +197,3 @@ rb_path_to_self(void)
 	return NULL;
 #endif
 }
-
-#endif /* !WIN32 */

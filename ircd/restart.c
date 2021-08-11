@@ -75,7 +75,7 @@ server_reboot(void)
 	execv(ircd_paths[IRCD_PATH_IRCD_EXEC], (void *)myargv);
 
 	/* use this if execv of SPATH fails */
-	snprintf(path, sizeof(path), "%s%cbin%circd", ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
+	snprintf(path, sizeof(path), "%s/bin/ircd", ConfigFileEntry.dpath);
 
 	execv(path, (void *)myargv);
 	exit(-1);

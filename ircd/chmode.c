@@ -1360,13 +1360,13 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 		char mode;
 	};
 
-	static struct modeset modesets[MAXPARA];
+	static struct modeset modesets[MAXMODEPARAMS + MAXMODES_SIMPLE];
 	struct modeset *ms = modesets, *mend;
 	char canon_op = '\0';
 
 	mbuf = modebuf;
 
-	for (ml = parv[0]; *ml != 0; ml++)
+	for (ml = parv[0]; *ml != 0 && ms - modesets < ARRAY_SIZE(modesets); ml++)
 	{
 		c = *ml;
 		switch (c)

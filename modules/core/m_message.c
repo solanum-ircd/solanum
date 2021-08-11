@@ -514,7 +514,7 @@ msg_channel(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* idle time shouldnt be reset by notices --fl */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 	}
@@ -680,7 +680,7 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 
 	if(MyClient(source_p))
 	{
-		/* idletime shouldnt be reset by notice --fl */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 	}
@@ -779,8 +779,7 @@ msg_client(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* reset idle time for message only if its not to self
-		 * and its not a notice */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 

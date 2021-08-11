@@ -428,7 +428,12 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(!valid_hostname(source_p->host))
 	{
-		sendto_one_notice(source_p, ":*** Notice -- You have an illegal character in your hostname");
+		const char *illegal_hostname_client_message = ConfigFileEntry.illegal_hostname_client_message;
+
+		if (illegal_hostname_client_message == NULL)
+			illegal_hostname_client_message = "You have an illegal character in your hostname.";
+
+		sendto_one_notice(source_p, ":*** Notice -- %s", illegal_hostname_client_message);
 
 		rb_strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
  	}
@@ -437,23 +442,40 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(aconf == NULL)
 	{
-		exit_client(client_p, source_p, &me, "*** Not Authorised");
+		const char *not_authorised_client_message = ConfigFileEntry.not_authorised_client_message;
+
+		if (not_authorised_client_message == NULL)
+			not_authorised_client_message = "You are not authorised to access this server.";
+
+		exit_client(client_p, source_p, &me, not_authorised_client_message);
 		return (CLIENT_EXITED);
 	}
 
 	if(IsConfSSLNeeded(aconf) && !IsSecure(source_p))
 	{
+		const char *ssltls_only_client_message = ConfigFileEntry.ssltls_only_client_message;
+
+		if (ssltls_only_client_message == NULL)
+			ssltls_only_client_message = "You need to use SSL/TLS to use this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You need to use SSL/TLS to use this server");
-		exit_client(client_p, source_p, &me, "Use SSL/TLS");
+		sendto_one_notice(source_p, ":*** Notice -- %s", ssltls_only_client_message);
+
+		exit_client(client_p, source_p, &me, ssltls_only_client_message);
 		return (CLIENT_EXITED);
 	}
 
 	if(IsSCTP(source_p) && !IsConfAllowSCTP(aconf))
 	{
+		const char *sctp_forbidden_client_message = ConfigFileEntry.sctp_forbidden_client_message;
+
+		if (sctp_forbidden_client_message == NULL)
+			sctp_forbidden_client_message = "You are not allowed to use SCTP on this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You are not allowed to use SCTP on this server");
-		exit_client(client_p, source_p, &me, "SCTP not allowed");
+		sendto_one_notice(source_p, ":*** Notice -- %s", sctp_forbidden_client_message);
+
+		exit_client(client_p, source_p, &me, sctp_forbidden_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -464,9 +486,16 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 		if(IsNeedIdentd(aconf))
 		{
+
+			const char *identd_only_client_message = ConfigFileEntry.identd_only_client_message;
+
+			if (identd_only_client_message == NULL)
+				identd_only_client_message = "You need to install identd to use this server.";
+
 			ServerStats.is_ref++;
-			sendto_one_notice(source_p, ":*** Notice -- You need to install identd to use this server");
-			exit_client(client_p, source_p, &me, "Install identd");
+			sendto_one_notice(source_p, ":*** Notice -- %s", identd_only_client_message);
+
+			exit_client(client_p, source_p, &me, identd_only_client_message);
 			return (CLIENT_EXITED);
 		}
 
@@ -491,9 +520,16 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(IsNeedSasl(aconf) && !*source_p->user->suser)
 	{
+
+		const char *sasl_only_client_message = ConfigFileEntry.sasl_only_client_message;
+
+		if (sasl_only_client_message == NULL)
+			sasl_only_client_message = "You need to identify via SASL to use to use this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You need to identify via SASL to use this server");
-		exit_client(client_p, source_p, &me, "SASL access only");
+		sendto_one_notice(source_p, ":*** Notice -- %s", sasl_only_client_message);
+
+		exit_client(client_p, source_p, &me, sasl_only_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -545,8 +581,13 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				     "Too many clients, rejecting %s[%s].", source_p->name, source_p->host);
 
+		const char *server_full_client_message = ConfigFileEntry.server_full_client_message;
+
+		if (server_full_client_message == NULL)
+			server_full_client_message = "Sorry, server is full - try later";
+
 		ServerStats.is_ref++;
-		exit_client(client_p, source_p, &me, "Sorry, server is full - try later");
+		exit_client(client_p, source_p, &me, server_full_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -575,10 +616,19 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
 				     "Invalid username: %s (%s@%s)",
 				     source_p->name, source_p->username, source_p->host);
+
+		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
+		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
+
+		if (illegal_name_long_client_message == NULL)
+			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
+											   "only alphanumeric characters.";
+		if (illegal_name_short_client_message == NULL)
+			illegal_name_short_client_message = "Invalid username";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Your username is invalid. Please make sure that your username contains "
-					    "only alphanumeric characters.");
-		sprintf(tmpstr2, "Invalid username [%s]", source_p->username);
+		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
+		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
 		exit_client(client_p, source_p, &me, tmpstr2);
 		return (CLIENT_EXITED);
 	}
