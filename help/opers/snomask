@@ -5,6 +5,7 @@ Server notice masks:
     SNOMASK     DESCRIPTION
 -----------------------------------------------------------------
        +b     - Possible spambot/flooder warnings
+       +B     - Connections rejected due to K-Lines and X-Lines
        +c     - Local client connections and exits
        +C     - Extended local client connections and exits
        +d     - Server debug messages
