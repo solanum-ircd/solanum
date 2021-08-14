@@ -1,6 +1,8 @@
 MODE <nick> +s <+|-><modes>
 
-Server notice masks:
+Server notice masks: (? designates that the snomask is provided
+                      by an extension and may not be present
+                      on this server)
 
     SNOMASK     DESCRIPTION
 -----------------------------------------------------------------
@@ -10,7 +12,7 @@ Server notice masks:
        +C     - Extended local client connections and exits
        +d     - Server debug messages
        +f     - Clients refused due to limits
-       +F     - Global client connections and exits
+     ? +F     - Global client connections and exits
        +k     - Server and service kill messages
        +n     - Local client nick changes
        +r     - Invalid usernames and DNSBL listings
