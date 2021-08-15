@@ -1041,6 +1041,10 @@ send_join_error(struct Client *source_p, int numeric, const char *name)
 		NORMAL_NUMERIC(ERR_NEEDREGGEDNICK);
 		NORMAL_NUMERIC(ERR_THROTTLE);
 
+		case ERR_USERONCHANNEL:
+			sendto_one_numeric(source_p, ERR_USERONCHANNEL,
+					form_str(ERR_USERONCHANNEL), source_p->name, name);
+			break;
 		default:
 			sendto_one_numeric(source_p, numeric,
 					"%s :Cannot join channel", name);
