@@ -52,8 +52,6 @@ static void me_mechlist(struct MsgBuf *, struct Client *, struct Client *, int, 
 static void abort_sasl(struct Client *);
 static void abort_sasl_exit(hook_data_client_exit *);
 
-static void advertise_sasl_cap(bool);
-
 static unsigned int CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
 
@@ -79,12 +77,6 @@ mapi_hfn_list_av1 sasl_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static bool
-sasl_visible(struct Client *ignored)
-{
-	return true;
-}
-
 static const char *
 sasl_data(struct Client *client_p)
 {
@@ -92,7 +84,6 @@ sasl_data(struct Client *client_p)
 }
 
 static struct ClientCapability capdata_sasl = {
-	.visible = sasl_visible,
 	.data = sasl_data,
 	.flags = CLICAP_FLAGS_STICKY | CLICAP_FLAGS_PRIORITY,
 };
@@ -106,18 +97,10 @@ static int
 _modinit(void)
 {
 	memset(mechlist_buf, 0, sizeof mechlist_buf);
-
-	advertise_sasl_cap(true);
 	return 0;
 }
 
-static void
-_moddeinit(void)
-{
-	advertise_sasl_cap(false);
-}
-
-DECLARE_MODULE_AV2(sasl, _modinit, _moddeinit, sasl_clist, NULL, sasl_hfnlist, sasl_cap_list, NULL, sasl_desc);
+DECLARE_MODULE_AV2(sasl, _modinit, NULL, sasl_clist, NULL, sasl_hfnlist, sasl_cap_list, NULL, sasl_desc);
 
 static void
 m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
@@ -352,14 +335,4 @@ abort_sasl_exit(hook_data_client_exit *data)
 {
 	if (data->target->localClient)
 		abort_sasl(data->target);
-}
-
-static void
-advertise_sasl_cap(bool available)
-{
-	if (available) {
-		sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * NEW :sasl", me.name);
-	} else {
-		sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * DEL :sasl", me.name);
-	}
 }
