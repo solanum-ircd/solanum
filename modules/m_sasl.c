@@ -53,13 +53,9 @@ static void abort_sasl(struct Client *);
 static void abort_sasl_exit(hook_data_client_exit *);
 
 static void advertise_sasl_cap(bool);
-static void advertise_sasl_new(struct Client *);
-static void advertise_sasl_exit(void *);
-static void advertise_sasl_config(void *);
 
 static unsigned int CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
-static bool sasl_agent_present = false;
 
 struct Message authenticate_msgtab = {
 	"AUTHENTICATE", 0, 0, 0, 0,
@@ -80,21 +76,13 @@ mapi_clist_av1 sasl_clist[] = {
 mapi_hfn_list_av1 sasl_hfnlist[] = {
 	{ "new_local_user",	(hookfn) abort_sasl },
 	{ "client_exit",	(hookfn) abort_sasl_exit },
-	{ "new_remote_user",	(hookfn) advertise_sasl_new },
-	{ "after_client_exit",	(hookfn) advertise_sasl_exit },
-	{ "conf_read_end",	(hookfn) advertise_sasl_config },
 	{ NULL, NULL }
 };
 
 static bool
 sasl_visible(struct Client *ignored)
 {
-	struct Client *agent_p = NULL;
-
-	if (ConfigFileEntry.sasl_service)
-		agent_p = find_named_client(ConfigFileEntry.sasl_service);
-
-	return agent_p != NULL && IsService(agent_p);
+	return true;
 }
 
 static const char *
@@ -118,9 +106,8 @@ static int
 _modinit(void)
 {
 	memset(mechlist_buf, 0, sizeof mechlist_buf);
-	sasl_agent_present = false;
 
-	advertise_sasl_config(NULL);
+	advertise_sasl_cap(true);
 	return 0;
 }
 
@@ -370,41 +357,9 @@ abort_sasl_exit(hook_data_client_exit *data)
 static void
 advertise_sasl_cap(bool available)
 {
-	if (sasl_agent_present != available) {
-		if (available) {
-			sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * NEW :sasl", me.name);
-		} else {
-			sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * DEL :sasl", me.name);
-		}
-		sasl_agent_present = available;
+	if (available) {
+		sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * NEW :sasl", me.name);
+	} else {
+		sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * DEL :sasl", me.name);
 	}
-}
-
-static void
-advertise_sasl_new(struct Client *client_p)
-{
-	if (!ConfigFileEntry.sasl_service)
-		return;
-
-	if (irccmp(client_p->name, ConfigFileEntry.sasl_service))
-		return;
-
-	advertise_sasl_cap(IsService(client_p));
-}
-
-static void
-advertise_sasl_exit(void *ignored)
-{
-	if (!ConfigFileEntry.sasl_service)
-		return;
-
-	if (sasl_agent_present) {
-		advertise_sasl_cap(sasl_visible(NULL));
-	}
-}
-
-static void
-advertise_sasl_config(void *ignored)
-{
-	advertise_sasl_cap(sasl_visible(NULL));
 }
