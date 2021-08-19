@@ -40,6 +40,9 @@ check_new_user(void *vdata)
 {
 	struct Client *source_p = vdata;
 
+	if (IsAnyDead(source_p))
+		return;
+
 	if (!IsIPSpoof(source_p))
 		return;
 

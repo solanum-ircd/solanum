@@ -191,6 +191,9 @@ new_local_user(void *data)
 	struct Client *source_p = data;
 	struct ConfItem *aconf = source_p->localClient->att_conf;
 
+	if (aconf == NULL)
+		return;
+
 	if (!irccmp(aconf->info.name, "webirc."))
 		exit_client(source_p, source_p, &me, "Cannot log in using a WEBIRC block");
 }
