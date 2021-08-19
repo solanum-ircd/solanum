@@ -22,10 +22,13 @@ check_new_user(void *vdata)
 	struct Client *source_p = vdata;
 	const char *drain_reason = ConfigFileEntry.drain_reason;
 
+	if (IsAnyDead(source_p))
+		return;
+
 	if (drain_reason == NULL)
 		drain_reason = "This server is not accepting connections.";
 
-	if(IsExemptKline(source_p))
+	if (IsExemptKline(source_p))
 		return;
 
 	exit_client(source_p, source_p, &me, drain_reason);
