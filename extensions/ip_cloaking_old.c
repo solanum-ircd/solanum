@@ -36,8 +36,8 @@ _moddeinit(void)
 static void check_umode_change(void *data);
 static void check_new_user(void *data);
 mapi_hfn_list_av1 ip_cloaking_hfnlist[] = {
-	{ "umode_changed", (hookfn) check_umode_change },
-	{ "new_local_user", (hookfn) check_new_user },
+	{ "umode_changed", check_umode_change },
+	{ "new_local_user", check_new_user },
 	{ NULL, NULL }
 };
 

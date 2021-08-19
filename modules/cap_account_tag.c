@@ -37,11 +37,11 @@
 static const char cap_account_tag_desc[] =
 	"Provides the account-tag client capability";
 
-static void cap_account_tag_process(hook_data *);
+static void cap_account_tag_process(void *);
 unsigned int CLICAP_ACCOUNT_TAG = 0;
 
 mapi_hfn_list_av1 cap_account_tag_hfnlist[] = {
-	{ "outbound_msgbuf", (hookfn) cap_account_tag_process },
+	{ "outbound_msgbuf", cap_account_tag_process },
 	{ NULL, NULL }
 };
 mapi_cap_list_av2 cap_account_tag_cap_list[] = {
@@ -49,8 +49,9 @@ mapi_cap_list_av2 cap_account_tag_cap_list[] = {
 	{ 0, NULL, NULL, NULL },
 };
 static void
-cap_account_tag_process(hook_data *data)
+cap_account_tag_process(void *data_)
 {
+	hook_data *data = data_;
 	struct MsgBuf *msgbuf = data->arg1;
 
 	if (data->client != NULL && IsPerson(data->client) && *data->client->user->suser)

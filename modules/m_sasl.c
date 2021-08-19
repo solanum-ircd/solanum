@@ -49,8 +49,8 @@ static void m_authenticate(struct MsgBuf *, struct Client *, struct Client *, in
 static void me_sasl(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void me_mechlist(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
-static void abort_sasl(struct Client *);
-static void abort_sasl_exit(hook_data_client_exit *);
+static void abort_sasl(void *);
+static void abort_sasl_exit(void *);
 
 static unsigned int CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
@@ -72,8 +72,8 @@ mapi_clist_av1 sasl_clist[] = {
 	&authenticate_msgtab, &sasl_msgtab, &mechlist_msgtab, NULL
 };
 mapi_hfn_list_av1 sasl_hfnlist[] = {
-	{ "new_local_user",	(hookfn) abort_sasl },
-	{ "client_exit",	(hookfn) abort_sasl_exit },
+	{ "new_local_user",	abort_sasl },
+	{ "client_exit",	abort_sasl_exit },
 	{ NULL, NULL }
 };
 
@@ -304,8 +304,9 @@ me_mechlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
  * registering anyway, abort the exchange.
  */
 static void
-abort_sasl(struct Client *data)
+abort_sasl(void *data_)
 {
+	struct Client *data = data_;
 	if(data->localClient->sasl_out == 0 || data->localClient->sasl_complete)
 		return;
 
@@ -331,8 +332,9 @@ abort_sasl(struct Client *data)
 }
 
 static void
-abort_sasl_exit(hook_data_client_exit *data)
+abort_sasl_exit(void *data_)
 {
+	hook_data_client_exit *data = data_;
 	if (data->target->localClient)
 		abort_sasl(data->target);
 }

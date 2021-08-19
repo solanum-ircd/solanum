@@ -36,12 +36,12 @@
 #include "ircd.h"
 #include "send.h"
 
-static void h_nn_server_eob(struct Client *);
-static void h_nn_client_exit(hook_data_client_exit *);
+static void h_nn_server_eob(void *);
+static void h_nn_client_exit(void *);
 
 mapi_hfn_list_av1 nn_hfnlist[] = {
-	{ "server_eob", (hookfn) h_nn_server_eob },
-	{ "client_exit", (hookfn) h_nn_client_exit },
+	{ "server_eob", h_nn_server_eob },
+	{ "client_exit", h_nn_client_exit },
 	{ NULL, NULL }
 };
 
@@ -73,8 +73,9 @@ count_mark_downlinks(struct Client *server_p, int *pservcount, int *pusercount)
 }
 
 static void
-h_nn_server_eob(struct Client *source_p)
+h_nn_server_eob(void *data)
 {
+	struct Client *source_p = data;
 	int s = 0, u = 0;
 
 	if (IsFloodDone(source_p))
@@ -86,8 +87,9 @@ h_nn_server_eob(struct Client *source_p)
 }
 
 static void
-h_nn_client_exit(hook_data_client_exit *hdata)
+h_nn_client_exit(void *data)
 {
+	hook_data_client_exit *hdata = data;
 	struct Client *source_p;
 	int s = 0, u = 0;
 	char *fromnick;

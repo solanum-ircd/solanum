@@ -17,7 +17,7 @@ static const char hide_desc[] = "Hides channel memberships not shared";
 static void h_huc_doing_whois_channel_visibility(void *);
 
 mapi_hfn_list_av1 huc_hfnlist[] = {
-	{ "doing_whois_channel_visibility", (hookfn) h_huc_doing_whois_channel_visibility },
+	{ "doing_whois_channel_visibility", h_huc_doing_whois_channel_visibility },
 	{ NULL, NULL }
 };
 
