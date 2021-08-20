@@ -128,9 +128,9 @@ check_new_user(void *vdata)
 			return;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					 "KLINE active for %s",
-					 get_client_name(source_p, HIDE_IP));
+		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
+			"Rejecting K-Lined user %s [%s@%s]",
+			get_client_name(source_p, HIDE_IP), aconf->user, aconf->host);
 
 		notify_banned_client(source_p, aconf, K_LINED);
 	}
