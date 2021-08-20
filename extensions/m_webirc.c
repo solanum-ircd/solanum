@@ -67,7 +67,7 @@ mapi_clist_av1 webirc_clist[] = { &webirc_msgtab, NULL };
 static void new_local_user(void *data);
 mapi_hfn_list_av1 webirc_hfnlist[] = {
 	/* unintuitive but correct--we want to be called first */
-	{ "new_local_user", (hookfn) new_local_user, HOOK_LOWEST },
+	{ "new_local_user", new_local_user, HOOK_LOWEST },
 	{ NULL, NULL }
 };
 

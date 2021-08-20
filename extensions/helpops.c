@@ -17,11 +17,11 @@
 static const char helpops_desc[] = "The helpops system as used by freenode";
 
 static rb_dlink_list helper_list = { NULL, NULL, 0 };
-static void h_hdl_stats_request(hook_data_int *hdata);
-static void h_hdl_new_remote_user(struct Client *client_p);
-static void h_hdl_client_exit(hook_data_client_exit *hdata);
-static void h_hdl_umode_changed(hook_data_umode_changed *hdata);
-static void h_hdl_whois(hook_data_client *hdata);
+static void h_hdl_stats_request(void *hdata);
+static void h_hdl_new_remote_user(void *client_p);
+static void h_hdl_client_exit(void *hdata);
+static void h_hdl_umode_changed(void *hdata);
+static void h_hdl_whois(void *hdata);
 static void recurse_client_exit(struct Client *client_p);
 static void helper_add(struct Client *client_p);
 static void helper_delete(struct Client *client_p);
@@ -30,12 +30,12 @@ static void me_dehelper(struct MsgBuf *, struct Client *, struct Client *, int, 
 static void do_dehelper(struct Client *source_p, struct Client *target_p);
 
 mapi_hfn_list_av1 helpops_hfnlist[] = {
-	{ "doing_stats", (hookfn) h_hdl_stats_request },
-	{ "new_remote_user", (hookfn) h_hdl_new_remote_user },
-	{ "client_exit", (hookfn) h_hdl_client_exit },
-	{ "umode_changed", (hookfn) h_hdl_umode_changed },
-	{ "doing_whois", (hookfn) h_hdl_whois },
-	{ "doing_whois_global", (hookfn) h_hdl_whois },
+	{ "doing_stats", h_hdl_stats_request },
+	{ "new_remote_user", h_hdl_new_remote_user },
+	{ "client_exit", h_hdl_client_exit },
+	{ "umode_changed", h_hdl_umode_changed },
+	{ "doing_whois", h_hdl_whois },
+	{ "doing_whois_global", h_hdl_whois },
 	{ NULL, NULL }
 };
 
@@ -137,8 +137,9 @@ _moddeinit(void)
 }
 
 static void
-h_hdl_stats_request(hook_data_int *hdata)
+h_hdl_stats_request(void *data)
 {
+	hook_data_int *hdata = data;
 	struct Client *target_p;
 	rb_dlink_node *helper_ptr;
 	unsigned int count = 0;
@@ -183,8 +184,9 @@ helper_delete(struct Client *client_p)
 }
 
 static void
-h_hdl_new_remote_user(struct Client *client_p)
+h_hdl_new_remote_user(void *data)
 {
+	struct Client *client_p = data;
 	if (client_p->umodes & user_modes[UMODECHAR_HELPOPS])
 		helper_add(client_p);
 }
@@ -210,14 +212,16 @@ recurse_client_exit(struct Client *client_p)
 }
 
 static void
-h_hdl_client_exit(hook_data_client_exit *hdata)
+h_hdl_client_exit(void *data)
 {
+	hook_data_client_exit *hdata = data;
 	recurse_client_exit(hdata->target);
 }
 
 static void
-h_hdl_umode_changed(hook_data_umode_changed *hdata)
+h_hdl_umode_changed(void *data)
 {
+	hook_data_umode_changed *hdata = data;
 	struct Client *source_p = hdata->client;
 
 	/* didn't change +h umode, we don't need to do anything */
@@ -245,8 +249,9 @@ h_hdl_umode_changed(hook_data_umode_changed *hdata)
 }
 
 static void
-h_hdl_whois(hook_data_client *hdata)
+h_hdl_whois(void *data)
 {
+	hook_data_client *hdata = data;
 	struct Client *source_p = hdata->client;
 	struct Client *target_p = hdata->target;
 

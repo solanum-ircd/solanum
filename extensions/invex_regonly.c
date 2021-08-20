@@ -8,18 +8,19 @@
 #include "s_conf.h"
 #include "numeric.h"
 
-static void h_can_join(hook_data_channel *);
+static void h_can_join(void *);
 
 mapi_hfn_list_av1 invex_regonly_hfnlist[] = {
-	{ "can_join", (hookfn) h_can_join },
+	{ "can_join", h_can_join },
 	{ NULL, NULL }
 };
 
 DECLARE_MODULE_AV1(invex_regonly, NULL, NULL, NULL, NULL, invex_regonly_hfnlist, "$Revision$");
 
 static void
-h_can_join(hook_data_channel *data)
+h_can_join(void *data_)
 {
+	hook_data_channel *data = data_;
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 	struct Ban *invex = NULL;

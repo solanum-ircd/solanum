@@ -20,7 +20,7 @@ static void _moddeinit(void);
 static void h_scc_channel_join(void *);
 
 mapi_hfn_list_av1 scc_hfnlist[] = {
-	{ "channel_join", (hookfn) h_scc_channel_join },
+	{ "channel_join", h_scc_channel_join },
 	{ NULL, NULL }
 };
 

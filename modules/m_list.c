@@ -66,7 +66,7 @@ static void mo_list(struct MsgBuf *, struct Client *, struct Client *, int, cons
 static void list_one_channel(struct Client *source_p, struct Channel *chptr, int visible);
 
 static void safelist_one_channel(struct Client *source_p, struct Channel *chptr, struct ListClient *params);
-static void safelist_check_cliexit(hook_data_client_exit * hdata);
+static void safelist_check_cliexit(void *);
 static void safelist_client_instantiate(struct Client *, struct ListClient *);
 static void safelist_client_release(struct Client *);
 static void safelist_iterate_client(struct Client *source_p);
@@ -81,7 +81,7 @@ struct Message list_msgtab = {
 mapi_clist_av1 list_clist[] = { &list_msgtab, NULL };
 
 mapi_hfn_list_av1 list_hfnlist[] = {
-	{"client_exit", (hookfn) safelist_check_cliexit},
+	{"client_exit", safelist_check_cliexit},
 	{NULL, NULL}
 };
 
@@ -113,8 +113,9 @@ static void _moddeinit(void)
 	delete_isupport("ELIST");
 }
 
-static void safelist_check_cliexit(hook_data_client_exit * hdata)
+static void safelist_check_cliexit(void *data)
 {
+	hook_data_client_exit * hdata = data;
 	/* Cancel the safelist request if we are disconnecting
 	 * from the server. That way it doesn't core. :P --nenolod
 	 */

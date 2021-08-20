@@ -21,10 +21,10 @@
 static const char chm_operpeace_desc[] =
 	"Adds channel mode +M which prohibits operators from being kicked";
 
-static void hdl_can_kick(hook_data_channel_approval *);
+static void hdl_can_kick(void *);
 
 mapi_hfn_list_av1 chm_operpeace_hfnlist[] = {
-	{ "can_kick", (hookfn) hdl_can_kick },
+	{ "can_kick", hdl_can_kick },
 	{ NULL, NULL }
 };
 
@@ -49,8 +49,9 @@ _moddeinit(void)
 DECLARE_MODULE_AV2(chm_operpeace, _modinit, _moddeinit, NULL, NULL, chm_operpeace_hfnlist, NULL, NULL, chm_operpeace_desc);
 
 static void
-hdl_can_kick(hook_data_channel_approval *data)
+hdl_can_kick(void *data_)
 {
+	hook_data_channel_approval *data = data_;
 	struct Client *source_p = data->client;
 	struct Client *who = data->target;
 	struct Channel *chptr = data->chptr;

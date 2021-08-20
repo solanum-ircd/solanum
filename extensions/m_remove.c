@@ -42,7 +42,7 @@
 static const char description[] = "Provides the REMOVE command, an alternative to KICK";
 
 static void m_remove(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static void remove_quote_part(hook_data_privmsg_channel *);
+static void remove_quote_part(void *);
 
 unsigned int CAP_REMOVE;
 static char part_buf[REASONLEN + 1];
@@ -54,7 +54,7 @@ struct Message remove_msgtab = {
 
 mapi_clist_av1 remove_clist[] = { &remove_msgtab, NULL };
 mapi_hfn_list_av1 remove_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) remove_quote_part },
+	{ "privmsg_channel", remove_quote_part },
 	{ NULL, NULL }
 };
 mapi_cap_list_av2 remove_cap_list[] = {
@@ -213,8 +213,9 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 }
 
 static void
-remove_quote_part(hook_data_privmsg_channel *data)
+remove_quote_part(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	if (data->approved || EmptyString(data->text) || data->msgtype != MESSAGE_TYPE_PART)
 		return;
 
