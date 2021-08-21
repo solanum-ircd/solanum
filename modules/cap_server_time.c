@@ -37,11 +37,11 @@
 static const char cap_server_time_desc[] =
 	"Provides the server-time client capability";
 
-static void cap_server_time_process(hook_data *);
+static void cap_server_time_process(void *);
 unsigned int CLICAP_SERVER_TIME = 0;
 
 mapi_hfn_list_av1 cap_server_time_hfnlist[] = {
-	{ "outbound_msgbuf", (hookfn) cap_server_time_process },
+	{ "outbound_msgbuf", cap_server_time_process },
 	{ NULL, NULL }
 };
 mapi_cap_list_av2 cap_server_time_cap_list[] = {
@@ -50,8 +50,9 @@ mapi_cap_list_av2 cap_server_time_cap_list[] = {
 };
 
 static void
-cap_server_time_process(hook_data *data)
+cap_server_time_process(void *data_)
 {
+	hook_data *data = data_;
 	static char buf[BUFSIZE];
 	struct MsgBuf *msgbuf = data->arg1;
 	struct timeval tv;

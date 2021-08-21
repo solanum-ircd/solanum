@@ -6,7 +6,7 @@
 
 static void check_new_user(void *data);
 mapi_hfn_list_av1 drain_hfnlist[] = {
-	{ "new_local_user", (hookfn) check_new_user },
+	{ "new_local_user", check_new_user },
 	{ NULL, NULL }
 };
 

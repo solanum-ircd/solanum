@@ -15,10 +15,10 @@ static const char sno_desc[] =
 	"Adds server notices for remote nick changes";
 
 static int _modinit(void);
-static void h_gnc_nick_change(hook_data *data);
+static void h_gnc_nick_change(void *data);
 
 mapi_hfn_list_av1 gcn_hfnlist[] = {
-	{ "remote_nick_change", (hookfn) h_gnc_nick_change },
+	{ "remote_nick_change", h_gnc_nick_change },
 	{ NULL, NULL }
 };
 
@@ -34,8 +34,9 @@ _modinit(void)
 }
 
 static void
-h_gnc_nick_change(hook_data *data)
+h_gnc_nick_change(void *data_)
 {
+	hook_data *data = data_;
 	struct Client *source_p = data->client;
 	const char *oldnick = data->arg1;
 	const char *newnick = data->arg2;

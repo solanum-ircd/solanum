@@ -90,10 +90,10 @@ static char check_str[21] = "";
 static unsigned filter_chmode, filter_umode;
 
 mapi_hfn_list_av1 filter_hfnlist[] = {
-	{ "privmsg_user", (hookfn) filter_msg_user },
-	{ "privmsg_channel", (hookfn) filter_msg_channel },
-	{ "client_quit", (hookfn) filter_client_quit },
-	{ "client_exit", (hookfn) on_client_exit },
+	{ "privmsg_user", filter_msg_user },
+	{ "privmsg_channel", filter_msg_channel },
+	{ "client_quit", filter_client_quit },
+	{ "client_exit", on_client_exit },
 	{ NULL, NULL }
 };
 
