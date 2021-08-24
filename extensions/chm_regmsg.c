@@ -57,6 +57,10 @@ chm_regmsg_process(void *data_)
 	if (data->approved)
 		return;
 
+	/* mode is unset, accept */
+	if (!(data->chptr->mode.mode & mode_regmsg))
+		return;
+
 	/* user is identified, accept */
 	if (!EmptyString(data->source_p->user->suser))
 		return;
