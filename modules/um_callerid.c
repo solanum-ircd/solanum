@@ -63,6 +63,16 @@ um_callerid_modinit(void)
 		return -1;
 	}
 
+	user_modes['@'] = find_umode_slot();
+	if (!user_modes['@'])
+	{
+		user_modes['g'] = 0;
+		user_modes['G'] = 0;
+
+		ierror("um_callerid: unable to allocate usermode slot for +@; unloading module.");
+		return -1;
+	}
+
 	construct_umodebuf();
 
 	add_isupport("CALLERID", isupport_umode, "g");
@@ -75,6 +85,7 @@ um_callerid_moddeinit(void)
 {
 	user_modes['g'] = 0;
 	user_modes['G'] = 0;
+	user_modes['@'] = 0;
 	construct_umodebuf();
 
 	delete_isupport("CALLERID");
@@ -83,6 +94,7 @@ um_callerid_moddeinit(void)
 #define IsSetStrictCallerID(c)	((c->umodes & user_modes['g']) == user_modes['g'])
 #define IsSetRelaxedCallerID(c)	((c->umodes & user_modes['G']) == user_modes['G'])
 #define IsSetAnyCallerID(c)	(IsSetStrictCallerID(c) || IsSetRelaxedCallerID(c))
+#define IsSetTalkThroughCallerID(c)	((c->umodes & user_modes['@']) == user_modes['@'])
 
 static const char um_callerid_desc[] =
 	"Provides usermodes +g and +G which restrict messages from unauthorized users.";
@@ -105,7 +117,7 @@ allow_message(struct Client *source_p, struct Client *target_p)
 		return true;
 
 	/* XXX: controversial?  allow opers to send through +g */
-	if (MayHavePrivilege(source_p, "oper:message"))
+	if (IsSetTalkThroughCallerID(source_p))
 		return true;
 
 	if (accept_message(source_p, target_p))
@@ -227,7 +239,34 @@ h_hdl_privmsg_user(void *vdata)
 	data->approved = ERR_TARGUMODEG;
 }
 
+static void
+check_umode_change(void *vdata)
+{
+	hook_data_umode_changed *data = (hook_data_umode_changed *)vdata;
+	bool changed = false;
+	struct Client *source_p = data->client;
+
+	if (!MyClient(source_p))
+		return;
+
+	if (data->oldumodes & UMODE_OPER && !IsOper(source_p))
+		source_p->umodes &= ~user_modes['@'];
+
+	changed = ((data->oldumodes ^ source_p->umodes) & user_modes['@']);
+
+	if (source_p->umodes & user_modes['@'])
+	{
+		if (!HasPrivilege(source_p, "oper:message"))
+		{
+			sendto_one_notice(source_p, ":*** You need oper:message privilege for +p");
+			source_p->umodes &= ~user_modes['@'];
+			return;
+		}
+	}
+}
+
 static mapi_hfn_list_av1 um_callerid_hfnlist[] = {
+	{ "umode_changed", check_umode_change },
 	{ "invite", h_hdl_invite },
 	{ "privmsg_user", h_hdl_privmsg_user },
 	{ NULL, NULL }
