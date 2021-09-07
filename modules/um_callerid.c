@@ -254,11 +254,11 @@ check_umode_change(void *vdata)
 
 	changed = ((data->oldumodes ^ source_p->umodes) & user_modes['@']);
 
-	if (source_p->umodes & user_modes['@'])
+	if (changed && source_p->umodes & user_modes['@'])
 	{
 		if (!HasPrivilege(source_p, "oper:message"))
 		{
-			sendto_one_notice(source_p, ":*** You need oper:message privilege for +p");
+			sendto_one_notice(source_p, ":*** You need oper:message privilege for +@");
 			source_p->umodes &= ~user_modes['@'];
 			return;
 		}
