@@ -265,8 +265,28 @@ check_umode_change(void *vdata)
 	}
 }
 
+static void check_priv_change(void *vdata)
+{
+	hook_data_priv_change *data = (hook_data_priv_change*)vdata;
+	struct Client *source_p = data->client;
+	const char *fakeparv[4];
+
+	if (!MyClient(source_p))
+		return;
+
+	if (source_p->umodes & user_modes['M'] && !HasPrivilege(source_p, "oper:message"))
+	{
+		sendto_one_notice(source_p, ":*** You need oper:message privilege for +M");
+		fakeparv[0] = fakeparv[1] = source_p->name;
+		fakeparv[2] = "-M";
+		fakeparv[3] = NULL;
+		user_mode(source_p, source_p, 3, fakeparv);
+	}
+}
+
 static mapi_hfn_list_av1 um_callerid_hfnlist[] = {
 	{ "umode_changed", check_umode_change },
+	{ "priv_change", check_priv_change },
 	{ "invite", h_hdl_invite },
 	{ "privmsg_user", h_hdl_privmsg_user },
 	{ NULL, NULL }
