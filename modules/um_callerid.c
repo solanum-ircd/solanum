@@ -63,8 +63,8 @@ um_callerid_modinit(void)
 		return -1;
 	}
 
-	user_modes['@'] = find_umode_slot();
-	if (!user_modes['@'])
+	user_modes['M'] = find_umode_slot();
+	if (!user_modes['M'])
 	{
 		user_modes['g'] = 0;
 		user_modes['G'] = 0;
@@ -85,7 +85,7 @@ um_callerid_moddeinit(void)
 {
 	user_modes['g'] = 0;
 	user_modes['G'] = 0;
-	user_modes['@'] = 0;
+	user_modes['M'] = 0;
 	construct_umodebuf();
 
 	delete_isupport("CALLERID");
@@ -94,7 +94,7 @@ um_callerid_moddeinit(void)
 #define IsSetStrictCallerID(c)	((c->umodes & user_modes['g']) == user_modes['g'])
 #define IsSetRelaxedCallerID(c)	((c->umodes & user_modes['G']) == user_modes['G'])
 #define IsSetAnyCallerID(c)	(IsSetStrictCallerID(c) || IsSetRelaxedCallerID(c))
-#define IsSetTalkThroughCallerID(c)	((c->umodes & user_modes['@']) == user_modes['@'])
+#define IsSetTalkThroughCallerID(c)	((c->umodes & user_modes['M']) == user_modes['M'])
 
 static const char um_callerid_desc[] =
 	"Provides usermodes +g and +G which restrict messages from unauthorized users.";
@@ -250,16 +250,16 @@ check_umode_change(void *vdata)
 		return;
 
 	if (data->oldumodes & UMODE_OPER && !IsOper(source_p))
-		source_p->umodes &= ~user_modes['@'];
+		source_p->umodes &= ~user_modes['M'];
 
-	changed = ((data->oldumodes ^ source_p->umodes) & user_modes['@']);
+	changed = ((data->oldumodes ^ source_p->umodes) & user_modes['M']);
 
-	if (changed && source_p->umodes & user_modes['@'])
+	if (changed && source_p->umodes & user_modes['M'])
 	{
 		if (!HasPrivilege(source_p, "oper:message"))
 		{
-			sendto_one_notice(source_p, ":*** You need oper:message privilege for +@");
-			source_p->umodes &= ~user_modes['@'];
+			sendto_one_notice(source_p, ":*** You need oper:message privilege for +M");
+			source_p->umodes &= ~user_modes['M'];
 			return;
 		}
 	}
