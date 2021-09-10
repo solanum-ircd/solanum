@@ -597,8 +597,8 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	{
 		ServerStats.is_ref++;
 		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
-			"Rejecting X-Lined user %s [%s]",
-			get_client_name(client_p, HIDE_IP), xconf->host);
+			"Rejecting X-Lined user %s [%s] (%s)", get_client_name(source_p, HIDE_IP),
+			show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255", xconf->host);
 
 		add_reject(source_p, xconf->host, NULL, NULL, NULL);
 		exit_client(client_p, source_p, &me, "Bad user info");
