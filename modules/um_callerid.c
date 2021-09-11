@@ -69,7 +69,7 @@ um_callerid_modinit(void)
 		user_modes['g'] = 0;
 		user_modes['G'] = 0;
 
-		ierror("um_callerid: unable to allocate usermode slot for +@; unloading module.");
+		ierror("um_callerid: unable to allocate usermode slot for +M; unloading module.");
 		return -1;
 	}
 
