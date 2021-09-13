@@ -22,6 +22,7 @@
 #include "client.h"
 #include "hook.h"
 #include "ircd.h"
+#include "logger.h"
 #include "send.h"
 #include "s_conf.h"
 #include "s_user.h"
@@ -61,6 +62,11 @@ _modinit(void)
 {
 	user_modes['I'] = find_umode_slot();
 	construct_umodebuf();
+	if (!user_modes['I'])
+	{
+		ierror("umode_hide_idle_time: unable to allocate usermode slot for +I, unloading extension");
+		return -1;
+	}
 	return 0;
 }
 
