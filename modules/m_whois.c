@@ -71,6 +71,13 @@ mapi_hlist_av1 whois_hlist[] = {
 	{ NULL, NULL }
 };
 
+enum whois_idle_approval
+{
+	WHOIS_IDLE_HIDE = 0,
+	WHOIS_IDLE_SHOW = 1,
+	WHOIS_IDLE_AUSPEX = 2
+};
+
 DECLARE_MODULE_AV2(whois, NULL, NULL, whois_clist, whois_hlist, NULL, NULL, NULL, whois_desc);
 
 /*
@@ -380,7 +387,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 		hdata_showidle.client = source_p;
 		hdata_showidle.target = target_p;
-		hdata_showidle.approved = 1;
+		hdata_showidle.approved = WHOIS_IDLE_SHOW;
 
 		call_hook(doing_whois_show_idle_hook, &hdata_showidle);
 
@@ -389,7 +396,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 			   hdata_showidle.approved ? (long)(rb_current_time() - target_p->localClient->last) : 0,
 			   (unsigned long)target_p->localClient->firsttime);
 
-		if (hdata_showidle.approved == 2 || hdata_showidle.approved == 0)
+		if (hdata_showidle.approved == WHOIS_IDLE_AUSPEX || hdata_showidle.approved == WHOIS_IDLE_HIDE)
 			/* if the target has hidden their idle time, notify the source */
 			sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "is using a private idle time");
 	}
