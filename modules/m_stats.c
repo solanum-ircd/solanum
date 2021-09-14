@@ -1629,20 +1629,20 @@ stats_l_client(struct Client *source_p, struct Client *target_p,
 		hdata_showidle.approved = 1;
 
 		call_hook(doing_stats_show_idle_hook, &hdata_showidle);
-		sendto_one_numeric(source_p, RPL_STATSLINKINFO, Lformat,
+		sendto_one_numeric(source_p, RPL_STATSLINKINFO, "%s %d %d %d %d %d :%ld %ld %s",
 				   show_ip(source_p, target_p) ?
 				    (IsUpper(statchar) ?
 				     get_client_name(target_p, SHOW_IP) :
 				     get_client_name(target_p, HIDE_IP)) :
 				    get_client_name(target_p, MASK_IP),
-				    hdata_showidle.approved ? (int) rb_linebuf_len(&target_p->localClient->buf_sendq): 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->sendM : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->sendK : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->receiveM : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->receiveK : 0,
+				    hdata_showidle.approved ? (int) rb_linebuf_len(&target_p->localClient->buf_sendq) : -1,
+				    hdata_showidle.approved ? (int) target_p->localClient->sendM : -1,
+				    hdata_showidle.approved ? (int) target_p->localClient->sendK : -1,
+				    hdata_showidle.approved ? (int) target_p->localClient->receiveM : -1,
+				    hdata_showidle.approved ? (int) target_p->localClient->receiveK : -1,
 				    rb_current_time() - target_p->localClient->firsttime,
 				    (rb_current_time() > target_p->localClient->lasttime) && hdata_showidle.approved ?
-				     (rb_current_time() - target_p->localClient->lasttime) : 0,
+				     (rb_current_time() - target_p->localClient->lasttime) : -1,
 				    "-");
 	}
 }
