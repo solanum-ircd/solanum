@@ -53,7 +53,7 @@ static void user_shedding_shed(void *unused);
 
 static struct Message shedding_msgtab = {
 	"SHEDDING", 0, 0, 0, 0,
-	{mg_unreg, mg_not_oper, mg_ignore, mg_ignore, mg_ignore, {mo_shedding, 3}}
+	{mg_unreg, mg_not_oper, {mo_shedding, 3}, mg_ignore, mg_ignore, {mo_shedding, 3}}
 };
 
 mapi_clist_av1 shedding_clist[] = { &shedding_msgtab, NULL };
