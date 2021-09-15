@@ -28,6 +28,7 @@ static const char override_desc[] =
 static void check_umode_change(void *data);
 static void hack_channel_access(void *data);
 static void hack_can_join(void *data);
+static void hack_can_forward(void *data);
 static void hack_can_kick(void *data);
 static void hack_can_send(void *data);
 static void hack_can_invite(void *data);
@@ -37,6 +38,7 @@ mapi_hfn_list_av1 override_hfnlist[] = {
 	{ "umode_changed", check_umode_change },
 	{ "get_channel_access", hack_channel_access, HOOK_HIGHEST },
 	{ "can_join", hack_can_join, HOOK_HIGHEST },
+	{ "can_forward", hack_can_forward, HOOK_HIGHEST },
 	{ "can_kick", hack_can_kick, HOOK_HIGHEST },
 	{ "can_send", hack_can_send, HOOK_HIGHEST },
 	{ "can_invite", hack_can_invite, HOOK_HIGHEST },
@@ -193,6 +195,22 @@ hack_can_join(void *vdata)
 
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (banwalking)",
 				       get_oper_name(data->client), data->chptr->chname);
+	}
+}
+
+static void
+hack_can_forward(void *vdata)
+{
+	hook_data_channel_forward *data = vdata;
+
+	if (data->client->umodes & user_modes['p'])
+	{
+		update_session_deadline(data->client);
+		data->approved = 1;
+
+		/* the language of this snote is a little confusing imo ~launchd */
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (forced forward from %s)",
+				       get_oper_name(data->client), data->target->chname, data->chptr->chname);
 	}
 }
 

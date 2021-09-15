@@ -39,6 +39,7 @@ extern int h_new_local_user;
 extern int h_new_remote_user;
 extern int h_introduce_client;
 extern int h_can_kick;
+extern int h_can_forward;
 extern int h_privmsg_channel;
 extern int h_privmsg_user;
 extern int h_conf_read_start;
@@ -89,6 +90,14 @@ typedef struct
 	struct Channel *chptr;
 	int approved;
 } hook_data_channel;
+
+typedef struct
+{
+	struct Client *client;
+	struct Channel *chptr;
+	struct Channel *target;
+	int approved;
+} hook_data_channel_forward;
 
 typedef struct
 {

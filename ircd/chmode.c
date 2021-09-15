@@ -518,9 +518,21 @@ check_forward(struct Client *source_p, struct Channel *chptr,
 		if((msptr = find_channel_membership(targptr, source_p)) == NULL ||
 			get_channel_access(source_p, targptr, msptr, MODE_QUERY, NULL) < CHFL_CHANOP)
 		{
-			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
-				   me.name, source_p->name, targptr->chname);
-			return false;
+			hook_data_channel_forward hookdata;
+
+			hookdata.client = source_p;
+			hookdata.chptr = chptr;
+			hookdata.target = targptr;
+			hookdata.approved = 0;
+
+			call_hook(h_can_forward, &hookdata);
+
+			if (!hookdata.approved)
+			{
+				sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
+					   me.name, source_p->name, targptr->chname);
+				return false;
+			}
 		}
 	}
 	return true;
