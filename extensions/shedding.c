@@ -33,6 +33,7 @@
 #include "send.h"
 #include "s_conf.h"
 #include "s_serv.h"
+#include "s_newconf.h"
 #include "messages.h"
 #include "numeric.h"
 
@@ -78,13 +79,19 @@ DECLARE_MODULE_AV2(shed, NULL, moddeinit, shedding_clist, NULL, NULL, NULL, NULL
  *
  * SHEDDING <server> OFF - disable shedding
  * SHEDDING <server> <approx_seconds_per_userdrop> :<reason>
- * (parv[#] 1        2                             4)
+ * (parv[#] 1        2                             3)
  *
  */
 static void
 mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if (parc != 5 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
+	if (!HasPrivilege(source_p, "oper:shedding"))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, source_p->name, "SHEDDING");
+		return;
+	}
+
+	if (parc != 4 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
 	{
 		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
 			me.name, source_p->name, "SHEDDING");
@@ -110,8 +117,8 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	if(rate < SHED_RATE_MIN)
 		rate = SHED_RATE_MIN;
 
-	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, opers: %s, reason: %s)",
-		get_oper_name(source_p), rate, operstoo ? "yes" : "no", parv[4]);
+	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, reason: %s)",
+		get_oper_name(source_p), rate, parv[3]);
 
 	rate -= (rate/5);
 	rb_event_delete(user_shedding_main_ev);
