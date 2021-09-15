@@ -40,18 +40,18 @@
 #define SHED_RATE_MIN 5
 
 static int rate = 60;
-static int operstoo = 0;
+static bool operstoo = 0;
 
-struct ev_entry *user_shedding_main_ev = NULL;
-struct ev_entry *user_shedding_shed_ev = NULL;
+static struct ev_entry *user_shedding_main_ev = NULL;
+static struct ev_entry *user_shedding_shed_ev = NULL;
 
 static const char shed_desc[] = "Enables/disables user shedding.";
 
 static void mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
-void user_shedding_main(void *rate);
-void user_shedding_shed(void *unused);
+static void user_shedding_main(void *rate);
+static void user_shedding_shed(void *unused);
 
-struct Message shedding_msgtab = {
+static struct Message shedding_msgtab = {
 	"SHEDDING", 0, 0, 0, 0,
 	{mg_unreg, mg_not_oper, mg_ignore, mg_ignore, mg_ignore, {mo_shedding, 3}}
 };
@@ -98,9 +98,11 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 	if (!irccmp(parv[2], "OFF"))
 	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s disabled user shedding", get_oper_name(source_p));
+		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s disabled user shedding", get_oper_name(source_p));
 		rb_event_delete(user_shedding_main_ev);
+		user_shedding_main_ev = NULL;
 		rb_event_delete(user_shedding_shed_ev);
+		user_shedding_shed_ev = NULL;
 		return;
 	}
 
@@ -110,15 +112,16 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	if(rate < SHED_RATE_MIN)
 		rate = SHED_RATE_MIN;
 
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s enabled user shedding (interval: %d seconds, opers: %s, reason: %s)",
+	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, opers: %s, reason: %s)",
 		get_oper_name(source_p), rate, operstoo ? "yes" : "no", parv[4]);
 
 	rate -= (rate/5);
 	rb_event_delete(user_shedding_main_ev);
+	user_shedding_main_ev = NULL;
 	user_shedding_main_ev = rb_event_add("user shedding main event", user_shedding_main, NULL, rate);
 }
 
-void
+static void
 user_shedding_main(void *unused)
 {
 	int deviation = (rate / (3+(int) (7.0f*rand()/(RAND_MAX+1.0f))));
@@ -126,13 +129,13 @@ user_shedding_main(void *unused)
 	user_shedding_shed_ev = rb_event_addish("user shedding shed event", user_shedding_shed, NULL, rate+deviation);
 }
 
-void
+static void
 user_shedding_shed(void *unused)
 {
 	rb_dlink_node *ptr;
 	struct Client *client_p;
 
-	RB_DLINK_FOREACH_PREV(ptr, global_client_list.tail)
+	RB_DLINK_FOREACH_PREV(ptr, lclient_list.tail)
 	{
 		client_p = ptr->data;
 
@@ -145,4 +148,5 @@ user_shedding_shed(void *unused)
 	}
 
 	rb_event_delete(user_shedding_shed_ev);
+	user_shedding_shed_ev = NULL;
 }
