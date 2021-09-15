@@ -697,40 +697,30 @@ valid_temp_time(const char *p)
 			/* No numbers were given so return invalid */
 			return -1;
 		if (current) {
-			switch (*ch++) {
-				case '\0':
-					/* No unit was given so send it back as minutes */
-					if (errno == ERANGE)
-						return -1;
-					return (current * 60);
+			switch (*ch) {
+				case '\0': /* No unit was given so send it back as minutes */
 				case 'm':
-					if (errno == ERANGE)
-						return -1;
 					result += (current * 60);
 					break;
 				case 'h':
-					if (errno == ERANGE)
-						return -1;
 					result += (current * 3600);
 					break;
 				case 'd':
-					if (errno == ERANGE)
-						return -1;
 					result += (current * 86400);
 					break;
 				case 'w':
-					if (errno == ERANGE)
-						return -1;
 					result += (current * 604800);
 					break;
 				default:
 					/* Bad time unit was given */
 					return -1;
 			}
+			if (*ch++ == '\0')
+				break;
 		}
 	}
-	if(result > (60 * 24 * 7 * 52))
-		result = (60 * 24 * 7 * 52);
+	if(result > (60 * 60 * 24 * 7 * 52))
+		result = (60 * 60 * 24 * 7 * 52);
 	return result;
 }
 
