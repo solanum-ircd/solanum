@@ -106,6 +106,7 @@
 #define NUMERIC_STR_331      ":%s 331 %s %s :No topic is set."
 #define NUMERIC_STR_332      ":%s 332 %s %s :%s"
 #define NUMERIC_STR_333      ":%s 333 %s %s %s %lu"
+#define NUMERIC_STR_335      "%s :is a bot on %s"
 #define NUMERIC_STR_337      "%s :%s"
 #define NUMERIC_STR_338      "%s %s :actually using host"
 #define NUMERIC_STR_341      ":%s 341 %s %s %s"
