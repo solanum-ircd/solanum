@@ -40,7 +40,6 @@
 #define SHED_RATE_MIN 5
 
 static int rate = 60;
-static bool operstoo = 0;
 
 static struct ev_entry *user_shedding_main_ev = NULL;
 static struct ev_entry *user_shedding_shed_ev = NULL;
@@ -78,8 +77,8 @@ DECLARE_MODULE_AV2(shed, NULL, moddeinit, shedding_clist, NULL, NULL, NULL, NULL
  * side effects - user shedding is enabled or disabled
  *
  * SHEDDING <server> OFF - disable shedding
- * SHEDDING <server> <approx_seconds_per_userdrop> <opers_too?[0|1]> :<reason>
- * (parv[#] 1        2                             3                  4)
+ * SHEDDING <server> <approx_seconds_per_userdrop> :<reason>
+ * (parv[#] 1        2                             4)
  *
  */
 static void
@@ -107,7 +106,6 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	}
 
 	rate = atoi(parv[2]);
-	operstoo = !!atoi(parv[(3)]);
 
 	if(rate < SHED_RATE_MIN)
 		rate = SHED_RATE_MIN;
@@ -141,7 +139,7 @@ user_shedding_shed(void *unused)
 
 		if (!MyClient(client_p)) /* It could be servers */
 			continue;
-		if (IsOper(client_p) && !operstoo)
+		if (IsExemptKline(client_p))
 			continue;
 		exit_client(client_p, client_p, &me, "Connection closed");
 		break;
