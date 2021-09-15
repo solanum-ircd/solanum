@@ -59,6 +59,7 @@ extension_LTLIBRARIES =		\
   m_omode.la			\
   m_opme.la			\
   m_sendbans.la			\
+  m_shedding.la			\
   m_webirc.la			\
   m_remove.la			\
   hide_uncommon_channels.la	\
@@ -66,7 +67,6 @@ extension_LTLIBRARIES =		\
   no_locops.la			\
   no_oper_invis.la		\
   sasl_usercloak.la		\
-  shedding.la                   \
   drain.la			\
   identify_msg.la		\
   cap_realhost.la		\
