@@ -115,7 +115,10 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	rate = atoi(parv[2]);
 
 	if(rate < SHED_RATE_MIN)
-		rate = SHED_RATE_MIN;
+	{
+		sendto_one_notice(source_p, "Shedding rate must be at least %d", SHED_RATE_MIN);
+		return;
+	}
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, reason: %s)",
 		get_oper_name(source_p), rate, parv[3]);
