@@ -44,6 +44,9 @@
 rb_dictionary *cmd_dict = NULL;
 rb_dictionary *alias_dict = NULL;
 
+const struct MsgBuf *incoming_message = NULL;
+const struct Client *incoming_client = NULL;
+
 static void cancel_clients(struct Client *, struct Client *);
 static void remove_unknown(struct Client *, const char *, char *);
 
@@ -153,6 +156,9 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		return;
 	}
 
+	incoming_message = &msgbuf;
+	incoming_client = client_p;
+
 	if(handle_command(mptr, &msgbuf, client_p, from) < -1)
 	{
 		char *p;
@@ -177,6 +183,8 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		}
 	}
 
+	incoming_message = NULL;
+	incoming_client = NULL;
 }
 
 /*

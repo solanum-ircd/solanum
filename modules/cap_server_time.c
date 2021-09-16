@@ -32,6 +32,7 @@
 #include "s_serv.h"
 #include "numeric.h"
 #include "chmode.h"
+#include "parse.h"
 #include "inline/stringops.h"
 
 static const char cap_server_time_desc[] =
@@ -54,8 +55,14 @@ cap_server_time_process(void *data_)
 {
 	hook_data *data = data_;
 	static char buf[BUFSIZE];
+	const char *tagged_time;
 	struct MsgBuf *msgbuf = data->arg1;
 	struct timeval tv;
+
+	if (incoming_client != NULL && IsServer(incoming_client) && !msgbuf_get_tag(msgbuf, "time") && (tagged_time = msgbuf_get_tag(incoming_message, "time")))
+	{
+		msgbuf_append_tag(msgbuf, "time", tagged_time, CLICAP_SERVER_TIME);
+	}
 
 	if (!IsMe(data->client) && !MyClient(data->client))
 		return;
