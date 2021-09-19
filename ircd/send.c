@@ -42,7 +42,8 @@
 /* send the message to the link the target is attached to */
 #define send_linebuf(a,b) _send_linebuf((a->from ? a->from : a) ,b)
 
-#define CLIENT_CAPS_ONLY(x)	((IsClient((x)) && (x)->localClient) ? (x)->localClient->caps : 0)
+#define CLIENT_CAP_MASK(x)	(MyClient((x)) ? (x)->localClient->caps : \
+		((x)->from == &me || ((x)->from && (x)->from->localClient->caps & CAP_STAG)) ? (unsigned)-1 : 0)
 
 static void send_queued_write(rb_fde_t *F, void *data);
 
@@ -221,7 +222,7 @@ send_queued_write(rb_fde_t *F, void *data)
 static void
 linebuf_put_tags(buf_head_t *linebuf, const struct MsgBuf *msgbuf, const struct Client *target_p, rb_strf_t *message)
 {
-	struct MsgBuf_str_data msgbuf_str_data = { .msgbuf = msgbuf, .caps = CLIENT_CAPS_ONLY(target_p) };
+	struct MsgBuf_str_data msgbuf_str_data = { .msgbuf = msgbuf, .caps = CLIENT_CAP_MASK(target_p) };
 	rb_strf_t strings = { .func = msgbuf_unparse_linebuf_tags, .func_args = &msgbuf_str_data, .length = TAGSLEN + 1, .next = message };
 
 	message->length = DATALEN + 1;
@@ -556,7 +557,7 @@ sendto_channel_flags(struct Client *one, int type, struct Client *source_p,
 		}
 		else
 		{
-			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 
@@ -565,7 +566,7 @@ sendto_channel_flags(struct Client *one, int type, struct Client *source_p,
 	{
 		target_p = one;
 
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	rb_linebuf_donebuf(&rb_linebuf_remote);
@@ -659,7 +660,7 @@ sendto_channel_opmod(struct Client *one, struct Client *source_p,
 				target_p->from->serial = current_serial;
 			}
 		} else {
-			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 
@@ -668,7 +669,7 @@ sendto_channel_opmod(struct Client *one, struct Client *source_p,
 	{
 		target_p = one;
 
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	rb_linebuf_donebuf(&rb_linebuf_old);
@@ -711,7 +712,7 @@ _sendto_channel_local(struct Client *source_p, int type, const char *priv, struc
 		if (priv != NULL && !HasPrivilege(target_p, priv))
 			continue;
 
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -783,7 +784,7 @@ _sendto_channel_local_with_capability_butone(struct Client *source_p, struct Cli
 		if(type && ((msptr->flags & type) == 0))
 			continue;
 
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -864,7 +865,7 @@ sendto_channel_local_butone(struct Client *one, int type, struct Channel *chptr,
 			continue;
 
 		/* attach the present linebuf to the target */
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -923,7 +924,7 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 				continue;
 
 			target_p->serial = current_serial;
-			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 
@@ -932,7 +933,7 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 	 */
 	if(MyConnect(user) && (user->serial != current_serial)
 			&& IsCapable(user, cap) && NotCapable(user, negcap)) {
-		send_linebuf(user, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(user)));
+		send_linebuf(user, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(user)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -992,7 +993,7 @@ sendto_common_channels_local_butone(struct Client *user, int cap, int negcap, co
 				continue;
 
 			target_p->serial = current_serial;
-			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 
@@ -1040,7 +1041,7 @@ sendto_match_butone(struct Client *one, struct Client *source_p,
 			target_p = ptr->data;
 
 			if(match(mask, target_p->host))
-				_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+				_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 	/* what = MATCH_SERVER, if it doesnt match us, just send remote */
@@ -1049,7 +1050,7 @@ sendto_match_butone(struct Client *one, struct Client *source_p,
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, lclient_list.head)
 		{
 			target_p = ptr->data;
-			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+			_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 		}
 	}
 
@@ -1157,7 +1158,7 @@ sendto_local_clients_with_capability(int cap, const char *pattern, ...)
 		if(IsIOError(target_p) || !IsCapable(target_p, cap))
 			continue;
 
-		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -1193,7 +1194,7 @@ sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *patt
 		if(IsIOError(target_p))
 			continue;
 
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p)));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -1336,7 +1337,7 @@ sendto_realops_snomask(int flags, int level, const char *pattern, ...)
 			continue;
 
 		if (client_p->snomask & flags) {
-			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(client_p)));
+			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(client_p)));
 		}
 	}
 
@@ -1379,7 +1380,7 @@ sendto_realops_snomask_from(int flags, int level, struct Client *source_p,
 			continue;
 
 		if (client_p->snomask & flags) {
-			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(client_p)));
+			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(client_p)));
 		}
 	}
 
@@ -1424,7 +1425,7 @@ sendto_wallops_flags(int flags, struct Client *source_p, const char *pattern, ..
 		client_p = ptr->data;
 
 		if (client_p->umodes & flags) {
-			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(client_p)));
+			_send_linebuf(client_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(client_p)));
 		}
 	}
 
