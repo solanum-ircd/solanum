@@ -669,7 +669,7 @@ check_dlines(void)
 				continue;
 
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					     "DLINE active for %s (%s)",
+					     "Disconnecting D-Lined user %s (%s)",
 					     get_client_name(client_p, HIDE_IP), aconf->host);
 
 			notify_banned_client(client_p, aconf, D_LINED);
@@ -725,7 +725,7 @@ check_xlines(void)
 			}
 
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-						"XLINE active for %s (%s)",
+						"Disconnecting X-Lined user %s (%s)",
 						get_client_name(client_p, HIDE_IP), aconf->host);
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");
