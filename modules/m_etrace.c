@@ -123,7 +123,10 @@ mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 						target_p->servptr->name,
 						get_id(target_p, target_p));
 				else
+				{
 					do_single_etrace(source_p, target_p);
+					sendto_one_numeric(source_p, RPL_ENDOFTRACE, form_str(RPL_ENDOFTRACE), target_p->name);
+				}
 			}
 			else
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,

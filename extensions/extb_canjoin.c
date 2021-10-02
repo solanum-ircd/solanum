@@ -63,7 +63,7 @@ static int eb_canjoin(const char *data, struct Client *client_p,
 		return EXTBAN_INVALID;
 #endif
 	recurse = 1;
-	ret = is_banned(chptr2, client_p, NULL, NULL, NULL) == CHFL_BAN ? EXTBAN_MATCH : EXTBAN_NOMATCH;
+	ret = is_banned(chptr2, client_p, NULL, NULL, NULL) != 0 ? EXTBAN_MATCH : EXTBAN_NOMATCH;
 	recurse = 0;
 	return ret;
 }
