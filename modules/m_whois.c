@@ -71,13 +71,6 @@ mapi_hlist_av1 whois_hlist[] = {
 	{ NULL, NULL }
 };
 
-enum whois_idle_approval
-{
-	WHOIS_IDLE_HIDE = 0,
-	WHOIS_IDLE_SHOW = 1,
-	WHOIS_IDLE_AUSPEX = 2
-};
-
 DECLARE_MODULE_AV2(whois, NULL, NULL, whois_clist, whois_hlist, NULL, NULL, NULL, whois_desc);
 
 /*

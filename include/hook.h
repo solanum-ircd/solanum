@@ -21,6 +21,14 @@ enum hook_priority
 	HOOK_MONITOR = 100
 };
 
+/* for idle time privacy features */
+enum whois_idle_approval
+{
+	WHOIS_IDLE_HIDE = 0,
+	WHOIS_IDLE_SHOW = 1,
+	WHOIS_IDLE_AUSPEX = 2
+};
+
 typedef void (*hookfn) (void *data);
 
 extern int h_iosend_id;

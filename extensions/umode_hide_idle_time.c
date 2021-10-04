@@ -50,10 +50,10 @@ h_huc_doing_idle_time_hook(void *data_)
 
 	if (data->target->umodes & user_modes['I'])
 	{
-		if ((data->client != data->target) && !HasPrivilege(data->client, "auspex:usertimes"))
-			data->approved = 0;
-		else if (HasPrivilege(data->client, "auspex:usertimes"))
-			data->approved = 2;
+		if (HasPrivilege(data->client, "auspex:usertimes"))
+			data->approved = WHOIS_IDLE_AUSPEX;
+		else if (data->client != data->target)
+			data->approved = WHOIS_IDLE_HIDE;
 	}
 }
 
