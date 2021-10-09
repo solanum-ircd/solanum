@@ -129,8 +129,8 @@ check_new_user(void *vdata)
 		}
 
 		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
-			"Rejecting K-Lined user %s [%s@%s]",
-			get_client_name(source_p, HIDE_IP), aconf->user, aconf->host);
+			"Rejecting K-Lined user %s [%s] (%s@%s)", get_client_name(source_p, HIDE_IP),
+			show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255", aconf->user, aconf->host);
 
 		notify_banned_client(source_p, aconf, K_LINED);
 	}
