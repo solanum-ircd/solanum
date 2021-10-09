@@ -46,6 +46,7 @@ These are known issues and workarounds for various platforms.
 # building
 
 ```bash
+sudo apt install build-essential pkg-config libsqlite3-dev # or equivalent for your distribution
 ./autogen.sh
 ./configure --prefix=/path/to/installation
 make

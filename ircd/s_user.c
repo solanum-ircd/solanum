@@ -524,7 +524,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		const char *sasl_only_client_message = ConfigFileEntry.sasl_only_client_message;
 
 		if (sasl_only_client_message == NULL)
-			sasl_only_client_message = "You need to identify via SASL to use to use this server.";
+			sasl_only_client_message = "You need to identify via SASL to use this server.";
 
 		ServerStats.is_ref++;
 		sendto_one_notice(source_p, ":*** Notice -- %s", sasl_only_client_message);
