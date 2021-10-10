@@ -28,13 +28,13 @@ mapi_hfn_list_av1 chm_operpeace_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static unsigned int mymode;
+static struct ChannelMode *mymode;
 
 static int
 _modinit(void)
 {
 	mymode = cflag_add('M', chm_hidden);
-	if (mymode == 0)
+	if (mymode == NULL)
 		return -1;
 
 	return 0;
@@ -59,7 +59,7 @@ hdl_can_kick(void *data_)
 	if(IsOper(source_p))
 		return;
 
-	if((chptr->mode.mode & mymode) && HasPrivilege(who, "oper:receive_immunity"))
+	if((chptr->mode.mode & mymode->mode_type) && HasPrivilege(who, "oper:receive_immunity"))
 	{
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s attempted to kick %s from %s (which is +M)",
 			source_p->name, who->name, chptr->chname);

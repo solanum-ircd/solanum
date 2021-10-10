@@ -38,7 +38,7 @@
 static const char chm_nonotice_desc[] =
 	"Adds channel mode +T which blocks notices to the channel.";
 
-static unsigned int mode_nonotice;
+static struct ChannelMode *mode_nonotice;
 
 static void chm_nonotice_process(void *);
 
@@ -57,7 +57,7 @@ chm_nonotice_process(void *data_)
 		return;
 
 	/* block all notices except CTCPs; use chm_noctcp to block CTCPs. */
-	if (data->chptr->mode.mode & mode_nonotice && *data->text != '\001')
+	if (data->chptr->mode.mode & mode_nonotice->mode_type && *data->text != '\001')
 	{
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN), data->chptr->chname);
 		data->approved = ERR_CANNOTSENDTOCHAN;
@@ -69,7 +69,7 @@ static int
 _modinit(void)
 {
 	mode_nonotice = cflag_add('T', chm_simple);
-	if (mode_nonotice == 0)
+	if (mode_nonotice == NULL)
 		return -1;
 
 	return 0;

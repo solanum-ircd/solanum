@@ -20,13 +20,13 @@ mapi_hfn_list_av1 operonly_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static unsigned int mymode;
+static struct ChannelMode *mymode;
 
 static int
 _modinit(void)
 {
 	mymode = cflag_add('O', chm_staff);
-	if (mymode == 0)
+	if (mymode == NULL)
 		return -1;
 
 	return 0;
@@ -48,7 +48,7 @@ h_can_join(void *data_)
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 
-	if((chptr->mode.mode & mymode) && !IsOper(source_p)) {
+	if((chptr->mode.mode & mymode->mode_type) && !IsOper(source_p)) {
 		sendto_one_numeric(source_p, 520, "%s :Cannot join channel (+O) - you are not an IRC operator", chptr->chname);
 		data->approved = ERR_CUSTOM;
 	}

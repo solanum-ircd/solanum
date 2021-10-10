@@ -87,7 +87,8 @@ enum filter_state {
 static enum filter_state state = FILTER_EMPTY;
 static char check_str[21] = "";
 
-static unsigned filter_chmode, filter_umode;
+static struct ChannelMode *filter_chmode;
+static unsigned filter_umode;
 
 mapi_hfn_list_av1 filter_hfnlist[] = {
 	{ "privmsg_user", filter_msg_user },
@@ -432,7 +433,7 @@ filter_msg_channel(void *data_)
 	if (IsOper(s)) {
 		return;
 	}
-	if (data->chptr->mode.mode & filter_chmode) {
+	if (data->chptr->mode.mode & filter_chmode->mode_type) {
 		return;
 	}
 	char *text = strcpy(clean_buffer, data->text);

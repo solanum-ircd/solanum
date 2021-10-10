@@ -149,22 +149,22 @@ find_cflag_slot(void)
 	return my_cflag;
 }
 
-unsigned int
+struct ChannelMode *
 cflag_add(char c_, ChannelModeFunc function)
 {
 	int c = (unsigned char)c_;
 
 	if (chmode_table[c].set_func != NULL &&
 			chmode_table[c].set_func != chm_orphaned)
-		return 0;
+		return NULL;
 
 	if (chmode_table[c].set_func == NULL)
 		chmode_table[c].mode_type = find_cflag_slot();
 	if (chmode_table[c].mode_type == 0)
-		return 0;
+		return NULL;
 	chmode_table[c].set_func = function;
 	construct_cflags_strings();
-	return chmode_table[c].mode_type;
+	return &chmode_table[c];
 }
 
 void
