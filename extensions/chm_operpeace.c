@@ -33,9 +33,14 @@ static struct ChannelMode *mymode;
 static int
 _modinit(void)
 {
-	mymode = cflag_add('M', chm_hidden);
+	mymode = cflag_add('M', chm_simple);
 	if (mymode == NULL)
 		return -1;
+	else
+	{
+		mymode->priv = "oper:cmodes";
+		mymode->flags |= CHM_HIDDEN;
+	}
 
 	return 0;
 }

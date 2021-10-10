@@ -637,92 +637,6 @@ chm_orphaned(struct Client *source_p, struct Channel *chptr,
 }
 
 void
-chm_hidden(struct Client *source_p, struct Channel *chptr,
-	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
-{
-	if(MyClient(source_p) && !IsOperGeneral(source_p))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-	if(MyClient(source_p) && !IsOperAdmin(source_p))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one(source_p, form_str(ERR_NOPRIVS), me.name,
-					source_p->name, "admin");
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-
-	/* setting + */
-	if((dir == MODE_ADD) && !(chptr->mode.mode & mode_type))
-	{
-		chptr->mode.mode |= mode_type;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_ADD;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count].mems = ONLY_OPERS;
-		mode_changes[mode_count++].arg = NULL;
-	}
-	else if((dir == MODE_DEL) && (chptr->mode.mode & mode_type))
-	{
-		chptr->mode.mode &= ~mode_type;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_DEL;
-		mode_changes[mode_count].mems = ONLY_OPERS;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count++].arg = NULL;
-	}
-}
-
-void
-chm_staff(struct Client *source_p, struct Channel *chptr,
-	  int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
-{
-	if(MyClient(source_p) && !IsOper(source_p))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-	if(MyClient(source_p) && !HasPrivilege(source_p, "oper:cmodes"))
-	{
-		if(!(*errors & SM_ERR_NOPRIVS))
-			sendto_one(source_p, form_str(ERR_NOPRIVS), me.name,
-					source_p->name, "cmodes");
-		*errors |= SM_ERR_NOPRIVS;
-		return;
-	}
-
-	/* setting + */
-	if((dir == MODE_ADD) && !(chptr->mode.mode & mode_type))
-	{
-		chptr->mode.mode |= mode_type;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_ADD;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count].mems = ALL_MEMBERS;
-		mode_changes[mode_count++].arg = NULL;
-	}
-	else if((dir == MODE_DEL) && (chptr->mode.mode & mode_type))
-	{
-		chptr->mode.mode &= ~mode_type;
-
-		mode_changes[mode_count].letter = c;
-		mode_changes[mode_count].dir = MODE_DEL;
-		mode_changes[mode_count].mems = ALL_MEMBERS;
-		mode_changes[mode_count].id = NULL;
-		mode_changes[mode_count++].arg = NULL;
-	}
-}
-
-void
 chm_ban(struct Client *source_p, struct Channel *chptr,
 	int alevel, const char *arg, int *errors, int dir, char c, long mode_type)
 {
@@ -1287,8 +1201,8 @@ struct ChannelMode chmode_table[256] =
 {
   ['F'] = {chm_simple,    MODE_FREETARGET, 0 },
   ['I'] = {chm_ban,       CHFL_INVEX,      CHM_QUERYABLE | CHM_OPS_QUERY },
-  ['L'] = {chm_staff,     MODE_EXLIMIT,    0 },
-  ['P'] = {chm_staff,     MODE_PERMANENT,  0 },
+  ['L'] = {chm_simple,    MODE_EXLIMIT,    0, 				  "oper:cmodes" },
+  ['P'] = {chm_simple,    MODE_PERMANENT,  0, 			   	  "oper:cmodes" },
   ['Q'] = {chm_simple,    MODE_DISFORWARD, 0 },
   ['b'] = {chm_ban,       CHFL_BAN,        CHM_QUERYABLE },
   ['e'] = {chm_ban,       CHFL_EXCEPTION,  CHM_QUERYABLE | CHM_OPS_QUERY },
@@ -1401,6 +1315,24 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 				}
 				effective_dir = MODE_QUERY;
 				use_arg = false;
+			}
+
+			if (cm->priv)
+			{
+				if (!IsOper(source_p))
+				{
+			                if(!(errors & SM_ERR_NOPRIVS))
+			                        sendto_one_numeric(source_p, ERR_NOPRIVILEGES, form_str(ERR_NOPRIVILEGES));
+					errors |= SM_ERR_NOPRIVS;
+			                return;
+				}
+				else if (!HasPrivilege(source_p, cm->priv))
+				{
+					if (!(errors & SM_ERR_NOPRIVS))
+						sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, source_p->name, cm->priv);
+			                errors |= SM_ERR_NOPRIVS;
+			                return;
+				}
 			}
 
 			if (effective_dir == MODE_QUERY && !(cm->flags & CHM_CAN_QUERY))

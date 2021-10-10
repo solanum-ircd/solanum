@@ -1141,7 +1141,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p)
 
 	for (i = 0; i < 256; i++)
 	{
-		if(chmode_table[i].set_func == chm_hidden && (!HasPrivilege(client_p, "auspex:cmodes") || !IsClient(client_p)))
+		if(chmode_table[i].flags & CHM_HIDDEN && (!HasPrivilege(client_p, "auspex:cmodes") || !IsClient(client_p)))
 			continue;
 		if(chptr->mode.mode & chmode_flags[i])
 			*mbuf++ = i;
