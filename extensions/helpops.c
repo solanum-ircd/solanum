@@ -156,10 +156,16 @@ h_hdl_stats_request(void *data)
 
 		count++;
 
-		sendto_one_numeric(hdata->client, RPL_STATSDEBUG,
-				   "p :%s (%s@%s)",
-				   target_p->name, target_p->username,
-				   target_p->host);
+		if (IsOper(hdata->client) && SeesOper(target_p, hdata->client)
+				&& !EmptyString(target_p->user->opername))
+			sendto_one_numeric(hdata->client, RPL_STATSDEBUG,
+				"p :%s (%s@%s) {%s}",
+				target_p->name, target_p->username, target_p->host,
+				target_p->user->opername);
+		else
+			sendto_one_numeric(hdata->client, RPL_STATSDEBUG,
+				"p :%s (%s@%s)",
+				target_p->name, target_p->username, target_p->host);
 	}
 
 	sendto_one_numeric(hdata->client, RPL_STATSDEBUG,
