@@ -100,7 +100,7 @@ static int _modinit(void)
 	 * T = topic search (T> T<)
 	 */
 	add_isupport("SAFELIST", isupport_string, "");
-	add_isupport("ELIST", isupport_string, "CTU");
+	add_isupport("ELIST", isupport_string, "CMNTU");
 
 	return 0;
 }
@@ -191,7 +191,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	/* Single channel. */
-	if (args && IsChannelName(args))
+	if (args && IsChannelName(args) && !strchr(args, ','))
 	{
 		safelist_channel_named(source_p, args, operspy);
 		return;
@@ -205,6 +205,8 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	params->operspy = operspy;
 	params->created_min = params->topic_min =
 		params->created_max = params->topic_max = 0;
+	params->mask = NULL;
+	params->nomask = NULL;
 
 	if (args && !EmptyString(args))
 	{
@@ -279,6 +281,17 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 						params->topic_min = rb_current_time() - (60 * atoi(args));
 					}
 				}
+			}
+			else if (*args == '!')
+			{
+				args++;
+				rb_free(params->nomask);
+				params->nomask = rb_strdup(args);
+			}
+			else if (*args == '?' || *args == '*' || IsChanPrefix(*args))
+			{
+				rb_free(params->mask);
+				params->mask = rb_strdup(args);
 			}
 
 			if (EmptyString(p))
@@ -376,6 +389,8 @@ static void safelist_client_release(struct Client *client_p)
 	rb_dlinkFindDestroy(client_p, &safelisting_clients);
 
 	rb_free(client_p->localClient->safelist_data->chname);
+	rb_free(client_p->localClient->safelist_data->mask);
+	rb_free(client_p->localClient->safelist_data->nomask);
 	rb_free(client_p->localClient->safelist_data);
 
 	client_p->localClient->safelist_data = NULL;
@@ -457,6 +472,12 @@ static void safelist_one_channel(struct Client *source_p, struct Channel *chptr,
 		return;
 
 	if (params->created_max && chptr->channelts > params->created_max)
+		return;
+
+	if (params->mask && !match(params->mask, chptr->chname))
+		return;
+
+	if (params->nomask && match(params->nomask, chptr->chname))
 		return;
 
 	list_one_channel(source_p, chptr, visible);
