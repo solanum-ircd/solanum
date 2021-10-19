@@ -191,7 +191,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	/* Single channel. */
-	if (args && IsChannelName(args) && !strchr(args, ','))
+	if (args && IsChannelName(args) && !strpbrk(args, "*?, "))
 	{
 		safelist_channel_named(source_p, args, operspy);
 		return;
@@ -357,6 +357,8 @@ static bool safelist_sendq_exceeded(struct Client *client_p)
  */
 static void safelist_client_instantiate(struct Client *client_p, struct ListClient *params)
 {
+	struct Channel *chptr;
+
 	s_assert(MyClient(client_p));
 	s_assert(params != NULL);
 
@@ -368,6 +370,12 @@ static void safelist_client_instantiate(struct Client *client_p, struct ListClie
 	rb_dlinkAddAlloc(client_p, &safelisting_clients);
 
 	/* give the user some initial data to work with */
+	if (params->mask && (chptr = find_channel(params->mask)))
+	{
+		bool visible = !SecretChannel(chptr) || IsMember(client_p, chptr);
+		if (visible || params->operspy)
+			list_one_channel(client_p, chptr, visible);
+	}
 	safelist_iterate_client(client_p);
 }
 
@@ -474,7 +482,7 @@ static void safelist_one_channel(struct Client *source_p, struct Channel *chptr,
 	if (params->created_max && chptr->channelts > params->created_max)
 		return;
 
-	if (params->mask && !match(params->mask, chptr->chname))
+	if (params->mask && (!irccmp(params->mask, chptr->chname) || !match(params->mask, chptr->chname)))
 		return;
 
 	if (params->nomask && match(params->nomask, chptr->chname))
