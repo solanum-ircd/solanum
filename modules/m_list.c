@@ -221,22 +221,23 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			if (*args == '<')
 			{
 				args++;
-				if (IsDigit(*args))
-				{
-					params->users_max = atoi(args);
-					if (params->users_max == 0)
-						params->users_max = INT_MAX;
-					else
-						params->users_max--;
-				}
+				if (!IsDigit(*args)) goto fail;
+
+				params->users_max = atoi(args);
+				if (params->users_max == 0)
+					params->users_max = INT_MAX;
+				else
+					params->users_max--;
 			}
 			else if (*args == '>')
 			{
 				args++;
 				if (IsDigit(*args))
 					params->users_min = atoi(args) + 1;
-				else
+				else if (args[0] == '-' && IsDigit(args[1]))
 					params->users_min = 0;
+				else
+					goto fail;
 			}
 			else if (*args == 'C' || *args == 'c')
 			{
@@ -245,19 +246,19 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				{
 					/* Creation time earlier than last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->created_max = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->created_max = rb_current_time() - (60 * atoi(args));
 				}
 				else if (*args == '<')
 				{
 					/* Creation time within last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->created_min = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->created_min = rb_current_time() - (60 * atoi(args));
+				}
+				else
+				{
+					goto fail;
 				}
 			}
 			else if (*args == 'T' || *args == 't')
@@ -267,19 +268,19 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				{
 					/* Topic change time earlier than last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->topic_max = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->topic_max = rb_current_time() - (60 * atoi(args));
 				}
 				else if (*args == '<')
 				{
 					/* Topic change time within last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->topic_min = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->topic_min = rb_current_time() - (60 * atoi(args));
+				}
+				else
+				{
+					goto fail;
 				}
 			}
 			else if (*args == '!')
@@ -293,6 +294,10 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				rb_free(params->mask);
 				params->mask = rb_strdup(args);
 			}
+			else
+			{
+				goto fail;
+			}
 
 			if (EmptyString(p))
 				break;
@@ -302,6 +307,13 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	safelist_client_instantiate(source_p, params);
+	return;
+
+fail:
+	rb_free(params);
+	sendto_one(source_p, form_str(RPL_LISTSTART), me.name, source_p->name);
+	sendto_one_notice(source_p, ":Invalid parameters for /LIST");
+	sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
 }
 
 /*
