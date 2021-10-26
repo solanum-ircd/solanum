@@ -144,7 +144,7 @@
 #define NUMERIC_STR_403      "%s :No such channel"
 #define NUMERIC_STR_404      "%s :Cannot send to nick/channel"
 #define NUMERIC_STR_405      ":%s 405 %s %s :You have joined too many channels"
-#define NUMERIC_STR_406      ":%s :There was no such nickname"
+#define NUMERIC_STR_406      "%s :There was no such nickname"
 #define NUMERIC_STR_407      ":%s 407 %s %s :Too many recipients."
 #define NUMERIC_STR_409      ":%s 409 %s :No origin specified"
 #define NUMERIC_STR_410      ":%s 410 %s %s :Invalid CAP subcommand"
