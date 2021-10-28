@@ -388,7 +388,7 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 
 	                hdata_showidle.client = source_p;
 	                hdata_showidle.target = target_p;
-	                hdata_showidle.approved = 1;
+	                hdata_showidle.approved = WHOIS_IDLE_SHOW;
 
 			call_hook(doing_trace_show_idle_hook, &hdata_showidle);
 

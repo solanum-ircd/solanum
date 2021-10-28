@@ -1626,7 +1626,7 @@ stats_l_client(struct Client *source_p, struct Client *target_p,
 
 		hdata_showidle.client = source_p;
 		hdata_showidle.target = target_p;
-		hdata_showidle.approved = 1;
+		hdata_showidle.approved = WHOIS_IDLE_SHOW;
 
 		call_hook(doing_stats_show_idle_hook, &hdata_showidle);
 		sendto_one_numeric(source_p, RPL_STATSLINKINFO, "%s %d %d %d %d %d :%ld %ld %s",
