@@ -76,7 +76,7 @@ See `./configure --help` for build options.
 
  * To report bugs in Solanum, visit us at `#solanum` on [Libera Chat](https://libera.chat)
 
- * Please read [doc/index.txt](doc/index.txt) to get an overview of the current documentation.
+ * Please read [doc/readme.txt](doc/readme.txt) to get an overview of the current documentation.
 
  * Read the [NEWS.md](NEWS.md) file for what's new in this release.
 
