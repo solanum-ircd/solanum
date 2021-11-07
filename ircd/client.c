@@ -600,7 +600,7 @@ check_one_kline(struct ConfItem *kline)
 		case HM_IPV6:
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (client_p->localClient->ip.ss_family == AF_INET6 && sockaddr.ss_family == AF_INET &&
 					rb_ipv4_from_ipv6((struct sockaddr_in6 *)&client_p->localClient->ip, &ip4)
 						&& comp_with_mask_sock((struct sockaddr *)&ip4, (struct sockaddr *)&sockaddr, bits))
@@ -615,7 +615,7 @@ check_one_kline(struct ConfItem *kline)
 				matched = 1;
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (match(kline->host, client_p->sockhost))
 				matched = 1;
 			break;
