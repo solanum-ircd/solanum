@@ -20,14 +20,16 @@ mapi_hfn_list_av1 adminonly_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static unsigned int mymode;
+static struct ChannelMode *mymode;
 
 static int
 _modinit(void)
 {
-	mymode = cflag_add('A', chm_staff);
-	if (mymode == 0)
+	mymode = cflag_add('A', chm_simple);
+	if (mymode == NULL)
 		return -1;
+	else
+		mymode->priv = "oper:cmodes";
 
 	return 0;
 }
@@ -47,7 +49,7 @@ h_can_join(void *data_)
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 
-	if((chptr->mode.mode & mymode) && !IsAdmin(source_p)) {
+	if((chptr->mode.mode & mymode->mode_type) && !IsAdmin(source_p)) {
 		sendto_one_numeric(source_p, 519, "%s :Cannot join channel (+A) - you are not an IRC server administrator", chptr->chname);
 		data->approved = ERR_CUSTOM;
 	}

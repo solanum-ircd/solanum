@@ -131,6 +131,7 @@ enum chm_flags
 	CHM_OPS_QUERY  = 1 << 1,
 	CHM_ARG_SET    = 1 << 2,
 	CHM_ARG_DEL    = 1 << 3,
+	CHM_HIDDEN     = 1 << 4,
 	CHM_ARGS       = CHM_ARG_SET | CHM_ARG_DEL,
 	CHM_QUERYABLE  = CHM_ARGS | CHM_CAN_QUERY,
 };
@@ -140,6 +141,7 @@ struct ChannelMode
 	ChannelModeFunc *set_func;
 	long mode_type;
 	enum chm_flags flags;
+	const char *priv;
 };
 
 typedef int (*ExtbanFunc)(const char *data, struct Client *client_p,

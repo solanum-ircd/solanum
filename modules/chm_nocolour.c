@@ -38,7 +38,7 @@ static const char chm_nocolour_desc[] =
 	"Enables channel mode +c that filters colours and formatting from a channel";
 
 static char buf[BUFSIZE];
-static unsigned int mode_nocolour;
+static struct ChannelMode *mode_nocolour;
 
 static void chm_nocolour_process(void *);
 
@@ -55,7 +55,7 @@ chm_nocolour_process(void *data_)
 	if (data->approved)
 		return;
 
-	if (data->chptr->mode.mode & mode_nocolour)
+	if (data->chptr->mode.mode & mode_nocolour->mode_type)
 	{
 		rb_strlcpy(buf, data->text, sizeof buf);
 		strip_colour(buf);
@@ -68,7 +68,7 @@ static int
 _modinit(void)
 {
 	mode_nocolour = cflag_add('c', chm_simple);
-	if (mode_nocolour == 0)
+	if (mode_nocolour == NULL)
 		return -1;
 
 	return 0;

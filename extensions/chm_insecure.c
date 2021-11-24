@@ -21,13 +21,13 @@ mapi_hfn_list_av1 sslonly_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-static unsigned int mymode;
+static struct ChannelMode *mymode;
 
 static int
 _modinit(void)
 {
 	mymode = cflag_add('U', chm_simple);
-	if (mymode == 0)
+	if (mymode == NULL)
 		return -1;
 
 	return 0;
@@ -49,7 +49,7 @@ h_can_join(void *data_)
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 
-	if(!(chptr->mode.mode & mymode) && !IsSecureClient(source_p)) {
+	if(!(chptr->mode.mode & mymode->mode_type) && !IsSecureClient(source_p)) {
 		/* XXX This is equal to ERR_THROTTLE */
 		sendto_one_numeric(source_p, 480, "%s :Cannot join channel (-U) - SSL/TLS required", chptr->chname);
 		data->approved = ERR_CUSTOM;

@@ -37,7 +37,7 @@
 static const char chm_noctcp_desc[] =
 	"Adds channel mode +C, which blocks CTCP messages from a channel (except ACTION)";
 
-static unsigned int mode_noctcp;
+static struct ChannelMode *mode_noctcp;
 
 static void chm_noctcp_process(void *);
 
@@ -54,7 +54,7 @@ chm_noctcp_process(void *data_)
 	if (data->approved || data->msgtype == MESSAGE_TYPE_NOTICE)
 		return;
 
-	if (*data->text == '\001' && rb_strncasecmp(data->text + 1, "ACTION ", 7) && data->chptr->mode.mode & mode_noctcp)
+	if (*data->text == '\001' && rb_strncasecmp(data->text + 1, "ACTION ", 7) && data->chptr->mode.mode & mode_noctcp->mode_type)
 	{
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN), data->chptr->chname);
 		data->approved = ERR_CANNOTSENDTOCHAN;
@@ -68,7 +68,7 @@ static int
 _modinit(void)
 {
 	mode_noctcp = cflag_add('C', chm_simple);
-	if (mode_noctcp == 0)
+	if (mode_noctcp == NULL)
 		return -1;
 
 	return 0;

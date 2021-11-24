@@ -37,8 +37,6 @@ extern int chmode_flags[256];
 extern ChannelModeFunc chm_orphaned;
 extern ChannelModeFunc chm_simple;
 extern ChannelModeFunc chm_ban;
-extern ChannelModeFunc chm_hidden;
-extern ChannelModeFunc chm_staff;
 extern ChannelModeFunc chm_forward;
 extern ChannelModeFunc chm_throttle;
 extern ChannelModeFunc chm_key;
@@ -46,7 +44,7 @@ extern ChannelModeFunc chm_limit;
 extern ChannelModeFunc chm_op;
 extern ChannelModeFunc chm_voice;
 
-extern unsigned int cflag_add(char c, ChannelModeFunc function);
+extern struct ChannelMode * cflag_add(char c, ChannelModeFunc function);
 extern void cflag_orphan(char c);
 extern void construct_cflags_strings(void);
 extern char cflagsbuf[256];

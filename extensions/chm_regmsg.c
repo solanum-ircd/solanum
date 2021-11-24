@@ -38,7 +38,7 @@
 static const char chm_regmsg_desc[] =
 	"Adds channel mode +R, which blocks messagess from unregistered users";
 
-static unsigned int mode_regmsg;
+static struct ChannelMode *mode_regmsg;
 
 static void chm_regmsg_process(void *);
 
@@ -58,7 +58,7 @@ chm_regmsg_process(void *data_)
 		return;
 
 	/* mode is unset, accept */
-	if (!(data->chptr->mode.mode & mode_regmsg))
+	if (!(data->chptr->mode.mode & mode_regmsg->mode_type))
 		return;
 
 	/* user is identified, accept */
@@ -79,7 +79,7 @@ static int
 _modinit(void)
 {
 	mode_regmsg = cflag_add('R', chm_simple);
-	if (mode_regmsg == 0) {
+	if (mode_regmsg == NULL) {
 		ierror("chm_regmsg: unable to allocate cmode slot for +R, unloading module");
 		return -1;
 	}
