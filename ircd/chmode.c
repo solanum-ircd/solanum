@@ -1538,8 +1538,13 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 				*mbuf = '\0';
 
 				if(cur_len > mlen)
+				{
 					sendto_channel_local_priv(IsServer(source_p) ? fakesource_p : source_p,
 							send_flags, priv, chptr, "%s %s", modebuf, parabuf);
+					if (flags == ONLY_OPERS && IsClient(source_p))
+						sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s set hidden modes on %s: %s",
+							get_oper_name(source_p), chptr->chname, &modebuf[mlen]);
+				}
 				else
 					continue;
 
@@ -1575,8 +1580,14 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 		*mbuf = '\0';
 		if(cur_len > mlen)
+		{
 			sendto_channel_local_priv(IsServer(source_p) ? fakesource_p : source_p,
 				send_flags, priv, chptr, "%s %s", modebuf, parabuf);
+			if (flags == ONLY_OPERS && IsClient(source_p))
+                                sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s set hidden modes on %s: %s",
+                                        get_oper_name(source_p), chptr->chname, &modebuf[mlen]);
+		}
+
 	}
 
 	/* only propagate modes originating locally, or if we're hubbing */
