@@ -768,7 +768,7 @@ conf_end_class(struct TopConf *tc)
 
 	if(EmptyString(yy_class->class_name))
 	{
-		conf_report_error("Ignoring connect block -- missing name.");
+		conf_report_error("Ignoring class block -- missing name.");
 		return 0;
 	}
 
@@ -1231,40 +1231,51 @@ conf_begin_connect(struct TopConf *tc)
 static int
 conf_end_connect(struct TopConf *tc)
 {
-	if(EmptyString(yy_server->name))
+	if (EmptyString(yy_server->name))
 	{
 		conf_report_error("Ignoring connect block -- missing name.");
 		return 0;
 	}
 
-	if(ServerInfo.name != NULL && !irccmp(ServerInfo.name, yy_server->name))
+	if (ServerInfo.name != NULL && !irccmp(ServerInfo.name, yy_server->name))
 	{
-		conf_report_error("Ignoring connect block for %s -- name is equal to my own name.",
-				yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- name is "
+		                  "equal to my own name.", yy_server->name);
 		return 0;
 	}
 
-	if((EmptyString(yy_server->passwd) || EmptyString(yy_server->spasswd)) && EmptyString(yy_server->certfp))
+	if ((EmptyString(yy_server->passwd) || EmptyString(yy_server->spasswd))
+	    && EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- no fingerprint or password credentials provided.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- no "
+		                  "fingerprint or password credentials "
+		                  "provided.", yy_server->name);
 		return 0;
 	}
 
-	if((yy_server->flags & SERVER_SSL) && EmptyString(yy_server->certfp))
+	if ((yy_server->flags & SERVER_SSL) && EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- no fingerprint provided for SSL connection.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- no "
+		                  "fingerprint provided for SSL "
+		                  "connection.", yy_server->name);
 		return 0;
 	}
 
-	if(EmptyString(yy_server->connect_host)
-			&& GET_SS_FAMILY(&yy_server->connect4) != AF_INET
-			&& GET_SS_FAMILY(&yy_server->connect6) != AF_INET6
-		)
+	if (! (yy_server->flags & SERVER_SSL) && ! EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- missing host.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- "
+		                  "fingerprint authentication has "
+		                  "been requested; but the ssl flag "
+		                  "is not set.", yy_server->name);
+		return 0;
+	}
+
+	if (EmptyString(yy_server->connect_host)
+	    && GET_SS_FAMILY(&yy_server->connect4) != AF_INET
+	    && GET_SS_FAMILY(&yy_server->connect6) != AF_INET6)
+	{
+		conf_report_error("Ignoring connect block for %s -- missing "
+		                  "host.", yy_server->name);
 		return 0;
 	}
 
@@ -1336,7 +1347,20 @@ conf_set_connect_send_password(void *data)
 		rb_free(yy_server->spasswd);
 	}
 
-	yy_server->spasswd = rb_strdup(data);
+	if (EmptyString((const char *) data))
+	{
+		yy_server->spasswd = NULL;
+		conf_report_warning("Invalid send_password for connect "
+		                    "block; must not be empty if provided");
+	}
+	else if (strpbrk(data, " :"))
+	{
+		yy_server->spasswd = NULL;
+		conf_report_error("Invalid send_password for connect "
+		                  "block; cannot contain spaces or colons");
+	}
+	else
+		yy_server->spasswd = rb_strdup(data);
 }
 
 static void
@@ -1347,7 +1371,21 @@ conf_set_connect_accept_password(void *data)
 		memset(yy_server->passwd, 0, strlen(yy_server->passwd));
 		rb_free(yy_server->passwd);
 	}
-	yy_server->passwd = rb_strdup(data);
+
+	if (EmptyString((const char *) data))
+	{
+		yy_server->passwd = NULL;
+		conf_report_warning("Invalid accept_password for connect "
+		                    "block; must not be empty if provided");
+	}
+	else if (strpbrk(data, " :"))
+	{
+		yy_server->passwd = NULL;
+		conf_report_error("Invalid accept_password for connect "
+		                  "block; cannot contain spaces or colons");
+	}
+	else
+		yy_server->passwd = rb_strdup(data);
 }
 
 static void
@@ -2707,6 +2745,15 @@ static struct ConfEntry conf_general_table[] =
 	{ "hide_opers",		CF_YESNO, NULL, 0, &ConfigFileEntry.hide_opers		},
 	{ "certfp_method",	CF_STRING, conf_set_general_certfp_method, 0, NULL },
 	{ "drain_reason",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.drain_reason	},
+	{ "sasl_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.sasl_only_client_message	},
+	{ "identd_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.identd_only_client_message	},
+	{ "sctp_forbidden_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.sctp_forbidden_client_message	},
+	{ "ssltls_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.ssltls_only_client_message	},
+	{ "not_authorised_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.not_authorised_client_message	},
+	{ "illegal_hostname_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.not_authorised_client_message	},
+	{ "server_full_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.server_full_client_message	},
+	{ "illegal_name_long_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_long_client_message	},
+	{ "illegal_name_short_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_short_client_message	},
 	{ "tls_ciphers_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.tls_ciphers_oper_only	},
 	{ "oper_secure_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.oper_secure_only	},
 	{ "\0", 		0, 	  NULL, 0, NULL }

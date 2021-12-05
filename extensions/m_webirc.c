@@ -67,7 +67,7 @@ mapi_clist_av1 webirc_clist[] = { &webirc_msgtab, NULL };
 static void new_local_user(void *data);
 mapi_hfn_list_av1 webirc_hfnlist[] = {
 	/* unintuitive but correct--we want to be called first */
-	{ "new_local_user", (hookfn) new_local_user, HOOK_LOWEST },
+	{ "new_local_user", new_local_user, HOOK_LOWEST },
 	{ NULL, NULL }
 };
 
@@ -190,6 +190,9 @@ new_local_user(void *data)
 {
 	struct Client *source_p = data;
 	struct ConfItem *aconf = source_p->localClient->att_conf;
+
+	if (aconf == NULL)
+		return;
 
 	if (!irccmp(aconf->info.name, "webirc."))
 		exit_client(source_p, source_p, &me, "Cannot log in using a WEBIRC block");

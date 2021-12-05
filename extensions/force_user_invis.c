@@ -18,18 +18,19 @@
 static const char noi_desc[] =
 	"Do not allow users to remove user mode +i unless they are operators";
 
-static void h_noi_umode_changed(hook_data_umode_changed *);
+static void h_noi_umode_changed(void *);
 
 mapi_hfn_list_av1 noi_hfnlist[] = {
-	{ "umode_changed", (hookfn) h_noi_umode_changed },
+	{ "umode_changed", h_noi_umode_changed },
 	{ NULL, NULL }
 };
 
 DECLARE_MODULE_AV2(force_user_invis, NULL, NULL, NULL, NULL, noi_hfnlist, NULL, NULL, noi_desc);
 
 static void
-h_noi_umode_changed(hook_data_umode_changed *hdata)
+h_noi_umode_changed(void *data)
 {
+	hook_data_umode_changed *hdata = data;
 	struct Client *source_p = hdata->client;
 
 	if (MyClient(source_p) && !IsOperGeneral(source_p) && !IsInvisible(source_p)) {

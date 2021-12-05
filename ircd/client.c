@@ -551,7 +551,7 @@ check_klines(void)
 			}
 
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					     "KLINE active for %s (%s@%s)",
+					     "Disconnecting K-Lined user %s (%s@%s)",
 					     get_client_name(client_p, HIDE_IP), aconf->user, aconf->host);
 
 			notify_banned_client(client_p, aconf, K_LINED);
@@ -600,7 +600,7 @@ check_one_kline(struct ConfItem *kline)
 		case HM_IPV6:
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (client_p->localClient->ip.ss_family == AF_INET6 && sockaddr.ss_family == AF_INET &&
 					rb_ipv4_from_ipv6((struct sockaddr_in6 *)&client_p->localClient->ip, &ip4)
 						&& comp_with_mask_sock((struct sockaddr *)&ip4, (struct sockaddr *)&sockaddr, bits))
@@ -615,7 +615,7 @@ check_one_kline(struct ConfItem *kline)
 				matched = 1;
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (match(kline->host, client_p->sockhost))
 				matched = 1;
 			break;
@@ -634,7 +634,7 @@ check_one_kline(struct ConfItem *kline)
 		}
 
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					 "KLINE active for %s (%s@%s)",
+					 "Disconnecting K-Lined user %s (%s@%s)",
 					 get_client_name(client_p, HIDE_IP), kline->user, kline->host);
 
 		notify_banned_client(client_p, kline, K_LINED);
@@ -669,7 +669,7 @@ check_dlines(void)
 				continue;
 
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					     "DLINE active for %s (%s)",
+					     "Disconnecting D-Lined user %s (%s)",
 					     get_client_name(client_p, HIDE_IP), aconf->host);
 
 			notify_banned_client(client_p, aconf, D_LINED);
@@ -725,7 +725,7 @@ check_xlines(void)
 			}
 
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-						"XLINE active for %s (%s)",
+						"Disconnecting X-Lined user %s (%s)",
 						get_client_name(client_p, HIDE_IP), aconf->host);
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");

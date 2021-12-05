@@ -22,7 +22,7 @@ static const char restrict_desc[] =
 static void hack_channel_access(void *data);
 
 mapi_hfn_list_av1 restrict_unauthenticated_hfnlist[] = {
-	{ "get_channel_access", (hookfn) hack_channel_access },
+	{ "get_channel_access", hack_channel_access },
 	{ NULL, NULL }
 };
 

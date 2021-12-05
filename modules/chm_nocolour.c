@@ -40,16 +40,17 @@ static const char chm_nocolour_desc[] =
 static char buf[BUFSIZE];
 static unsigned int mode_nocolour;
 
-static void chm_nocolour_process(hook_data_privmsg_channel *);
+static void chm_nocolour_process(void *);
 
 mapi_hfn_list_av1 chm_nocolour_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_nocolour_process },
+	{ "privmsg_channel", chm_nocolour_process },
 	{ NULL, NULL }
 };
 
 static void
-chm_nocolour_process(hook_data_privmsg_channel *data)
+chm_nocolour_process(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	/* don't waste CPU if message is already blocked */
 	if (data->approved)
 		return;
