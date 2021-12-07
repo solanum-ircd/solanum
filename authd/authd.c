@@ -1,5 +1,5 @@
 /* authd/authd.c - main code for authd
- * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>
+ * Copyright (c) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -151,18 +151,15 @@ error_cb(rb_helper *helper)
 	exit(EX_ERROR);
 }
 
-#ifndef _WIN32
 static void
 dummy_handler(int sig)
 {
 	return;
 }
-#endif
 
 static void
 setup_signals(void)
 {
-#ifndef _WIN32
 	struct sigaction act;
 
 	act.sa_flags = 0;
@@ -185,7 +182,6 @@ setup_signals(void)
 
 	act.sa_handler = dummy_handler;
 	sigaction(SIGALRM, &act, 0);
-#endif
 }
 
 int

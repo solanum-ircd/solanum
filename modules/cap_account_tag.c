@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * cap_account_tag.c: implement the account-tag IRCv3.2 capability
  *
- * Copyright (c) 2016 William Pitcock <nenolod@dereferenced.org>
+ * Copyright (c) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -37,11 +37,11 @@
 static const char cap_account_tag_desc[] =
 	"Provides the account-tag client capability";
 
-static void cap_account_tag_process(hook_data *);
+static void cap_account_tag_process(void *);
 unsigned int CLICAP_ACCOUNT_TAG = 0;
 
 mapi_hfn_list_av1 cap_account_tag_hfnlist[] = {
-	{ "outbound_msgbuf", (hookfn) cap_account_tag_process },
+	{ "outbound_msgbuf", cap_account_tag_process },
 	{ NULL, NULL }
 };
 mapi_cap_list_av2 cap_account_tag_cap_list[] = {
@@ -49,8 +49,9 @@ mapi_cap_list_av2 cap_account_tag_cap_list[] = {
 	{ 0, NULL, NULL, NULL },
 };
 static void
-cap_account_tag_process(hook_data *data)
+cap_account_tag_process(void *data_)
 {
+	hook_data *data = data_;
 	struct MsgBuf *msgbuf = data->arg1;
 
 	if (data->client != NULL && IsPerson(data->client) && *data->client->user->suser)

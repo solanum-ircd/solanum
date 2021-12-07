@@ -14,7 +14,7 @@ static const char override_kick_immunity_desc[] =
 static void can_kick(void *data);
 
 mapi_hfn_list_av1 override_kick_immunity_hfnlist[] = {
-	{ "can_kick", (hookfn) can_kick, HOOK_HIGHEST },
+	{ "can_kick", can_kick, HOOK_HIGHEST },
 	{ NULL, NULL }
 };
 

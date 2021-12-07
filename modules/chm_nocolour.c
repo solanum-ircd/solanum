@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * chm_nocolour: strip colours (+c mode).
  *
- * Copyright (c) 2012 William Pitcock <nenolod@dereferenced.org>
+ * Copyright (c) 2012 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -40,16 +40,17 @@ static const char chm_nocolour_desc[] =
 static char buf[BUFSIZE];
 static unsigned int mode_nocolour;
 
-static void chm_nocolour_process(hook_data_privmsg_channel *);
+static void chm_nocolour_process(void *);
 
 mapi_hfn_list_av1 chm_nocolour_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_nocolour_process },
+	{ "privmsg_channel", chm_nocolour_process },
 	{ NULL, NULL }
 };
 
 static void
-chm_nocolour_process(hook_data_privmsg_channel *data)
+chm_nocolour_process(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	/* don't waste CPU if message is already blocked */
 	if (data->approved)
 		return;

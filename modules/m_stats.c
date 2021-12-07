@@ -127,7 +127,6 @@ static void stats_class(struct Client *);
 static void stats_memory(struct Client *);
 static void stats_servlinks(struct Client *);
 static void stats_ltrace(struct Client *, int, const char **);
-static void stats_ziplinks(struct Client *);
 static void stats_comm(struct Client *);
 static void stats_capability(struct Client *);
 
@@ -187,7 +186,6 @@ static struct stats_cmd stats_cmd_table[256] = {
 	['y'] = HANDLER_NORM(stats_class,	false,	NULL),
 	['Y'] = HANDLER_NORM(stats_class,	false,	NULL),
 	['z'] = HANDLER_NORM(stats_memory,	false,	"oper:general"),
-	['Z'] = HANDLER_NORM(stats_ziplinks,	false,	"oper:general"),
 	['?'] = HANDLER_NORM(stats_servlinks,	false,	NULL),
 };
 
@@ -503,15 +501,13 @@ static void
 stats_prop_klines(struct Client *source_p)
 {
 	struct ConfItem *aconf;
-	rb_dlink_node *ptr;
 	char *user, *host, *pass, *oper_reason;
+	rb_dictionary_iter state;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
 	{
-		aconf = ptr->data;
-
 		/* Skip non-klines and deactivated klines. */
-		if(aconf->status != CONF_KILL)
+		if (aconf->status != CONF_KILL)
 			continue;
 
 		get_printable_kline(source_p, aconf, &host, &pass,
@@ -928,7 +924,6 @@ stats_ssld(struct Client *source_p)
 static void
 stats_usage (struct Client *source_p)
 {
-#ifndef _WIN32
 	struct rusage rus;
 	time_t secs;
 	time_t rup;
@@ -980,7 +975,6 @@ stats_usage (struct Client *source_p)
 			   "R :Signals %d Context Vol. %d Invol %d",
 			   (int) rus.ru_nsignals, (int) rus.ru_nvcsw,
 			   (int) rus.ru_nivcsw);
-#endif
 }
 
 static void
@@ -1396,38 +1390,6 @@ stats_memory (struct Client *source_p)
 			   "z :Remote client Memory in use: %ld(%ld)",
 			   (long)remote_client_count,
 			   (long)remote_client_memory_used);
-}
-
-static void
-stats_ziplinks (struct Client *source_p)
-{
-	rb_dlink_node *ptr;
-	struct Client *target_p;
-	struct ZipStats *zipstats;
-	int sent_data = 0;
-	char buf[128], buf1[128];
-	RB_DLINK_FOREACH (ptr, serv_list.head)
-	{
-		target_p = ptr->data;
-		if(IsCapable (target_p, CAP_ZIP))
-		{
-			zipstats = target_p->localClient->zipstats;
-			sprintf(buf, "%.2f%%", zipstats->out_ratio);
-			sprintf(buf1, "%.2f%%", zipstats->in_ratio);
-			sendto_one_numeric(source_p, RPL_STATSDEBUG,
-					    "Z :ZipLinks stats for %s send[%s compression "
-					    "(%llu kB data/%llu kB wire)] recv[%s compression "
-					    "(%llu kB data/%llu kB wire)]",
-					    target_p->name,
-					    buf, zipstats->out >> 10,
-					    zipstats->out_wire >> 10, buf1,
-					    zipstats->in >> 10, zipstats->in_wire >> 10);
-			sent_data++;
-		}
-	}
-
-	sendto_one_numeric(source_p, RPL_STATSDEBUG,
-			   "Z :%u ziplink(s)", sent_data);
 }
 
 static void

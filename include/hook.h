@@ -45,6 +45,7 @@ extern int h_conf_read_start;
 extern int h_conf_read_end;
 extern int h_outbound_msgbuf;
 extern int h_rehash;
+extern int h_priv_change;
 extern int h_cap_change;
 
 void init_hook(void);
@@ -179,6 +180,16 @@ typedef struct
 	const char *text;
 	int approved;
 } hook_data_privmsg_user;
+
+typedef struct
+{
+	struct Client *client;
+	struct PrivilegeSet *old;
+	struct PrivilegeSet *new;
+	const struct PrivilegeSet *added;
+	const struct PrivilegeSet *removed;
+	const struct PrivilegeSet *unchanged;
+} hook_data_priv_change;
 
 typedef struct
 {

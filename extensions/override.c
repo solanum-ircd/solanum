@@ -30,15 +30,17 @@ static void hack_channel_access(void *data);
 static void hack_can_join(void *data);
 static void hack_can_kick(void *data);
 static void hack_can_send(void *data);
+static void hack_can_invite(void *data);
 static void handle_client_exit(void *data);
 
 mapi_hfn_list_av1 override_hfnlist[] = {
-	{ "umode_changed", (hookfn) check_umode_change },
-	{ "get_channel_access", (hookfn) hack_channel_access, HOOK_HIGHEST },
-	{ "can_join", (hookfn) hack_can_join, HOOK_HIGHEST },
-	{ "can_kick", (hookfn) hack_can_kick, HOOK_HIGHEST },
-	{ "can_send", (hookfn) hack_can_send, HOOK_HIGHEST },
-	{ "client_exit", (hookfn) handle_client_exit },
+	{ "umode_changed", check_umode_change },
+	{ "get_channel_access", hack_channel_access, HOOK_HIGHEST },
+	{ "can_join", hack_can_join, HOOK_HIGHEST },
+	{ "can_kick", hack_can_kick, HOOK_HIGHEST },
+	{ "can_send", hack_can_send, HOOK_HIGHEST },
+	{ "can_invite", hack_can_invite, HOOK_HIGHEST },
+	{ "client_exit", handle_client_exit },
 	{ NULL, NULL }
 };
 
@@ -55,25 +57,27 @@ struct OverrideSession {
 rb_dlink_list overriding_opers = { NULL, NULL, 0 };
 
 static void
-update_session_deadline(struct Client *source_p, struct OverrideSession *session_p)
+update_session_deadline(struct Client *source_p)
 {
-	if (session_p == NULL)
+	struct OverrideSession *session_p = NULL;
+	rb_dlink_node *n;
+
+	RB_DLINK_FOREACH(n, overriding_opers.head)
 	{
-		rb_dlink_node *n;
+		struct OverrideSession *s = n->data;
 
-		RB_DLINK_FOREACH(n, overriding_opers.head)
+		if (s->client == source_p)
 		{
-			struct OverrideSession *s = n->data;
-
-			if (s->client == source_p)
-			{
-				session_p = s;
-				break;
-			}
+			session_p = s;
+			break;
 		}
 	}
 
-	if (session_p == NULL)
+	if (session_p != NULL)
+	{
+		rb_dlinkDelete(&session_p->node, &overriding_opers);
+	}
+	else
 	{
 		session_p = rb_malloc(sizeof(struct OverrideSession));
 		session_p->client = source_p;
@@ -81,8 +85,7 @@ update_session_deadline(struct Client *source_p, struct OverrideSession *session
 
 	session_p->deadline = rb_current_time() + 1800;
 
-	rb_dlinkDelete(&session_p->node, &overriding_opers);
-	rb_dlinkAdd(session_p, &session_p->node, &overriding_opers);
+	rb_dlinkAddTail(session_p, &session_p->node, &overriding_opers);
 }
 
 static void
@@ -94,9 +97,11 @@ expire_override_deadlines(void *unused)
 	{
 		struct OverrideSession *session_p = n->data;
 
-		if (session_p->deadline > rb_current_time())
+		if (session_p->deadline >= rb_current_time())
+		{
 			break;
-		else if (session_p->deadline < rb_current_time())
+		}
+		else
 		{
 			const char *parv[4] = {session_p->client->name, session_p->client->name, "-p", NULL};
 			user_mode(session_p->client, session_p->client, 3, parv);
@@ -130,7 +135,7 @@ check_umode_change(void *vdata)
 
 		if (changed)
 		{
-			update_session_deadline(source_p, NULL);
+			update_session_deadline(source_p);
 		}
 	}
 	else if (changed && !(source_p->umodes & user_modes['p']))
@@ -163,7 +168,7 @@ hack_channel_access(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		data->approved = CHFL_OVERRIDE;
 
 		/* we only want to report modehacks, which are always non-NULL */
@@ -183,7 +188,7 @@ hack_can_join(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		data->approved = 0;
 
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (banwalking)",
@@ -203,7 +208,7 @@ hack_can_kick(void *vdata)
 
 	if (data->client->umodes & user_modes['p'])
 	{
-		update_session_deadline(data->client, NULL);
+		update_session_deadline(data->client);
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (KICK %s)",
 				       get_oper_name(data->client), data->chptr->chname, data->target->name);
 	}
@@ -226,10 +231,27 @@ hack_can_send(void *vdata)
 
 		if (MyClient(data->client))
 		{
-			update_session_deadline(data->client, NULL);
+			update_session_deadline(data->client);
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (forcing message)",
 					       get_oper_name(data->client), data->chptr->chname);
 		}
+	}
+}
+
+static void
+hack_can_invite(void *vdata)
+{
+	hook_data_channel_approval *data = vdata;
+
+	if (data->approved == 0)
+		return;
+
+	if (data->client->umodes & user_modes['p'])
+	{
+		data->approved = 0;
+		update_session_deadline(data->client);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "%s is using oper-override on %s (invite: %s)",
+				       get_oper_name(data->client), data->chptr->chname, data->target->name);
 	}
 }
 
@@ -267,7 +289,7 @@ _modinit(void)
 	{
 		struct Client *client_p = ptr->data;
 		if (IsPerson(client_p) && (client_p->umodes & user_modes['p']))
-			update_session_deadline(client_p, NULL);
+			update_session_deadline(client_p);
 	}
 
 	expire_override_deadlines_ev = rb_event_add("expire_override_deadlines", expire_override_deadlines, NULL, 60);

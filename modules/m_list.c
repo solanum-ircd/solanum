@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * m_list_safelist.c: Version of /list that uses the safelist code.
  *
- * Copyright (c) 2006 William Pitcock <nenolod@nenolod.net>
+ * Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -66,7 +66,7 @@ static void mo_list(struct MsgBuf *, struct Client *, struct Client *, int, cons
 static void list_one_channel(struct Client *source_p, struct Channel *chptr, int visible);
 
 static void safelist_one_channel(struct Client *source_p, struct Channel *chptr, struct ListClient *params);
-static void safelist_check_cliexit(hook_data_client_exit * hdata);
+static void safelist_check_cliexit(void *);
 static void safelist_client_instantiate(struct Client *, struct ListClient *);
 static void safelist_client_release(struct Client *);
 static void safelist_iterate_client(struct Client *source_p);
@@ -81,7 +81,7 @@ struct Message list_msgtab = {
 mapi_clist_av1 list_clist[] = { &list_msgtab, NULL };
 
 mapi_hfn_list_av1 list_hfnlist[] = {
-	{"client_exit", (hookfn) safelist_check_cliexit},
+	{"client_exit", safelist_check_cliexit},
 	{NULL, NULL}
 };
 
@@ -100,7 +100,7 @@ static int _modinit(void)
 	 * T = topic search (T> T<)
 	 */
 	add_isupport("SAFELIST", isupport_string, "");
-	add_isupport("ELIST", isupport_string, "CTU");
+	add_isupport("ELIST", isupport_string, "CMNTU");
 
 	return 0;
 }
@@ -113,8 +113,9 @@ static void _moddeinit(void)
 	delete_isupport("ELIST");
 }
 
-static void safelist_check_cliexit(hook_data_client_exit * hdata)
+static void safelist_check_cliexit(void *data)
 {
+	hook_data_client_exit * hdata = data;
 	/* Cancel the safelist request if we are disconnecting
 	 * from the server. That way it doesn't core. :P --nenolod
 	 */
@@ -190,7 +191,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	/* Single channel. */
-	if (args && IsChannelName(args))
+	if (args && IsChannelName(args) && !strpbrk(args, "*?, "))
 	{
 		safelist_channel_named(source_p, args, operspy);
 		return;
@@ -204,6 +205,8 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	params->operspy = operspy;
 	params->created_min = params->topic_min =
 		params->created_max = params->topic_max = 0;
+	params->mask = NULL;
+	params->nomask = NULL;
 
 	if (args && !EmptyString(args))
 	{
@@ -218,22 +221,23 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			if (*args == '<')
 			{
 				args++;
-				if (IsDigit(*args))
-				{
-					params->users_max = atoi(args);
-					if (params->users_max == 0)
-						params->users_max = INT_MAX;
-					else
-						params->users_max--;
-				}
+				if (!IsDigit(*args)) goto fail;
+
+				params->users_max = atoi(args);
+				if (params->users_max == 0)
+					params->users_max = INT_MAX;
+				else
+					params->users_max--;
 			}
 			else if (*args == '>')
 			{
 				args++;
 				if (IsDigit(*args))
 					params->users_min = atoi(args) + 1;
-				else
+				else if (args[0] == '-' && IsDigit(args[1]))
 					params->users_min = 0;
+				else
+					goto fail;
 			}
 			else if (*args == 'C' || *args == 'c')
 			{
@@ -242,19 +246,19 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				{
 					/* Creation time earlier than last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->created_max = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->created_max = rb_current_time() - (60 * atoi(args));
 				}
 				else if (*args == '<')
 				{
 					/* Creation time within last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->created_min = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->created_min = rb_current_time() - (60 * atoi(args));
+				}
+				else
+				{
+					goto fail;
 				}
 			}
 			else if (*args == 'T' || *args == 't')
@@ -264,20 +268,35 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				{
 					/* Topic change time earlier than last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->topic_max = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->topic_max = rb_current_time() - (60 * atoi(args));
 				}
 				else if (*args == '<')
 				{
 					/* Topic change time within last x minutes. */
 					args++;
-					if (IsDigit(*args))
-					{
-						params->topic_min = rb_current_time() - (60 * atoi(args));
-					}
+					if (!IsDigit(*args)) goto fail;
+					params->topic_min = rb_current_time() - (60 * atoi(args));
 				}
+				else
+				{
+					goto fail;
+				}
+			}
+			else if (*args == '!')
+			{
+				args++;
+				rb_free(params->nomask);
+				params->nomask = rb_strdup(args);
+			}
+			else if (*args == '?' || *args == '*' || IsChanPrefix(*args))
+			{
+				rb_free(params->mask);
+				params->mask = rb_strdup(args);
+			}
+			else
+			{
+				goto fail;
 			}
 
 			if (EmptyString(p))
@@ -288,6 +307,13 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	safelist_client_instantiate(source_p, params);
+	return;
+
+fail:
+	rb_free(params);
+	sendto_one(source_p, form_str(RPL_LISTSTART), me.name, source_p->name);
+	sendto_one_notice(source_p, ":Invalid parameters for /LIST");
+	sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
 }
 
 /*
@@ -343,6 +369,8 @@ static bool safelist_sendq_exceeded(struct Client *client_p)
  */
 static void safelist_client_instantiate(struct Client *client_p, struct ListClient *params)
 {
+	struct Channel *chptr;
+
 	s_assert(MyClient(client_p));
 	s_assert(params != NULL);
 
@@ -354,6 +382,12 @@ static void safelist_client_instantiate(struct Client *client_p, struct ListClie
 	rb_dlinkAddAlloc(client_p, &safelisting_clients);
 
 	/* give the user some initial data to work with */
+	if (params->mask && (chptr = find_channel(params->mask)))
+	{
+		bool visible = !SecretChannel(chptr) || IsMember(client_p, chptr);
+		if (visible || params->operspy)
+			list_one_channel(client_p, chptr, visible);
+	}
 	safelist_iterate_client(client_p);
 }
 
@@ -375,6 +409,8 @@ static void safelist_client_release(struct Client *client_p)
 	rb_dlinkFindDestroy(client_p, &safelisting_clients);
 
 	rb_free(client_p->localClient->safelist_data->chname);
+	rb_free(client_p->localClient->safelist_data->mask);
+	rb_free(client_p->localClient->safelist_data->nomask);
 	rb_free(client_p->localClient->safelist_data);
 
 	client_p->localClient->safelist_data = NULL;
@@ -456,6 +492,12 @@ static void safelist_one_channel(struct Client *source_p, struct Channel *chptr,
 		return;
 
 	if (params->created_max && chptr->channelts > params->created_max)
+		return;
+
+	if (params->mask && (!irccmp(params->mask, chptr->chname) || !match(params->mask, chptr->chname)))
+		return;
+
+	if (params->nomask && match(params->nomask, chptr->chname))
 		return;
 
 	list_one_channel(source_p, chptr, visible);

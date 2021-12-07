@@ -1,5 +1,5 @@
 Server capabilities
-William Pitcock <nenolod -at- nenolod.net>
+Ariadne Conill <ariadne -at- dereferenced.org>
 -------------------
 
 Not all TSora IRCd's support these.

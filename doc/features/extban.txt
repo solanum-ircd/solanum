@@ -42,6 +42,10 @@ exists and is not +s or +p. (The ops of the channel the ban is on cannot
 necessarily see whether the user is in the target channel, so it should not
 influence whether they can join either.)
 
+extb_canjoin.so
+	$j:<channel>
+matches users who are or are not banned from a specified channel
+
 extb_oper.so
 	$o
 matches opers (most useful with +I)
@@ -55,6 +59,14 @@ extb_server.so
 	$s:<mask>
 matches users connected to a server matching the mask (* and ? wildcards);
 this can only be used with +b and +q
+
+extb_extgecos.so
+	$x:<mask>
+bans all users with matching nick!user@host#gecos
+
+extb_ssl.so
+	$z
+matches all SSL users
 
 Comparisons:
 

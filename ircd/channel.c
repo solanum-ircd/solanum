@@ -861,7 +861,7 @@ can_send(struct Channel *chptr, struct Client *source_p, struct membership *mspt
  * side effects	- check for flood attack on target chptr
  */
 bool
-flood_attack_channel(int p_or_n, struct Client *source_p, struct Channel *chptr, char *chname)
+flood_attack_channel(enum message_type msgtype, struct Client *source_p, struct Channel *chptr, char *chname)
 {
 	int delta;
 
@@ -894,7 +894,7 @@ flood_attack_channel(int p_or_n, struct Client *source_p, struct Channel *chptr,
 				/* Add a bit of penalty */
 				chptr->received_number_of_privmsgs += 2;
 			}
-			if(MyClient(source_p) && (p_or_n != 1))
+			if(MyClient(source_p) && (msgtype != MESSAGE_TYPE_NOTICE))
 				sendto_one(source_p,
 					   ":%s NOTICE %s :*** Message to %s throttled due to flooding",
 					   me.name, source_p->name, chptr->chname);
@@ -1141,7 +1141,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p)
 
 	for (i = 0; i < 256; i++)
 	{
-		if(chmode_table[i].set_func == chm_hidden && (!HasPrivilege(client_p, "auspex:cmodes") || !IsClient(client_p)))
+		if(chmode_table[i].set_func == chm_hidden && !HasPrivilege(client_p, "auspex:cmodes") && IsClient(client_p))
 			continue;
 		if(chptr->mode.mode & chmode_flags[i])
 			*mbuf++ = i;

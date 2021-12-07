@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * snomask.c: Management for user server-notice masks.
  *
- * Copyright (c) 2006 William Pitcock <nenolod@nenolod.net>
+ * Copyright (c) 2006 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,7 +43,7 @@ int snomask_modes[256] = {
         /* 0x30 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x3F */
         0,                      /* @ */
         0,                      /* A */
-        0,                      /* B */
+        SNO_BANNED,             /* B */
         SNO_CCONNEXT,           /* C */
         0,		        /* D */
         0,                      /* E */

@@ -351,7 +351,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	char tmpstr2[BUFSIZE];
 	char ipaddr[HOSTIPLEN];
 	char myusername[USERLEN+1];
-	int status;
+	int status, umodes;
 
 	s_assert(NULL != source_p);
 	s_assert(MyConnect(source_p));
@@ -428,7 +428,12 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(!valid_hostname(source_p->host))
 	{
-		sendto_one_notice(source_p, ":*** Notice -- You have an illegal character in your hostname");
+		const char *illegal_hostname_client_message = ConfigFileEntry.illegal_hostname_client_message;
+
+		if (illegal_hostname_client_message == NULL)
+			illegal_hostname_client_message = "You have an illegal character in your hostname.";
+
+		sendto_one_notice(source_p, ":*** Notice -- %s", illegal_hostname_client_message);
 
 		rb_strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
  	}
@@ -437,23 +442,40 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(aconf == NULL)
 	{
-		exit_client(client_p, source_p, &me, "*** Not Authorised");
+		const char *not_authorised_client_message = ConfigFileEntry.not_authorised_client_message;
+
+		if (not_authorised_client_message == NULL)
+			not_authorised_client_message = "You are not authorised to access this server.";
+
+		exit_client(client_p, source_p, &me, not_authorised_client_message);
 		return (CLIENT_EXITED);
 	}
 
 	if(IsConfSSLNeeded(aconf) && !IsSecure(source_p))
 	{
+		const char *ssltls_only_client_message = ConfigFileEntry.ssltls_only_client_message;
+
+		if (ssltls_only_client_message == NULL)
+			ssltls_only_client_message = "You need to use SSL/TLS to use this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You need to use SSL/TLS to use this server");
-		exit_client(client_p, source_p, &me, "Use SSL/TLS");
+		sendto_one_notice(source_p, ":*** Notice -- %s", ssltls_only_client_message);
+
+		exit_client(client_p, source_p, &me, ssltls_only_client_message);
 		return (CLIENT_EXITED);
 	}
 
 	if(IsSCTP(source_p) && !IsConfAllowSCTP(aconf))
 	{
+		const char *sctp_forbidden_client_message = ConfigFileEntry.sctp_forbidden_client_message;
+
+		if (sctp_forbidden_client_message == NULL)
+			sctp_forbidden_client_message = "You are not allowed to use SCTP on this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You are not allowed to use SCTP on this server");
-		exit_client(client_p, source_p, &me, "SCTP not allowed");
+		sendto_one_notice(source_p, ":*** Notice -- %s", sctp_forbidden_client_message);
+
+		exit_client(client_p, source_p, &me, sctp_forbidden_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -464,9 +486,16 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 		if(IsNeedIdentd(aconf))
 		{
+
+			const char *identd_only_client_message = ConfigFileEntry.identd_only_client_message;
+
+			if (identd_only_client_message == NULL)
+				identd_only_client_message = "You need to install identd to use this server.";
+
 			ServerStats.is_ref++;
-			sendto_one_notice(source_p, ":*** Notice -- You need to install identd to use this server");
-			exit_client(client_p, source_p, &me, "Install identd");
+			sendto_one_notice(source_p, ":*** Notice -- %s", identd_only_client_message);
+
+			exit_client(client_p, source_p, &me, identd_only_client_message);
 			return (CLIENT_EXITED);
 		}
 
@@ -491,9 +520,16 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(IsNeedSasl(aconf) && !*source_p->user->suser)
 	{
+
+		const char *sasl_only_client_message = ConfigFileEntry.sasl_only_client_message;
+
+		if (sasl_only_client_message == NULL)
+			sasl_only_client_message = "You need to identify via SASL to use this server.";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Notice -- You need to identify via SASL to use this server");
-		exit_client(client_p, source_p, &me, "SASL access only");
+		sendto_one_notice(source_p, ":*** Notice -- %s", sasl_only_client_message);
+
+		exit_client(client_p, source_p, &me, sasl_only_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -545,8 +581,13 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				     "Too many clients, rejecting %s[%s].", source_p->name, source_p->host);
 
+		const char *server_full_client_message = ConfigFileEntry.server_full_client_message;
+
+		if (server_full_client_message == NULL)
+			server_full_client_message = "Sorry, server is full - try later";
+
 		ServerStats.is_ref++;
-		exit_client(client_p, source_p, &me, "Sorry, server is full - try later");
+		exit_client(client_p, source_p, &me, server_full_client_message);
 		return (CLIENT_EXITED);
 	}
 
@@ -555,6 +596,10 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	   (xconf = find_xline(source_p->info, 1)) != NULL)
 	{
 		ServerStats.is_ref++;
+		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
+			"Rejecting X-Lined user %s [%s] (%s)", get_client_name(source_p, HIDE_IP),
+			show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255", xconf->host);
+
 		add_reject(source_p, xconf->host, NULL, NULL, NULL);
 		exit_client(client_p, source_p, &me, "Bad user info");
 		return CLIENT_EXITED;
@@ -571,10 +616,19 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
 				     "Invalid username: %s (%s@%s)",
 				     source_p->name, source_p->username, source_p->host);
+
+		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
+		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
+
+		if (illegal_name_long_client_message == NULL)
+			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
+											   "only alphanumeric characters.";
+		if (illegal_name_short_client_message == NULL)
+			illegal_name_short_client_message = "Invalid username";
+
 		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** Your username is invalid. Please make sure that your username contains "
-					    "only alphanumeric characters.");
-		sprintf(tmpstr2, "Invalid username [%s]", source_p->username);
+		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
+		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
 		exit_client(client_p, source_p, &me, tmpstr2);
 		return (CLIENT_EXITED);
 	}
@@ -594,7 +648,11 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 			SetDynSpoof(source_p);
 	}
 
-	source_p->umodes |= ConfigFileEntry.default_umodes & ~ConfigFileEntry.oper_only_umodes & ~orphaned_umodes;
+	umodes = ConfigFileEntry.default_umodes & ~aconf->umodes_mask;
+	umodes |= aconf->umodes;
+	umodes &= ~ConfigFileEntry.oper_only_umodes;
+	umodes &= ~orphaned_umodes;
+	source_p->umodes |= umodes;
 
 	call_hook(h_new_local_user, source_p);
 
@@ -609,18 +667,21 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	rb_inet_ntop_sock((struct sockaddr *)&source_p->localClient->ip, ipaddr, sizeof(ipaddr));
 
 	sendto_realops_snomask(SNO_CCONN, L_ALL,
-			     "Client connecting: %s (%s@%s) [%s] {%s} [%s]",
+			     "Client connecting: %s (%s@%s) [%s] {%s} <%s> [%s]",
 			     source_p->name, source_p->username, source_p->orighost,
 			     show_ip(NULL, source_p) ? ipaddr : "255.255.255.255",
-			     get_client_class(source_p), source_p->info);
+			     get_client_class(source_p),
+			     *source_p->user->suser ? source_p->user->suser : "*",
+			     source_p->info);
 
 	sendto_realops_snomask(SNO_CCONNEXT, L_ALL,
-			"CLICONN %s %s %s %s %s %s 0 %s",
+			"CLICONN %s %s %s %s %s %s 0 %s %s",
 			source_p->name, source_p->username, source_p->orighost,
 			show_ip(NULL, source_p) ? ipaddr : "255.255.255.255",
 			get_client_class(source_p),
 			/* mirc can sometimes send ips here */
 			show_ip(NULL, source_p) ? source_p->localClient->fullcaps : "<hidden> <hidden>",
+			*source_p->user->suser ? source_p->user->suser : "*",
 			source_p->info);
 
 	add_to_hostname_hash(source_p->orighost, source_p);
@@ -972,6 +1033,22 @@ report_and_set_user_flags(struct Client *source_p, struct ConfItem *aconf)
 	}
 }
 
+void
+report_priv_change(struct Client *client, struct PrivilegeSet *old, struct PrivilegeSet *new)
+{
+	struct privset_diff diff = privilegeset_diff(old, new);
+
+	hook_data_priv_change hdata = {
+		.client = client,
+		.new = new,
+		.old = old,
+		.unchanged = diff.unchanged,
+		.added = diff.added,
+		.removed = diff.removed,
+	};
+	call_hook(h_priv_change, &hdata);
+}
+
 static void
 show_other_user_mode(struct Client *source_p, struct Client *target_p)
 {
@@ -1129,6 +1206,8 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 
 				if(source_p->user->privset != NULL)
 				{
+					report_priv_change(source_p, source_p->user->privset, NULL);
+
 					privilegeset_unref(source_p->user->privset);
 					source_p->user->privset = NULL;
 				}
@@ -1435,6 +1514,8 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	source_p->user->opername = rb_strdup(oper_p->name);
 	source_p->user->privset = privilegeset_ref(oper_p->privset);
 
+	report_priv_change(source_p, NULL, source_p->user->privset);
+
 	rb_dlinkAddAlloc(source_p, &local_oper_list);
 	rb_dlinkAddAlloc(source_p, &oper_list);
 
@@ -1471,7 +1552,10 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 		   construct_snobuf(source_p->snomask));
 	sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
 	sendto_one_notice(source_p, ":*** Oper privilege set is %s", oper_p->privset->name);
-	sendto_one_notice(source_p, ":*** Oper privs are %s", oper_p->privset->privs);
+	send_multiline_init(source_p, " ", ":%s NOTICE %s :*** Oper privs are ", me.name, source_p->name);
+	for (const char *const *s = privilegeset_privs(oper_p->privset); *s != NULL; s++)
+		send_multiline_item(source_p, "%s", *s);
+	send_multiline_fini(source_p, NULL);
 	send_oper_motd(source_p);
 }
 

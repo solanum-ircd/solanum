@@ -43,7 +43,7 @@ static unsigned int mode_regmsg;
 static void chm_regmsg_process(void *);
 
 mapi_hfn_list_av1 chm_regmsg_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_regmsg_process },
+	{ "privmsg_channel", chm_regmsg_process },
 	{ NULL, NULL }
 };
 
@@ -55,6 +55,10 @@ chm_regmsg_process(void *data_)
 
 	/* message is already blocked, defer */
 	if (data->approved)
+		return;
+
+	/* mode is unset, accept */
+	if (!(data->chptr->mode.mode & mode_regmsg))
 		return;
 
 	/* user is identified, accept */

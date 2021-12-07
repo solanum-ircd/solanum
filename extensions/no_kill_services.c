@@ -25,7 +25,7 @@ static const char nokill_desc[] = "Prevents operators from killing services";
 static void block_services_kill(void *data);
 
 mapi_hfn_list_av1 no_kill_services_hfnlist[] = {
-	{ "can_kill", (hookfn) block_services_kill },
+	{ "can_kill", block_services_kill },
 	{ NULL, NULL }
 };
 

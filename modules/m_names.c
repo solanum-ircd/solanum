@@ -120,10 +120,9 @@ static void
 names_global(struct Client *source_p)
 {
 	bool dont_show = false;
-	rb_dlink_node *lp, *ptr;
+	rb_dlink_node *ptr;
 	struct Client *target_p;
 	struct Channel *chptr = NULL;
-	struct membership *msptr;
 
 	/* first do all visible channels */
 	RB_DLINK_FOREACH(ptr, global_channel_list.head)
@@ -141,6 +140,9 @@ names_global(struct Client *source_p)
 	/* Second, do all clients in one big sweep */
 	RB_DLINK_FOREACH(ptr, global_client_list.head)
 	{
+		rb_dlink_node *ps, *pt;
+		struct membership *ms, *mt;
+
 		target_p = ptr->data;
 		dont_show = false;
 
@@ -154,13 +156,11 @@ names_global(struct Client *source_p)
 		 * both were missed out above.  if the target is on a
 		 * common channel with source, its already been shown.
 		 */
-		RB_DLINK_FOREACH(lp, target_p->user->channel.head)
+		ITER_COMM_CHANNELS(ps, pt, source_p->user->channel.head, target_p->user->channel.head, ms, mt, chptr)
 		{
-			msptr = lp->data;
-			chptr = msptr->chptr;
+			if (!mt) continue;
 
-			if(PubChannel(chptr) || IsMember(source_p, chptr) ||
-			   SecretChannel(chptr))
+			if (PubChannel(chptr) || SecretChannel(chptr) || ms)
 			{
 				dont_show = true;
 				break;

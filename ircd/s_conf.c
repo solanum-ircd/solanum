@@ -62,11 +62,11 @@ extern char yy_linebuf[16384];		/* defined in ircd_lexer.l */
 
 static rb_bh *confitem_heap = NULL;
 
-rb_dlink_list prop_bans;
-
 rb_dlink_list temp_klines[LAST_TEMP_TYPE];
 rb_dlink_list temp_dlines[LAST_TEMP_TYPE];
 rb_dlink_list service_list;
+
+rb_dictionary *prop_bans_dict;
 
 /* internally defined functions */
 static void set_default_conf(void);
@@ -74,9 +74,11 @@ static void validate_conf(void);
 static void read_conf(void);
 static void clear_out_old_conf(void);
 
-static void expire_prop_bans(void *list);
+static void expire_prop_bans(void *);
 static void expire_temp_kd(void *list);
 static void reorganise_temp_kd(void *list);
+
+static int cmp_prop_ban(const void *, const void *);
 
 FILE *conf_fbfile_in;
 extern char yytext[];
@@ -89,8 +91,9 @@ void
 init_s_conf(void)
 {
 	confitem_heap = rb_bh_create(sizeof(struct ConfItem), CONFITEM_HEAP_SIZE, "confitem_heap");
+	prop_bans_dict = rb_dictionary_create("prop_bans", cmp_prop_ban);
 
-	rb_event_addish("expire_prop_bans", expire_prop_bans, &prop_bans, 60);
+	rb_event_addish("expire_prop_bans", expire_prop_bans, NULL, 60);
 
 	rb_event_addish("expire_temp_klines", expire_temp_kd, &temp_klines[TEMP_MIN], 60);
 	rb_event_addish("expire_temp_dlines", expire_temp_kd, &temp_dlines[TEMP_MIN], 60);
@@ -197,10 +200,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 		 * see the IP, we still cannot send it.
 		 */
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many local connections for %s!%s%s@%s",
+				"Too many local connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many local connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
@@ -212,10 +215,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_GLOBAL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many global connections for %s!%s%s@%s",
+				"Too many global connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many global connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
 			source_p->username, source_p->sockhost);
@@ -226,10 +229,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_IDENT:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many user connections for %s!%s%s@%s",
+				"Too many user connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many user connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
 			source_p->username, source_p->sockhost);
@@ -240,10 +243,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case I_LINE_FULL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"I-line is full for %s!%s%s@%s (%s).",
+				"I-line is full for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
 				source_p->username, source_p->host,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "255.255.255.255");
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many connections from %s!%s%s@%s.",
 			source_p->name, IsGotId(source_p) ? "" : "~",
@@ -363,6 +366,10 @@ verify_access(struct Client *client_p, const char *username)
 					form_str(ERR_YOUREBANNEDCREEP),
 					me.name, client_p->name,
 					get_user_ban_reason(aconf));
+
+		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
+			"Rejecting K-Lined user %s [%s] (%s@%s)", get_client_name(client_p, HIDE_IP),
+			show_ip(NULL, client_p) ? client_p->sockhost : "255.255.255.255", aconf->user, aconf->host);
 		add_reject(client_p, aconf->user, aconf->host, aconf, NULL);
 		return (BANNED_CLIENT);
 	}
@@ -540,7 +547,7 @@ void
 deref_conf(struct ConfItem *aconf)
 {
 	aconf->clients--;
-	if(!aconf->clients && IsIllegal(aconf))
+	if(!aconf->clients && IsIllegal(aconf) && !lookup_prop_ban(aconf))
 		free_conf(aconf);
 }
 
@@ -654,6 +661,8 @@ rehash(bool sig)
 
 	rehash_authd();
 
+	privilegeset_prepare_rehash();
+
 	/* don't close listeners until we know we can go ahead with the rehash */
 	read_conf_files(false);
 
@@ -667,12 +676,11 @@ rehash(bool sig)
 	RB_DLINK_FOREACH(n, local_oper_list.head)
 	{
 		struct Client *oper = n->data;
-		const char *modeparv[4];
-		modeparv[0] = modeparv[1] = oper->name;
-		modeparv[2] = "+";
-		modeparv[3] = NULL;
-		user_mode(oper, oper, 3, modeparv);
+		struct PrivilegeSet *privset = oper->user->privset;
+		report_priv_change(oper, privset ? privset->shadow : NULL, privset);
 	}
+
+	privilegeset_cleanup_rehash();
 
 	call_hook(h_rehash, &hdata);
 	return false;
@@ -775,10 +783,6 @@ set_default_conf(void)
 	ConfigFileEntry.tls_ciphers_oper_only = false;
 	ConfigFileEntry.oper_secure_only = false;
 
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = 4;
-#endif
-
 	ConfigFileEntry.oper_umodes = UMODE_LOCOPS | UMODE_SERVNOTICE |
 		UMODE_OPERWALL | UMODE_WALLOP;
 	ConfigFileEntry.oper_only_umodes = UMODE_SERVNOTICE;
@@ -807,6 +811,7 @@ set_default_conf(void)
 	ConfigChannel.disable_local_channels = false;
 	ConfigChannel.displayed_usercount = 3;
 	ConfigChannel.opmod_send_statusmsg = false;
+	ConfigChannel.ip_bans_through_vhost= true;
 
 	ConfigChannel.autochanmodes = MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
@@ -862,7 +867,6 @@ read_conf(void)
 	validate_conf();	/* Check to make sure some values are still okay. */
 	/* Some global values are also loaded here. */
 	check_class();		/* Make sure classes are valid */
-	privilegeset_delete_all_illegal();
 	construct_cflags_strings();
 }
 
@@ -1079,31 +1083,52 @@ valid_wild_card(const char *luser, const char *lhost)
 	return 0;
 }
 
-rb_dlink_node *
-find_prop_ban(unsigned int status, const char *user, const char *host)
+
+int cmp_prop_ban(const void *a_, const void *b_)
 {
-	rb_dlink_node *ptr;
-	struct ConfItem *aconf;
+	const struct ConfItem *a = a_, *b = b_;
+	int r;
 
-	RB_DLINK_FOREACH(ptr, prop_bans.head)
-	{
-		aconf = ptr->data;
+	if ((a->status & ~CONF_ILLEGAL) > (int)(b->status & ~CONF_ILLEGAL)) return 1;
+	if ((a->status & ~CONF_ILLEGAL) < (int)(b->status & ~CONF_ILLEGAL)) return -1;
 
-		if((aconf->status & ~CONF_ILLEGAL) == status &&
-				(!user || !aconf->user ||
-				 !irccmp(aconf->user, user)) &&
-				!irccmp(aconf->host, host))
-			return ptr;
-	}
-	return NULL;
+	r = irccmp(a->host, b->host);
+	if (r) return r;
+
+	if (a->user && b->user)
+		return irccmp(a->user, b->user);
+
+	return 0;
 }
 
 void
-deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
+add_prop_ban(struct ConfItem *aconf)
+{
+	rb_dictionary_add(prop_bans_dict, aconf, aconf);
+}
+
+struct ConfItem *
+find_prop_ban(unsigned status, const char *user, const char *host)
+{
+	struct ConfItem key = {.status = status, .user = (char *)user, .host = (char *)host};
+	return rb_dictionary_retrieve(prop_bans_dict, &key);
+}
+
+void
+remove_prop_ban(struct ConfItem *aconf)
+{
+	rb_dictionary_delete(prop_bans_dict, aconf);
+}
+
+bool lookup_prop_ban(struct ConfItem *aconf)
+{
+	return rb_dictionary_retrieve(prop_bans_dict, aconf) == aconf;
+}
+
+void
+deactivate_conf(struct ConfItem *aconf, time_t now)
 {
 	int i;
-
-	s_assert(ptr->data == aconf);
 
 	switch (aconf->status)
 	{
@@ -1145,7 +1170,7 @@ deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
 	else
 	{
 		if (aconf->lifetime != 0)
-			rb_dlinkDestroy(ptr, &prop_bans);
+			remove_prop_ban(aconf);
 		if (aconf->clients == 0)
 			free_conf(aconf);
 		else
@@ -1159,13 +1184,11 @@ deactivate_conf(struct ConfItem *aconf, rb_dlink_node *ptr, time_t now)
 void
 replace_old_ban(struct ConfItem *aconf)
 {
-	rb_dlink_node *ptr;
 	struct ConfItem *oldconf;
 
-	ptr = find_prop_ban(aconf->status, aconf->user, aconf->host);
-	if(ptr != NULL)
+	oldconf = find_prop_ban(aconf->status, aconf->user, aconf->host);
+	if (oldconf != NULL)
 	{
-		oldconf = ptr->data;
 		/* Remember at least as long as the old one. */
 		if(oldconf->lifetime > aconf->lifetime)
 			aconf->lifetime = oldconf->lifetime;
@@ -1179,23 +1202,21 @@ replace_old_ban(struct ConfItem *aconf)
 			aconf->lifetime = aconf->hold;
 		/* Tell deactivate_conf() to destroy it. */
 		oldconf->lifetime = rb_current_time();
-		deactivate_conf(oldconf, ptr, oldconf->lifetime);
+		deactivate_conf(oldconf, oldconf->lifetime);
 	}
 }
 
 static void
-expire_prop_bans(void *list)
+expire_prop_bans(void *unused)
 {
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
 	struct ConfItem *aconf;
 	time_t now;
+	rb_dictionary_iter state;
 
 	now = rb_current_time();
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, ((rb_dlink_list *) list)->head)
-	{
-		aconf = ptr->data;
 
+	RB_DICTIONARY_FOREACH(aconf, &state, prop_bans_dict)
+	{
 		if(aconf->lifetime <= now ||
 				(aconf->hold <= now &&
 				 !(aconf->status & CONF_ILLEGAL)))
@@ -1211,7 +1232,7 @@ expire_prop_bans(void *list)
 						     aconf->host ? aconf->host : "*");
 
 			/* will destroy or mark illegal */
-			deactivate_conf(aconf, ptr, now);
+			deactivate_conf(aconf, now);
 		}
 	}
 }
@@ -1533,6 +1554,24 @@ clear_out_old_conf(void)
 	ConfigFileEntry.sasl_service = NULL;
 	rb_free(ConfigFileEntry.drain_reason);
 	ConfigFileEntry.drain_reason = NULL;
+	rb_free(ConfigFileEntry.sasl_only_client_message);
+	ConfigFileEntry.sasl_only_client_message = NULL;
+	rb_free(ConfigFileEntry.identd_only_client_message);
+	ConfigFileEntry.identd_only_client_message = NULL;
+	rb_free(ConfigFileEntry.sctp_forbidden_client_message);
+	ConfigFileEntry.sctp_forbidden_client_message = NULL;
+	rb_free(ConfigFileEntry.ssltls_only_client_message);
+	ConfigFileEntry.ssltls_only_client_message = NULL;
+	rb_free(ConfigFileEntry.not_authorised_client_message);
+	ConfigFileEntry.not_authorised_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_hostname_client_message);
+	ConfigFileEntry.illegal_hostname_client_message = NULL;
+	rb_free(ConfigFileEntry.server_full_client_message);
+	ConfigFileEntry.server_full_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_long_client_message);
+	ConfigFileEntry.illegal_name_long_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_short_client_message);
+	ConfigFileEntry.illegal_name_short_client_message = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{
@@ -1576,8 +1615,6 @@ clear_out_old_conf(void)
 	}
 
 	del_dnsbl_entry_all();
-
-	privilegeset_mark_all_illegal();
 
 	/* OK, that should be everything... */
 }

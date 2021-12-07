@@ -20,12 +20,12 @@ static const char sno_desc[] =
 
 static int _modinit(void);
 static void _moddeinit(void);
-static void h_gcn_new_remote_user(struct Client *);
-static void h_gcn_client_exit(hook_data_client_exit *);
+static void h_gcn_new_remote_user(void *);
+static void h_gcn_client_exit(void *);
 
 mapi_hfn_list_av1 gcn_hfnlist[] = {
-	{ "new_remote_user", (hookfn) h_gcn_new_remote_user },
-	{ "client_exit", (hookfn) h_gcn_client_exit },
+	{ "new_remote_user", h_gcn_new_remote_user },
+	{ "client_exit", h_gcn_client_exit },
 	{ NULL, NULL }
 };
 
@@ -51,21 +51,24 @@ _moddeinit(void)
 }
 
 static void
-h_gcn_new_remote_user(struct Client *source_p)
+h_gcn_new_remote_user(void *data)
 {
+	struct Client *source_p = data;
 
 	if (!HasSentEob(source_p->servptr))
 		return;
 	sendto_realops_snomask_from(snomask_modes['F'], L_ALL, source_p->servptr,
-			"Client connecting: %s (%s@%s) [%s] {%s} [%s]",
+			"Client connecting: %s (%s@%s) [%s] {%s} <%s> [%s]",
 			source_p->name, source_p->username, source_p->orighost,
 			show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255",
-			"?", source_p->info);
+			"?", *source_p->user->suser ? source_p->user->suser : "*",
+			source_p->info);
 }
 
 static void
-h_gcn_client_exit(hook_data_client_exit *hdata)
+h_gcn_client_exit(void *data)
 {
+	hook_data_client_exit *hdata = data;
 	struct Client *source_p;
 
 	source_p = hdata->target;
