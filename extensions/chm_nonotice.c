@@ -52,8 +52,11 @@ chm_nonotice_process(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
 
-	/* don't waste CPU if message is already blocked */
-	if (data->approved || data->msgtype != MESSAGE_TYPE_NOTICE)
+	/*
+	 * don't waste CPU if message is already blocked, only block notices,
+	 * only check messages sourced from local clients (so we don't block services notices)
+	 */
+	if (data->approved || data->msgtype != MESSAGE_TYPE_NOTICE || !MyClient(data->source_p))
 		return;
 
 	/* block all notices except CTCPs; use chm_noctcp to block CTCPs. */
