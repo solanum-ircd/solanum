@@ -1844,7 +1844,7 @@ show_ip_conf(struct ConfItem *aconf, struct Client *source_p)
 {
 	if(IsConfDoSpoofIp(aconf))
 	{
-		if(!ConfigFileEntry.hide_spoof_ips && MyOper(source_p))
+		if(!ConfigFileEntry.hide_spoof_ips && IsOper(source_p))
 			return 1;
 
 		return 0;
@@ -1857,7 +1857,7 @@ int
 show_ip_whowas(struct Whowas *whowas, struct Client *source_p)
 {
 	if(whowas->flags & WHOWAS_IP_SPOOFING)
-		if(ConfigFileEntry.hide_spoof_ips || !MyOper(source_p))
+		if(ConfigFileEntry.hide_spoof_ips || !IsOper(source_p))
 			return 0;
 	if(whowas->flags & WHOWAS_DYNSPOOF)
 		if(!IsOper(source_p))
