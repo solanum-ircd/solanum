@@ -40,6 +40,7 @@
 #include <openssl/rsa.h>
 #endif
 
+struct Client;
 struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;
