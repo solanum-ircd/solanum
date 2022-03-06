@@ -64,7 +64,7 @@ cap_server_time_process(void *data_)
 		msgbuf_append_tag(msgbuf, "time", tagged_time, CLICAP_SERVER_TIME);
 	}
 
-	if (!IsMe(data->client) && !MyClient(data->client))
+	if (data->client != NULL && !IsMe(data->client) && !MyClient(data->client))
 		return;
 
 	if (!rb_gettimeofday(&tv, NULL)) {
