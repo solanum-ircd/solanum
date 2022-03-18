@@ -38,7 +38,7 @@ static void valid_temp_time1(void)
 	t = valid_temp_time("4m3h2d1w");
 	is_int(1 * WEEK + 2 * DAY + 3 * HOUR + 4 * MINUTE, t, MSG);
 
-	t = valid_temp_time("7000w");
+	t = valid_temp_time("3000w");
 	is_int(52 * WEEK, t, MSG);
 }
 
