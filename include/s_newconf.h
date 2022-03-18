@@ -40,6 +40,8 @@
 #include <openssl/rsa.h>
 #endif
 
+#define MAX_TEMP_TIME (52 * 7 * 24 * 60 * 60)
+
 struct Client;
 struct ConfItem;
 

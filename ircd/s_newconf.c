@@ -687,8 +687,11 @@ valid_temp_time(const char *p)
 	time_t result = 0;
 	long current = 0;
 
+	time_t max_time = (uintmax_t) (~(time_t)0) >> 1;
+
 	while (*p) {
 		char *endp;
+		int mul;
 
 		errno = 0;
 		current = strtol(p, &endp, 10);
@@ -703,20 +706,30 @@ valid_temp_time(const char *p)
 		switch (*endp) {
 		case '\0': /* No unit was given so send it back as minutes */
 		case 'm':
-			result += current * 60;
+			mul = 60;
 			break;
 		case 'h':
-			result += current * 3600;
+			mul = 3600;
 			break;
 		case 'd':
-			result += current * 86400;
+			mul = 86400;
 			break;
 		case 'w':
-			result += current * 604800;
+			mul = 604800;
 			break;
 		default:
 			return -1;
 		}
+
+		if (current > LONG_MAX / mul)
+			return MAX_TEMP_TIME;
+
+		current *= mul;
+
+		if (current > max_time - result)
+			return MAX_TEMP_TIME;
+
+		result += current;
 
 		if (*endp == '\0')
 			break;
@@ -724,7 +737,7 @@ valid_temp_time(const char *p)
 		p = endp + 1;
 	}
 
-	return MIN(result, 60 * 60 * 24 * 7 * 52);
+	return MIN(result, MAX_TEMP_TIME);
 }
 
 /* Propagated bans are expired elsewhere. */
