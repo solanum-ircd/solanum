@@ -697,6 +697,8 @@ valid_temp_time(const char *p)
 			return -1;
 		if (endp == p)
 			return -1;
+		if (current < 0)
+			return -1;
 
 		switch (*endp) {
 		case '\0': /* No unit was given so send it back as minutes */
