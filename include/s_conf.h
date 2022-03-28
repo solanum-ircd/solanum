@@ -110,6 +110,7 @@ struct ConfItem
 #define CONF_FLAGS_EXEMPTJUPE		0x00020000	/* exempt from resv generating warnings */
 #define CONF_FLAGS_NEED_SASL		0x00040000
 #define CONF_FLAGS_EXTEND_CHANS		0x00080000
+#define CONF_FLAGS_FORBIDMARK		0x00100000
 #define CONF_FLAGS_ENCRYPTED		0x00200000
 #define CONF_FLAGS_EXEMPTDNSBL		0x04000000
 #define CONF_FLAGS_EXEMPTPROXY		0x08000000
@@ -132,6 +133,7 @@ struct ConfItem
 #define IsConfExemptResv(x)	((x)->flags & CONF_FLAGS_EXEMPTRESV)
 #define IsConfDoSpoofIp(x)      ((x)->flags & CONF_FLAGS_SPOOF_IP)
 #define IsConfSpoofNotice(x)    ((x)->flags & CONF_FLAGS_SPOOF_NOTICE)
+#define IsConfForbidMark(x)     ((x)->flags & CONF_FLAGS_FORBIDMARK)
 #define IsConfEncrypted(x)      ((x)->flags & CONF_FLAGS_ENCRYPTED)
 #define IsNeedSasl(x)		((x)->flags & CONF_FLAGS_NEED_SASL)
 #define IsConfExemptDNSBL(x)	((x)->flags & CONF_FLAGS_EXEMPTDNSBL)

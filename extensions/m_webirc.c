@@ -31,6 +31,8 @@
  * Possible flags:
  *   encrypted - password is encrypted (recommended)
  *   kline_exempt - klines on the cgiirc ip are ignored
+ *   set_mark - mark clients connecting via this block, interacts with
+ *     forbid_mark when resolving the auth block for the spoofed ip
  * dlines are checked on the cgiirc ip (of course).
  * k/d/x lines, auth blocks, user limits, etc are checked using the
  * real host/ip.
@@ -142,6 +144,15 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	source_p->localClient->ip = addr;
 	source_p->username[0] = '\0';
 	ClearGotId(source_p);
+
+	/* set_mark and forbid_mark in an auth block both set CONF_FLAG_FORBIDMARK;
+	 * the distinction is purely visual for the sake of human readability,
+	 * hence checking IsConfForbidMark here.
+	 */
+	if (IsConfForbidMark(aconf))
+	{
+		SetMark(source_p);
+	}
 
 	if (parc >= 6)
 	{

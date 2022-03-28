@@ -351,6 +351,8 @@ static struct mode_table auth_table[] = {
 	{"extend_chans",	CONF_FLAGS_EXTEND_CHANS		},
 	{"allow_sctp",		CONF_FLAGS_ALLOW_SCTP		},
 	{"kline_spoof_ip",	CONF_FLAGS_KLINE_SPOOF		},
+	{"set_mark",		CONF_FLAGS_FORBIDMARK		},
+	{"forbid_mark",		CONF_FLAGS_FORBIDMARK		},
 	{NULL, 0}
 };
 
