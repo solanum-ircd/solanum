@@ -20,8 +20,8 @@ NO PARAMETERS:
               messages is stripped.
      +g     - Free invite.  Everyone may invite users.  Significantly
               weakens +i control.
-  ?  +u     - Unfiltered. Receive messages that are filtered server side based 
-              on content
+  ?  +u     - Unfiltered. Receive messages that would otherwise be filtered
+              server side based on content.
      +z     - Op moderated.  Messages blocked by +m, +b and +q are instead
               sent to ops.
      +L     - Large ban list.  Increase maximum number of +beIq entries.

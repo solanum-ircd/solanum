@@ -1,6 +1,7 @@
 check_PROGRAMS = runtests \
 	chmode1 \
 	match1 \
+	misc \
 	msgbuf_parse1 \
 	msgbuf_unparse1 \
 	hostmask1 \
