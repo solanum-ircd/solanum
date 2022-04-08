@@ -436,18 +436,10 @@ static void safelist_channel_named(struct Client *source_p, const char *name, in
 	if ((p = strchr(name, ',')))
 		*p = '\0';
 
-	if (*name == '\0')
-	{
-		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), name);
-		sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
-		return;
-	}
-
 	chptr = find_channel(name);
 
 	if (chptr == NULL)
 	{
-		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), name);
 		sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
 		return;
 	}
