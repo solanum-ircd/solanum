@@ -403,6 +403,8 @@ um_callerid_moddeinit(void)
 	construct_umodebuf();
 
 	delete_isupport("CALLERID");
+
+	rb_event_delete(expire_callerid_override_deadlines_ev);
 }
 
 DECLARE_MODULE_AV2(um_callerid, um_callerid_modinit, um_callerid_moddeinit,
