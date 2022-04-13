@@ -154,6 +154,7 @@ free_conf(struct ConfItem *aconf)
 	rb_free(aconf->className);
 	rb_free(aconf->user);
 	rb_free(aconf->host);
+	rb_free(aconf->desc);
 
 	if(IsConfBan(aconf))
 		operhash_delete(aconf->info.oper);
@@ -1346,7 +1347,8 @@ get_oper_name(struct Client *client_p)
  */
 void
 get_printable_conf(struct ConfItem *aconf, char **name, char **host,
-		   const char **pass, char **user, int *port, char **classname)
+		   const char **pass, char **user, int *port,
+		   char **classname, char **desc)
 {
 	static char null[] = "<NULL>";
 	static char zero[] = "default";
@@ -1356,6 +1358,7 @@ get_printable_conf(struct ConfItem *aconf, char **name, char **host,
 	*pass = EmptyString(aconf->passwd) ? null : aconf->passwd;
 	*user = EmptyString(aconf->user) ? null : aconf->user;
 	*classname = EmptyString(aconf->className) ? zero : aconf->className;
+	*desc = CheckEmpty(aconf->desc);
 	*port = (int) aconf->port;
 }
 

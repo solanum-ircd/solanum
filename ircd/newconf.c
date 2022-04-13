@@ -1037,6 +1037,9 @@ conf_end_auth(struct TopConf *tc)
 		if(yy_aconf->className)
 			yy_tmp->className = rb_strdup(yy_aconf->className);
 
+		if(yy_aconf->desc)
+			yy_tmp->desc = rb_strdup(yy_aconf->desc);
+
 		yy_tmp->flags = yy_aconf->flags;
 		yy_tmp->port = yy_aconf->port;
 
@@ -1170,6 +1173,13 @@ conf_set_auth_spoof(void *data)
 	rb_free(yy_aconf->info.name);
 	yy_aconf->info.name = rb_strdup(data);
 	yy_aconf->flags |= CONF_FLAGS_SPOOF_IP;
+}
+
+static void
+conf_set_auth_desc(void *data)
+{
+	rb_free(yy_aconf->desc);
+	yy_aconf->desc = rb_strdup(data);
 }
 
 static void
@@ -2640,6 +2650,7 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
 	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
+	{ "description",CF_QSTRING, conf_set_auth_desc,         0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
 

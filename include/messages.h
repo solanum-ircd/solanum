@@ -49,7 +49,7 @@
 #define NUMERIC_STR_209      "Class %s %d"
 #define NUMERIC_STR_212      "%s %u %lu :%u"
 #define NUMERIC_STR_213      "C %s %s %s %d %s %s"
-#define NUMERIC_STR_215      "I %s %s %s@%s %d %s"
+#define NUMERIC_STR_215      "I %s %s %s@%s %d %s :%s"
 #define NUMERIC_STR_216      "%c %s * %s :%s%s%s"
 #define NUMERIC_STR_217      "%c %d %s :%s"
 #define NUMERIC_STR_218      "Y %s %d %d %d %u %d.%d %d.%d %u"

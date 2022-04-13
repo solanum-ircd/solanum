@@ -235,7 +235,8 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		sendto_one_numeric(source_p, RPL_STATSILINE, form_str(RPL_STATSILINE),
 				aconf->info.name, EmptyString(aconf->spasswd) ? "<NULL>" : aconf->spasswd,
 				show_iline_prefix(source_p, aconf, aconf->user),
-				aconf->host, aconf->port, aconf->className);
+				aconf->host, aconf->port, aconf->className,
+				EmptyString(aconf->desc) ? "" : aconf->desc);
 		return;
 	}
 
