@@ -34,6 +34,7 @@
 #include "msg.h"
 #include "hash.h"
 #include "hostmask.h"
+#include "match.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_newconf.h"
@@ -236,7 +237,7 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 				aconf->info.name, EmptyString(aconf->spasswd) ? "<NULL>" : aconf->spasswd,
 				show_iline_prefix(source_p, aconf, aconf->user),
 				aconf->host, aconf->port, aconf->className,
-				EmptyString(aconf->desc) ? "" : aconf->desc);
+				CheckEmpty(aconf->desc));
 		return;
 	}
 
