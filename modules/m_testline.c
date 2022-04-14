@@ -34,7 +34,6 @@
 #include "msg.h"
 #include "hash.h"
 #include "hostmask.h"
-#include "match.h"
 #include "numeric.h"
 #include "s_conf.h"
 #include "s_newconf.h"
