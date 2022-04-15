@@ -56,6 +56,7 @@ static const char filter_desc[] = "Filter messages using a precompiled Hyperscan
 static void filter_msg_user(void *data);
 static void filter_msg_channel(void *data);
 static void filter_client_quit(void *data);
+static void filter_client_nick(void *data);
 static void on_client_exit(void *data);
 
 static void mo_setfilter(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -93,6 +94,7 @@ mapi_hfn_list_av1 filter_hfnlist[] = {
 	{ "privmsg_user", filter_msg_user },
 	{ "privmsg_channel", filter_msg_channel },
 	{ "client_quit", filter_client_quit },
+	{ "local_nick_change", filter_client_nick },
 	{ "client_exit", on_client_exit },
 	{ NULL, NULL }
 };
@@ -481,6 +483,29 @@ filter_client_quit(void *data_)
 			s->name, s->username, s->host, s->sockhost);
 	}
 	/* No point in doing anything with ACT_KILL */
+}
+
+void
+filter_client_nick(void *data_)
+{
+	hook_cdata *data = data_;
+	struct Client *s = data->client;
+	if (IsOper(s)) {
+		return;
+	}
+
+	unsigned r = match_message("0", s, "NICK", NULL, data->arg2);
+	if (r & ACT_DROP) {
+		data->arg2 = NULL;
+	}
+	if (r & ACT_ALARM) {
+		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+			"FILTER: %s!%s@%s [%s]",
+			s->name, s->username, s->host, s->sockhost);
+	}
+	if (r & ACT_KILL) {
+		exit_client(NULL, s, s, FILTER_EXIT_MSG);
+	}
 }
 
 void
