@@ -176,7 +176,7 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(!MyClient(target_p))
 		return;
 
-	if(!clean_nick(parv[2], 0) || IsDigit(parv[2][0]))
+	if(!clean_nick(parv[2], 0) || IsDigit(parv[2][0]) || find_nick_resv(parv[2]))
 		return;
 
 	curts = atol(parv[4]);
