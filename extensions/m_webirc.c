@@ -106,17 +106,20 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if (!IsConfDoSpoofIp(aconf) || irccmp(aconf->info.name, "webirc."))
 	{
 		/* XXX */
-		sendto_one(source_p, "NOTICE * :Not a CGI:IRC auth block");
+		sendto_one(source_p, "ERROR :Not a CGI:IRC auth block");
+		close_connection(source_p);
 		return;
 	}
 	if (EmptyString(aconf->passwd))
 	{
-		sendto_one(source_p, "NOTICE * :CGI:IRC auth blocks must have a password");
+		sendto_one(source_p, "ERROR :CGI:IRC auth blocks must have a password");
+		close_connection(source_p);
 		return;
 	}
 	if (!IsSecure(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
 	{
-		sendto_one(source_p, "NOTICE * :Your CGI:IRC block requires TLS");
+		sendto_one(source_p, "ERROR :Your CGI:IRC block requires TLS");
+		close_connection(source_p);
 		return;
 	}
 
@@ -129,13 +132,15 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (encr == NULL || strcmp(encr, aconf->passwd))
 	{
-		sendto_one(source_p, "NOTICE * :CGI:IRC password incorrect");
+		sendto_one(source_p, "ERROR :CGI:IRC password incorrect");
+		close_connection(source_p);
 		return;
 	}
 
 	if (rb_inet_pton_sock(parv[4], &addr) <= 0)
 	{
-		sendto_one(source_p, "NOTICE * :Invalid IP");
+		sendto_one(source_p, "ERROR :Invalid IP");
+		close_connection(source_p);
 		return;
 	}
 
