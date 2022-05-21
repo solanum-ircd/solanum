@@ -1336,6 +1336,11 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 		++Count.invisi;
 	if((setflags & UMODE_INVISIBLE) && !IsInvisible(source_p))
 		--Count.invisi;
+
+	/* mark changed umodes so that if default umodes change, these don't get touched */
+	if (MyClient(source_p))
+		source_p->localClient->changed_umodes |= source_p->umodes ^ setflags;
+
 	/*
 	 * compare new flags with old flags and send string which
 	 * will cause servers to update correctly.
@@ -1430,6 +1435,37 @@ send_umode_out(struct Client *client_p, struct Client *source_p, int old)
 
 	if(client_p && MyClient(client_p))
 		send_umode(client_p, source_p, old, buf);
+}
+
+/*
+ * change_default_umodes
+ *
+ * inputs   - pointer to local client
+ * outputs  - NONE
+ * side effects - changes the user's umodes to correspond to the new defaults
+ */
+void
+change_default_umodes(struct Client *client_p)
+{
+	struct ConfItem *a_conf;
+	unsigned int old, new_default, changed_mask;
+
+	if (!MyClient(client_p))
+		return;
+
+	a_conf = client_p->localClient->att_conf;
+	old = client_p->umodes;
+	changed_mask = client_p->localClient->changed_umodes;
+
+	new_default = ConfigFileEntry.default_umodes & ~a_conf->umodes_mask;
+	new_default |= a_conf->umodes;
+	new_default &= ~orphaned_umodes;
+	if (!IsOper(client_p))
+		new_default &= ~ConfigFileEntry.oper_only_umodes;
+
+	client_p->umodes = (new_default & ~changed_mask) | (old & changed_mask);
+	if (client_p->umodes != old)
+		send_umode_out(client_p, client_p, old);
 }
 
 /*

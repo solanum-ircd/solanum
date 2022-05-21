@@ -653,6 +653,7 @@ bool
 rehash(bool sig)
 {
 	rb_dlink_node *n;
+	int old_umodes;
 
 	hook_data_rehash hdata = { sig };
 
@@ -663,6 +664,10 @@ rehash(bool sig)
 	rehash_authd();
 
 	privilegeset_prepare_rehash();
+
+	/* capture current set of default umodes; if this changes we'll apply the
+	 * change to all local clients */
+	old_umodes = ConfigFileEntry.default_umodes;
 
 	/* don't close listeners until we know we can go ahead with the rehash */
 	read_conf_files(false);
@@ -682,6 +687,15 @@ rehash(bool sig)
 	}
 
 	privilegeset_cleanup_rehash();
+
+	if (old_umodes != ConfigFileEntry.default_umodes)
+		RB_DLINK_FOREACH(n, lclient_list.head)
+		{
+			struct Client *client = n->data;
+			if (!IsPerson(client))
+				continue;
+			change_default_umodes(client);
+		}
 
 	call_hook(h_rehash, &hdata);
 	return false;
