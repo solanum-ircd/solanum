@@ -1089,6 +1089,7 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 	const char *pm;
 	struct Client *target_p;
 	int what, setflags;
+	int changemask = 0;
 	bool badflag = false;	/* Only send one bad flag notice */
 	bool showsnomask = false;
 	unsigned int setsnomask;
@@ -1279,6 +1280,7 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 						source_p->umodes |= flag;
 					else
 						source_p->umodes &= ~flag;
+					changemask |= flag;
 				}
 			}
 			else
@@ -1339,7 +1341,13 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 
 	/* mark changed umodes so that if default umodes change, these don't get touched */
 	if (MyClient(source_p))
+	{
+		/* capture modes the user listed in the string, even if they were already (un)set,
+		 * e.g. /umode -R when they were already -R */
+		source_p->localClient->changed_umodes |= changemask;
+		/* all changed modes, whether through the user directly or as a result of a hook */
 		source_p->localClient->changed_umodes |= source_p->umodes ^ setflags;
+	}
 
 	/*
 	 * compare new flags with old flags and send string which
