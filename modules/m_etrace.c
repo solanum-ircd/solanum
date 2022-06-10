@@ -236,7 +236,7 @@ m_chantrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 	name = parv[1];
 
-	if(IsOperSpy(source_p) && parv[1][0] == '!')
+	if(IsOperSpyChannel(source_p) && parv[1][0] == '!')
 	{
 		name++;
 		operspy = 1;
@@ -347,7 +347,7 @@ mo_masktrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 	name = LOCAL_COPY(parv[1]);
 	collapse(name);
 
-	if(IsOperSpy(source_p) && parv[1][0] == '!')
+	if(IsOperSpyUser(source_p) && parv[1][0] == '!')
 	{
 		name++;
 		mask++;

@@ -183,7 +183,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		args = LOCAL_COPY(parv[1]);
 	}
 
-	if (args && *args == '!' && IsOperSpy(source_p))
+	if (args && *args == '!' && IsOperSpyChannel(source_p))
 	{
 		args++;
 		report_operspy(source_p, "LIST", args);

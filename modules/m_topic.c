@@ -74,7 +74,7 @@ m_topic(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	name = parv[1];
 
-	if(IsOperSpy(source_p) && parv[1][0] == '!')
+	if(IsOperSpyChannel(source_p) && parv[1][0] == '!')
 	{
 		name++;
 		operspy = 1;
