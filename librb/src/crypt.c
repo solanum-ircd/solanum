@@ -52,7 +52,7 @@ rb_crypt(const char *key, const char *salt)
 			return rb_sha512_crypt(key, salt);
 		default:
 			return NULL;
-		};
+		}
 	}
 	else
 		return rb_des_crypt(key, salt);
