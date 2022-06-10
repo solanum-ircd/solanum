@@ -181,7 +181,7 @@ do_whois(struct Client *client_p, struct Client *source_p, int parc, const char 
 	if((p = strchr(nick, ',')))
 		*p = '\0';
 
-	if(IsOperSpyUser(source_p) && *nick == '!')
+	if(IsOperSpyChannel(source_p) && *nick == '!')
 	{
 		operspy = 1;
 		nick++;
