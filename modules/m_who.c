@@ -172,7 +172,7 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	}
 
 	if(*mask == '!'
-		&& HasPrivilege(source_p, IsChannelName(mask + 1) ? "oper:spy_channel" : "oper:spy_user"))
+		&& (IsChannelName(mask + 1) ? IsOperSpyChannel(source_p) : IsOperSpyUser(source_p)))
 	{
 		mask++;
 		operspy = 1;
