@@ -419,6 +419,7 @@ struct ListClient
 #define FLAGS_EXEMPTSHIDE	0x04000000
 #define FLAGS_EXEMPTJUPE	0x08000000
 #define FLAGS_IDENTIFIED	0x10000000	/* owns their current nick */
+#define FLAGS_USER_SPOOFING	0x00000080	/* username has already been set, so ignore it in USER */
 
 
 /* flags for local clients, this needs stuff moved from above to here at some point */
@@ -545,6 +546,8 @@ struct ListClient
 #define SetExemptResv(x)	((x)->flags |= FLAGS_EXEMPTRESV)
 #define IsIPSpoof(x)            ((x)->flags & FLAGS_IP_SPOOFING)
 #define SetIPSpoof(x)           ((x)->flags |= FLAGS_IP_SPOOFING)
+#define IsUserSpoof(x)          ((x)->flags & FLAGS_USER_SPOOFING)
+#define SetUserSpoof(x)         ((x)->flags |= FLAGS_USER_SPOOFING)
 #define IsExtendChans(x)	((x)->flags & FLAGS_EXTENDCHANS)
 #define SetExtendChans(x)	((x)->flags |= FLAGS_EXTENDCHANS)
 
