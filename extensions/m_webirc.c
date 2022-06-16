@@ -171,6 +171,12 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	else
 		rb_strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
 
+	if (aconf->flags & CONF_FLAGS_SPOOF_IDENT)
+	{
+		SetGotId(source_p);
+		rb_strlcpy(source_p->username, parv[2], sizeof(source_p->username));
+	}
+
 	/* Check dlines now, klines will be checked on registration */
 	if((aconf = find_dline((struct sockaddr *)&source_p->localClient->ip,
 			       GET_SS_FAMILY(&source_p->localClient->ip))))
