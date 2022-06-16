@@ -173,7 +173,8 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (aconf->flags & CONF_FLAGS_SPOOF_IDENT)
 	{
-		SetGotId(source_p);
+		if (parv[2][0] != '~')
+			SetGotId(source_p);
 		rb_strlcpy(source_p->username, parv[2], sizeof(source_p->username));
 	}
 
