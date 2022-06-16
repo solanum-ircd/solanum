@@ -76,7 +76,7 @@ DECLARE_MODULE_AV2(webirc, NULL, NULL, webirc_clist, NULL, webirc_hfnlist, NULL,
 /*
  * mr_webirc - webirc message handler
  *	parv[1] = password
- *	parv[2] = fake username (we ignore this)
+ *	parv[2] = fake username
  *	parv[3] = fake hostname
  *	parv[4] = fake ip
  */
