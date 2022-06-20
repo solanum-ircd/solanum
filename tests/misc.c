@@ -67,7 +67,11 @@ static void valid_temp_time_overflow(void)
 	t = valid_temp_time(s);
 	is_int(52 * WEEK, t, MSG);
 
-	snprintf(s, sizeof s, "%" PRIuMAX "m%" PRIuMAX "m", UINTMAX_MAX / 60 - 1, UINTMAX_MAX / 60 - 1);
+	snprintf(s, sizeof s, "%ldm", LONG_MAX / 60 + 2);
+	t = valid_temp_time(s);
+	is_int(52 * WEEK, t, MSG);
+
+	snprintf(s, sizeof s, "%ldm%ldm", LONG_MAX / 60 - 1, LONG_MAX / 60 - 1);
 	t = valid_temp_time(s);
 	is_int(52 * WEEK, t, MSG);
 }
