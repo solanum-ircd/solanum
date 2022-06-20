@@ -694,8 +694,6 @@ valid_temp_time(const char *p)
 		errno = 0;
 		current = strtol(p, &endp, 10);
 
-		if (errno == ERANGE)
-			return -1;
 		if (endp == p)
 			return -1;
 		if (current < 0)
