@@ -100,7 +100,7 @@ reject_exit(void *unused)
 
 		if (ddata->aconf)
 		{
-			snprintf(dynamic_reason, BUFSIZE, form_str(ERR_YOUREBANNEDCREEP) "\r\n",
+			snprintf(dynamic_reason, sizeof dynamic_reason, form_str(ERR_YOUREBANNEDCREEP) "\r\n",
 				me.name, "*", get_user_ban_reason(ddata->aconf));
 			rb_write(ddata->F, dynamic_reason, strlen(dynamic_reason));
 
@@ -108,7 +108,7 @@ reject_exit(void *unused)
 		}
 		else if (ddata->reason)
 		{
-			snprintf(dynamic_reason, BUFSIZE, ":%s 465 %s :%s\r\n",
+			snprintf(dynamic_reason, sizeof dynamic_reason, ":%s 465 %s :%s\r\n",
 				me.name, "*", ddata->reason);
 			rb_write(ddata->F, dynamic_reason, strlen(dynamic_reason));
 		}

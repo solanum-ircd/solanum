@@ -1640,7 +1640,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(do_qjm)
 	{
 		va_start(ap, format);
-		vsnprintf(reason, 255, format, ap);
+		vsnprintf(reason, sizeof reason, format, ap);
 		va_end(ap);
 
 		sendto_common_channels_local_butone(target_p, NOCAPS, CLICAP_CHGHOST, ":%s!%s@%s QUIT :%s",

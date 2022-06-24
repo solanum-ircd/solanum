@@ -2328,7 +2328,7 @@ conf_report_error(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2348,7 +2348,7 @@ conf_report_warning(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
