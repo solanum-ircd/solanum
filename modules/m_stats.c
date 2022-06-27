@@ -960,8 +960,8 @@ stats_usage (struct Client *source_p)
 			   (int) (rus.ru_stime.tv_sec % 60));
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
 			   "R :RSS %ld ShMem %ld Data %ld Stack %ld",
-			   rus.ru_maxrss, (rus.ru_ixrss / rup),
-			   (rus.ru_idrss / rup), (rus.ru_isrss / rup));
+			   rus.ru_maxrss, (long)(rus.ru_ixrss / rup),
+			   (long)(rus.ru_idrss / rup), (long)(rus.ru_isrss / rup));
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
 			   "R :Swaps %d Reclaims %d Faults %d",
 			   (int) rus.ru_nswap, (int) rus.ru_minflt, (int) rus.ru_majflt);

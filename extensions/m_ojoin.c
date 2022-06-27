@@ -134,7 +134,7 @@ mo_ojoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		sendto_one(source_p, form_str(RPL_TOPIC), me.name,
 			   source_p->name, chptr->chname, chptr->topic);
 		sendto_one(source_p, form_str(RPL_TOPICWHOTIME), me.name,
-			   source_p->name, chptr->chname, chptr->topic_info, chptr->topic_time);
+			   source_p->name, chptr->chname, chptr->topic_info, (long long)chptr->topic_time);
 	}
 
 	source_p->localClient->last_join_time = rb_current_time();
