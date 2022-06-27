@@ -716,7 +716,22 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 		goto finish_join_check;
 	}
 
-	if(*chptr->mode.key && (EmptyString(key) || irccmp(chptr->mode.key, key)))
+	struct Ban *invex = NULL;
+	struct matchset ms;
+	rb_dlink_node *ptr;
+
+	matchset_for_client(source_p, &ms);
+
+	RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
+	{
+		invex = ptr->data;
+		if (matches_mask(&ms, invex->banstr) ||
+				match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
+			break;
+	}
+
+	if(*chptr->mode.key && !invex &&
+			(EmptyString(key) || irccmp(chptr->mode.key, key)))
 	{
 		moduledata.approved = ERR_BADCHANNELKEY;
 		goto finish_join_check;
