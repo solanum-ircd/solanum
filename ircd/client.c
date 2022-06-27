@@ -1573,11 +1573,11 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
-			     " for %ld seconds.  %d/%d sendK/recvK.",
-			     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+			     " for %lld seconds.  %d/%d sendK/recvK.",
+			     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
-	ilog(L_SERVER, "%s was connected for %ld seconds.  %d/%d sendK/recvK.",
-	     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+	ilog(L_SERVER, "%s was connected for %lld seconds.  %d/%d sendK/recvK.",
+	     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
 	if(has_id(source_p))
 		del_from_id_hash(source_p->id, source_p);
