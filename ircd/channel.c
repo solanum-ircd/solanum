@@ -716,10 +716,6 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 		goto finish_join_check;
 	}
 
-	struct Ban *invex = NULL;
-	struct matchset ms;
-	rb_dlink_node *ptr;
-
 	matchset_for_client(source_p, &ms);
 
 	RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
@@ -736,6 +732,8 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 		moduledata.approved = ERR_BADCHANNELKEY;
 		goto finish_join_check;
 	}
+
+	invex = NULL;
 
 	/* All checks from this point on will forward... */
 	if(forward)
