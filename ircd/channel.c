@@ -724,6 +724,8 @@ can_join(struct Client *source_p, struct Channel *chptr, const char *key, const 
 		if (matches_mask(&ms, invex->banstr) ||
 				match_extban(invex->banstr, source_p, chptr, CHFL_INVEX))
 			break;
+
+		invex = NULL;
 	}
 
 	if(*chptr->mode.key && !invex &&
