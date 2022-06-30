@@ -90,22 +90,26 @@ another server to connect somewhere, and using ``SQUIT`` with an argument
 that is not locally connected. (In both cases all opers with +w set will
 be notified.)
 
-oper:spy, use operspy
----------------------
+oper:spy_channel, use operspy on channels
+-----------------------------------------
 
 This allows using ``/mode !#channel``, ``/whois !nick``, ``/who !#channel``,
-``/chantrace !#channel``, ``/topic !#channel``, ``/who !mask``, ``/masktrace
-!user@host :gecos`` and ``/scan umodes +modes-modes global list`` to see
-through secret channels, invisible users, etc.
+``/chantrace !#channel``, ``/topic !#channel``, to see through secret channels,
+see details of channels you are not int, etc.
 
 All operspy usage is broadcasted to opers with snomask ``+Z`` set (on the
 entire network) and optionally logged. If you grant this to anyone, it
 is a good idea to establish concrete policies describing what it is to
 be used for, and what not.
 
-If ``operspy_dont_care_user_info`` is enabled, ``/who mask`` is operspy
-also, and ``/who !mask``, ``/who mask``, ``/masktrace !user@host :gecos`` and ``/scan
-umodes +modes-modes global list`` do not generate ``+Z`` notices or logs.
+oper:spy_user, use operspy on user info
+---------------------------------------
+
+This allows using ``/masktrace !nick!user@host :gecos``, ``/who !mask``, ``/scan
+umodes +modes-modes global list``, to see user info in bulk.
+
+If ``operspy_dont_care_user_info`` is enabled, these do not generate ``+Z`` notices
+or logs.
 
 oper:unkline, unkline and undline
 ---------------------------------

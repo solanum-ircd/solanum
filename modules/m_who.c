@@ -171,7 +171,8 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 		return;
 	}
 
-	if(IsOperSpy(source_p) && *mask == '!')
+	if(*mask == '!'
+		&& (IsChannelName(mask + 1) ? IsOperSpyChannel(source_p) : IsOperSpyUser(source_p)))
 	{
 		mask++;
 		operspy = 1;
@@ -267,11 +268,6 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 		else
 			last_used = rb_current_time();
 	}
-
-	/* Note: operspy_dont_care_user_info does not apply to
-	 * who on channels */
-	if(IsOperSpy(source_p) && ConfigFileEntry.operspy_dont_care_user_info)
-		operspy = 1;
 
 	/* '/who 0' for a global list.  this forces clients to actually
 	 * request a full list.  I presume its because of too many typos

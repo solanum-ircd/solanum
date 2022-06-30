@@ -85,7 +85,7 @@ m_mode(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	dest = parv[1];
 
-	if(IsOperSpy(source_p) && *dest == '!')
+	if(IsOperSpyChannel(source_p) && *dest == '!')
 	{
 		dest++;
 		operspy = 1;

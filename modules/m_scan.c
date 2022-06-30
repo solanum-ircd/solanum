@@ -187,7 +187,7 @@ scan_umodes(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	}
 	if (target_list == &global_client_list && list_users)
 	{
-		if (IsOperSpy(source_p))
+		if (IsOperSpyUser(source_p))
 		{
 			if (!ConfigFileEntry.operspy_dont_care_user_info)
 			{
