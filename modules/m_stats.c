@@ -908,8 +908,8 @@ stats_ssld_foreach(void *data, pid_t pid, int cli_count, enum ssld_status status
 	struct Client *source_p = data;
 
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
-			"S :%u %c %u :%s",
-			pid,
+			"S :%ld %c %u :%s",
+			(long)pid,
 			status == SSLD_DEAD ? 'D' : (status == SSLD_SHUTDOWN ? 'S' : 'A'),
 			cli_count,
 			version);

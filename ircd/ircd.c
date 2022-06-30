@@ -756,8 +756,8 @@ solanum_main(int argc, char * const argv[])
 		check_splitmode_ev = rb_event_add("check_splitmode", check_splitmode, NULL, 5);
 
 	if(server_state_foreground)
-		inotice("now running in foreground mode from %s as pid %d ...",
-		        ConfigFileEntry.dpath, getpid());
+		inotice("now running in foreground mode from %s as pid %ld ...",
+		        ConfigFileEntry.dpath, (long)getpid());
 
 	rb_lib_loop(0);
 

@@ -687,8 +687,6 @@ valid_temp_time(const char *p)
 	time_t result = 0;
 	long current = 0;
 
-	time_t max_time = (uintmax_t) (~(time_t)0) >> 1;
-
 	while (*p) {
 		char *endp;
 		int mul;
@@ -696,8 +694,6 @@ valid_temp_time(const char *p)
 		errno = 0;
 		current = strtol(p, &endp, 10);
 
-		if (errno == ERANGE)
-			return -1;
 		if (endp == p)
 			return -1;
 		if (current < 0)
@@ -726,7 +722,7 @@ valid_temp_time(const char *p)
 
 		current *= mul;
 
-		if (current > max_time - result)
+		if (current > MAX_TEMP_TIME - result)
 			return MAX_TEMP_TIME;
 
 		result += current;

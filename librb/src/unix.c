@@ -162,7 +162,7 @@ rb_path_to_self(void)
 {
 	static char path_buf[4096];
 #if defined(HAVE_GETEXECNAME)
-	char *s = getexecname();
+	const char *s = getexecname();
 	if (s == NULL)
 		return NULL;
 	realpath(s, path_buf);
