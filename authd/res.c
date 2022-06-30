@@ -514,7 +514,7 @@ static void do_query_number(struct DNSQuery *query, const struct rb_sockaddr_sto
 		request->name = (char *)rb_malloc(IRCD_RES_HOSTLEN + 1);
 	}
 
-	build_rdns(request->queryname, IRCD_RES_HOSTLEN + 1, addr, NULL);
+	build_rdns(request->queryname, sizeof request->queryname, addr, NULL);
 
 	request->type = T_PTR;
 	query_name(request);
