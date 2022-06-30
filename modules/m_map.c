@@ -108,7 +108,7 @@ dump_map(struct Client *client_p, struct Client *root_p, char *pbuf)
 	}
 
 	frac = (1000 * rb_dlink_list_length(&root_p->serv->users) + Count.total / 2) / Count.total;
-	snprintf(buf + USER_COL, BUFSIZE - USER_COL,
+	snprintf(buf + USER_COL, sizeof buf - USER_COL,
 		 " | Users: %5lu (%2d.%1d%%)", rb_dlink_list_length(&root_p->serv->users),
 		 frac / 10, frac % 10);
 
@@ -172,7 +172,7 @@ flattened_map(struct Client *client_p)
 		}
 	}
 
-	snprintf(buf + USER_COL, BUFSIZE - USER_COL,
+	snprintf(buf + USER_COL, sizeof buf - USER_COL,
 		" | Users: %5lu (%4.1f%%)", rb_dlink_list_length(&me.serv->users),
 		100 * (float) rb_dlink_list_length(&me.serv->users) / (float) Count.total);
 
@@ -210,7 +210,7 @@ flattened_map(struct Client *client_p)
 			}
 		}
 
-		snprintf(buf + USER_COL, BUFSIZE - USER_COL,
+		snprintf(buf + USER_COL, sizeof buf - USER_COL,
 			" | Users: %5lu (%4.1f%%)", rb_dlink_list_length(&target_p->serv->users),
 			100 * (float) rb_dlink_list_length(&target_p->serv->users) / (float) Count.total);
 
