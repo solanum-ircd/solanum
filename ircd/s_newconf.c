@@ -685,23 +685,55 @@ time_t
 valid_temp_time(const char *p)
 {
 	time_t result = 0;
+	long current = 0;
 
-	while(*p)
-	{
-		if(IsDigit(*p))
-		{
-			result *= 10;
-			result += ((*p) & 0xF);
-			p++;
-		}
-		else
+	while (*p) {
+		char *endp;
+		int mul;
+
+		errno = 0;
+		current = strtol(p, &endp, 10);
+
+		if (endp == p)
 			return -1;
+		if (current < 0)
+			return -1;
+
+		switch (*endp) {
+		case '\0': /* No unit was given so send it back as minutes */
+		case 'm':
+			mul = 60;
+			break;
+		case 'h':
+			mul = 3600;
+			break;
+		case 'd':
+			mul = 86400;
+			break;
+		case 'w':
+			mul = 604800;
+			break;
+		default:
+			return -1;
+		}
+
+		if (current > LONG_MAX / mul)
+			return MAX_TEMP_TIME;
+
+		current *= mul;
+
+		if (current > MAX_TEMP_TIME - result)
+			return MAX_TEMP_TIME;
+
+		result += current;
+
+		if (*endp == '\0')
+			break;
+
+		p = endp + 1;
 	}
 
-	if(result > (60 * 24 * 7 * 52))
-		result = (60 * 24 * 7 * 52);
-
-	return(result * 60);
+	return MIN(result, MAX_TEMP_TIME);
 }
 
 /* Propagated bans are expired elsewhere. */

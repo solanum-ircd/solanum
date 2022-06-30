@@ -40,6 +40,9 @@
 #include <openssl/rsa.h>
 #endif
 
+#define MAX_TEMP_TIME (52 * 7 * 24 * 60 * 60)
+
+struct Client;
 struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;

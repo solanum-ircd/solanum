@@ -249,9 +249,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 	char *realban = LOCAL_COPY(banid);
 	rb_dlink_node *ptr;
 
-	/* dont let local clients overflow the banlist, or set redundant
-	 * bans
-	 */
+	/* dont let local clients overflow the banlist */
 	if(MyClient(source_p))
 	{
 		if((rb_dlink_list_length(&chptr->banlist) + rb_dlink_list_length(&chptr->exceptlist) + rb_dlink_list_length(&chptr->invexlist) + rb_dlink_list_length(&chptr->quietlist)) >= (unsigned long)((chptr->mode.mode & MODE_EXLIMIT) ? ConfigChannel.max_bans_large : ConfigChannel.max_bans))
@@ -260,25 +258,15 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 				   me.name, source_p->name, chptr->chname, realban);
 			return false;
 		}
-
-		RB_DLINK_FOREACH(ptr, list->head)
-		{
-			actualBan = ptr->data;
-			if(mask_match(actualBan->banstr, realban))
-				return false;
-		}
 	}
-	/* dont let remotes set duplicates */
-	else
+
+	/* don't let anyone set duplicate bans */
+	RB_DLINK_FOREACH(ptr, list->head)
 	{
-		RB_DLINK_FOREACH(ptr, list->head)
-		{
-			actualBan = ptr->data;
-			if(!irccmp(actualBan->banstr, realban))
-				return false;
-		}
+		actualBan = ptr->data;
+		if(!irccmp(actualBan->banstr, realban))
+			return false;
 	}
-
 
 	if(IsPerson(source_p))
 		sprintf(who, "%s!%s@%s", source_p->name, source_p->username, source_p->host);
@@ -937,7 +925,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		}
 
 		if (removed && removed->forward)
-			removed_mask_pos += snprintf(buf + old_removed_mask_pos, sizeof(buf), "%s$%s", removed->banstr, removed->forward) + 1;
+			removed_mask_pos += snprintf(buf + old_removed_mask_pos, sizeof(buf) - old_removed_mask_pos, "%s$%s", removed->banstr, removed->forward) + 1;
 		else
 			removed_mask_pos += rb_strlcpy(buf + old_removed_mask_pos, mask, sizeof(buf)) + 1;
 		if (removed)

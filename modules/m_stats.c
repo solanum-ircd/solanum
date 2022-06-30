@@ -453,7 +453,7 @@ stats_deny (struct Client *source_p)
 static void
 stats_exempt(struct Client *source_p)
 {
-	char *name, *host, *user, *classname;
+	char *name, *host, *user, *classname, *desc;
 	const char *pass;
 	struct AddressRec *arec;
 	struct ConfItem *aconf;
@@ -474,7 +474,7 @@ stats_exempt(struct Client *source_p)
 			{
 				aconf = arec->aconf;
 				get_printable_conf (aconf, &name, &host, &pass,
-						    &user, &port, &classname);
+						    &user, &port, &classname, &desc);
 
 				sendto_one_numeric(source_p, RPL_STATSDLINE,
 						   form_str(RPL_STATSDLINE),
@@ -533,7 +533,7 @@ stats_auth (struct Client *source_p)
 	else if((ConfigFileEntry.stats_i_oper_only == 1) && !IsOperGeneral (source_p))
 	{
 		struct ConfItem *aconf;
-		char *name, *host, *user, *classname;
+		char *name, *host, *user, *classname, *desc;
 		const char *pass = "*";
 		int port;
 
@@ -550,13 +550,13 @@ stats_auth (struct Client *source_p)
 		if(aconf == NULL)
 			return;
 
-		get_printable_conf (aconf, &name, &host, &pass, &user, &port, &classname);
+		get_printable_conf (aconf, &name, &host, &pass, &user, &port, &classname, &desc);
 		if(!EmptyString(aconf->spasswd))
 			pass = aconf->spasswd;
 
 		sendto_one_numeric(source_p, RPL_STATSILINE, form_str(RPL_STATSILINE),
 				   name, pass, show_iline_prefix(source_p, aconf, user),
-				   host, port, classname);
+				   host, port, classname, desc);
 	}
 
 	/* Theyre opered, or allowed to see all auth blocks */
@@ -908,8 +908,8 @@ stats_ssld_foreach(void *data, pid_t pid, int cli_count, enum ssld_status status
 	struct Client *source_p = data;
 
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
-			"S :%u %c %u :%s",
-			pid,
+			"S :%ld %c %u :%s",
+			(long)pid,
 			status == SSLD_DEAD ? 'D' : (status == SSLD_SHUTDOWN ? 'S' : 'A'),
 			cli_count,
 			version);
