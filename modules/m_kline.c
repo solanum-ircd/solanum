@@ -632,12 +632,12 @@ apply_prop_kline(struct Client *source_p, struct ConfItem *aconf,
 			  tkline_time / 60, aconf->user, aconf->host);
 
 	sendto_server(NULL, NULL, CAP_BAN|CAP_TS6, NOCAPS,
-			":%s BAN K %s %s %lu %d %d * :%s%s%s",
+			":%s BAN K %s %s %lu %d %d &s :%s%s%s",
 			source_p->id, aconf->user, aconf->host,
 			(unsigned long)aconf->created,
 			(int)(aconf->hold - aconf->created),
 			(int)(aconf->lifetime - aconf->created),
-			reason,
+			reason, aconf->info.oper,
 			oper_reason ? "|" : "",
 			oper_reason ? oper_reason : "");
 }
