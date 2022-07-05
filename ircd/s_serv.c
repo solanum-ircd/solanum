@@ -1017,12 +1017,16 @@ serv_connect(struct server_conf *server_p, struct Client *by)
 	else if(server_p->aftype == AF_INET || GET_SS_FAMILY(&server_p->connect4) == AF_INET)
 	{
 		sa_connect[0] = server_p->connect4;
+		sa_connect[1] = server_p->connect6;
 		sa_bind[0] = server_p->bind4;
+		sa_bind[1] = server_p->bind6;
 	}
 	else if(server_p->aftype == AF_INET6 || GET_SS_FAMILY(&server_p->connect6) == AF_INET6)
 	{
 		sa_connect[0] = server_p->connect6;
+		sa_connect[1] = server_p->connect4;
 		sa_bind[0] = server_p->bind6;
+		sa_bind[1] = server_p->bind4;
 	}
 
 	/* log */
