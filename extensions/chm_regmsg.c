@@ -71,7 +71,7 @@ chm_regmsg_process(void *data_)
 		return;
 
 	sendto_one_numeric(data->source_p, ERR_MSGNEEDREGGEDNICK, form_str(ERR_MSGNEEDREGGEDNICK),
-		data->source_p->name, data->chptr->chname);
+		data->chptr->chname);
 	data->approved = ERR_MSGNEEDREGGEDNICK;
 }
 
