@@ -48,6 +48,7 @@ static void ms_mode(struct MsgBuf *, struct Client *, struct Client *, int, cons
 static void ms_tmode(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void ms_mlock(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void ms_bmask(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void ms_ebmask(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 struct Message mode_msgtab = {
 	"MODE", 0, 0, 0, 0,
@@ -65,8 +66,12 @@ struct Message bmask_msgtab = {
 	"BMASK", 0, 0, 0, 0,
 	{mg_ignore, mg_ignore, mg_ignore, {ms_bmask, 5}, mg_ignore, mg_ignore}
 };
+struct Message ebmask_msgtab = {
+	"EBMASK", 0, 0, 0, 0,
+	{mg_ignore, mg_ignore, mg_ignore, {ms_ebmask, 5}, mg_ignore, mg_ignore}
+};
 
-mapi_clist_av1 mode_clist[] = { &mode_msgtab, &tmode_msgtab, &mlock_msgtab, &bmask_msgtab, NULL };
+mapi_clist_av1 mode_clist[] = { &mode_msgtab, &tmode_msgtab, &mlock_msgtab, &bmask_msgtab, &ebmask_msgtab, NULL };
 
 DECLARE_MODULE_AV2(mode, NULL, NULL, mode_clist, NULL, NULL, NULL, NULL, mode_desc);
 
@@ -256,16 +261,19 @@ possibly_remove_lower_forward(struct Client *fakesource_p, int mems,
 }
 
 static void
-ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	static char modebuf[BUFSIZE];
 	static char parabuf[BUFSIZE];
+	static char degrade[BUFSIZE];
+	static char squitreason[120];
 	struct Channel *chptr;
+	struct Ban *banptr;
 	rb_dlink_list *banlist;
-	char *s, *forward;
-	char *t;
+	char *s, *mask, *forward, *who;
 	char *mbuf;
 	char *pbuf;
+	char *dbuf;
 	long mode_type;
 	int mlen;
 	int plen = 0;
@@ -274,6 +282,7 @@ ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	int modecount = 0;
 	int needcap = NOCAPS;
 	int mems;
+	time_t when = (long)rb_current_time();
 	struct Client *fakesource_p;
 
 	if(!IsChanPrefix(parv[2][0]) || !check_channel_name(parv[2]))
@@ -327,29 +336,29 @@ ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		fakesource_p = &me;
 	else
 		fakesource_p = source_p;
+	who = fakesource_p->name;
+
 	mlen = sprintf(modebuf, ":%s MODE %s +", fakesource_p->name, chptr->chname);
 	mbuf = modebuf + mlen;
 	pbuf = parabuf;
+	dbuf = degrade;
 
 	while(*s == ' ')
 		s++;
 
-	/* next char isnt a space, point t to the next one */
-	if((t = strchr(s, ' ')) != NULL)
-	{
-		*t++ = '\0';
+	s = strtok(s, " ");
 
-		/* double spaces will break the parser */
-		while(*t == ' ')
-			t++;
-	}
-
-	/* couldve skipped spaces and got nothing.. */
 	while(!EmptyString(s))
 	{
-		/* ban with a leading ':' -- this will break the protocol */
 		if(*s == ':')
-			goto nextban;
+		{
+			/* ban with a leading ':' -- this will break the protocol */
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+				"Link %s dropped, invalid BMASK mask (%s)", source_p->name, s);
+			snprintf(squitreason, sizeof squitreason, "Invalid BMASK mask (%s)", s);
+			exit_client(client_p, client_p, client_p, squitreason);
+			return;
+		}
 
 		tlen = strlen(s);
 
@@ -368,8 +377,30 @@ ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 						parv[3][0], s, forward);
 		}
 
-		if(add_id(fakesource_p, chptr, s, forward, banlist, mode_type))
+		mask = s;
+		if (extended) {
+			when = atol(strtok(NULL, " "));
+			who = strtok(NULL, " ");
+			if (who == NULL)
+			{
+				/* EBMASK params don't divide by 3, so we have an incomplete chunk */
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					"Link %s dropped, invalid EBMASK chunk", source_p->name);
+				snprintf(squitreason, sizeof squitreason, "Invalid EBMASK chunk");
+				exit_client(client_p, client_p, client_p, squitreason);
+				return;
+			}
+
+			arglen = sprintf(dbuf, "%s ", mask);
+			dbuf += arglen;
+		}
+
+		if((banptr = add_id(fakesource_p, chptr, mask, forward, banlist, mode_type)) != NULL)
 		{
+			banptr->when = when;
+			rb_free(banptr->who);
+			banptr->who = rb_strdup(who);
+
 			/* this new one wont fit.. */
 			if(mlen + MAXMODEPARAMS + plen + tlen > BUFSIZE - 5 ||
 			   modecount >= MAXMODEPARAMS)
@@ -387,25 +418,13 @@ ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 				forward[-1] = '$';
 
 			*mbuf++ = parv[3][0];
-			arglen = sprintf(pbuf, "%s ", s);
+			arglen = sprintf(pbuf, "%s ", mask);
 			pbuf += arglen;
 			plen += arglen;
 			modecount++;
 		}
 
-	      nextban:
-		s = t;
-
-		if(s != NULL)
-		{
-			if((t = strchr(s, ' ')) != NULL)
-			{
-				*t++ = '\0';
-
-				while(*t == ' ')
-					t++;
-			}
-		}
+		s = strtok(NULL, " ");
 	}
 
 	if(modecount)
@@ -415,6 +434,25 @@ ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		sendto_channel_local(fakesource_p, mems, chptr, "%s %s", modebuf, parabuf);
 	}
 
-	sendto_server(client_p, chptr, CAP_TS6 | needcap, NOCAPS, ":%s BMASK %ld %s %s :%s",
-		      source_p->id, (long) chptr->channelts, chptr->chname, parv[3], parv[4]);
+	if (extended) {
+		sendto_server(client_p, chptr, CAP_EBMASK | CAP_TS6 | needcap, NOCAPS, ":%s EBMASK %ld %s %s :%s",
+			      source_p->id, (long) chptr->channelts, chptr->chname, parv[3], parv[4]);
+		sendto_server(client_p, chptr, CAP_TS6 | needcap, CAP_EBMASK, ":%s BMASK %ld %s %s :%s",
+			      source_p->id, (long) chptr->channelts, chptr->chname, parv[3], degrade);
+	}
+	else
+		sendto_server(client_p, chptr, CAP_TS6 | needcap, NOCAPS, ":%s BMASK %ld %s %s :%s",
+			      source_p->id, (long) chptr->channelts, chptr->chname, parv[3], parv[4]);
 }
+
+static void
+ms_bmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+{
+	do_bmask(false, msgbuf_p, client_p, source_p, parc, parv);
+}
+static void
+ms_ebmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+{
+	do_bmask(true, msgbuf_p, client_p, source_p, parc, parv);
+}
+
