@@ -300,6 +300,16 @@ isupport_nicklen(const void *ptr)
 	return result;
 }
 
+static const char *
+isupport_client_tag_deny(const void *ptr)
+{
+	static char result[200];
+	// TODO: iterate over allowed client tags declared by modules
+	// add -x, -y, -z for each of them.
+	snprintf(result, sizeof result, "%s", "*");
+	return result;
+}
+
 void
 init_isupport(void)
 {
@@ -326,6 +336,7 @@ init_isupport(void)
 	add_isupport("DEAF", isupport_umode, "D");
 	add_isupport("TARGMAX", isupport_targmax, NULL);
 	add_isupport("EXTBAN", isupport_extban, NULL);
+	add_isupport("CLIENTTAGDENY", isupport_client_tag_deny, NULL);
 }
 
 void
