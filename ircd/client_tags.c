@@ -32,9 +32,55 @@
 #include "stdinc.h"
 #include "client_tags.h"
 
-int
-accept_client_tag(const char* tag_key, const char* tag_value, struct entity* target)
+struct client_tag_support *supported_client_tags;
+size_t num_client_tags = 0;
+size_t max_client_tags = MAX_CLIENT_TAGS;
+
+void
+init_client_tags(void)
 {
-	return (1); // accepts
-	return (0); // refuses
+	supported_client_tags = rb_malloc(sizeof(struct client_tag_support) * MAX_CLIENT_TAGS);
+}
+
+int
+add_client_tag(const char *name)
+{
+	int i;
+
+	if (num_client_tags >= max_client_tags)
+		return -1;
+
+	strcpy(supported_client_tags[num_client_tags].name, name);
+	num_client_tags++;
+
+	return num_client_tags - 1;
+}
+
+void
+remove_client_tag(const char *name)
+{
+	for (size_t index = 0 ; index < num_client_tags ; index++)
+	{
+		if (strcmp(supported_client_tags[index].name, name)) {
+			strcpy(supported_client_tags[index].name, supported_client_tags[num_client_tags - 1].name);
+			num_client_tags--;
+			break;
+		}
+	}
+}
+
+void
+format_client_tags(char *dst, size_t dst_sz, const char *individual_fmt, const char *join_sep)
+{
+	size_t start = 0;
+	for (size_t index = 0 ; index < num_client_tags ; index++) {
+		if (start >= dst_sz)
+			break;
+
+		if (index > 0) {
+			dst[start] = ',';
+			start++;
+		}
+		start += snprintf((dst + start), dst_sz - start, individual_fmt, supported_client_tags[index].name);
+	}
 }

@@ -32,9 +32,15 @@
 #ifndef INCLUDED_client_tags_h
 #define INCLUDED_client_tags_h
 
-// TODO: uniformize this
-struct entity;
+#define MAX_CLIENT_TAGS 100
+#define CLIENT_TAG_MAX_LENGTH 100
 
-extern int accept_client_tag(const char *, const char*, struct entity*);
+struct client_tag_support {
+	char name[CLIENT_TAG_MAX_LENGTH];
+};
+
+extern int add_client_tag(const char *);
+extern void remove_client_tag(const char *);
+extern void format_client_tags(char *, size_t, const char *, const char *);
 
 #endif /* INCLUDED_client_tags_h */
