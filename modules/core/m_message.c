@@ -45,7 +45,7 @@
 #include "inline/stringops.h"
 
 static const char message_desc[] =
-	"Provides the PRIVMSG, NOTICE, TAGMSG commands to send messages to users and channels with message-tags support";
+	"Provides the PRIVMSG, NOTICE, TAGMSG commands to send messages to users and channels";
 
 static void m_message(enum message_type, struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_privmsg(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -234,17 +234,6 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 
 	for(i = 0; i < ntargets; i++)
 	{
-		/* Process client tags for each target
-		 */
-		if (incoming_client != NULL) {
-			for (size_t tag_index = 0; tag_index < incoming_message->n_tags ; tag_index++) {
-				struct MsgTag tag = incoming_message->tags[tag_index];
-				if (!accept_client_tag(tag.key, tag.value, &targets[i])) {
-					msgbuf_append_tag(msgbuf_p, tag.key, tag.value, CLICAP_MESSAGE_TAGS);
-				}
-			}
-		}
-
 		switch (targets[i].type)
 		{
 		case ENTITY_CHANNEL:

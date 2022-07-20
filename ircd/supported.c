@@ -79,6 +79,7 @@
 #include "supported.h"
 #include "chmode.h"
 #include "send.h"
+#include "client_tags.h"
 
 static char allowed_chantypes[BUFSIZE];
 rb_dlink_list isupportlist;
@@ -304,9 +305,14 @@ static const char *
 isupport_client_tag_deny(const void *ptr)
 {
 	static char result[200];
-	// TODO: iterate over allowed client tags declared by modules
-	// add -x, -y, -z for each of them.
-	snprintf(result, sizeof result, "%s", "*");
+	static char exceptions[198];
+
+	format_client_tags(exceptions, sizeof exceptions, "-%s", ",");
+
+	if (EmptyString(exceptions))
+		snprintf(result, sizeof result, "%s", "*");
+	else
+		snprintf(result, sizeof result, "%s,%s", "*", exceptions);
 	return result;
 }
 
