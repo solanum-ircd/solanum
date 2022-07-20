@@ -133,6 +133,14 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 			return 1;
 		}
 	}
+	
+	msgbuf_partial_parse(msgbuf, ch);
+}
+
+int
+msgbuf_partial_parse(struct MsgBuf *msgbuf, char *line)
+{
+	char *ch = line;
 
 	/* truncate message if it's too long */
 	if (strlen(ch) > DATALEN) {
