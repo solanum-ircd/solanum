@@ -45,8 +45,6 @@ init_client_tags(void)
 int
 add_client_tag(const char *name)
 {
-	int i;
-
 	if (num_client_tags >= max_client_tags)
 		return -1;
 
