@@ -134,7 +134,7 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 		}
 	}
 	
-	msgbuf_partial_parse(msgbuf, ch);
+	return msgbuf_partial_parse(msgbuf, ch);
 }
 
 int
