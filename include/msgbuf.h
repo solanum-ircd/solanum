@@ -81,7 +81,7 @@ int msgbuf_parse(struct MsgBuf *msgbuf, char *line);
  * Parse partially a msgbuf without tags
  * assuming msgbuf is already initialized.
  */
-int msgbuf_partial_parse(struct MsgBuf *msgbuf, char *line);
+int msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line);
 
 /*
  * Unparse the tail of a msgbuf perfectly, preserving framing details
