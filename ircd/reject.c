@@ -181,7 +181,11 @@ add_reject(struct Client *client_p, const char *mask1, const char *mask2, struct
 	uint32_t hashv;
 
 	/* Reject is disabled */
-	if(ConfigFileEntry.reject_after_count == 0 || ConfigFileEntry.reject_duration == 0)
+	if (ConfigFileEntry.reject_after_count == 0 || ConfigFileEntry.reject_duration == 0)
+		return;
+
+	/* Don't cache rejects for ident@ klines */
+	if (aconf != NULL && aconf->status == CONF_KILL && (EmptyString(aconf->user) || strcmp(aconf->user, "*")))
 		return;
 
 	hashv = 0;
