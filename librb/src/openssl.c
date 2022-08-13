@@ -392,27 +392,42 @@ rb_setup_ssl_server(const char *const certfile, const char *keyfile,
 	}
 	else
 	{
-		FILE *const dhf = fopen(dhfile, "r");
+		BIO *const dhf = BIO_new_file(dhfile, "r");
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		EVP_PKEY* dhp = NULL;
+#else
 		DH *dhp = NULL;
+#endif
 
 		if(dhf == NULL)
 		{
-			rb_lib_log("%s: fopen ('%s'): %s", __func__, dhfile, strerror(errno));
-		}
-		else if(PEM_read_DHparams(dhf, &dhp, NULL, NULL) == NULL)
-		{
-			rb_lib_log("%s: PEM_read_DHparams ('%s'): %s", __func__, dhfile,
+			rb_lib_log("%s: BIO_new_file ('%s'): %s", __func__, dhfile,
 			           rb_ssl_strerror(rb_ssl_last_err()));
-			fclose(dhf);
+		}
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		else if(PEM_read_bio_Parameters(dhf, &dhp) == NULL)
+		{
+			rb_lib_log("%s: PEM_read_bio_Parameters ('%s'): %s", __func__, dhfile,
+			           rb_ssl_strerror(rb_ssl_last_err()));
+#else
+		else if(PEM_read_bio_DHparams(dhf, &dhp, NULL, NULL) == NULL)
+		{
+			rb_lib_log("%s: PEM_read_bio_DHparams ('%s'): %s", __func__, dhfile,
+			           rb_ssl_strerror(rb_ssl_last_err()));
+#endif
+			BIO_free(dhf);
 		}
 		else
 		{
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+			SSL_CTX_set0_tmp_dh_pkey(ssl_ctx_new, dhp);
+#else
 			SSL_CTX_set_tmp_dh(ssl_ctx_new, dhp);
 			DH_free(dhp);
-			fclose(dhf);
+#endif
+			BIO_free(dhf);
 		}
 	}
-
 
 	int ret_old = SSL_CTX_set_cipher_list(ssl_ctx_new, cipherlist);
 

@@ -84,7 +84,11 @@ mapi_clist_av1 challenge_clist[] = { &challenge_msgtab, NULL };
 
 DECLARE_MODULE_AV2(challenge, NULL, NULL, challenge_clist, NULL, NULL, NULL, NULL, challenge_desc);
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+static bool generate_challenge(char **r_challenge, char **r_response, EVP_PKEY * key);
+#else
 static bool generate_challenge(char **r_challenge, char **r_response, RSA * key);
+#endif
 
 static void
 cleanup_challenge(struct Client *target_p)
@@ -294,9 +298,12 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 }
 
 static bool
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+generate_challenge(char **r_challenge, char **r_response, EVP_PKEY * rsa)
+#else
 generate_challenge(char **r_challenge, char **r_response, RSA * rsa)
+#endif
 {
-	SHA_CTX ctx;
 	unsigned char secret[CHALLENGE_SECRET_LENGTH], *tmp;
 	unsigned long length;
 	unsigned long e = 0;
@@ -307,6 +314,25 @@ generate_challenge(char **r_challenge, char **r_response, RSA * rsa)
 		return false;
 	if(rb_get_random(secret, CHALLENGE_SECRET_LENGTH))
 	{
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		EVP_MD_CTX *mctx = EVP_MD_CTX_new();
+		EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new(rsa, NULL);
+
+		EVP_DigestInit(mctx, EVP_sha1());
+		EVP_DigestUpdate(mctx, (uint8_t *)secret, CHALLENGE_SECRET_LENGTH);
+		*r_response = rb_malloc(SHA_DIGEST_LENGTH);
+		EVP_DigestFinal(mctx, (uint8_t *)*r_response, NULL);
+
+		length = EVP_PKEY_get_size(rsa);
+		tmp = rb_malloc(length);
+		EVP_PKEY_encrypt_init(pctx);
+		EVP_PKEY_CTX_set_rsa_padding(pctx, RSA_PKCS1_OAEP_PADDING);
+		ret = EVP_PKEY_encrypt(pctx, tmp, &length, secret, CHALLENGE_SECRET_LENGTH);
+		EVP_MD_CTX_free(mctx);
+		EVP_PKEY_CTX_free(pctx);
+#else
+		SHA_CTX ctx;
+
 		SHA1_Init(&ctx);
 		SHA1_Update(&ctx, (uint8_t *)secret, CHALLENGE_SECRET_LENGTH);
 		*r_response = rb_malloc(SHA_DIGEST_LENGTH);
@@ -315,6 +341,7 @@ generate_challenge(char **r_challenge, char **r_response, RSA * rsa)
 		length = RSA_size(rsa);
 		tmp = rb_malloc(length);
 		ret = RSA_public_encrypt(CHALLENGE_SECRET_LENGTH, secret, tmp, rsa, RSA_PKCS1_OAEP_PADDING);
+#endif
 
 		if(ret >= 0)
 		{

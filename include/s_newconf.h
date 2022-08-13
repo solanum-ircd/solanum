@@ -121,7 +121,11 @@ struct oper_conf
 
 #ifdef HAVE_LIBCRYPTO
 	char *rsa_pubkey_file;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY *rsa_pubkey;
+#else
 	RSA *rsa_pubkey;
+#endif
 #endif
 };
 

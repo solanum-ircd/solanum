@@ -6,6 +6,10 @@
 #ifdef HAVE_LIBCRYPTO
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/decoder.h>
+#include <openssl/core.h>
+#endif
 #endif
 
 #include "newconf.h"
@@ -631,8 +635,15 @@ conf_end_oper(struct TopConf *tc)
 				return 0;
 			}
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+			OSSL_DECODER_CTX *const ctx = OSSL_DECODER_CTX_new_for_pkey(&yy_tmpoper->rsa_pubkey, "PEM", NULL, "RSA", OSSL_KEYMGMT_SELECT_PUBLIC_KEY, NULL, NULL);
+			if (ctx != NULL)
+				OSSL_DECODER_from_bio(ctx, file);
+			OSSL_DECODER_CTX_free(ctx);
+#else
 			yy_tmpoper->rsa_pubkey =
 				(RSA *) PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
+#endif
 
 			(void)BIO_set_close(file, BIO_CLOSE);
 			BIO_free(file);

@@ -235,7 +235,11 @@ free_oper_conf(struct oper_conf *oper_p)
 	rb_free(oper_p->rsa_pubkey_file);
 
 	if(oper_p->rsa_pubkey)
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		OPENSSL_free((void *)oper_p->rsa_pubkey);
+#else
 		RSA_free(oper_p->rsa_pubkey);
+#endif
 #endif
 
 	rb_free(oper_p);
