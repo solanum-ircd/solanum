@@ -31,6 +31,12 @@
  */
 
 #include "stdinc.h"
+
+#ifdef HAVE_LIBCRYPTO
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
+#endif
+
 #include "ircd_defs.h"
 #include "s_conf.h"
 #include "s_newconf.h"
@@ -235,7 +241,11 @@ free_oper_conf(struct oper_conf *oper_p)
 	rb_free(oper_p->rsa_pubkey_file);
 
 	if(oper_p->rsa_pubkey)
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+		EVP_PKEY_free(oper_p->rsa_pubkey);
+#else
 		RSA_free(oper_p->rsa_pubkey);
+#endif
 #endif
 
 	rb_free(oper_p);
