@@ -215,7 +215,7 @@ struct LocalUser
 	 */
 	char *passwd;
 	char *auth_user;
-	char *challenge;
+	unsigned char *challenge;
 	char *fullcaps;
 	char *cipher_string;
 
