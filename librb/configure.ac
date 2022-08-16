@@ -395,7 +395,7 @@ elif test "$assert" = soft; then
 	AC_DEFINE(SOFT_ASSERT, 1, [Define this to enable soft asserts.])
 	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
 elif test "$assert" = yes; then
-	assert = "hard";
+	assert="hard"
 fi
 
 AC_MSG_CHECKING(if you want to do a profile build)
