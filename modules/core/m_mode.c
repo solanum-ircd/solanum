@@ -263,7 +263,7 @@ possibly_remove_lower_forward(struct Client *fakesource_p, int mems,
 static void
 do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	static char modebuf[BUFSIZE];
+	static char output[BUFSIZE];
 	static char parabuf[BUFSIZE];
 	static char degrade[BUFSIZE];
 	static char squitreason[120];
@@ -271,9 +271,9 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 	struct Ban *banptr;
 	rb_dlink_list *banlist;
 	char *s, *mask, *forward, *who;
-	char *mbuf;
-	char *pbuf;
-	char *dbuf;
+	char *output_ptr;
+	char *param_ptr;
+	char *degrade_ptr;
 	long mode_type;
 	int mlen;
 	int plen = 0;
@@ -338,10 +338,10 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 		fakesource_p = source_p;
 	who = fakesource_p->name;
 
-	mlen = sprintf(modebuf, ":%s MODE %s +", fakesource_p->name, chptr->chname);
-	mbuf = modebuf + mlen;
-	pbuf = parabuf;
-	dbuf = degrade;
+	mlen = sprintf(output, ":%s MODE %s +", fakesource_p->name, chptr->chname);
+	output_ptr = output + mlen;
+	param_ptr = parabuf;
+	degrade_ptr = degrade;
 
 	while(*s == ' ')
 		s++;
@@ -391,8 +391,8 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 				return;
 			}
 
-			arglen = sprintf(dbuf, "%s ", mask);
-			dbuf += arglen;
+			arglen = sprintf(degrade_ptr, "%s ", mask);
+			degrade_ptr += arglen;
 		}
 
 		if((banptr = add_id(fakesource_p, chptr, mask, forward, banlist, mode_type)) != NULL)
@@ -405,21 +405,21 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 			if(mlen + MAXMODEPARAMS + plen + tlen > BUFSIZE - 5 ||
 			   modecount >= MAXMODEPARAMS)
 			{
-				*mbuf = '\0';
-				*(pbuf - 1) = '\0';
-				sendto_channel_local(fakesource_p, mems, chptr, "%s %s", modebuf, parabuf);
+				*output_ptr = '\0';
+				*(param_ptr - 1) = '\0';
+				sendto_channel_local(fakesource_p, mems, chptr, "%s %s", output, parabuf);
 
-				mbuf = modebuf + mlen;
-				pbuf = parabuf;
+				output_ptr = output + mlen;
+				param_ptr = parabuf;
 				plen = modecount = 0;
 			}
 
 			if (forward != NULL)
 				forward[-1] = '$';
 
-			*mbuf++ = parv[3][0];
-			arglen = sprintf(pbuf, "%s ", mask);
-			pbuf += arglen;
+			*output_ptr++ = parv[3][0];
+			arglen = sprintf(param_ptr, "%s ", mask);
+			param_ptr += arglen;
 			plen += arglen;
 			modecount++;
 		}
@@ -429,9 +429,9 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 
 	if(modecount)
 	{
-		*mbuf = '\0';
-		*(pbuf - 1) = '\0';
-		sendto_channel_local(fakesource_p, mems, chptr, "%s %s", modebuf, parabuf);
+		*output_ptr = '\0';
+		*(param_ptr - 1) = '\0';
+		sendto_channel_local(fakesource_p, mems, chptr, "%s %s", output, parabuf);
 	}
 
 	if (extended) {
