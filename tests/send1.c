@@ -322,10 +322,10 @@ static void sendto_one_prefix1__tags(void)
 	is_client_sendq("@time=" ADVENTURE_TIME ";account=test :" TEST_NICK " TEST LChanOp :Hello World!" CRLF, local_chan_o, MSG);
 
 	sendto_one_prefix(local_chan_o, remote, "TEST", ":Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=rtest :" TEST_REMOTE_NICK " TEST LChanOp :Hello World!" CRLF, local_chan_o, MSG);
+	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK " TEST LChanOp :Hello World!" CRLF, local_chan_o, MSG);
 
 	sendto_one_prefix(local_chan_o, server, "TEST", ":Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " TEST LChanOp :Hello World!" CRLF, local_chan_o, MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " TEST LChanOp :Hello World!" CRLF, local_chan_o, MSG);
 
 
 	sendto_one_prefix(local_chan_ov, &me, "TEST", ":Hello %s!", "World");
@@ -335,10 +335,10 @@ static void sendto_one_prefix1__tags(void)
 	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_NICK " TEST LChanOpVoice :Hello World!" CRLF, local_chan_ov, MSG);
 
 	sendto_one_prefix(local_chan_ov, remote, "TEST", ":Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_REMOTE_NICK " TEST LChanOpVoice :Hello World!" CRLF, local_chan_ov, MSG);
+	is_client_sendq(":" TEST_REMOTE_NICK " TEST LChanOpVoice :Hello World!" CRLF, local_chan_ov, MSG);
 
 	sendto_one_prefix(local_chan_ov, server, "TEST", ":Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " TEST LChanOpVoice :Hello World!" CRLF, local_chan_ov, MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " TEST LChanOpVoice :Hello World!" CRLF, local_chan_ov, MSG);
 
 
 	sendto_one_prefix(local_chan_v, &me, "TEST", ":Hello %s!", "World");
@@ -776,8 +776,8 @@ static void sendto_channel_flags__remote__all_members__tags(void)
 	local_chan_v->localClient->caps |= CAP_ACCOUNT_TAG;
 
 	sendto_channel_flags(server, ALL_MEMBERS, remote_chan_p, channel, "TEST #placeholder :Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
+	is_client_sendq("@account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
+	is_client_sendq(":RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
 	is_client_sendq("@account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_v, "On channel; " MSG);
 	is_client_sendq(":RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_p, "On channel; " MSG);
 	is_client_sendq_empty(local_chan_d, "Deaf; " MSG);
@@ -787,8 +787,8 @@ static void sendto_channel_flags__remote__all_members__tags(void)
 	standard_ids();
 
 	sendto_channel_flags(server, ALL_MEMBERS, remote_chan_p, channel, "TEST #placeholder :Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
+	is_client_sendq("@account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
+	is_client_sendq(":RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
 	is_client_sendq("@account=test :RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_v, "On channel; " MSG);
 	is_client_sendq(":RChanPeon" TEST_ID_SUFFIX " TEST #placeholder :Hello World!" CRLF, local_chan_p, "On channel; " MSG);
 	is_client_sendq_empty(local_chan_d, "Deaf; " MSG);
@@ -1481,8 +1481,8 @@ static void sendto_channel_opmod__remote__tags(void)
 	standard_server_caps(0, CAP_CHW | CAP_EOPMOD);
 
 	sendto_channel_opmod(server2, remote2_chan_d, channel, "TEST", "Hello World!");
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=test :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
+	is_client_sendq("@account=test :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
+	is_client_sendq(":R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
 	is_client_sendq_empty(local_chan_v, "Not +o; " MSG);
 	is_client_sendq_empty(local_chan_d, "Deaf; " MSG);
 	is_client_sendq_empty(server, "Message source; " MSG);
@@ -1492,8 +1492,8 @@ static void sendto_channel_opmod__remote__tags(void)
 	standard_server_caps(CAP_CHW, CAP_EOPMOD);
 
 	sendto_channel_opmod(server2, remote2_chan_d, channel, "TEST", "Hello World!");
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=test :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
+	is_client_sendq("@account=test :R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_o, "On channel; " MSG);
+	is_client_sendq(":R2ChanDeaf" TEST_ID_SUFFIX " TEST " TEST_CHANNEL " :Hello World!" CRLF, local_chan_ov, "On channel; " MSG);
 	is_client_sendq_empty(local_chan_v, "Not +o; " MSG);
 	is_client_sendq_empty(local_chan_d, "Deaf; " MSG);
 	is_client_sendq(":" TEST_SERVER2_ID " NOTICE @" TEST_CHANNEL " :<R2ChanDeaf:" TEST_CHANNEL "> Hello World!" CRLF, server, MSG);
@@ -3068,8 +3068,8 @@ static void sendto_match_butone__host__tags(void)
 	// Remote
 	sendto_match_butone(NULL, remote, "*.test", MATCH_HOST, "TEST Hello %s!", "World");
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, user, "Host matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Host matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Host matches; " MSG);
+	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Host matches; " MSG);
+	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Host matches; " MSG);
 	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_v, "Host matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_p, "Host matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_d, "Host matches; " MSG);
@@ -3090,8 +3090,8 @@ static void sendto_match_butone__host__tags(void)
 
 	sendto_match_butone(server, remote, "*.test", MATCH_HOST, "TEST Hello %s!", "World");
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, user, "Host matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Host matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Host matches; " MSG);
+	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Host matches; " MSG);
+	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Host matches; " MSG);
 	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_v, "Host matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_p, "Host matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_d, "Host matches; " MSG);
@@ -3275,8 +3275,8 @@ static void sendto_match_butone__server__tags(void)
 	// Remote
 	sendto_match_butone(NULL, remote, "me.*", MATCH_SERVER, "TEST Hello %s!", "World");
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, user, "Server matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Server matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Server matches; " MSG);
+	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Server matches; " MSG);
+	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Server matches; " MSG);
 	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_v, "Server matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_p, "Server matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_d, "Server matches; " MSG);
@@ -3297,8 +3297,8 @@ static void sendto_match_butone__server__tags(void)
 
 	sendto_match_butone(server, remote, "me.*", MATCH_SERVER, "TEST Hello %s!", "World");
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, user, "Server matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME ";account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Server matches; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Server matches; " MSG);
+	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_o, "Server matches; " MSG);
+	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_ov, "Server matches; " MSG);
 	is_client_sendq("@account=rtest :" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_v, "Server matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_p, "Server matches; " MSG);
 	is_client_sendq(":" TEST_REMOTE_NICK TEST_ID_SUFFIX " TEST Hello World!" CRLF, local_chan_d, "Server matches; " MSG);

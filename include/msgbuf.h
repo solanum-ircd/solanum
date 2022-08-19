@@ -103,6 +103,8 @@ int msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uns
 int msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data);
 int msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
 
+const char *msgbuf_get_tag(const struct MsgBuf *buf, const char *name);
+
 void msgbuf_cache_init(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message);
 void msgbuf_cache_initf(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message, const char *format, ...) AFP(4, 5);
 buf_head_t *msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps);

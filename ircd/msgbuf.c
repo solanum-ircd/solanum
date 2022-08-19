@@ -404,6 +404,19 @@ msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned
 	return res;
 }
 
+const char *
+msgbuf_get_tag(const struct MsgBuf *buf, const char *name)
+{
+	for (size_t i = 0; i < buf->n_tags; i++)
+	{
+		if (strcmp(name, buf->tags[i].key))
+			continue;
+		const char *v = buf->tags[i].value;
+		return v != NULL ? v : "";
+	}
+	return NULL;
+}
+
 void
 msgbuf_cache_init(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message)
 {
