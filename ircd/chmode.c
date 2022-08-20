@@ -237,10 +237,10 @@ allow_mode_change(struct Client *source_p, struct Channel *chptr, int alevel,
 /* add_id()
  *
  * inputs	- client, channel, id to add, type, forward
- * outputs	- false on failure, true on success
+ * outputs	- NULL on failure, allocated Ban on success
  * side effects - given id is added to the appropriate list
  */
-bool
+struct Ban *
 add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const char *forward,
        rb_dlink_list * list, long mode_type)
 {
@@ -256,7 +256,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 		{
 			sendto_one(source_p, form_str(ERR_BANLISTFULL),
 				   me.name, source_p->name, chptr->chname, realban);
-			return false;
+			return NULL;
 		}
 	}
 
@@ -265,7 +265,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 	{
 		actualBan = ptr->data;
 		if(!irccmp(actualBan->banstr, realban))
-			return false;
+			return NULL;
 	}
 
 	if(IsPerson(source_p))
@@ -282,7 +282,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 	if(mode_type == CHFL_BAN || mode_type == CHFL_QUIET || mode_type == CHFL_EXCEPTION)
 		chptr->bants = rb_current_time();
 
-	return true;
+	return actualBan;
 }
 
 /* del_id()

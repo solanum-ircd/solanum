@@ -302,7 +302,7 @@ extern void set_channel_mlock(struct Client *client_p, struct Client *source_p,
 
 extern struct ChannelMode chmode_table[256];
 
-extern bool add_id(struct Client *source_p, struct Channel *chptr, const char *banid,
+extern struct Ban * add_id(struct Client *source_p, struct Channel *chptr, const char *banid,
 	const char *forward, rb_dlink_list * list, long mode_type);
 
 extern struct Ban * del_id(struct Channel *chptr, const char *banid, rb_dlink_list * list,
