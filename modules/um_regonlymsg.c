@@ -101,9 +101,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 		return true;
 
 	if(msgtype != MESSAGE_TYPE_NOTICE &&
-		IsSetRegOnlyMsg(source_p) &&
-		!accept_message(target_p, source_p) &&
-		!IsOperGeneral(target_p))
+		!allow_message(target_p, source_p))
 	{
 		if(rb_dlink_list_length(&source_p->localClient->allow_list) <
 				(unsigned long)ConfigFileEntry.max_accept)
