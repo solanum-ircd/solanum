@@ -85,10 +85,10 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	if (IsOper(source_p))
 		return true;
 
-	if (accept_message(source_p, target_p))
+	if (source_p->user->suser[0])
 		return true;
 
-	if (source_p->user->suser[0])
+	if (accept_message(source_p, target_p))
 		return true;
 
 	return false;
