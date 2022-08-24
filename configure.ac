@@ -335,9 +335,8 @@ AC_HELP_STRING([--disable-sctp],[Disable SCTP support]),
 if test "$sctp" = yes; then
 
 AC_CHECK_HEADER(netinet/sctp.h, [
-	AC_CHECK_LIB(sctp, sctp_bindx,
+	AC_SEARCH_LIBS(sctp_bindx, sctp,
 	[
-		AC_SUBST(LIBSCTP_LD, -lsctp)
 		AC_DEFINE(HAVE_LIBSCTP, 1, [Define to 1 if libsctp (-lsctp) is available.])
 	], sctp=no)
 ], sctp=no)
