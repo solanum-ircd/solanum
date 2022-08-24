@@ -84,7 +84,7 @@ AC_TYPE_UID_T
 dnl Checks for header files.
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS([crypt.h netinet/sctp.h sys/poll.h sys/epoll.h sys/select.h sys/devpoll.h sys/event.h port.h sys/signalfd.h sys/timerfd.h])
+AC_CHECK_HEADERS([crypt.h sys/poll.h sys/epoll.h sys/select.h sys/devpoll.h sys/event.h port.h sys/signalfd.h sys/timerfd.h])
 AC_HEADER_TIME
 
 dnl Networking Functions
@@ -311,12 +311,21 @@ AC_HELP_STRING([--disable-sctp],[Disable SCTP support]),
 if test "$sctp" = yes; then
 
 AC_CHECK_HEADER(netinet/sctp.h, [
-	AC_CHECK_LIB(sctp, sctp_bindx,
+	AC_SEARCH_LIBS(sctp_bindx, sctp,
 	[
-		AC_SUBST(LIBSCTP_LD, -lsctp)
 		AC_DEFINE(HAVE_LIBSCTP, 1, [Define to 1 if libsctp (-lsctp) is available.])
 	], sctp=no)
 ], sctp=no)
+
+LIBSCTP_LD=$ac_cv_search_sctp_bindx
+
+if test "$LIBSCTP_LD" = "none required"; then
+	unset LIBSCTP_LD
+elif test "$LIBSCTP_LD" = no; then
+	unset LIBSCTP_LD
+fi
+
+AC_SUBST(LIBSCTP_LD)
 
 fi
 
@@ -335,7 +344,7 @@ elif test "$assert" = soft; then
 	AC_DEFINE(SOFT_ASSERT, 1, [Define this to enable soft asserts.])
 	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
 elif test "$assert" = yes; then
-	assert = "hard";
+	assert="hard"
 fi
 
 AC_MSG_CHECKING(if you want to do a profile build)

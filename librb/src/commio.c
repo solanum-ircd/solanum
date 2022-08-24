@@ -364,14 +364,14 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	struct sctp_paddrparams paddrparams;
 	struct sctp_assocparams assocparams;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_NODELAY, &opt_one, sizeof(opt_one));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_NODELAY, &opt_one, sizeof(opt_one));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_NODELAY for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
 		return ret;
 	}
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_I_WANT_MAPPED_V4_ADDR, &opt_mapped, sizeof(opt_mapped));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_I_WANT_MAPPED_V4_ADDR, &opt_mapped, sizeof(opt_mapped));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot unset SCTP_I_WANT_MAPPED_V4_ADDR for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -383,7 +383,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	initmsg.sinit_num_ostreams = 1;
 	initmsg.sinit_max_instreams = 1;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_INITMSG for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -396,7 +396,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	rtoinfo.srto_min = 1000;
 	rtoinfo.srto_max = 10000;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_RTOINFO, &rtoinfo, sizeof(rtoinfo));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_RTOINFO, &rtoinfo, sizeof(rtoinfo));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_RTOINFO for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -417,7 +417,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	paddrparams.spp_hbinterval = 5000;
 	paddrparams.spp_flags |= SPP_HB_ENABLE;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_PEER_ADDR_PARAMS, &paddrparams, sizeof(paddrparams));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &paddrparams, sizeof(paddrparams));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_PEER_ADDR_PARAMS for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -429,7 +429,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	assocparams.sasoc_assoc_id = 0;
 	assocparams.sasoc_asocmaxrxt = 50;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_ASSOCINFO, &assocparams, sizeof(assocparams));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_ASSOCINFO, &assocparams, sizeof(assocparams));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_ASSOCINFO for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
