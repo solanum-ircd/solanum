@@ -1497,20 +1497,20 @@ static char *rb_sha256_crypt_r(const char *key, const char *salt, char *buffer, 
 	salt_len = MIN(strcspn(salt, "$"), SHA256_SALT_LEN_MAX);
 	key_len = strlen(key);
 
-	if ((key - (char *)0) % __alignof__(uint32_t) != 0)
+	if (((uintptr_t) key) % __alignof__(uint32_t) != 0)
 	{
 		char *tmp = (char *)alloca(key_len + __alignof__(uint32_t));
 		key = copied_key =
 			memcpy(tmp + __alignof__(uint32_t)
-			       - (tmp - (char *)0) % __alignof__(uint32_t), key, key_len);
+			       - ((uintptr_t) tmp) % __alignof__(uint32_t), key, key_len);
 	}
 
-	if ((salt - (char *)0) % __alignof__(uint32_t) != 0)
+	if (((uintptr_t) salt) % __alignof__(uint32_t) != 0)
 	{
 		char *tmp = (char *)alloca(salt_len + __alignof__(uint32_t));
 		salt = copied_salt =
 			memcpy(tmp + __alignof__(uint32_t)
-			       - (tmp - (char *)0) % __alignof__(uint32_t), salt, salt_len);
+			       - ((uintptr_t) tmp) % __alignof__(uint32_t), salt, salt_len);
 	}
 
 	/* Prepare for the real work.  */
@@ -2075,20 +2075,20 @@ static char *rb_sha512_crypt_r(const char *key, const char *salt, char *buffer, 
 	salt_len = MIN(strcspn(salt, "$"), SHA512_SALT_LEN_MAX);
 	key_len = strlen(key);
 
-	if ((key - (char *)0) % __alignof__(uint64_t) != 0)
+	if (((uintptr_t) key) % __alignof__(uint64_t) != 0)
 	{
 		char *tmp = (char *)alloca(key_len + __alignof__(uint64_t));
 		key = copied_key =
 			memcpy(tmp + __alignof__(uint64_t)
-			       - (tmp - (char *)0) % __alignof__(uint64_t), key, key_len);
+			       - ((uintptr_t) tmp) % __alignof__(uint64_t), key, key_len);
 	}
 
-	if ((salt - (char *)0) % __alignof__(uint64_t) != 0)
+	if (((uintptr_t) salt) % __alignof__(uint64_t) != 0)
 	{
 		char *tmp = (char *)alloca(salt_len + __alignof__(uint64_t));
 		salt = copied_salt =
 			memcpy(tmp + __alignof__(uint64_t)
-			       - (tmp - (char *)0) % __alignof__(uint64_t), salt, salt_len);
+			       - ((uintptr_t) tmp) % __alignof__(uint64_t), salt, salt_len);
 	}
 
 	/* Prepare for the real work.  */
