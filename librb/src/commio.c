@@ -28,9 +28,7 @@
 #include <commio-int.h>
 #include <commio-ssl.h>
 #include <event-int.h>
-#ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h>
-#endif
 #define HAVE_SSL 1
 
 #ifndef MSG_NOSIGNAL
@@ -70,11 +68,6 @@ int rb_maxconnections = 0;
 static PF rb_connect_timeout;
 static PF rb_connect_outcome;
 static void mangle_mapped_sockaddr(struct sockaddr *in);
-
-#ifndef HAVE_SOCKETPAIR
-static int rb_inet_socketpair(int d, int type, int protocol, int sv[2]);
-static int rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2);
-#endif
 
 static inline rb_fde_t *
 add_fd(int fd)
@@ -829,16 +822,7 @@ rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t **F2
 		return -1;
 	}
 
-#ifdef HAVE_SOCKETPAIR
 	if(socketpair(family, sock_type, proto, nfd))
-#else
-	if(sock_type == SOCK_DGRAM)
-	{
-		return rb_inet_socketpair_udp(F1, F2);
-	}
-
-	if(rb_inet_socketpair(AF_INET, sock_type, proto, nfd))
-#endif
 		return -1;
 
 	*F1 = rb_open(nfd[0], RB_FD_SOCKET, note);
@@ -1274,7 +1258,7 @@ rb_write(rb_fde_t *F, const void *buf, int count)
 	return write(F->fd, buf, count);
 }
 
-#if defined(HAVE_SSL) || !defined(HAVE_WRITEV)
+#ifdef HAVE_SSL
 static ssize_t
 rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 {
@@ -1298,14 +1282,6 @@ rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 }
 #endif
 
-#ifndef HAVE_WRITEV
-ssize_t
-rb_writev(rb_fde_t *F, struct rb_iovec * vecount, int count)
-{
-	return rb_fake_writev(F, vecount, count);
-}
-
-#else
 ssize_t
 rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 {
@@ -1320,7 +1296,6 @@ rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 		return rb_fake_writev(F, vector, count);
 	}
 #endif /* HAVE_SSL */
-#ifdef HAVE_SENDMSG
 	if(F->type & RB_FD_SOCKET)
 	{
 		struct msghdr msg;
@@ -1329,12 +1304,9 @@ rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 		msg.msg_iovlen = count;
 		return sendmsg(F->fd, &msg, MSG_NOSIGNAL);
 	}
-#endif /* HAVE_SENDMSG */
 	return writev(F->fd, (struct iovec *)vector, count);
 
 }
-#endif
-
 
 /*
  * From: Thomas Helvey <tomh@inxpress.net>
@@ -1815,198 +1787,6 @@ rb_inet_pton(int af, const char *src, void *dst)
 }
 
 
-#ifndef HAVE_SOCKETPAIR
-
-/* mostly based on perl's emulation of socketpair udp */
-static int
-rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2)
-{
-	struct sockaddr_in addr[2];
-	rb_socklen_t size = sizeof(struct sockaddr_in);
-	rb_fde_t *F[2];
-	int fd[2];
-	int i, got;
-	unsigned short port;
-	struct timeval wait = { 0, 100000 };
-	int max;
-	fd_set rset;
-	struct sockaddr_in readfrom;
-	unsigned short buf[2];
-	int o_errno;
-
-	memset(&addr, 0, sizeof(addr));
-
-	for(i = 0; i < 2; i++)
-	{
-		F[i] = rb_socket(AF_INET, SOCK_DGRAM, 0, "udp socketpair");
-		if(F[i] == NULL)
-			goto failed;
-		addr[i].sin_family = AF_INET;
-		addr[i].sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		addr[i].sin_port = 0;
-		if(bind(rb_get_fd(F[i]), (struct sockaddr *)&addr[i], sizeof(struct sockaddr_in)))
-			goto failed;
-		fd[i] = rb_get_fd(F[i]);
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-		if(getsockname(fd[i], (struct sockaddr *)&addr[i], &size))
-			goto failed;
-		if(size != sizeof(struct sockaddr_in))
-			goto failed;
-		if(connect(fd[!i], (struct sockaddr *)&addr[i], sizeof(struct sockaddr_in)) == -1)
-			goto failed;
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-		port = addr[i].sin_port;
-		got = rb_write(F[i], &port, sizeof(port));
-		if(got != sizeof(port))
-		{
-			if(got == -1)
-				goto failed;
-			goto abort_failed;
-		}
-	}
-
-	max = fd[1] > fd[0] ? fd[1] : fd[0];
-	FD_ZERO(&rset);
-	FD_SET(fd[0], &rset);
-	FD_SET(fd[1], &rset);
-	got = select(max + 1, &rset, NULL, NULL, &wait);
-	if(got != 2 || !FD_ISSET(fd[0], &rset) || !FD_ISSET(fd[1], &rset))
-	{
-		if(got == -1)
-			goto failed;
-		goto abort_failed;
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-#ifdef MSG_DONTWAIT
-		int flag = MSG_DONTWAIT
-#else
-		int flag = 0;
-#endif
-		got = recvfrom(rb_get_fd(F[i]), (char *)&buf, sizeof(buf), flag,
-			       (struct sockaddr *)&readfrom, &size);
-		if(got == -1)
-			goto failed;
-		if(got != sizeof(port)
-		   || size != sizeof(struct sockaddr_in)
-		   || buf[0] != (unsigned short)addr[!i].sin_port
-		   || readfrom.sin_family != addr[!i].sin_family
-		   || readfrom.sin_addr.s_addr != addr[!i].sin_addr.s_addr
-		   || readfrom.sin_port != addr[!i].sin_port)
-			goto abort_failed;
-	}
-
-	*newF1 = F[0];
-	*newF2 = F[1];
-	return 0;
-
-      abort_failed:
-	errno = ECONNABORTED;
-      failed:
-	o_errno = errno;
-	if(F[0] != NULL)
-		rb_close(F[0]);
-	if(F[1] != NULL)
-		rb_close(F[1]);
-	errno = o_errno;
-	return -1;
-}
-
-
-int
-rb_inet_socketpair(int family, int type, int protocol, int fd[2])
-{
-	int listener = -1;
-	int connector = -1;
-	int acceptor = -1;
-	struct sockaddr_in listen_addr;
-	struct sockaddr_in connect_addr;
-	rb_socklen_t size;
-
-	if(protocol || family != AF_INET)
-	{
-		errno = EAFNOSUPPORT;
-		return -1;
-	}
-	if(!fd)
-	{
-		errno = EINVAL;
-		return -1;
-	}
-
-	listener = socket(AF_INET, type, 0);
-	if(listener == -1)
-		return -1;
-	memset(&listen_addr, 0, sizeof(listen_addr));
-	listen_addr.sin_family = AF_INET;
-	listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	listen_addr.sin_port = 0;	/* kernel choses port.  */
-	if(bind(listener, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) == -1)
-		goto tidy_up_and_fail;
-	if(listen(listener, 1) == -1)
-		goto tidy_up_and_fail;
-
-	connector = socket(AF_INET, type, 0);
-	if(connector == -1)
-		goto tidy_up_and_fail;
-	/* We want to find out the port number to connect to.  */
-	size = sizeof(connect_addr);
-	if(getsockname(listener, (struct sockaddr *)&connect_addr, &size) == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(connect_addr))
-		goto abort_tidy_up_and_fail;
-	if(connect(connector, (struct sockaddr *)&connect_addr, sizeof(connect_addr)) == -1)
-		goto tidy_up_and_fail;
-
-	size = sizeof(listen_addr);
-	acceptor = accept(listener, (struct sockaddr *)&listen_addr, &size);
-	if(acceptor == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(listen_addr))
-		goto abort_tidy_up_and_fail;
-	close(listener);
-	/* Now check we are talking to ourself by matching port and host on the
-	   two sockets.  */
-	if(getsockname(connector, (struct sockaddr *)&connect_addr, &size) == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(connect_addr)
-	   || listen_addr.sin_family != connect_addr.sin_family
-	   || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
-	   || listen_addr.sin_port != connect_addr.sin_port)
-	{
-		goto abort_tidy_up_and_fail;
-	}
-	fd[0] = connector;
-	fd[1] = acceptor;
-	return 0;
-
-      abort_tidy_up_and_fail:
-	errno = EINVAL;		/* I hope this is portable and appropriate.  */
-
-      tidy_up_and_fail:
-	{
-		int save_errno = errno;
-		if(listener != -1)
-			close(listener);
-		if(connector != -1)
-			close(connector);
-		if(acceptor != -1)
-			close(acceptor);
-		errno = save_errno;
-		return -1;
-	}
-}
-
-#endif
-
-
 static void (*setselect_handler) (rb_fde_t *, unsigned int, PF *, void *);
 static int (*select_handler) (long);
 static int (*setup_fd_handler) (rb_fde_t *);
@@ -2282,7 +2062,6 @@ rb_ignore_errno(int error)
 }
 
 
-#ifdef HAVE_SENDMSG
 int
 rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
 {
@@ -2397,21 +2176,6 @@ rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasiz
 	}
 	return sendmsg(rb_get_fd(xF), &msg, MSG_NOSIGNAL);
 }
-#else
-int
-rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-int
-rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasize, pid_t pid)
-{
-	errno = ENOSYS;
-	return -1;
-}
-#endif
 
 int
 rb_ipv4_from_ipv6(const struct sockaddr_in6 *restrict ip6, struct sockaddr_in *restrict ip4)

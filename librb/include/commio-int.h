@@ -34,7 +34,6 @@
 
 #define rb_hash_fd(x) ((x ^ (x >> RB_FD_HASH_BITS) ^ (x >> (RB_FD_HASH_BITS * 2))) & RB_FD_HASH_MASK)
 
-#ifdef HAVE_WRITEV
 #ifndef UIO_MAXIOV
 # if defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__)
 			/* FreeBSD 4.7 defines it in sys/uio.h only if _KERNEL is specified */
@@ -57,9 +56,6 @@
 # endif
 #else
 #define RB_UIO_MAXIOV UIO_MAXIOV
-#endif
-#else
-#define RB_UIO_MAXIOV 16
 #endif
 struct conndata
 {
