@@ -1390,6 +1390,10 @@ stats_memory (struct Client *source_p)
 			   "z :Remote client Memory in use: %ld(%ld)",
 			   (long)remote_client_count,
 			   (long)remote_client_memory_used);
+
+	sendto_one_numeric(source_p, RPL_STATSDEBUG,
+			   "z :TOTAL: %zu",
+			   total_memory);
 }
 
 static void
