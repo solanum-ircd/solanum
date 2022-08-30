@@ -373,8 +373,12 @@ who_global(struct Client *source_p, const char *mask, int server_oper, int opers
 			who_common_channel(source_p, msptr->chptr, mask, server_oper, &maxmatches, fmt);
 		}
 	}
-	else if (!ConfigFileEntry.operspy_dont_care_user_info)
-		report_operspy(source_p, "WHO", mask);
+	else
+	{
+		maxmatches = INT_MAX;
+		if (!ConfigFileEntry.operspy_dont_care_user_info)
+			report_operspy(source_p, "WHO", mask);
+	}
 
 	/* second, list all matching visible clients and clear all marks
 	 * on invisible clients

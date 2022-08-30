@@ -518,14 +518,12 @@ conn_plain_write_sendq(rb_fde_t *fd, void *data)
 static int
 maxconn(void)
 {
-#if defined(RLIMIT_NOFILE) && defined(HAVE_SYS_RESOURCE_H)
 	struct rlimit limit;
 
 	if(!getrlimit(RLIMIT_NOFILE, &limit))
 	{
 		return limit.rlim_cur;
 	}
-#endif /* RLIMIT_FD_MAX */
 	return MAXCONNECTIONS;
 }
 

@@ -1573,11 +1573,11 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
-			     " for %ld seconds.  %d/%d sendK/recvK.",
-			     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+			     " for %lld seconds.  %d/%d sendK/recvK.",
+			     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
-	ilog(L_SERVER, "%s was connected for %ld seconds.  %d/%d sendK/recvK.",
-	     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+	ilog(L_SERVER, "%s was connected for %lld seconds.  %d/%d sendK/recvK.",
+	     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
 	if(has_id(source_p))
 		del_from_id_hash(source_p->id, source_p);
@@ -1844,7 +1844,7 @@ show_ip_conf(struct ConfItem *aconf, struct Client *source_p)
 {
 	if(IsConfDoSpoofIp(aconf))
 	{
-		if(!ConfigFileEntry.hide_spoof_ips && MyOper(source_p))
+		if(!ConfigFileEntry.hide_spoof_ips && IsOper(source_p))
 			return 1;
 
 		return 0;
@@ -1857,7 +1857,7 @@ int
 show_ip_whowas(struct Whowas *whowas, struct Client *source_p)
 {
 	if(whowas->flags & WHOWAS_IP_SPOOFING)
-		if(ConfigFileEntry.hide_spoof_ips || !MyOper(source_p))
+		if(ConfigFileEntry.hide_spoof_ips || !IsOper(source_p))
 			return 0;
 	if(whowas->flags & WHOWAS_DYNSPOOF)
 		if(!IsOper(source_p))

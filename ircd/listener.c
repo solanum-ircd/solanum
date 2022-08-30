@@ -572,8 +572,6 @@ accept_sslcallback(struct Client *client_p, int status)
 	return 0; /* use default handler if status != RB_OK */
 }
 
-static const char *toofast = "ERROR :Reconnecting too fast, throttled.\r\n";
-
 static int
 accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, void *data)
 {
@@ -582,6 +580,13 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 	struct ConfItem *aconf;
 	static time_t last_oper_notice = 0;
 	int len;
+
+	static const char *toofast = "ERROR :Reconnecting too fast, throttled.\r\n";
+
+	static const unsigned char sslerrcode[] = {
+		// SSLv3.0 Fatal Alert: Access Denied
+		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x31
+	};
 
 	if(listener->ssl && (!ircd_ssl_ok || !get_ssld_count()))
 	{
@@ -618,7 +623,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 	{
 		ServerStats.is_ref++;
 
-		if(ConfigFileEntry.dline_with_reason)
+		if(listener->ssl)
+		{
+			rb_write(F, sslerrcode, sizeof(sslerrcode));
+		}
+		else if(ConfigFileEntry.dline_with_reason)
 		{
 			len = snprintf(buf, sizeof(buf), "ERROR :*** Banned: %s\r\n", get_user_ban_reason(aconf));
 			if (len >= (int)(sizeof(buf)-1))
@@ -627,11 +636,14 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 				buf[sizeof(buf) - 2] = '\n';
 				buf[sizeof(buf) - 1] = '\0';
 			}
+			rb_write(F, buf, strlen(buf));
 		}
 		else
+		{
 			strcpy(buf, "ERROR :You have been D-lined.\r\n");
+			rb_write(F, buf, strlen(buf));
+		}
 
-		rb_write(F, buf, strlen(buf));
 		rb_close(F);
 		return 0;
 	}

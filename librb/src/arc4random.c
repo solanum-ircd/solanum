@@ -34,10 +34,7 @@
 
 #include "arc4random.h"
 
-#ifdef HAVE_GETRUSAGE
 #include <sys/resource.h>
-#endif
-
 
 
 struct arc4_stream
@@ -104,13 +101,11 @@ arc4_stir(struct arc4_stream *as)
 	rb_gettimeofday(&tv, NULL);
 	arc4_addrandom(as, (void *)&tv.tv_usec, sizeof(&tv.tv_usec));
 
-#if defined(HAVE_GETRUSAGE) && RUSAGE_SELF
 	{
 		struct rusage buf;
 		getrusage(RUSAGE_SELF, &buf);
 		arc4_addrandom(as, (void *)&buf, sizeof(buf));
 	memset(&buf, 0, sizeof(buf))}
-#endif
 
 	fd = open("/dev/urandom", O_RDONLY);
 	if(fd != -1)

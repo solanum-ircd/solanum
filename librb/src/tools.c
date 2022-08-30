@@ -133,57 +133,17 @@ rb_string_to_array(char *string, char **parv, int maxpara)
 	return x;
 }
 
-#ifndef HAVE_STRCASECMP
-/* Fallback taken from FreeBSD. --Elizafox */
-int
-rb_strcasecmp(const char *s1, const char *s2)
-{
-	const unsigned char *us1 = (const unsigned char *)s1;
-	const unsigned char *us2 = (const unsigned char *)s2;
-
-	while (tolower(*us1) == tolower(*us2++))
-	{
-		if (*us1++ == '\0')
-			return 0;
-	}
-
-	return (tolower(*us1) - tolower(*--us2));
-}
-#else
 int
 rb_strcasecmp(const char *s1, const char *s2)
 {
 	return strcasecmp(s1, s2);
 }
-#endif
 
-#ifndef HAVE_STRNCASECMP
-/* Fallback taken from FreeBSD. --Elizafox */
-int
-rb_strncasecmp(const char *s1, const char *s2, size_t n)
-{
-	if (n != 0)
-	{
-		const unsigned char *us1 = (const unsigned char *)s1;
-		const unsigned char *us2 = (const unsigned char *)s2;
-
-		do
-		{
-			if (tolower(*us1) != tolower(*us2++))
-				return (tolower(*us1) - tolower(*--us2));
-			if (*us1++ == '\0')
-				break;
-		} while (--n != 0);
-	}
-	return 0;
-}
-#else
 int
 rb_strncasecmp(const char *s1, const char *s2, size_t n)
 {
 	return strncasecmp(s1, s2, n);
 }
-#endif
 
 #ifndef HAVE_STRCASESTR
 /* Fallback taken from FreeBSD. --Elizafox */
@@ -261,22 +221,11 @@ rb_strlcpy(char *dest, const char *src, size_t size)
 #endif
 
 
-#ifndef HAVE_STRNLEN
-size_t
-rb_strnlen(const char *s, size_t count)
-{
-	const char *sc;
-	for(sc = s; count-- && *sc != '\0'; ++sc)
-		;
-	return sc - s;
-}
-#else
 size_t
 rb_strnlen(const char *s, size_t count)
 {
 	return strnlen(s, count);
 }
-#endif
 
 /*
  * rb_snprintf_append()
