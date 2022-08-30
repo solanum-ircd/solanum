@@ -112,7 +112,7 @@ mapi_hlist_av1 test_hlist[] = {
 static void show_example_hook(void *unused);
 
 mapi_hfn_list_av1 test_hfnlist[] = {
-	{ "doing_example_hook", (hookfn) show_example_hook },
+	{ "doing_example_hook", show_example_hook },
 	{ NULL, NULL }
 };
 

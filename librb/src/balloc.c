@@ -38,8 +38,7 @@
  *
  * 1. mmap() anonymous pages with the MMAP_ANON flag.
  * 2. mmap() via the /dev/zero trick.
- * 3. HeapCreate/HeapAlloc (on win32)
- * 4. malloc()
+ * 3. malloc()
  *
  * The advantages of 1 and 2 are this.  We can munmap() the pages which will
  * return the pages back to the operating system, thus reducing the size
@@ -61,16 +60,6 @@
 static void _rb_bh_fail(const char *reason, const char *file, int line) __attribute__((noreturn));
 
 static uintptr_t offset_pad;
-
-/* status information for an allocated block in heap */
-struct rb_heap_block
-{
-	size_t alloc_size;
-	rb_dlink_node node;
-	unsigned long free_count;
-	void *elems;		/* Points to allocated memory */
-};
-typedef struct rb_heap_block rb_heap_block;
 
 /* information for the root node of the heap */
 struct rb_bh

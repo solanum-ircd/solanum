@@ -43,7 +43,7 @@ static unsigned int mode_regmsg;
 static void chm_regmsg_process(void *);
 
 mapi_hfn_list_av1 chm_regmsg_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_regmsg_process },
+	{ "privmsg_channel", chm_regmsg_process },
 	{ NULL, NULL }
 };
 
@@ -57,6 +57,10 @@ chm_regmsg_process(void *data_)
 	if (data->approved)
 		return;
 
+	/* mode is unset, accept */
+	if (!(data->chptr->mode.mode & mode_regmsg))
+		return;
+
 	/* user is identified, accept */
 	if (!EmptyString(data->source_p->user->suser))
 		return;
@@ -67,7 +71,7 @@ chm_regmsg_process(void *data_)
 		return;
 
 	sendto_one_numeric(data->source_p, ERR_MSGNEEDREGGEDNICK, form_str(ERR_MSGNEEDREGGEDNICK),
-		data->source_p->name, data->chptr->chname);
+		data->chptr->chname);
 	data->approved = ERR_MSGNEEDREGGEDNICK;
 }
 

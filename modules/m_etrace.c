@@ -123,7 +123,10 @@ mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 						target_p->servptr->name,
 						get_id(target_p, target_p));
 				else
+				{
 					do_single_etrace(source_p, target_p);
+					sendto_one_numeric(source_p, RPL_ENDOFTRACE, form_str(RPL_ENDOFTRACE), target_p->name);
+				}
 			}
 			else
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
@@ -337,19 +340,9 @@ mo_masktrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 	const char *parv[])
 {
 	char *name, *username, *hostname, *gecos;
-	const char *mask;
-	int operspy = 0;
 
-	mask = parv[1];
 	name = LOCAL_COPY(parv[1]);
 	collapse(name);
-
-	if(IsOperSpy(source_p) && parv[1][0] == '!')
-	{
-		name++;
-		mask++;
-		operspy = 1;
-	}
 
 	if(parc > 2 && !EmptyString(parv[2]))
 	{
@@ -380,21 +373,6 @@ mo_masktrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 		return;
 	}
 
-	if(operspy) {
-		if (!ConfigFileEntry.operspy_dont_care_user_info)
-		{
-			char buf[512];
-			rb_strlcpy(buf, mask, sizeof(buf));
-			if(!EmptyString(gecos)) {
-				rb_strlcat(buf, " ", sizeof(buf));
-				rb_strlcat(buf, gecos, sizeof(buf));
-			}
-
-			report_operspy(source_p, "MASKTRACE", buf);
-		}
-		match_masktrace(source_p, &global_client_list, username, hostname, name, gecos);
-	} else
-		match_masktrace(source_p, &lclient_list, username, hostname, name, gecos);
-
+	match_masktrace(source_p, &global_client_list, username, hostname, name, gecos);
 	sendto_one_numeric(source_p, RPL_ENDOFTRACE, form_str(RPL_ENDOFTRACE), me.name);
 }

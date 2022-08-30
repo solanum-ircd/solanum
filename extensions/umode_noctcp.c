@@ -33,15 +33,17 @@
 static const char umode_noctcp_desc[] =
 	"Adds user mode +C which blocks CTCPs to the user.";
 
-static void umode_noctcp_process(hook_data_privmsg_user *);
+static void umode_noctcp_process(void *);
 
 mapi_hfn_list_av1 umode_noctcp_hfnlist[] = {
-	{ "privmsg_user", (hookfn) umode_noctcp_process },
+	{ "privmsg_user", umode_noctcp_process },
 	{ NULL, NULL }
 };
 
 static void
-umode_noctcp_process(hook_data_privmsg_user *data) {
+umode_noctcp_process(void *data_)
+{
+	hook_data_privmsg_user *data = data_;
 	if (!MyClient(data->target_p))
 		return;
 

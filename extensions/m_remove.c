@@ -42,7 +42,7 @@
 static const char description[] = "Provides the REMOVE command, an alternative to KICK";
 
 static void m_remove(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static void remove_quote_part(hook_data_privmsg_channel *);
+static void remove_quote_part(void *);
 
 unsigned int CAP_REMOVE;
 static char part_buf[REASONLEN + 1];
@@ -54,7 +54,7 @@ struct Message remove_msgtab = {
 
 mapi_clist_av1 remove_clist[] = { &remove_msgtab, NULL };
 mapi_hfn_list_av1 remove_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) remove_quote_part },
+	{ "privmsg_channel", remove_quote_part },
 	{ NULL, NULL }
 };
 mapi_cap_list_av2 remove_cap_list[] = {
@@ -67,7 +67,7 @@ DECLARE_MODULE_AV2(remove, NULL, NULL, remove_clist, NULL, remove_hfnlist, remov
 static void
 m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	struct membership *msptr;
+	struct membership *sourcems, *targetms;
 	struct Client *who;
 	struct Channel *chptr;
 	int chasing = 0;
@@ -95,16 +95,16 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if(!IsServer(source_p))
 	{
-		msptr = find_channel_membership(chptr, source_p);
+		sourcems = find_channel_membership(chptr, source_p);
 
-		if((msptr == NULL) && MyConnect(source_p))
+		if((sourcems == NULL) && MyConnect(source_p))
 		{
 			sendto_one_numeric(source_p, ERR_NOTONCHANNEL,
 					   form_str(ERR_NOTONCHANNEL), name);
 			return;
 		}
 
-		if(get_channel_access(source_p, chptr, msptr, MODE_ADD, NULL) < CHFL_CHANOP)
+		if(get_channel_access(source_p, chptr, sourcems, MODE_ADD, NULL) < CHFL_CHANOP)
 		{
 			if(MyConnect(source_p))
 			{
@@ -154,9 +154,9 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		return;
 	}
 
-	msptr = find_channel_membership(chptr, who);
+	targetms = find_channel_membership(chptr, who);
 
-	if(msptr != NULL)
+	if(targetms != NULL)
 	{
 		if(MyClient(source_p) && IsService(who))
 		{
@@ -171,7 +171,7 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 			hookdata.client = source_p;
 			hookdata.chptr = chptr;
-			hookdata.msptr = msptr;
+			hookdata.msptr = sourcems;
 			hookdata.target = who;
 			hookdata.approved = 1;
 			hookdata.dir = MODE_ADD;	/* ensure modules like override speak up */
@@ -205,7 +205,7 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 			      ":%s KICK %s %s :%s",
 			      use_id(source_p), chptr->chname, use_id(who), comment);
 
-		remove_user_from_channel(msptr);
+		remove_user_from_channel(targetms);
 	}
 	else if (MyClient(source_p))
 		sendto_one_numeric(source_p, ERR_USERNOTINCHANNEL,
@@ -213,8 +213,9 @@ m_remove(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 }
 
 static void
-remove_quote_part(hook_data_privmsg_channel *data)
+remove_quote_part(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	if (data->approved || EmptyString(data->text) || data->msgtype != MESSAGE_TYPE_PART)
 		return;
 

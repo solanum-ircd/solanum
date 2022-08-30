@@ -40,5 +40,4 @@ X S - Shows ssld processes
 * X - Shows gecos bans (Old X: lines)
 ^ y - Shows connection classes (Old Y: lines)
 * z - Shows memory stats
-* Z - Shows ziplinks stats
 ^ ? - Shows connected servers and sendq info about them

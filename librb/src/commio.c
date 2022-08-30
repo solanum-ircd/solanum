@@ -28,9 +28,7 @@
 #include <commio-int.h>
 #include <commio-ssl.h>
 #include <event-int.h>
-#ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h>
-#endif
 #define HAVE_SSL 1
 
 #ifndef MSG_NOSIGNAL
@@ -71,13 +69,8 @@ static PF rb_connect_timeout;
 static PF rb_connect_outcome;
 static void mangle_mapped_sockaddr(struct sockaddr *in);
 
-#ifndef HAVE_SOCKETPAIR
-static int rb_inet_socketpair(int d, int type, int protocol, rb_platform_fd_t sv[2]);
-static int rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2);
-#endif
-
 static inline rb_fde_t *
-add_fd(rb_platform_fd_t fd)
+add_fd(int fd)
 {
 	rb_fde_t *F = rb_find_fd(fd);
 
@@ -100,8 +93,8 @@ remove_fd(rb_fde_t *F)
 	rb_dlinkMoveNode(&F->node, &rb_fd_table[rb_hash_fd(F->fd)], &closed_list);
 }
 
-static void
-free_fds(void)
+void
+rb_close_pending_fds(void)
 {
 	rb_fde_t *F;
 	rb_dlink_node *ptr, *next;
@@ -110,49 +103,17 @@ free_fds(void)
 		F = ptr->data;
 
 		number_fd--;
-
-#ifdef _WIN32
-		if(F->type & (RB_FD_SOCKET | RB_FD_PIPE))
-			closesocket(F->fd);
-		else
-#endif
-			close(F->fd);
-
+		close(F->fd);
 		rb_dlinkDelete(ptr, &closed_list);
 		rb_bh_free(fd_heap, F);
 	}
 }
-
-/* 32bit solaris is kinda slow and stdio only supports fds < 256
- * so we got to do this crap below.
- * (BTW Fuck you Sun, I hate your guts and I hope you go bankrupt soon)
- */
-
-#if defined (__SVR4) && defined (__sun)
-static void
-rb_fd_hack(int *fd)
-{
-	int newfd;
-	if(*fd > 256 || *fd < 0)
-		return;
-	if((newfd = fcntl(*fd, F_DUPFD, 256)) != -1)
-	{
-		close(*fd);
-		*fd = newfd;
-	}
-	return;
-}
-#else
-#define rb_fd_hack(fd)
-#endif
-
 
 /* close_all_connections() can be used *before* the system come up! */
 
 static void
 rb_close_all(void)
 {
-#ifndef _WIN32
 	int i;
 
 	/* XXX someone tell me why we care about 4 fd's ? */
@@ -161,7 +122,6 @@ rb_close_all(void)
 	{
 		close(i);
 	}
-#endif
 }
 
 /*
@@ -180,8 +140,6 @@ rb_get_sockerr(rb_fde_t *F)
 
 	if(!(F->type & RB_FD_SOCKET))
 		return errno;
-
-	rb_get_errno();
 	errtmp = errno;
 
 #ifdef SO_ERROR
@@ -238,7 +196,7 @@ rb_set_nb(rb_fde_t *F)
 {
 	int nonb = 0;
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -263,11 +221,8 @@ rb_set_nb(rb_fde_t *F)
 int
 rb_set_cloexec(rb_fde_t *F)
 {
-#ifdef _WIN32
-	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 0);
-#else
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -279,17 +234,13 @@ rb_set_cloexec(rb_fde_t *F)
 		return 0;
 
 	return 1;
-#endif
 }
 
 int
 rb_clear_cloexec(rb_fde_t *F)
 {
-#ifdef _WIN32
-	SetHandleInformation((HANDLE) F->fd, HANDLE_FLAG_INHERIT, 1);
-#else
 	int res;
-	rb_platform_fd_t fd;
+	int fd;
 	if(F == NULL)
 		return 0;
 	fd = F->fd;
@@ -301,7 +252,6 @@ rb_clear_cloexec(rb_fde_t *F)
 		return 0;
 
 	return 1;
-#endif
 }
 
 /*
@@ -414,14 +364,14 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	struct sctp_paddrparams paddrparams;
 	struct sctp_assocparams assocparams;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_NODELAY, &opt_one, sizeof(opt_one));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_NODELAY, &opt_one, sizeof(opt_one));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_NODELAY for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
 		return ret;
 	}
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_I_WANT_MAPPED_V4_ADDR, &opt_mapped, sizeof(opt_mapped));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_I_WANT_MAPPED_V4_ADDR, &opt_mapped, sizeof(opt_mapped));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot unset SCTP_I_WANT_MAPPED_V4_ADDR for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -433,7 +383,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	initmsg.sinit_num_ostreams = 1;
 	initmsg.sinit_max_instreams = 1;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_INITMSG for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -446,7 +396,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	rtoinfo.srto_min = 1000;
 	rtoinfo.srto_max = 10000;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_RTOINFO, &rtoinfo, sizeof(rtoinfo));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_RTOINFO, &rtoinfo, sizeof(rtoinfo));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_RTOINFO for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -467,7 +417,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	paddrparams.spp_hbinterval = 5000;
 	paddrparams.spp_flags |= SPP_HB_ENABLE;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_PEER_ADDR_PARAMS, &paddrparams, sizeof(paddrparams));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &paddrparams, sizeof(paddrparams));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_PEER_ADDR_PARAMS for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -479,7 +429,7 @@ rb_setsockopt_sctp(rb_fde_t *F)
 	assocparams.sasoc_assoc_id = 0;
 	assocparams.sasoc_asocmaxrxt = 50;
 
-	ret = setsockopt(F->fd, SOL_SCTP, SCTP_ASSOCINFO, &assocparams, sizeof(assocparams));
+	ret = setsockopt(F->fd, IPPROTO_SCTP, SCTP_ASSOCINFO, &assocparams, sizeof(assocparams));
 	if (ret) {
 		rb_lib_log("rb_setsockopt_sctp: Cannot set SCTP_ASSOCINFO for fd %d: %s",
 				F->fd, strerror(rb_get_sockerr(F)));
@@ -570,14 +520,11 @@ static void rb_accept_tryaccept(rb_fde_t *F, void *data __attribute__((unused)))
 		addrlen = sizeof(st);
 
 		new_fd = accept(F->fd, (struct sockaddr *)&st, &addrlen);
-		rb_get_errno();
 		if(new_fd < 0)
 		{
 			rb_setselect(F, RB_SELECT_ACCEPT, rb_accept_tryaccept, NULL);
 			return;
 		}
-
-		rb_fd_hack(&new_fd);
 
 		new_F = rb_open(new_fd, RB_FD_SOCKET | (F->type & RB_FD_INHERIT_TYPES), "Incoming Connection");
 
@@ -592,7 +539,6 @@ static void rb_accept_tryaccept(rb_fde_t *F, void *data __attribute__((unused)))
 
 		if(rb_unlikely(!rb_set_nb(new_F)))
 		{
-			rb_get_errno();
 			rb_lib_log("rb_accept: Couldn't set FD %d non blocking!", new_F->fd);
 			rb_close(new_F);
 		}
@@ -635,7 +581,7 @@ rb_accept_tcp(rb_fde_t *F, ACPRE * precb, ACCB * callback, void *data)
 }
 
 /*
- * void rb_connect_tcp(rb_platform_fd_t fd, struct sockaddr *dest,
+ * void rb_connect_tcp(int fd, struct sockaddr *dest,
  *                       struct sockaddr *clocal,
  *                       CNCB *callback, void *data, int timeout)
  * Input: An fd to connect with, a host and port to connect to,
@@ -692,7 +638,6 @@ rb_connect_tcp(rb_fde_t *F, struct sockaddr *dest,
 		 * which is a good thing.
 		 *   -- adrian
 		 */
-		rb_get_errno();
 		if (errno == EISCONN) {
 			rb_connect_callback(F, RB_OK);
 		} else if (rb_ignore_errno(errno)) {
@@ -764,7 +709,6 @@ rb_connect_sctp(rb_fde_t *F, struct sockaddr_storage *dest, size_t dest_len,
 		 * which is a good thing.
 		 *   -- adrian
 		 */
-		rb_get_errno();
 		if (errno == EISCONN) {
 			rb_connect_callback(F, RB_OK);
 		} else if (rb_ignore_errno(errno)) {
@@ -832,9 +776,7 @@ rb_connect_outcome(rb_fde_t *F, void *notused __attribute__((unused)))
 	if(F == NULL || F->connect == NULL || F->connect->callback == NULL)
 		return;
 	retval = getsockopt(F->fd, SOL_SOCKET, SO_ERROR, &err, &len);
-	if (retval < 0) {
-		rb_get_errno();
-	} else if (err != 0) {
+	if ((retval >= 0) && (err != 0)) {
 		errno = err;
 		retval = -1;
 	}
@@ -873,27 +815,15 @@ rb_errstr(int error)
 int
 rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t **F2, const char *note)
 {
-	rb_platform_fd_t nfd[2];
+	int nfd[2];
 	if(number_fd >= rb_maxconnections)
 	{
 		errno = ENFILE;
 		return -1;
 	}
 
-#ifdef HAVE_SOCKETPAIR
 	if(socketpair(family, sock_type, proto, nfd))
-#else
-	if(sock_type == SOCK_DGRAM)
-	{
-		return rb_inet_socketpair_udp(F1, F2);
-	}
-
-	if(rb_inet_socketpair(AF_INET, sock_type, proto, nfd))
-#endif
 		return -1;
-
-	rb_fd_hack(&nfd[0]);
-	rb_fd_hack(&nfd[1]);
 
 	*F1 = rb_open(nfd[0], RB_FD_SOCKET, note);
 	*F2 = rb_open(nfd[1], RB_FD_SOCKET, note);
@@ -935,8 +865,7 @@ rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t **F2
 int
 rb_pipe(rb_fde_t **F1, rb_fde_t **F2, const char *desc)
 {
-#ifndef _WIN32
-	rb_platform_fd_t fd[2];
+	int fd[2];
 	if(number_fd >= rb_maxconnections)
 	{
 		errno = ENFILE;
@@ -944,8 +873,6 @@ rb_pipe(rb_fde_t **F1, rb_fde_t **F2, const char *desc)
 	}
 	if(pipe(fd) == -1)
 		return -1;
-	rb_fd_hack(&fd[0]);
-	rb_fd_hack(&fd[1]);
 	*F1 = rb_open(fd[0], RB_FD_PIPE, desc);
 	*F2 = rb_open(fd[1], RB_FD_PIPE, desc);
 
@@ -967,12 +894,6 @@ rb_pipe(rb_fde_t **F1, rb_fde_t **F2, const char *desc)
 
 
 	return 0;
-#else
-	/* Its not a pipe..but its selectable.  I'll take dirty hacks
-	 * for $500 Alex.
-	 */
-	return rb_socketpair(AF_INET, SOCK_STREAM, 0, F1, F2, desc);
-#endif
 }
 
 /*
@@ -986,7 +907,7 @@ rb_fde_t *
 rb_socket(int family, int sock_type, int proto, const char *note)
 {
 	rb_fde_t *F;
-	rb_platform_fd_t fd;
+	int fd;
 	/* First, make sure we aren't going to run out of file descriptors */
 	if(rb_unlikely(number_fd >= rb_maxconnections))
 	{
@@ -1000,7 +921,6 @@ rb_socket(int family, int sock_type, int proto, const char *note)
 	 * XXX !!! -- adrian
 	 */
 	fd = socket(family, sock_type, proto);
-	rb_fd_hack(&fd);
 	if(rb_unlikely(fd < 0))
 		return NULL;	/* errno will be passed through, yay.. */
 
@@ -1113,18 +1033,7 @@ void
 rb_fdlist_init(int closeall, int maxfds, size_t heapsize)
 {
 	static int initialized = 0;
-#ifdef _WIN32
-	WSADATA wsaData;
-	int err;
-	int vers = MAKEWORD(2, 0);
 
-	err = WSAStartup(vers, &wsaData);
-	if(err != 0)
-	{
-		rb_lib_die("WSAStartup failed");
-	}
-
-#endif
 	if(!initialized)
 	{
 		rb_maxconnections = maxfds;
@@ -1140,7 +1049,7 @@ rb_fdlist_init(int closeall, int maxfds, size_t heapsize)
 
 /* Called to open a given filedescriptor */
 rb_fde_t *
-rb_open(rb_platform_fd_t fd, uint8_t type, const char *desc)
+rb_open(int fd, uint8_t type, const char *desc)
 {
 	rb_fde_t *F;
 	lrb_assert(fd >= 0);
@@ -1285,7 +1194,7 @@ rb_fd_ssl(rb_fde_t *F)
 	return 0;
 }
 
-rb_platform_fd_t
+int
 rb_get_fd(rb_fde_t *F)
 {
 	if(F == NULL)
@@ -1294,7 +1203,7 @@ rb_get_fd(rb_fde_t *F)
 }
 
 rb_fde_t *
-rb_get_fde(rb_platform_fd_t fd)
+rb_get_fde(int fd)
 {
 	return rb_find_fd(fd);
 }
@@ -1318,10 +1227,6 @@ rb_read(rb_fde_t *F, void *buf, int count)
 	if(F->type & RB_FD_SOCKET)
 	{
 		ret = recv(F->fd, buf, count, 0);
-		if(ret < 0)
-		{
-			rb_get_errno();
-		}
 		return ret;
 	}
 
@@ -1347,17 +1252,13 @@ rb_write(rb_fde_t *F, const void *buf, int count)
 	if(F->type & RB_FD_SOCKET)
 	{
 		ret = send(F->fd, buf, count, MSG_NOSIGNAL);
-		if(ret < 0)
-		{
-			rb_get_errno();
-		}
 		return ret;
 	}
 
 	return write(F->fd, buf, count);
 }
 
-#if defined(HAVE_SSL) || defined(WIN32) || !defined(HAVE_WRITEV)
+#ifdef HAVE_SSL
 static ssize_t
 rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 {
@@ -1381,14 +1282,6 @@ rb_fake_writev(rb_fde_t *F, const struct rb_iovec *vp, size_t vpcount)
 }
 #endif
 
-#if defined(WIN32) || !defined(HAVE_WRITEV)
-ssize_t
-rb_writev(rb_fde_t *F, struct rb_iovec * vecount, int count)
-{
-	return rb_fake_writev(F, vecount, count);
-}
-
-#else
 ssize_t
 rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 {
@@ -1403,7 +1296,6 @@ rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 		return rb_fake_writev(F, vector, count);
 	}
 #endif /* HAVE_SSL */
-#ifdef HAVE_SENDMSG
 	if(F->type & RB_FD_SOCKET)
 	{
 		struct msghdr msg;
@@ -1412,12 +1304,9 @@ rb_writev(rb_fde_t *F, struct rb_iovec * vector, int count)
 		msg.msg_iovlen = count;
 		return sendmsg(F->fd, &msg, MSG_NOSIGNAL);
 	}
-#endif /* HAVE_SENDMSG */
 	return writev(F->fd, (struct iovec *)vector, count);
 
 }
-#endif
-
 
 /*
  * From: Thomas Helvey <tomh@inxpress.net>
@@ -1898,207 +1787,6 @@ rb_inet_pton(int af, const char *src, void *dst)
 }
 
 
-#ifndef HAVE_SOCKETPAIR
-
-/* mostly based on perl's emulation of socketpair udp */
-static int
-rb_inet_socketpair_udp(rb_fde_t **newF1, rb_fde_t **newF2)
-{
-	struct sockaddr_in addr[2];
-	rb_socklen_t size = sizeof(struct sockaddr_in);
-	rb_fde_t *F[2];
-	rb_platform_fd_t fd[2];
-	int i, got;
-	unsigned short port;
-	struct timeval wait = { 0, 100000 };
-	int max;
-	fd_set rset;
-	struct sockaddr_in readfrom;
-	unsigned short buf[2];
-	int o_errno;
-
-	memset(&addr, 0, sizeof(addr));
-
-	for(i = 0; i < 2; i++)
-	{
-		F[i] = rb_socket(AF_INET, SOCK_DGRAM, 0, "udp socketpair");
-		if(F[i] == NULL)
-			goto failed;
-		addr[i].sin_family = AF_INET;
-		addr[i].sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		addr[i].sin_port = 0;
-		if(bind(rb_get_fd(F[i]), (struct sockaddr *)&addr[i], sizeof(struct sockaddr_in)))
-			goto failed;
-		fd[i] = rb_get_fd(F[i]);
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-		if(getsockname(fd[i], (struct sockaddr *)&addr[i], &size))
-			goto failed;
-		if(size != sizeof(struct sockaddr_in))
-			goto failed;
-		if(connect(fd[!i], (struct sockaddr *)&addr[i], sizeof(struct sockaddr_in)) == -1)
-			goto failed;
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-		port = addr[i].sin_port;
-		got = rb_write(F[i], &port, sizeof(port));
-		if(got != sizeof(port))
-		{
-			if(got == -1)
-				goto failed;
-			goto abort_failed;
-		}
-	}
-
-	max = fd[1] > fd[0] ? fd[1] : fd[0];
-	FD_ZERO(&rset);
-	FD_SET(fd[0], &rset);
-	FD_SET(fd[1], &rset);
-	got = select(max + 1, &rset, NULL, NULL, &wait);
-	if(got != 2 || !FD_ISSET(fd[0], &rset) || !FD_ISSET(fd[1], &rset))
-	{
-		if(got == -1)
-			goto failed;
-		goto abort_failed;
-	}
-
-	for(i = 0; i < 2; i++)
-	{
-#ifdef MSG_DONTWAIT
-		int flag = MSG_DONTWAIT
-#else
-		int flag = 0;
-#endif
-		got = recvfrom(rb_get_fd(F[i]), (char *)&buf, sizeof(buf), flag,
-			       (struct sockaddr *)&readfrom, &size);
-		if(got == -1)
-			goto failed;
-		if(got != sizeof(port)
-		   || size != sizeof(struct sockaddr_in)
-		   || buf[0] != (unsigned short)addr[!i].sin_port
-		   || readfrom.sin_family != addr[!i].sin_family
-		   || readfrom.sin_addr.s_addr != addr[!i].sin_addr.s_addr
-		   || readfrom.sin_port != addr[!i].sin_port)
-			goto abort_failed;
-	}
-
-	*newF1 = F[0];
-	*newF2 = F[1];
-	return 0;
-
-#ifdef _WIN32
-#ifndef ECONNABORTED
-#define	ECONNABORTED WSAECONNABORTED
-#endif
-#endif
-
-      abort_failed:
-	rb_get_errno();
-	errno = ECONNABORTED;
-      failed:
-	if(errno != ECONNABORTED)
-		rb_get_errno();
-	o_errno = errno;
-	if(F[0] != NULL)
-		rb_close(F[0]);
-	if(F[1] != NULL)
-		rb_close(F[1]);
-	errno = o_errno;
-	return -1;
-}
-
-
-int
-rb_inet_socketpair(int family, int type, int protocol, rb_platform_fd_t fd[2])
-{
-	int listener = -1;
-	int connector = -1;
-	int acceptor = -1;
-	struct sockaddr_in listen_addr;
-	struct sockaddr_in connect_addr;
-	rb_socklen_t size;
-
-	if(protocol || family != AF_INET)
-	{
-		errno = EAFNOSUPPORT;
-		return -1;
-	}
-	if(!fd)
-	{
-		errno = EINVAL;
-		return -1;
-	}
-
-	listener = socket(AF_INET, type, 0);
-	if(listener == -1)
-		return -1;
-	memset(&listen_addr, 0, sizeof(listen_addr));
-	listen_addr.sin_family = AF_INET;
-	listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	listen_addr.sin_port = 0;	/* kernel choses port.  */
-	if(bind(listener, (struct sockaddr *)&listen_addr, sizeof(listen_addr)) == -1)
-		goto tidy_up_and_fail;
-	if(listen(listener, 1) == -1)
-		goto tidy_up_and_fail;
-
-	connector = socket(AF_INET, type, 0);
-	if(connector == -1)
-		goto tidy_up_and_fail;
-	/* We want to find out the port number to connect to.  */
-	size = sizeof(connect_addr);
-	if(getsockname(listener, (struct sockaddr *)&connect_addr, &size) == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(connect_addr))
-		goto abort_tidy_up_and_fail;
-	if(connect(connector, (struct sockaddr *)&connect_addr, sizeof(connect_addr)) == -1)
-		goto tidy_up_and_fail;
-
-	size = sizeof(listen_addr);
-	acceptor = accept(listener, (struct sockaddr *)&listen_addr, &size);
-	if(acceptor == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(listen_addr))
-		goto abort_tidy_up_and_fail;
-	close(listener);
-	/* Now check we are talking to ourself by matching port and host on the
-	   two sockets.  */
-	if(getsockname(connector, (struct sockaddr *)&connect_addr, &size) == -1)
-		goto tidy_up_and_fail;
-	if(size != sizeof(connect_addr)
-	   || listen_addr.sin_family != connect_addr.sin_family
-	   || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
-	   || listen_addr.sin_port != connect_addr.sin_port)
-	{
-		goto abort_tidy_up_and_fail;
-	}
-	fd[0] = connector;
-	fd[1] = acceptor;
-	return 0;
-
-      abort_tidy_up_and_fail:
-	errno = EINVAL;		/* I hope this is portable and appropriate.  */
-
-      tidy_up_and_fail:
-	{
-		int save_errno = errno;
-		if(listener != -1)
-			close(listener);
-		if(connector != -1)
-			close(connector);
-		if(acceptor != -1)
-			close(acceptor);
-		errno = save_errno;
-		return -1;
-	}
-}
-
-#endif
-
-
 static void (*setselect_handler) (rb_fde_t *, unsigned int, PF *, void *);
 static int (*select_handler) (long);
 static int (*setup_fd_handler) (rb_fde_t *);
@@ -2229,43 +1917,6 @@ try_poll(void)
 	return -1;
 }
 
-static int
-try_win32(void)
-{
-	if(!rb_init_netio_win32())
-	{
-		setselect_handler = rb_setselect_win32;
-		select_handler = rb_select_win32;
-		setup_fd_handler = rb_setup_fd_win32;
-		io_sched_event = NULL;
-		io_unsched_event = NULL;
-		io_init_event = NULL;
-		io_supports_event = rb_unsupported_event;
-		rb_strlcpy(iotype, "win32", sizeof(iotype));
-		return 0;
-	}
-	return -1;
-}
-
-static int
-try_select(void)
-{
-	if(!rb_init_netio_select())
-	{
-		setselect_handler = rb_setselect_select;
-		select_handler = rb_select_select;
-		setup_fd_handler = rb_setup_fd_select;
-		io_sched_event = NULL;
-		io_unsched_event = NULL;
-		io_init_event = NULL;
-		io_supports_event = rb_unsupported_event;
-		rb_strlcpy(iotype, "select", sizeof(iotype));
-		return 0;
-	}
-	return -1;
-}
-
-
 int
 rb_io_sched_event(struct ev_entry *ev, int when)
 {
@@ -2338,17 +1989,6 @@ rb_init_netio(void)
 			if(!try_sigio())
 				return;
 		}
-		else if(!strcmp("select", ioenv))
-		{
-			if(!try_select())
-				return;
-		}
-		if(!strcmp("win32", ioenv))
-		{
-			if(!try_win32())
-				return;
-		}
-
 	}
 
 	if(!try_kqueue())
@@ -2362,10 +2002,6 @@ rb_init_netio(void)
 	if(!try_sigio())
 		return;
 	if(!try_poll())
-		return;
-	if(!try_win32())
-		return;
-	if(!try_select())
 		return;
 
 	rb_lib_log("rb_init_netio: Could not find any io handlers...giving up");
@@ -2383,7 +2019,7 @@ int
 rb_select(unsigned long timeout)
 {
 	int ret = select_handler(timeout);
-	free_fds();
+	rb_close_pending_fds();
 	return ret;
 }
 
@@ -2426,7 +2062,6 @@ rb_ignore_errno(int error)
 }
 
 
-#if defined(HAVE_SENDMSG) && !defined(WIN32)
 int
 rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
 {
@@ -2436,7 +2071,7 @@ rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds
 	struct stat st;
 	uint8_t stype = RB_FD_UNKNOWN;
 	const char *desc;
-	rb_platform_fd_t fd, len, x, rfds;
+	int fd, len, x, rfds;
 
 	int control_len = CMSG_SPACE(sizeof(int) * nfds);
 
@@ -2541,23 +2176,6 @@ rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasiz
 	}
 	return sendmsg(rb_get_fd(xF), &msg, MSG_NOSIGNAL);
 }
-#else /* defined(HAVE_SENDMSG) && !defined(WIN32) */
-#ifndef _WIN32
-int
-rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int nfds)
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-int
-rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasize, pid_t pid)
-{
-	errno = ENOSYS;
-	return -1;
-}
-#endif /* _WIN32 */
-#endif /* defined(HAVE_SENDMSG) && !defined(WIN32) */
 
 int
 rb_ipv4_from_ipv6(const struct sockaddr_in6 *restrict ip6, struct sockaddr_in *restrict ip4)

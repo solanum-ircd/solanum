@@ -65,6 +65,7 @@ struct ConfItem
 	char *passwd;		/* doubles as kline reason *ugh* */
 	char *spasswd;		/* Password to send. */
 	char *user;		/* user part of user@host */
+	char *desc;             /* description */
 	int port;
 	time_t hold;		/* Hold action until this time (calendar time) */
 	time_t created;		/* Creation time (for klines etc) */
@@ -175,7 +176,6 @@ struct config_file_entry
 	char *fname_operspylog;
 	char *fname_ioerrorlog;
 
-	unsigned char compression_level;
 	int disable_fake_channels;
 	int dots_in_ident;
 	int failed_oper_notice;
@@ -259,6 +259,15 @@ struct config_file_entry
 	int hide_opers;
 
 	char *drain_reason;
+	char *sasl_only_client_message;
+	char *identd_only_client_message;
+	char *sctp_forbidden_client_message;
+	char *ssltls_only_client_message;
+	char *not_authorised_client_message;
+	char *illegal_hostname_client_message;
+	char *server_full_client_message;
+	char *illegal_name_long_client_message;
+	char *illegal_name_short_client_message;
 };
 
 struct config_channel_entry
@@ -377,7 +386,7 @@ extern int detach_conf(struct Client *);
 extern struct ConfItem *find_tkline(const char *, const char *, struct sockaddr *);
 extern char *show_iline_prefix(struct Client *, struct ConfItem *, char *);
 extern void get_printable_conf(struct ConfItem *,
-			       char **, char **, const char **, char **, int *, char **);
+			       char **, char **, const char **, char **, int *, char **, char **);
 extern char *get_user_ban_reason(struct ConfItem *aconf);
 extern void get_printable_kline(struct Client *, struct ConfItem *,
 				char **, char **, char **, char **);

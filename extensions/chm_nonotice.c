@@ -40,18 +40,23 @@ static const char chm_nonotice_desc[] =
 
 static unsigned int mode_nonotice;
 
-static void chm_nonotice_process(hook_data_privmsg_channel *);
+static void chm_nonotice_process(void *);
 
 mapi_hfn_list_av1 chm_nonotice_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_nonotice_process },
+	{ "privmsg_channel", chm_nonotice_process },
 	{ NULL, NULL }
 };
 
 static void
-chm_nonotice_process(hook_data_privmsg_channel *data)
+chm_nonotice_process(void *data_)
 {
-	/* don't waste CPU if message is already blocked */
-	if (data->approved || data->msgtype != MESSAGE_TYPE_NOTICE)
+	hook_data_privmsg_channel *data = data_;
+
+	/*
+	 * don't waste CPU if message is already blocked, only block notices,
+	 * only check messages sourced from local clients (so we don't block services notices)
+	 */
+	if (data->approved || data->msgtype != MESSAGE_TYPE_NOTICE || !MyClient(data->source_p))
 		return;
 
 	/* block all notices except CTCPs; use chm_noctcp to block CTCPs. */

@@ -55,9 +55,9 @@ static void me_heal(struct MsgBuf *msgbuf_p, struct Client *, struct Client *, i
 static int modinit(void);
 static void modfini(void);
 
-static void client_exit_hook(hook_data_client_exit *);
-static void new_local_user_hook(struct Client *);
-static void doing_stats_hook(hook_data_int *hdata);
+static void client_exit_hook(void *);
+static void new_local_user_hook(void *);
+static void doing_stats_hook(void *);
 
 static void hurt_check_event(void *);
 static void hurt_expire_event(void *);
@@ -98,9 +98,9 @@ struct Message heal_msgtab = {
 
 /* {{{ Misc module stuff */
 mapi_hfn_list_av1 hurt_hfnlist[] = {
-	{"client_exit",		(hookfn) client_exit_hook},
-	{"new_local_user",	(hookfn) new_local_user_hook},
-	{"doing_stats",		(hookfn) doing_stats_hook},
+	{"client_exit",		client_exit_hook},
+	{"new_local_user",	new_local_user_hook},
+	{"doing_stats",		doing_stats_hook},
 	{NULL, 			NULL},
 };
 
@@ -429,8 +429,9 @@ hurt_expire_event(void *unused)
 
 /* {{{ static void client_exit_hook() */
 static void
-client_exit_hook(hook_data_client_exit *data)
+client_exit_hook(void *data_)
 {
+	hook_data_client_exit *data = data_;
 	s_assert(data != NULL);
 	s_assert(data->target != NULL);
 
@@ -440,8 +441,9 @@ client_exit_hook(hook_data_client_exit *data)
 
 /* {{{ static void new_local_user_hook() */
 static void
-new_local_user_hook(struct Client *source_p)
+new_local_user_hook(void *data)
 {
+	struct Client *source_p = data;
 	if (IsAnyDead(source_p) || !EmptyString(source_p->user->suser) ||
 			IsExemptKline(source_p))
 		return;
@@ -458,8 +460,9 @@ new_local_user_hook(struct Client *source_p)
 
 /* {{{ static void doing_stats_hook() */
 static void
-doing_stats_hook(hook_data_int *hdata)
+doing_stats_hook(void *data)
 {
+	hook_data_int *hdata = data;
 	rb_dlink_node	*ptr;
 	hurt_t		*hurt;
 	struct Client	*source_p;

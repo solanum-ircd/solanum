@@ -22,10 +22,6 @@
 
 #include "stdinc.h"
 
-#ifdef HAVE_LIBZ
-#include <zlib.h>
-#endif
-
 #define MAXPASSFD 4
 #ifndef READBUF_SIZE
 #define READBUF_SIZE 16384
@@ -69,15 +65,6 @@ typedef struct _mod_ctl
 } mod_ctl_t;
 
 static mod_ctl_t *mod_ctl;
-
-
-#ifdef HAVE_LIBZ
-typedef struct _zlib_stream
-{
-	z_stream instream;
-	z_stream outstream;
-} zlib_stream_t;
-#endif
 
 typedef struct _conn
 {
@@ -148,26 +135,8 @@ static void mod_cmd_write_queue(mod_ctl_t * ctl, const void *data, size_t len);
 static const char *remote_closed = "Remote host closed the connection";
 static bool ssld_ssl_ok;
 static int certfp_method = RB_SSL_CERTFP_METH_CERT_SHA1;
-#ifdef HAVE_LIBZ
-static bool zlib_ok = true;
-#else
 static bool zlib_ok = false;
-#endif
 
-
-#ifdef HAVE_LIBZ
-static void *
-ssld_alloc(void *unused, size_t count, size_t size)
-{
-	return rb_malloc(count * size);
-}
-
-static void
-ssld_free(void *unused, void *ptr)
-{
-	rb_free(ptr);
-}
-#endif
 
 static conn_t *
 conn_find_by_id(uint32_t id)
@@ -196,15 +165,6 @@ free_conn(conn_t * conn)
 {
 	rb_free_rawbuffer(conn->modbuf_out);
 	rb_free_rawbuffer(conn->plainbuf_out);
-#ifdef HAVE_LIBZ
-	if(IsZip(conn))
-	{
-		zlib_stream_t *stream = conn->stream;
-		inflateEnd(&stream->instream);
-		deflateEnd(&stream->outstream);
-		rb_free(stream);
-	}
-#endif
 	rb_free(conn);
 }
 
@@ -379,81 +339,6 @@ mod_cmd_write_queue(mod_ctl_t * ctl, const void *data, size_t len)
 	mod_write_ctl(ctl->F, ctl);
 }
 
-#ifdef HAVE_LIBZ
-static void
-common_zlib_deflate(conn_t * conn, void *buf, size_t len)
-{
-	char outbuf[READBUF_SIZE];
-	int ret, have;
-	z_stream *outstream = &((zlib_stream_t *) conn->stream)->outstream;
-	outstream->next_in = buf;
-	outstream->avail_in = len;
-	outstream->next_out = (Bytef *) outbuf;
-	outstream->avail_out = sizeof(outbuf);
-
-	ret = deflate(outstream, Z_SYNC_FLUSH);
-	if(ret != Z_OK)
-	{
-		/* deflate error */
-		close_conn(conn, WAIT_PLAIN, "Deflate failed: %s", zError(ret));
-		return;
-	}
-	if(outstream->avail_out == 0)
-	{
-		/* avail_out empty */
-		close_conn(conn, WAIT_PLAIN, "error compressing data, avail_out == 0");
-		return;
-	}
-	if(outstream->avail_in != 0)
-	{
-		/* avail_in isn't empty... */
-		close_conn(conn, WAIT_PLAIN, "error compressing data, avail_in != 0");
-		return;
-	}
-	have = sizeof(outbuf) - outstream->avail_out;
-	conn_mod_write(conn, outbuf, have);
-}
-
-static void
-common_zlib_inflate(conn_t * conn, void *buf, size_t len)
-{
-	char outbuf[READBUF_SIZE];
-	int ret, have = 0;
-	((zlib_stream_t *) conn->stream)->instream.next_in = buf;
-	((zlib_stream_t *) conn->stream)->instream.avail_in = len;
-	((zlib_stream_t *) conn->stream)->instream.next_out = (Bytef *) outbuf;
-	((zlib_stream_t *) conn->stream)->instream.avail_out = sizeof(outbuf);
-
-	while(((zlib_stream_t *) conn->stream)->instream.avail_in)
-	{
-		ret = inflate(&((zlib_stream_t *) conn->stream)->instream, Z_NO_FLUSH);
-		if(ret != Z_OK)
-		{
-			if(!strncmp("ERROR ", buf, 6))
-			{
-				close_conn(conn, WAIT_PLAIN, "Received uncompressed ERROR");
-				return;
-			}
-			close_conn(conn, WAIT_PLAIN, "Inflate failed: %s", zError(ret));
-			return;
-		}
-		have = sizeof(outbuf) - ((zlib_stream_t *) conn->stream)->instream.avail_out;
-
-		if(((zlib_stream_t *) conn->stream)->instream.avail_in)
-		{
-			conn_plain_write(conn, outbuf, have);
-			have = 0;
-			((zlib_stream_t *) conn->stream)->instream.next_out = (Bytef *) outbuf;
-			((zlib_stream_t *) conn->stream)->instream.avail_out = sizeof(outbuf);
-		}
-	}
-	if(have == 0)
-		return;
-
-	conn_plain_write(conn, outbuf, have);
-}
-#endif
-
 static bool
 plain_check_cork(conn_t * conn)
 {
@@ -507,12 +392,7 @@ conn_plain_read_cb(rb_fde_t *fd, void *data)
 		}
 		conn->plain_in += length;
 
-#ifdef HAVE_LIBZ
-		if(IsZip(conn))
-			common_zlib_deflate(conn, inbuf, length);
-		else
-#endif
-			conn_mod_write(conn, inbuf, length);
+		conn_mod_write(conn, inbuf, length);
 		if(IsDead(conn))
 			return;
 		if(plain_check_cork(conn))
@@ -605,12 +485,7 @@ conn_mod_read_cb(rb_fde_t *fd, void *data)
 			return;
 		}
 		conn->mod_in += length;
-#ifdef HAVE_LIBZ
-		if(IsZip(conn))
-			common_zlib_inflate(conn, inbuf, length);
-		else
-#endif
-			conn_plain_write(conn, inbuf, length);
+		conn_plain_write(conn, inbuf, length);
 	}
 }
 
@@ -643,14 +518,12 @@ conn_plain_write_sendq(rb_fde_t *fd, void *data)
 static int
 maxconn(void)
 {
-#if defined(RLIMIT_NOFILE) && defined(HAVE_SYS_RESOURCE_H)
 	struct rlimit limit;
 
 	if(!getrlimit(RLIMIT_NOFILE, &limit))
 	{
 		return limit.rlim_cur;
 	}
-#endif /* RLIMIT_FD_MAX */
 	return MAXCONNECTIONS;
 }
 
@@ -832,65 +705,6 @@ process_stats(mod_ctl_t * ctl, mod_ctl_buf_t * ctlb)
 	mod_cmd_write_queue(ctl, outstat, strlen(outstat) + 1);	/* +1 is so we send the \0 as well */
 }
 
-#ifdef HAVE_LIBZ
-static void
-zlib_process(mod_ctl_t * ctl, mod_ctl_buf_t * ctlb)
-{
-	uint8_t level;
-	size_t recvqlen;
-	size_t hdr = (sizeof(uint8_t) * 2) + sizeof(uint32_t);
-	void *recvq_start;
-	z_stream *instream, *outstream;
-	conn_t *conn;
-	uint32_t id;
-
-	conn = make_conn(ctl, ctlb->F[0], ctlb->F[1]);
-	if(rb_get_type(conn->mod_fd) == RB_FD_UNKNOWN)
-		rb_set_type(conn->mod_fd, RB_FD_SOCKET);
-
-	if(rb_get_type(conn->plain_fd) == RB_FD_UNKNOWN)
-		rb_set_type(conn->plain_fd, RB_FD_SOCKET);
-
-	id = buf_to_uint32(&ctlb->buf[1]);
-	conn_add_id_hash(conn, id);
-
-	level = (uint8_t)ctlb->buf[5];
-
-	recvqlen = ctlb->buflen - hdr;
-	recvq_start = &ctlb->buf[6];
-
-	SetZip(conn);
-	conn->stream = rb_malloc(sizeof(zlib_stream_t));
-	instream = &((zlib_stream_t *) conn->stream)->instream;
-	outstream = &((zlib_stream_t *) conn->stream)->outstream;
-
-	instream->total_in = 0;
-	instream->total_out = 0;
-	instream->zalloc = (alloc_func) ssld_alloc;
-	instream->zfree = (free_func) ssld_free;
-	instream->data_type = Z_ASCII;
-	inflateInit(&((zlib_stream_t *) conn->stream)->instream);
-
-	outstream->total_in = 0;
-	outstream->total_out = 0;
-	outstream->zalloc = (alloc_func) ssld_alloc;
-	outstream->zfree = (free_func) ssld_free;
-	outstream->data_type = Z_ASCII;
-
-	if(level > 9)
-		level = (uint8_t) Z_DEFAULT_COMPRESSION;
-
-	deflateInit(&((zlib_stream_t *) conn->stream)->outstream, level);
-	if(recvqlen > 0)
-		common_zlib_inflate(conn, recvq_start, recvqlen);
-
-	conn_mod_read_cb(conn->mod_fd, conn);
-	conn_plain_read_cb(conn->plain_fd, conn);
-	return;
-
-}
-#endif
-
 static void
 ssl_new_keys(mod_ctl_t * ctl, mod_ctl_buf_t * ctl_buf)
 {
@@ -1038,26 +852,10 @@ mod_process_cmd_recv(mod_ctl_t * ctl)
 				break;
 			}
 
-#ifdef HAVE_LIBZ
-		case 'Z':
-			{
-				if (ctl_buf->nfds != 2 || ctl_buf->buflen < 6)
-				{
-					cleanup_bad_message(ctl, ctl_buf);
-					break;
-				}
-
-				/* just zlib only */
-				zlib_process(ctl, ctl_buf);
-				break;
-			}
-#else
-
 		case 'Z':
 			send_nozlib_support(ctl, ctl_buf);
 			break;
 
-#endif
 		default:
 			break;
 			/* Log unknown commands */
@@ -1159,7 +957,7 @@ int
 main(int argc, char **argv)
 {
 	const char *s_ctlfd, *s_pipe, *s_pid;
-	int ctlfd, pipefd, maxfd;
+	int ctlfd, pipefd, maxfd, x;
 	maxfd = maxconn();
 
 	s_ctlfd = getenv("CTL_FD");
@@ -1178,9 +976,6 @@ main(int argc, char **argv)
 	ctlfd = atoi(s_ctlfd);
 	pipefd = atoi(s_pipe);
 	ppid = atoi(s_pid);
-
-#ifndef _WIN32
-	int x;
 
 	for(x = 3; x < maxfd; x++)
 	{
@@ -1201,7 +996,6 @@ main(int argc, char **argv)
 		if(x > 2)
 			close(x);
 	}
-#endif
 
 	setup_signals();
 	rb_lib_init(NULL, NULL, NULL, 0, maxfd, 1024, 4096);
@@ -1236,18 +1030,15 @@ main(int argc, char **argv)
 }
 
 
-#ifndef _WIN32
 static void
 dummy_handler(int sig)
 {
 	return;
 }
-#endif
 
 static void
 setup_signals()
 {
-#ifndef _WIN32
 	struct sigaction act;
 
 	act.sa_flags = 0;
@@ -1270,5 +1061,4 @@ setup_signals()
 
 	act.sa_handler = dummy_handler;
 	sigaction(SIGALRM, &act, 0);
-#endif
 }

@@ -237,10 +237,10 @@ allow_mode_change(struct Client *source_p, struct Channel *chptr, int alevel,
 /* add_id()
  *
  * inputs	- client, channel, id to add, type, forward
- * outputs	- false on failure, true on success
+ * outputs	- NULL on failure, allocated Ban on success
  * side effects - given id is added to the appropriate list
  */
-bool
+struct Ban *
 add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const char *forward,
        rb_dlink_list * list, long mode_type)
 {
@@ -249,36 +249,24 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 	char *realban = LOCAL_COPY(banid);
 	rb_dlink_node *ptr;
 
-	/* dont let local clients overflow the banlist, or set redundant
-	 * bans
-	 */
+	/* dont let local clients overflow the banlist */
 	if(MyClient(source_p))
 	{
 		if((rb_dlink_list_length(&chptr->banlist) + rb_dlink_list_length(&chptr->exceptlist) + rb_dlink_list_length(&chptr->invexlist) + rb_dlink_list_length(&chptr->quietlist)) >= (unsigned long)((chptr->mode.mode & MODE_EXLIMIT) ? ConfigChannel.max_bans_large : ConfigChannel.max_bans))
 		{
 			sendto_one(source_p, form_str(ERR_BANLISTFULL),
 				   me.name, source_p->name, chptr->chname, realban);
-			return false;
-		}
-
-		RB_DLINK_FOREACH(ptr, list->head)
-		{
-			actualBan = ptr->data;
-			if(mask_match(actualBan->banstr, realban))
-				return false;
+			return NULL;
 		}
 	}
-	/* dont let remotes set duplicates */
-	else
+
+	/* don't let anyone set duplicate bans */
+	RB_DLINK_FOREACH(ptr, list->head)
 	{
-		RB_DLINK_FOREACH(ptr, list->head)
-		{
-			actualBan = ptr->data;
-			if(!irccmp(actualBan->banstr, realban))
-				return false;
-		}
+		actualBan = ptr->data;
+		if(!irccmp(actualBan->banstr, realban))
+			return NULL;
 	}
-
 
 	if(IsPerson(source_p))
 		sprintf(who, "%s!%s@%s", source_p->name, source_p->username, source_p->host);
@@ -294,7 +282,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 	if(mode_type == CHFL_BAN || mode_type == CHFL_QUIET || mode_type == CHFL_EXCEPTION)
 		chptr->bants = rb_current_time();
 
-	return true;
+	return actualBan;
 }
 
 /* del_id()
@@ -937,9 +925,9 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 		}
 
 		if (removed && removed->forward)
-			removed_mask_pos += snprintf(buf + old_removed_mask_pos, sizeof(buf), "%s$%s", removed->banstr, removed->forward) + 1;
+			removed_mask_pos += snprintf(buf + old_removed_mask_pos, sizeof(buf) - old_removed_mask_pos, "%s$%s", removed->banstr, removed->forward) + 1;
 		else
-			removed_mask_pos += rb_strlcpy(buf + old_removed_mask_pos, mask, sizeof(buf)) + 1;
+			removed_mask_pos += rb_strlcpy(buf + old_removed_mask_pos, removed ? removed->banstr : mask, sizeof(buf)) + 1;
 		if (removed)
 		{
 			free_ban(removed);
@@ -1360,13 +1348,13 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 		char mode;
 	};
 
-	static struct modeset modesets[MAXPARA];
+	static struct modeset modesets[MAXMODEPARAMS + MAXMODES_SIMPLE];
 	struct modeset *ms = modesets, *mend;
 	char canon_op = '\0';
 
 	mbuf = modebuf;
 
-	for (ml = parv[0]; *ml != 0; ml++)
+	for (ml = parv[0]; *ml != 0 && ms - modesets < ARRAY_SIZE(modesets); ml++)
 	{
 		c = *ml;
 		switch (c)

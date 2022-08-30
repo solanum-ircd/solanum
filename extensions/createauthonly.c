@@ -19,18 +19,19 @@
 
 static const char restrict_desc[] = "Restricts channel creation to authenticated users and IRC operators only";
 
-static void h_can_create_channel_authenticated(hook_data_client_approval *);
+static void h_can_create_channel_authenticated(void *);
 
 mapi_hfn_list_av1 restrict_hfnlist[] = {
-	{ "can_create_channel", (hookfn) h_can_create_channel_authenticated },
+	{ "can_create_channel", h_can_create_channel_authenticated },
 	{ NULL, NULL }
 };
 
 DECLARE_MODULE_AV2(createauthonly, NULL, NULL, NULL, NULL, restrict_hfnlist, NULL, NULL, restrict_desc);
 
 static void
-h_can_create_channel_authenticated(hook_data_client_approval *data)
+h_can_create_channel_authenticated(void *data_)
 {
+	hook_data_client_approval *data = data_;
 	struct Client *source_p = data->client;
 
 	if (*source_p->user->suser == '\0' && !IsOperGeneral(source_p))

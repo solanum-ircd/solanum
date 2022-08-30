@@ -36,11 +36,17 @@ These are known issues and workarounds for various platforms.
    fix this you must: `sysctl net.inet6.ip6.v6only=0`
 
  * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
-   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script.
+   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script. When running
+   as a 32-bit binary, it should be started as:
+
+   ```bash
+   ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./solanum
+   ```
 
 # building
 
 ```bash
+sudo apt install build-essential pkg-config libsqlite3-dev # or equivalent for your distribution
 ./autogen.sh
 ./configure --prefix=/path/to/installation
 make
@@ -70,7 +76,7 @@ See `./configure --help` for build options.
 
  * To report bugs in Solanum, visit us at `#solanum` on [Libera Chat](https://libera.chat)
 
- * Please read [doc/index.txt](doc/index.txt) to get an overview of the current documentation.
+ * Please read [doc/readme.txt](doc/readme.txt) to get an overview of the current documentation.
 
  * Read the [NEWS.md](NEWS.md) file for what's new in this release.
 

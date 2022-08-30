@@ -59,9 +59,9 @@ static void me_login(struct MsgBuf *, struct Client *, struct Client *, int, con
 static void me_rsfnc(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void me_nickdelay(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
-static void h_svc_server_introduced(hook_data_client *);
-static void h_svc_whois(hook_data_client *);
-static void h_svc_stats(hook_data_int *);
+static void h_svc_server_introduced(void *);
+static void h_svc_whois(void *);
+static void h_svc_stats(void *);
 static void h_svc_conf_read_start(void *);
 static void h_svc_conf_read_end(void *);
 
@@ -86,12 +86,12 @@ mapi_clist_av1 services_clist[] = {
 	&su_msgtab, &login_msgtab, &rsfnc_msgtab, &nickdelay_msgtab, NULL
 };
 mapi_hfn_list_av1 services_hfnlist[] = {
-	{ "doing_stats",	(hookfn) h_svc_stats },
-	{ "doing_whois",	(hookfn) h_svc_whois },
-	{ "doing_whois_global",	(hookfn) h_svc_whois },
-	{ "server_introduced",	(hookfn) h_svc_server_introduced },
-	{ "conf_read_start", (hookfn) h_svc_conf_read_start },
-	{ "conf_read_end", (hookfn) h_svc_conf_read_end },
+	{ "doing_stats",	h_svc_stats },
+	{ "doing_whois",	h_svc_whois },
+	{ "doing_whois_global",	h_svc_whois },
+	{ "server_introduced",	h_svc_server_introduced },
+	{ "conf_read_start", h_svc_conf_read_start },
+	{ "conf_read_end", h_svc_conf_read_end },
 	{ NULL, NULL }
 };
 
@@ -160,6 +160,7 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	struct Client *target_p;
 	struct Client *exist_p;
 	time_t newts, curts;
+	struct nd_entry *nd;
 	char note[NAMELEN + 10];
 
 	if(!(source_p->flags & FLAGS_SERVICE))
@@ -245,6 +246,12 @@ doit:
 			use_id(target_p), parv[2], (long) target_p->tsinfo);
 
 	del_from_client_hash(target_p->name, target_p);
+
+	/* invalidate nick delay because we're forcing this nick to be used */
+	nd = rb_dictionary_retrieve(nd_dict, parv[2]);
+	if (nd != NULL)
+		free_nd_entry(nd);
+
 	rb_strlcpy(target_p->name, parv[2], NICKLEN);
 	add_to_client_hash(target_p->name, target_p);
 
@@ -293,8 +300,9 @@ me_nickdelay(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 }
 
 static void
-h_svc_server_introduced(hook_data_client *hdata)
+h_svc_server_introduced(void *data)
 {
+	hook_data_client *hdata = data;
 	rb_dlink_node *ptr;
 
 	RB_DLINK_FOREACH(ptr, service_list.head)
@@ -308,8 +316,9 @@ h_svc_server_introduced(hook_data_client *hdata)
 }
 
 static void
-h_svc_whois(hook_data_client *data)
+h_svc_whois(void *data_)
 {
+	hook_data_client *data = data_;
 	char *p = data->target->user->suser;
 	if(!EmptyString(p))
 	{
@@ -329,8 +338,9 @@ h_svc_whois(hook_data_client *data)
 }
 
 static void
-h_svc_stats(hook_data_int *data)
+h_svc_stats(void *data_)
 {
+	hook_data_int *data = data_;
 	char statchar = (char) data->arg2;
 	rb_dlink_node *ptr;
 

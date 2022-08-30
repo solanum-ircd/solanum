@@ -18,5 +18,7 @@ Modifiers are also supported, seperated by a comma:
         last n minutes
   T>n - List channels whose topics were last changed
         more than n minutes ago
+  *mask* - List channels matching a wildcard mask
+  !*mask* - List channels that do not match the mask
 
 eg LIST <100,>20

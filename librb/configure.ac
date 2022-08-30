@@ -58,32 +58,12 @@ AC_PROG_LIBTOOL
 LIBTOOL="$LIBTOOL --silent"
 
 case "$host_os" in
-*cygwin*)
-     AC_DEFINE_UNQUOTED(CYGWIN,1,[This is a Cygwin system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     ;;
-*mingw* | *msys*)
-     AC_DEFINE_UNQUOTED(MINGW,1,[This is a MinGW system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     AC_CHECK_HEADER(windows.h, , [AC_MSG_ERROR([** MinGW and no windows.h.  I give up.])])
-     AC_CHECK_HEADER(winsock2.h, , [AC_MSG_ERROR([** MinGW and no winsock2.h.  I give up.])])
-     AC_DEFINE_UNQUOTED(HAVE_WINSOCK2_H, 1, [Have WINSOCK2_H])
-     AC_DEFINE_UNQUOTED(HAVE_WINSOCK_H, 1, [Have WINSOCK_H])
-     LIBS="$LIBS -lws2_32 -liphlpapi"
-     is_mingw="yes"
-     ;;
-*interix*)
-     CPPFLAGS="$CFLAGS -D_ALL_SOURCE -D_XOPEN_SOURCE=500"
-     ;;
 *solaris*)
      CPPFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS -D_XPG4_2"
      ;;
 *)
      ;;
 esac
-
-AM_CONDITIONAL([MINGW], [test "$is_mingw" = "yes"])
-
 
 # backwards support for IRC_CFLAGS
 CFLAGS="$IRC_CFLAGS $CFLAGS -Wall"
@@ -104,93 +84,26 @@ AC_TYPE_UID_T
 dnl Checks for header files.
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS([crypt.h unistd.h sys/socket.h sys/stat.h sys/time.h time.h netinet/in.h netinet/tcp.h netinet/sctp.h arpa/inet.h errno.h sys/uio.h spawn.h sys/poll.h sys/epoll.h sys/select.h sys/devpoll.h sys/event.h port.h signal.h sys/signalfd.h sys/timerfd.h])
+AC_CHECK_HEADERS([crypt.h sys/poll.h sys/epoll.h sys/select.h sys/devpoll.h sys/event.h port.h sys/signalfd.h sys/timerfd.h])
 AC_HEADER_TIME
 
 dnl Networking Functions
 dnl ====================
 
-AC_SEARCH_LIBS(socket, [socket],,)
+AC_SEARCH_LIBS(socket, socket,,)
 
 
 AC_CHECK_MEMBER([struct sockaddr.sa_len], [AC_DEFINE(SOCKADDR_IN_HAS_LEN, 1, [Define to 1 if sockaddr has a 'sa_len'
 member.])],,[[
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
 ]])
-
-AC_CHECK_TYPE([socklen_t], rb_cv_socklen_t=socklen_t,[
-	AC_MSG_CHECKING([for socklen_t equivalent])
-	AC_CACHE_VAL([rb_cv_socklen_t],
-	[
-	# Systems have either "struct sockaddr *" or
-	# "void *" as the second argument to getpeername
-	rb_cv_socklen_t=
-	for arg2 in "struct sockaddr" void; do
-		for t in int size_t unsigned long "unsigned long"; do
-			AC_TRY_COMPILE([
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#endif
-int getpeername (int, $arg2 *, $t *);
-],[
-$t len;
-getpeername(0,0,&len);
-],[
-	rb_cv_socklen_t="$t"
-	break
-])
-		done
-	done
-
-	if test "x$rb_cv_socklen_t" = x; then
-		AC_MSG_WARN([Cannot find a type to use in place of socklen_t using int])
-		rb_cv_socklen_t=int
-	fi
-	])
-	AC_MSG_RESULT($rb_cv_socklen_t)],
-	[#include <sys/types.h>
-#include <sys/socket.h>])
-
-rb_socklen_t=$rb_cv_socklen_t
-
-
-
-
-
-AC_CHECK_TYPES([struct sockaddr_storage],[
-	rb_have_sockaddr_storage=yes
-        ],[], [
-		#include <sys/types.h>
-		#include <sys/socket.h>
-	])
-
 
 dnl Check for stdarg.h - if we cant find it, halt configure
 AC_CHECK_HEADER(stdarg.h, , [AC_MSG_ERROR([** stdarg.h could not be found - librb will not compile without it **])])
 
-AC_CHECK_TYPE([sa_family_t], [],
-[AC_DEFINE(sa_family_t, [u_int16_t], [If system does not define sa_family_t, define it here.])],
-[[#include <sys/types.h>
-#include <sys/socket.h>]])
-
-
 dnl check for various functions...
-AC_CHECK_FUNCS([snprintf vsnprintf socketpair gettimeofday writev sendmsg gmtime_r strtok_r usleep posix_spawn getexecname strlcpy strlcat strnlen strcasestr strcasecmp strncasecmp fstat signalfd select poll kevent port_create epoll_ctl arc4random getrusage timerfd_create])	
+AC_CHECK_FUNCS([getexecname strlcpy strlcat strcasestr signalfd kevent port_create epoll_ctl arc4random timerfd_create])	
 
 AC_SEARCH_LIBS(dlinfo, dl, AC_DEFINE(HAVE_DLINFO, 1, [Define if you have dlinfo]))
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP, 1, [Define if you have nanosleep]))
@@ -208,11 +121,6 @@ if test -c "/dev/poll"; then
 	AC_DEFINE(HAVE_DEVPOLL, [1], [Define to 1 if you have devpoll])
 else
 	AC_MSG_RESULT(no)
-fi
-
-
-if test "$is_mingw" = "yes"; then
-	AC_DEFINE(HAVE_WIN32, [1], [Define to 1 if you are on windows])
 fi
 
 
@@ -403,12 +311,21 @@ AC_HELP_STRING([--disable-sctp],[Disable SCTP support]),
 if test "$sctp" = yes; then
 
 AC_CHECK_HEADER(netinet/sctp.h, [
-	AC_CHECK_LIB(sctp, sctp_bindx,
+	AC_SEARCH_LIBS(sctp_bindx, sctp,
 	[
-		AC_SUBST(LIBSCTP_LD, -lsctp)
 		AC_DEFINE(HAVE_LIBSCTP, 1, [Define to 1 if libsctp (-lsctp) is available.])
 	], sctp=no)
 ], sctp=no)
+
+LIBSCTP_LD=$ac_cv_search_sctp_bindx
+
+if test "$LIBSCTP_LD" = "none required"; then
+	unset LIBSCTP_LD
+elif test "$LIBSCTP_LD" = no; then
+	unset LIBSCTP_LD
+fi
+
+AC_SUBST(LIBSCTP_LD)
 
 fi
 
@@ -427,7 +344,7 @@ elif test "$assert" = soft; then
 	AC_DEFINE(SOFT_ASSERT, 1, [Define this to enable soft asserts.])
 	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
 elif test "$assert" = yes; then
-	assert = "hard";
+	assert="hard"
 fi
 
 AC_MSG_CHECKING(if you want to do a profile build)
@@ -464,15 +381,10 @@ AC_SUBST(MBEDTLS_LIBS)
 
 if test "$prefix" = "NONE"; then
 	AC_DEFINE_UNQUOTED(RB_PREFIX, "$ac_default_prefix", [Prefix where librb is installed.])
-
 else
-
-dnl Don't get bitten by Cygwin's stupidity if the user specified
-dnl a custom prefix with a trailing slash
-
+	dnl Strip trailing slashes to prevent a path of '//'
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(RB_PREFIX, "$prefix", [Prefix where librb is installed.])
-
 fi
 
 AC_SUBST(RB_PREFIX)
@@ -490,94 +402,44 @@ AC_CONFIG_COMMANDS([include/librb-config.h],
 
 _______EOF
 
-if test "x$rb_windows_h" = "xyes"; then
-	echo '#define WIN32_LEAN_AND_MEAN 1' >> $outfile
-	echo '#include <windows.h>' >> $outfile
-	echo '#include <winsock2.h>' >> $outfile
-	echo '#include <ws2tcpip.h>' >> $outfile
-	echo '#include <iphlpapi.h>' >> $outfile
-fi
-
 if test "x$rb_alloca_h" = "xyes"; then
 	echo '#define RB_HAVE_ALLOCA_H 1' >> $outfile
 fi
 
-if test "x$rb_header_stdc" = "xyes"; then
-	echo '#include <stdlib.h>' >> $outfile
-	echo '#include <stddef.h>' >> $outfile
-elif test "x$rb_header_stdlib" = "xyes"; then
-	echo '#include <stdlib.h>' >> $outfile
-fi
-
-if test "x$rb_header_string_h" = "xyes"; then
-	echo '#include <string.h>' >> $outfile
-fi
-
-if test "x$rb_stdint_h" = "xyes"; then
-	echo '#include <stdint.h>' >> $outfile
-fi
-
-if test "x$rb_inttypes_h" = "xyes"; then
-	echo '#include <inttypes.h>' >> $outfile
-fi
-
-if test "x$rb_sys_types_h" = "xyes"; then
-	echo '#include <sys/types.h>' >> $outfile
-fi
-if test "x$rb_sys_time_h" = "xyes"; then
-	echo '#include <sys/time.h>' >> $outfile
-fi
-if test "x$rb_sys_stat_h" = "xyes"; then
-	echo '#include <sys/stat.h>' >> $outfile
-fi
-if test "x$rb_time_h" = "xyes"; then
-	echo '#include <time.h>' >> $outfile
-fi
-
-if test "x$rb_sys_socket_h" = "xyes"; then
-	echo '#include <sys/socket.h>' >> $outfile
-fi
-
-if test "x$rb_netinet_in_h" = "xyes"; then
-	echo '#include <netinet/in.h>' >> $outfile
-fi
-
-if test "x$rb_netinet_tcp_h" == "xyes"; then
-	echo '#include <netinet/tcp.h>' >> $outfile
-fi
+echo '#include <stdlib.h>' >> $outfile
+echo '#include <stddef.h>' >> $outfile
+echo '#include <string.h>' >> $outfile
+echo '#include <stdint.h>' >> $outfile
+echo '#include <inttypes.h>' >> $outfile
+echo '#include <sys/types.h>' >> $outfile
+echo '#include <sys/time.h>' >> $outfile
+echo '#include <sys/stat.h>' >> $outfile
+echo '#include <time.h>' >> $outfile
+echo '#include <sys/socket.h>' >> $outfile
+echo '#include <netinet/in.h>' >> $outfile
+echo '#include <netinet/tcp.h>' >> $outfile
 
 if test "x$rb_netinet_sctp_h" == "xyes"; then
 	echo '#include <netinet/sctp.h>' >> $outfile
 fi
 
-if test "x$rb_arpa_inet_h" = "xyes"; then
-	echo '#include <arpa/inet.h>' >> $outfile
-fi
-
-if test "x$rb_unistd_h" = "xyes"; then
-	echo '#include <unistd.h>' >> $outfile
-fi
+echo '#include <arpa/inet.h>' >> $outfile
+echo '#include <unistd.h>' >> $outfile
 
 if test "x$rb_crypt_h" = "xyes"; then
 	echo '#include <crypt.h>' >> $outfile
 fi
 
-if test "x$rb_errno_h" = "xyes"; then
-	echo '#include <errno.h>' >> $outfile
-fi
+echo '#include <errno.h>' >> $outfile
 
-echo "typedef $rb_socklen_t rb_socklen_t;" >> $outfile
+echo "typedef socklen_t rb_socklen_t;" >> $outfile
 
 
 if test "x$rb_sockaddr_sa_len" = "xyes"; then
 	echo '#define RB_SOCKADDR_HAS_SA_LEN 1' >> $outfile
 fi
 
-if test "x$rb_sockaddr_storage" = "xyes"; then
-	echo '#define rb_sockaddr_storage sockaddr_storage' >> $outfile
-else
-	echo 'struct rb_sockaddr_storage { uint8_t _padding[[128]]; };' >> $outfile
-fi
+echo '#define rb_sockaddr_storage sockaddr_storage' >> $outfile
 
 cat >> $outfile <<\_______EOF
 #endif /* __LIBRB_CONFIG_H */
@@ -591,15 +453,6 @@ else
 fi
 
 ],[
-	if test x$ac_cv_header_stdc = xyes; then
-		rb_header_stdc=yes
-	fi
-	if test x$ac_cv_header_stdlib_h = xyes; then
-		rb_header_stdlib_h=yes
-	fi
-	if test x$ac_cv_header_string_h = xyes; then
-		rb_header_string_h=yes
-	fi
 	if test x$ac_cv_header_memory_h = xyes; then
 		rb_header_memory_h=yes
 	fi
@@ -611,34 +464,7 @@ fi
 	if test x$ac_cv_member_struct_sockaddr_sa_len = xyes; then
 		rb_sockaddr_sa_len=yes
 	fi
-	if test x$ac_cv_header_sys_socket_h = xyes; then
-		rb_sys_socket_h=yes
-	fi
-	if test x$ac_cv_header_sys_types_h = xyes; then
-		rb_sys_types_h=yes
-	fi
-	if test x$ac_cv_header_sys_stat_h = xyes; then
-		rb_sys_stat_h=yes
-	fi
-	if test x$ac_cv_header_sys_time_h = xyes; then
-		rb_sys_time_h=yes
-	fi
-	if test x$ac_cv_header_time_h = xyes; then
-		rb_time_h=yes
-	fi
 
-	if test x$ac_cv_header_stdint_h = xyes; then
-		rb_stdint_h=yes
-	fi
-	if test x$ac_cv_header_inttypes_h = xyes; then
-		rb_inttypes_h=yes
-	fi
-	if test x$ac_cv_header_netinet_in_h = xyes; then
-		rb_netinet_in_h=yes
-	fi
-	if test x$ac_cv_header_netinet_tcp_h = xyes; then
-		rb_netinet_tcp_h=yes
-	fi
 	if test x$ac_cv_header_netinet_sctp_h = xyes; then
 		rb_netinet_sctp_h=yes
 	fi
@@ -646,33 +472,12 @@ fi
 	if test x$ac_cv_header_crypt_h = xyes; then
 		rb_crypt_h=yes
 	fi
-	if test x$ac_cv_header_errno_h = xyes; then
-		rb_errno_h=yes
-	fi
-	if test x$ac_cv_header_unistd_h = xyes; then
-		rb_unistd_h=yes
-	fi
-	if test x$ac_cv_header_windows_h = xyes; then
-		rb_windows_h=yes
-	fi
-	if test x$ac_cv_header_winsock2_h = xyes; then
-		rb_winsock2_h=yes
-	fi
 
-	rb_socklen_t=$rb_socklen_t
-
-	if test "x$rb_have_sockaddr_storage" = "xyes"; then
-		rb_sockaddr_storage="yes"
-	else
-		rb_sockaddr_storage="no"
-	fi
+	rb_socklen_t="socklen_t"
 
 	rb_mv="$MV"
 	rb_rm="$RM"
-
 ]
-
-
 )
 
 

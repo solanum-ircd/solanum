@@ -154,6 +154,7 @@ free_conf(struct ConfItem *aconf)
 	rb_free(aconf->className);
 	rb_free(aconf->user);
 	rb_free(aconf->host);
+	rb_free(aconf->desc);
 
 	if(IsConfBan(aconf))
 		operhash_delete(aconf->info.oper);
@@ -200,10 +201,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 		 * see the IP, we still cannot send it.
 		 */
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many local connections for %s!%s%s@%s",
+				"Too many local connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many local connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
@@ -215,10 +216,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_GLOBAL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many global connections for %s!%s%s@%s",
+				"Too many global connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many global connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
 			source_p->username, source_p->sockhost);
@@ -229,10 +230,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_IDENT:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many user connections for %s!%s%s@%s",
+				"Too many user connections for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : source_p->host);
+				source_p->username, source_p->host,
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many user connections from %s!%s%s@%s",
 			source_p->name, IsGotId(source_p) ? "" : "~",
 			source_p->username, source_p->sockhost);
@@ -243,10 +244,10 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case I_LINE_FULL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"I-line is full for %s!%s%s@%s (%s).",
+				"I-line is full for %s[%s%s@%s] [%s]",
 				source_p->name, IsGotId(source_p) ? "" : "~",
 				source_p->username, source_p->host,
-				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "255.255.255.255");
+				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many connections from %s!%s%s@%s.",
 			source_p->name, IsGotId(source_p) ? "" : "~",
@@ -366,6 +367,10 @@ verify_access(struct Client *client_p, const char *username)
 					form_str(ERR_YOUREBANNEDCREEP),
 					me.name, client_p->name,
 					get_user_ban_reason(aconf));
+
+		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
+			"Rejecting K-Lined user %s [%s] (%s@%s)", get_client_name(client_p, HIDE_IP),
+			show_ip(NULL, client_p) ? client_p->sockhost : "255.255.255.255", aconf->user, aconf->host);
 		add_reject(client_p, aconf->user, aconf->host, aconf, NULL);
 		return (BANNED_CLIENT);
 	}
@@ -778,10 +783,6 @@ set_default_conf(void)
 	ConfigFileEntry.away_interval = 30;
 	ConfigFileEntry.tls_ciphers_oper_only = false;
 	ConfigFileEntry.oper_secure_only = false;
-
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = 4;
-#endif
 
 	ConfigFileEntry.oper_umodes = UMODE_LOCOPS | UMODE_SERVNOTICE |
 		UMODE_OPERWALL | UMODE_WALLOP;
@@ -1346,7 +1347,8 @@ get_oper_name(struct Client *client_p)
  */
 void
 get_printable_conf(struct ConfItem *aconf, char **name, char **host,
-		   const char **pass, char **user, int *port, char **classname)
+		   const char **pass, char **user, int *port,
+		   char **classname, char **desc)
 {
 	static char null[] = "<NULL>";
 	static char zero[] = "default";
@@ -1356,6 +1358,7 @@ get_printable_conf(struct ConfItem *aconf, char **name, char **host,
 	*pass = EmptyString(aconf->passwd) ? null : aconf->passwd;
 	*user = EmptyString(aconf->user) ? null : aconf->user;
 	*classname = EmptyString(aconf->className) ? zero : aconf->className;
+	*desc = CheckEmpty(aconf->desc);
 	*port = (int) aconf->port;
 }
 
@@ -1554,6 +1557,24 @@ clear_out_old_conf(void)
 	ConfigFileEntry.sasl_service = NULL;
 	rb_free(ConfigFileEntry.drain_reason);
 	ConfigFileEntry.drain_reason = NULL;
+	rb_free(ConfigFileEntry.sasl_only_client_message);
+	ConfigFileEntry.sasl_only_client_message = NULL;
+	rb_free(ConfigFileEntry.identd_only_client_message);
+	ConfigFileEntry.identd_only_client_message = NULL;
+	rb_free(ConfigFileEntry.sctp_forbidden_client_message);
+	ConfigFileEntry.sctp_forbidden_client_message = NULL;
+	rb_free(ConfigFileEntry.ssltls_only_client_message);
+	ConfigFileEntry.ssltls_only_client_message = NULL;
+	rb_free(ConfigFileEntry.not_authorised_client_message);
+	ConfigFileEntry.not_authorised_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_hostname_client_message);
+	ConfigFileEntry.illegal_hostname_client_message = NULL;
+	rb_free(ConfigFileEntry.server_full_client_message);
+	ConfigFileEntry.server_full_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_long_client_message);
+	ConfigFileEntry.illegal_name_long_client_message = NULL;
+	rb_free(ConfigFileEntry.illegal_name_short_client_message);
+	ConfigFileEntry.illegal_name_short_client_message = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{

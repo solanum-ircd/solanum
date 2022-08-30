@@ -40,6 +40,9 @@
 #include <openssl/rsa.h>
 #endif
 
+#define MAX_TEMP_TIME (52 * 7 * 24 * 60 * 60)
+
+struct Client;
 struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;
@@ -118,7 +121,11 @@ struct oper_conf
 
 #ifdef HAVE_LIBCRYPTO
 	char *rsa_pubkey_file;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY *rsa_pubkey;
+#else
 	RSA *rsa_pubkey;
+#endif
 #endif
 };
 

@@ -197,7 +197,6 @@ ircd_shutdown(const char *reason)
 static void
 init_sys(void)
 {
-#if !defined(_WIN32) && defined(RLIMIT_NOFILE) && defined(HAVE_SYS_RESOURCE_H)
 	struct rlimit limit;
 
 	if(!getrlimit(RLIMIT_NOFILE, &limit))
@@ -211,11 +210,9 @@ init_sys(void)
 		}
 		return;
 	}
-#endif /* RLIMIT_FD_MAX */
 	maxconnections = MAXCONNECTIONS;
 }
 
-#ifndef _WIN32
 static int
 make_daemon(void)
 {
@@ -255,7 +252,6 @@ make_daemon(void)
 
 	return 0;
 }
-#endif
 
 static int printVersion = 0;
 
@@ -354,104 +350,6 @@ initialize_global_set_options(void)
 }
 
 /*
- * initialize_server_capabs
- *
- * inputs       - none
- * output       - none
- */
-static void
-initialize_server_capabs(void)
-{
-	default_server_capabs &= ~CAP_ZIP;
-}
-
-#ifdef _WIN32
-/*
- * relocate_paths
- *
- * inputs       - none
- * output       - none
- * side effects - items in ircd_paths[] array are relocated
- */
-static void
-relocate_paths(void)
-{
-	char prefix[PATH_MAX], workbuf[PATH_MAX];
-	char *p;
-
-	rb_strlcpy(prefix, rb_path_to_self(), sizeof prefix);
-
-	ircd_paths[IRCD_PATH_IRCD_EXEC] = rb_strdup(prefix);
-
-	/* if we're running from inside the source tree, we probably do not want to relocate any other paths */
-	if (strstr(prefix, ".libs") != NULL)
-		return;
-
-	/* prefix = /home/kaniini/ircd/bin/ircd */
-	p = strrchr(prefix, RB_PATH_SEPARATOR);
-	if (rb_unlikely(p == NULL))
-		return;
-	*p = 0;
-
-	/* prefix = /home/kaniini/ircd/bin */
-	p = strrchr(prefix, RB_PATH_SEPARATOR);
-	if (rb_unlikely(p == NULL))
-		return;
-	*p = 0;
-
-	/* prefix = /home/kaniini/ircd */
-	ircd_paths[IRCD_PATH_PREFIX] = rb_strdup(prefix);
-
-	/* now that we have our prefix, we can relocate the other paths... */
-	snprintf(workbuf, sizeof workbuf, "%s%cmodules", prefix, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_MODULES] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cmodules%cautoload", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_AUTOLOAD_MODULES] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc", prefix, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_ETC] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%clog", prefix, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_LOG] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%chelp%cusers", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_USERHELP] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%chelp%copers", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_OPERHELP] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc%circd.conf", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_IRCD_CONF] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc%circd.motd", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_IRCD_MOTD] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc%copers.motd", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_IRCD_OMOTD] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc%cban.db", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_BANDB] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cetc%circd.pid", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_IRCD_PID] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%clogs%circd.log", prefix, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_IRCD_LOG] = rb_strdup(workbuf);
-
-	snprintf(workbuf, sizeof workbuf, "%s%cbin", prefix, RB_PATH_SEPARATOR);
-	ircd_paths[IRCD_PATH_BIN] = rb_strdup(workbuf);
-	ircd_paths[IRCD_PATH_LIBEXEC] = rb_strdup(workbuf);
-
-	inotice("runtime paths:");
-	for (int i = 0; i < IRCD_PATH_COUNT; i++)
-	{
-		inotice("  %s: %s", ircd_pathnames[i], ircd_paths[i]);
-	}
-}
-#endif
-
-/*
  * write_pidfile
  *
  * inputs       - filename+path of pid file
@@ -525,7 +423,6 @@ check_pidfile(const char *filename)
 static void
 setup_corefile(void)
 {
-#ifdef HAVE_SYS_RESOURCE_H
 	struct rlimit rlim;	/* resource limits */
 
 	/* Set corefilesize to maximum */
@@ -534,7 +431,6 @@ setup_corefile(void)
 		rlim.rlim_cur = rlim.rlim_max;
 		setrlimit(RLIMIT_CORE, &rlim);
 	}
-#endif
 }
 
 static void
@@ -631,18 +527,12 @@ solanum_main(int argc, char * const argv[])
 {
 	int fd;
 
-#ifndef _WIN32
 	/* Check to see if the user is running us as root, which is a nono */
 	if(geteuid() == 0)
 	{
 		fprintf(stderr, "Don't run ircd as root!!!\n");
 		return -1;
 	}
-#endif
-
-#ifdef _WIN32
-	relocate_paths();
-#endif
 
 	logFileName = ircd_paths[IRCD_PATH_IRCD_LOG];
 	pidFileName = ircd_paths[IRCD_PATH_IRCD_PID];
@@ -709,7 +599,6 @@ solanum_main(int argc, char * const argv[])
 	if (testing_conf)
 		server_state_foreground = true;
 
-#ifndef _WIN32
 	/* Make sure fd 0, 1 and 2 are in use -- jilles */
 	do
 	{
@@ -719,7 +608,6 @@ solanum_main(int argc, char * const argv[])
 		close(fd);
 	else if (fd == -1)
 		exit(1);
-#endif
 
 	/* Check if there is pidfile and daemon already running */
 	if(!testing_conf)
@@ -729,10 +617,8 @@ solanum_main(int argc, char * const argv[])
 		inotice("starting %s ...", ircd_version);
 		inotice("%s", rb_lib_version());
 
-#ifndef _WIN32
 		if(!server_state_foreground)
 			make_daemon();
-#endif
 	}
 
 	/* Init the event subsystem */
@@ -786,7 +672,6 @@ solanum_main(int argc, char * const argv[])
 
 	rehash_bans();
 
-	initialize_server_capabs();	/* Set up default_server_capabs */
 	initialize_global_set_options();
 
 	if(ServerInfo.name == NULL)
@@ -867,8 +752,8 @@ solanum_main(int argc, char * const argv[])
 		check_splitmode_ev = rb_event_add("check_splitmode", check_splitmode, NULL, 5);
 
 	if(server_state_foreground)
-		inotice("now running in foreground mode from %s as pid %d ...",
-		        ConfigFileEntry.dpath, getpid());
+		inotice("now running in foreground mode from %s as pid %ld ...",
+		        ConfigFileEntry.dpath, (long)getpid());
 
 	rb_lib_loop(0);
 

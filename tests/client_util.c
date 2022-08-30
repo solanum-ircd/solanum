@@ -33,7 +33,6 @@
 #define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
 
 static struct Listener fake_listener = {
-	.next = NULL,
 	.name = "fake",
 	.F = NULL,
 	.ref_count = 0,

@@ -73,7 +73,6 @@ unsigned int CAP_EX;
 unsigned int CAP_CHW;
 unsigned int CAP_IE;
 unsigned int CAP_KLN;
-unsigned int CAP_ZIP;
 unsigned int CAP_KNOCK;
 unsigned int CAP_TB;
 unsigned int CAP_UNKLN;
@@ -87,6 +86,7 @@ unsigned int CAP_EUID;
 unsigned int CAP_EOPMOD;
 unsigned int CAP_BAN;
 unsigned int CAP_MLOCK;
+unsigned int CAP_EBMASK;
 
 unsigned int CLICAP_MULTI_PREFIX;
 unsigned int CLICAP_ACCOUNT_NOTIFY;
@@ -116,7 +116,6 @@ init_builtin_capabs(void)
 	CAP_IE = capability_put(serv_capindex, "IE", NULL);
 	CAP_KLN = capability_put(serv_capindex, "KLN", NULL);
 	CAP_KNOCK = capability_put(serv_capindex, "KNOCK", NULL);
-	CAP_ZIP = capability_put(serv_capindex, "ZIP", NULL);
 	CAP_TB = capability_put(serv_capindex, "TB", NULL);
 	CAP_UNKLN = capability_put(serv_capindex, "UNKLN", NULL);
 	CAP_CLUSTER = capability_put(serv_capindex, "CLUSTER", NULL);
@@ -128,6 +127,7 @@ init_builtin_capabs(void)
 	CAP_EOPMOD = capability_put(serv_capindex, "EOPMOD", NULL);
 	CAP_BAN = capability_put(serv_capindex, "BAN", NULL);
 	CAP_MLOCK = capability_put(serv_capindex, "MLOCK", NULL);
+	CAP_EBMASK = capability_put(serv_capindex, "EBMASK", NULL);
 
 	capability_require(serv_capindex, "QS");
 	capability_require(serv_capindex, "EX");
@@ -443,12 +443,7 @@ check_server(const char *name, struct Client *client_p)
 	}
 	attach_server_conf(client_p, server_p);
 
-	/* clear ZIP/TB if they support but we dont want them */
-#ifdef HAVE_LIBZ
-	if(!ServerConfCompressed(server_p))
-#endif
-		ClearCap(client_p, CAP_ZIP);
-
+	/* clear TB if they support but we dont want it */
 	if(!ServerConfTb(server_p))
 		ClearCap(client_p, CAP_TB);
 
@@ -518,8 +513,9 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 	rb_dlink_node *ptr;
 	struct Ban *banptr;
 
-	send_multiline_init(client_p, " ", ":%s BMASK %ld %s %c :",
+	send_multiline_init(client_p, " ", ":%s %s %ld %s %c :",
 			me.id,
+			IsCapable(client_p, CAP_EBMASK) ? "EBMASK" : "BMASK",
 			(long)chptr->channelts,
 			chptr->chname,
 			flag);
@@ -529,11 +525,18 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 		banptr = ptr->data;
 
 		if (banptr->forward)
-			send_multiline_item(client_p, "%s$%s",
-					banptr->banstr,
-					banptr->forward);
+			sprintf(buf, "%s$%s", banptr->banstr, banptr->forward);
 		else
-			send_multiline_item(client_p, "%s", banptr->banstr);
+			strcpy(buf, banptr->banstr);
+
+		if IsCapable(client_p, CAP_EBMASK)
+			send_multiline_item(client_p, "%s %ld %s",
+				buf,
+				(long)banptr->when,
+				banptr->who);
+		else
+			send_multiline_item(client_p, "%s", buf);
+
 	}
 
 	send_multiline_fini(client_p, NULL);
@@ -797,7 +800,6 @@ server_estab(struct Client *client_p)
 
 		/* pass info to new server */
 		send_capabilities(client_p, default_server_capabs | CAP_MASK
-				  | (ServerConfCompressed(server_p) ? CAP_ZIP_SUPPORTED : 0)
 				  | (ServerConfTb(server_p) ? CAP_TB : 0));
 
 		sendto_one(client_p, "SERVER %s 1 :%s%s",
@@ -808,12 +810,6 @@ server_estab(struct Client *client_p)
 
 	if(!rb_set_buffers(client_p->localClient->F, READBUF_SIZE))
 		ilog_error("rb_set_buffers failed for server");
-
-	/* Enable compression now */
-	if(IsCapable(client_p, CAP_ZIP))
-	{
-		start_zlib_session(client_p);
-	}
 
 	client_p->servptr = &me;
 
@@ -1031,12 +1027,16 @@ serv_connect(struct server_conf *server_p, struct Client *by)
 	else if(server_p->aftype == AF_INET || GET_SS_FAMILY(&server_p->connect4) == AF_INET)
 	{
 		sa_connect[0] = server_p->connect4;
+		sa_connect[1] = server_p->connect6;
 		sa_bind[0] = server_p->bind4;
+		sa_bind[1] = server_p->bind6;
 	}
 	else if(server_p->aftype == AF_INET6 || GET_SS_FAMILY(&server_p->connect6) == AF_INET6)
 	{
 		sa_connect[0] = server_p->connect6;
+		sa_connect[1] = server_p->connect4;
 		sa_bind[0] = server_p->bind6;
+		sa_bind[1] = server_p->bind4;
 	}
 
 	/* log */
@@ -1316,7 +1316,6 @@ serv_connect_callback(rb_fde_t *F, int status, void *data)
 
 	/* pass my info to the new server */
 	send_capabilities(client_p, default_server_capabs | CAP_MASK
-			  | (ServerConfCompressed(server_p) ? CAP_ZIP_SUPPORTED : 0)
 			  | (ServerConfTb(server_p) ? CAP_TB : 0));
 
 	sendto_one(client_p, "SERVER %s 1 :%s%s",

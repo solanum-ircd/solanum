@@ -93,16 +93,6 @@ struct Server
 	struct scache_entry *nameinfo;
 };
 
-struct ZipStats
-{
-	unsigned long long in;
-	unsigned long long in_wire;
-	unsigned long long out;
-	unsigned long long out_wire;
-	double in_ratio;
-	double out_ratio;
-};
-
 struct Client
 {
 	rb_dlink_node node;
@@ -226,7 +216,7 @@ struct LocalUser
 	 */
 	char *passwd;
 	char *auth_user;
-	char *challenge;
+	unsigned char *challenge;
 	char *fullcaps;
 	char *cipher_string;
 
@@ -278,7 +268,6 @@ struct LocalUser
 	struct ws_ctl *ws_ctl;			/* ctl for wsockd */
 	SSL_OPEN_CB *ssl_callback;		/* ssl connection is now open */
 	uint32_t localflags;
-	struct ZipStats *zipstats;		/* zipstats */
 	uint16_t cork_count;			/* used for corking/uncorking connections */
 	struct ev_entry *event;			/* used for associated events */
 
@@ -320,7 +309,7 @@ struct PreClient
 
 struct ListClient
 {
-	char *chname;
+	char *chname, *mask, *nomask;
 	unsigned int users_min, users_max;
 	time_t created_min, created_max, topic_min, topic_max;
 	int operspy;
