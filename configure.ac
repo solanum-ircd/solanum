@@ -592,6 +592,7 @@ SOLANUM_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunuse
 SOLANUM_C_GCC_TRY_FLAGS([-Wredundant-decls], solanum_cv_c_gcc_w_redundant_decls)
 SOLANUM_C_GCC_TRY_FLAGS([-Wfloat-equal], solanum_cv_c_gcc_w_float_equal)
 SOLANUM_C_GCC_TRY_FLAGS([-Wformat -Wformat-y2k -Wno-format-security], solanum_cv_c_gcc_w_format)
+SOLANUM_C_GCC_TRY_FLAGS([-Wno-compound-token-split-by-macro], solanum_cv_c_gcc_w_compound_split)
 
 IRC_CFLAGS="$CFLAGS"
 ],[])
