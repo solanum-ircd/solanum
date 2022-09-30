@@ -105,7 +105,7 @@ arc4_stir(struct arc4_stream *as)
 		struct rusage buf;
 		getrusage(RUSAGE_SELF, &buf);
 		arc4_addrandom(as, (void *)&buf, sizeof(buf));
-	memset(&buf, 0, sizeof(buf))}
+	memset(&buf, 0, sizeof(buf));}
 
 	fd = open("/dev/urandom", O_RDONLY);
 	if(fd != -1)
