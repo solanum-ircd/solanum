@@ -16,8 +16,8 @@ NO PARAMETERS:
               join the channel.
      +r     - Registered users only.  Only users identified to services
               may join.
-  ?  +R     - Blocks messages from unregistered users. Only users
-              identified to services may talk in channel.
+  ?  +R     - Blocks messages from unregistered users.  Only users
+              identified to services may talk in the channel.
      +c     - No color.  All markup (color, bold, underline, etc.) in
               messages is stripped.
      +g     - Free invite.  Everyone may invite users.  Significantly
