@@ -36,7 +36,7 @@
 #include "inline/stringops.h"
 
 static const char chm_regmsg_desc[] =
-	"Adds channel mode +R, which blocks messagess from unregistered users";
+	"Adds channel mode +R, which blocks messages from unregistered users";
 
 static unsigned int mode_regmsg;
 
