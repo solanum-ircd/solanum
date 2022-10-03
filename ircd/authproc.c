@@ -232,15 +232,15 @@ cmd_oper_warn(int parc, char **parv)
 		inotice("authd: %s", parv[2]);
 		break;
 	case 'W':	/* Warning */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd WARNING: %s", parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd WARNING: %s", parv[2]);
 		iwarn("authd: %s", parv[2]);
 		break;
 	case 'C':	/* Critical (error) */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd CRITICAL: %s", parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd CRITICAL: %s", parv[2]);
 		ierror("authd: %s", parv[2]);
 		break;
 	default:	/* idk */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd sent us an unknown oper notice type (%s): %s", parv[1], parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd sent us an unknown oper notice type (%s): %s", parv[1], parv[2]);
 		ilog(L_MAIN, "authd unknown oper notice type (%s): %s", parv[1], parv[2]);
 		break;
 	}
