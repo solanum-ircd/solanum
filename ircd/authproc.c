@@ -224,11 +224,11 @@ cmd_oper_warn(int parc, char **parv)
 	switch(*parv[1])
 	{
 	case 'D':	/* Debug */
-		sendto_realops_snomask(SNO_DEBUG, L_ALL, "authd debug: %s", parv[2]);
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE, "authd debug: %s", parv[2]);
 		idebug("authd: %s", parv[2]);
 		break;
 	case 'I':	/* Info */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd info: %s", parv[2]);
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE, "authd info: %s", parv[2]);
 		inotice("authd: %s", parv[2]);
 		break;
 	case 'W':	/* Warning */
@@ -383,8 +383,8 @@ authd_abort_client(struct Client *client_p)
 static void
 restart_authd_cb(rb_helper * helper)
 {
-	iwarn("authd: restart_authd_cb called, authd died?");
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd: restart_authd_cb called, authd died?");
+	iwarn("authd helper died - attempting to restart");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authdd helper died - attempting to restart");
 
 	if(helper != NULL)
 	{
