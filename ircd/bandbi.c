@@ -104,11 +104,13 @@ start_bandb(void)
 	if(bandb_helper == NULL)
 	{
 		ilog(L_MAIN, "Unable to start bandb: %s", strerror(errno));
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Unable to start bandb: %s",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Unable to start bandb helper: %s",
 				     strerror(errno));
 		return 1;
 	}
 
+	ilog(L_MAIN, "bandb helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "bandb helper started");
 	rb_helper_run(bandb_helper);
 	return 0;
 }
@@ -434,9 +436,9 @@ bandb_rehash_bans(void)
 static void
 bandb_restart_cb(rb_helper *helper)
 {
-	ilog(L_MAIN, "bandb - bandb_restart_cb called, bandb helper died?");
+	ilog(L_MAIN, "bandb helper died - attempting to restart");
 	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-			     "bandb - bandb_restart_cb called, bandb helper died?");
+			     "bandb helper died - attempting to restart");
 	if(helper != NULL)
 	{
 		rb_helper_close(helper);
