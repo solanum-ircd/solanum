@@ -79,7 +79,7 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	int duration;
 	char *puser, *phost, *reason, *operreason;
 	char reasonbuf[BUFSIZE];
-	bool has_id;
+	bool has_id = false;
 
 	if (!HasPrivilege(source_p, "oper:testline"))
 	{
