@@ -386,14 +386,14 @@ find_conf_by_address(const char *name, const char *sockhost,
  * 	                               struct rb_sockaddr_storage*, int);
  * Input: The hostname, username, address, address family.
  * Output: The applicable ConfItem.
- * Side-effects: None
+ * Side-effects: Mutate `user` to have a tilde, if it should have one
  */
 struct ConfItem *
-find_address_conf(const char *host, const char *sockhost, const char *user,
-		const char *notildeuser, struct sockaddr *ip, int aftype, char *auth_user)
+find_address_conf(const char *host, const char *sockhost, char *user,
+		bool got_id, struct sockaddr *ip, int aftype, char *auth_user)
 {
 	struct ConfItem *iconf, *kconf;
-	const char *vuser;
+	char vuser[USERLEN + 1];
 
 	/* Find the best I-line... If none, return NULL -A1kmm */
 	if(!(iconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_CLIENT, aftype, user, auth_user)))
@@ -401,7 +401,14 @@ find_address_conf(const char *host, const char *sockhost, const char *user,
 	/* Find what their visible username will be.
 	 * Note that the username without tilde may contain one char more.
 	 * -- jilles */
-	vuser = IsNoTilde(iconf) ? notildeuser : user;
+	if (!got_id && !IsNoTilde(iconf))
+		rb_strlcpy(vuser, "~", sizeof vuser);
+	rb_strlcat(vuser, user, sizeof vuser);
+
+	/* pass up what their correct vuser should be so things like SNO_BANNED
+	 * can show the right thing
+	 * -- jess */
+	rb_strlcpy(user, vuser, sizeof user);
 
 	/* If they are exempt from K-lines, return the best I-line. -A1kmm */
 	if(IsConfExemptKline(iconf))

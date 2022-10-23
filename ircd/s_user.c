@@ -390,16 +390,12 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	 * rather than initial connection.  */
 	source_p->localClient->firsttime = client_p->localClient->last = rb_current_time();
 
-	/* XXX - fixme. we shouldnt have to build a users buffer twice.. */
 	if(!IsGotId(source_p) && (strchr(source_p->username, '[') != NULL))
 	{
 		const char *p;
 		int i = 0;
 
 		p = source_p->username;
-
-		if(!IsNoTilde(aconf))
-			myusername[i++] = '~';
 
 		while(*p && i < USERLEN)
 		{
@@ -484,9 +480,6 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(!IsGotId(source_p))
 	{
-		const char *p;
-		int i = 0;
-
 		if(IsNeedIdentd(aconf))
 		{
 
