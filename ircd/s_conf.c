@@ -371,7 +371,7 @@ verify_access(struct Client *client_p, const char *username)
 		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
 			"Rejecting K-Lined user %s [%s] (%s@%s)", get_client_name(client_p, HIDE_IP),
 			show_ip(NULL, client_p) ? client_p->sockhost : "255.255.255.255", aconf->user, aconf->host);
-		add_reject(client_p, aconf->user, aconf->host, aconf, NULL);
+		add_reject(client_p, username, aconf->host, aconf, NULL);
 		return (BANNED_CLIENT);
 	}
 

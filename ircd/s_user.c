@@ -398,6 +398,9 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 		p = source_p->username;
 
+		if(!IsNoTilde(aconf))
+			myusername[i++] = '~';
+
 		while(*p && i < USERLEN)
 		{
 			if(*p != '[')
@@ -501,21 +504,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 		/* dont replace username if its supposed to be spoofed --fl */
 		if(!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@'))
-		{
-			p = myusername;
-
-			if(!IsNoTilde(aconf))
-				source_p->username[i++] = '~';
-
-			while (*p && i < USERLEN)
-			{
-				if(*p != '[')
-					source_p->username[i++] = *p;
-				p++;
-			}
-
-			source_p->username[i] = '\0';
-		}
+			rb_strlcpy(source_p->username, myusername, sizeof source_p->username);
 	}
 
 	if(IsNeedSasl(aconf) && !*source_p->user->suser)
