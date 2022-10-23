@@ -68,7 +68,7 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	struct ConfItem *aconf;
 	struct ConfItem *resv_p;
 	struct rb_sockaddr_storage ip;
-	char user_trunc[USERLEN + 1], notildeuser_trunc[USERLEN + 1];
+	char user_trunc[USERLEN + 1];
 	const char *name = NULL;
 	const char *username = NULL;
 	const char *host = NULL;
@@ -79,6 +79,7 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	int duration;
 	char *puser, *phost, *reason, *operreason;
 	char reasonbuf[BUFSIZE];
+	bool has_id;
 
 	if (!HasPrivilege(source_p, "oper:testline"))
 	{
@@ -180,15 +181,14 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	if (username != NULL)
 	{
 		rb_strlcpy(user_trunc, username, sizeof user_trunc);
-		rb_strlcpy(notildeuser_trunc, *username == '~' ? username + 1 : username, sizeof notildeuser_trunc);
+		has_id = *username == '~';
 	}
 	else
 	{
 		rb_strlcpy(user_trunc, "dummy", sizeof user_trunc);
-		rb_strlcpy(notildeuser_trunc, "dummy", sizeof notildeuser_trunc);
 	}
 	/* now look for a matching I/K/G */
-	if((aconf = find_address_conf(host, NULL, user_trunc, notildeuser_trunc,
+	if((aconf = find_address_conf(host, NULL, user_trunc, has_id,
 				(type != HM_HOST) ? (struct sockaddr *)&ip : NULL,
 				(type != HM_HOST) ? (
 				 (type == HM_IPV6) ? AF_INET6 :
