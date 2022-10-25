@@ -394,7 +394,7 @@ find_address_conf(const char *host, const char *sockhost, const char *user,
 		char **vuser)
 {
 	struct ConfItem *iconf, *kconf;
-	char vuser_buf[USERLEN + 1];
+	char vuser_buf[USERLEN + 1] = "";
 
 	/* Find what their visible username will be.
 	 * Note that the username without tilde may contain one char more.
