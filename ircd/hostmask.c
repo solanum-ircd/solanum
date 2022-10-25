@@ -412,7 +412,7 @@ find_address_conf(const char *host, const char *sockhost, const char *user,
 	if (vuser)
 	{
 		*vuser = rb_strdup(vuser_buf);
-		if (IsNoTilde(iconf))
+		if (!got_id && IsNoTilde(iconf))
 			vuser++;
 	}
 
