@@ -454,7 +454,7 @@ find_address_conf(const char *host, const char *sockhost, const char *user,
 
 	/* if no_tilde, check the username without tilde against klines too
 	 * -- jilles */
-	if(user != vuser_buf)
+	if (strcmp(user, vuser_buf))
 	{
 		kconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_KILL, aftype, vuser_buf, NULL);
 		if(kconf)
