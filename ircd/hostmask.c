@@ -386,7 +386,7 @@ find_conf_by_address(const char *name, const char *sockhost,
  * 	                               struct rb_sockaddr_storage*, int);
  * Input: The hostname, username, address, address family.
  * Output: The applicable ConfItem.
- * Side-effects: Mutate `user` to have a tilde, if it should have one
+ * Side-effects: Set `vuser` to what this user's visible username should be
  */
 struct ConfItem *
 find_address_conf(const char *host, const char *sockhost, const char *user,

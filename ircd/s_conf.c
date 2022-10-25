@@ -177,7 +177,7 @@ free_conf(struct ConfItem *aconf)
  * side effects - Ordinary client access check.
  *		  Look for conf lines which have the same
  * 		  status as the flags passed.
- *		  Mutate `username` to have a tilde, if it should have one
+ *		  Set `vuser` to what this user's visible username should be
  */
 int
 check_client(struct Client *client_p, struct Client *source_p, const char *username, char **vuser)
