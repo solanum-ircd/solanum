@@ -352,6 +352,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	char ipaddr[HOSTIPLEN];
 	char myusername[USERLEN+1];
 	int status, umodes;
+	char *p, **myusername_ptr = &p;
 
 	s_assert(NULL != source_p);
 	s_assert(MyConnect(source_p));
@@ -409,7 +410,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	else
 		rb_strlcpy(myusername, source_p->username, sizeof myusername);
 
-	if((status = check_client(client_p, source_p, myusername)) < 0)
+	if((status = check_client(client_p, source_p, myusername, myusername_ptr)) < 0)
 		return (CLIENT_EXITED);
 
 	/* Apply nick override */
@@ -497,7 +498,8 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 		/* dont replace username if its supposed to be spoofed --fl */
 		if(!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@'))
-			rb_strlcpy(source_p->username, myusername, sizeof source_p->username);
+			rb_strlcpy(source_p->username, *myusername_ptr, sizeof source_p->username);
+		rb_free(*myusername_ptr);
 	}
 
 	if(IsNeedSasl(aconf) && !*source_p->user->suser)

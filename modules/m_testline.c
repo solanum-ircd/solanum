@@ -180,8 +180,10 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 	if (username != NULL)
 	{
-		rb_strlcpy(user_trunc, username, sizeof user_trunc);
 		has_id = *username == '~';
+		if (has_id)
+			*username++;
+		rb_strlcpy(user_trunc, username, sizeof user_trunc);
 	}
 	else
 	{
@@ -190,9 +192,8 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	/* now look for a matching I/K/G */
 	if((aconf = find_address_conf(host, NULL, user_trunc, has_id,
 				(type != HM_HOST) ? (struct sockaddr *)&ip : NULL,
-				(type != HM_HOST) ? (
-				 (type == HM_IPV6) ? AF_INET6 :
-				  AF_INET) : 0, NULL)))
+				(type != HM_HOST) ? ((type == HM_IPV6) ? AF_INET6 :AF_INET) : 0,
+				NULL, NULL)))
 	{
 		static char buf[HOSTLEN+USERLEN+2];
 

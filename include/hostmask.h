@@ -53,8 +53,8 @@ void delete_one_address_conf(const char *, struct ConfItem *);
 void clear_out_address_conf(enum aconf_category);
 void init_host_hash(void);
 struct ConfItem *find_address_conf(const char *host, const char *sockhost,
-				char *user, bool got_id, struct sockaddr *,
-				int, char *);
+				const char *user, bool got_id, struct sockaddr *,
+				int, char *, char **vuser);
 
 struct ConfItem *find_dline(struct sockaddr *, int);
 

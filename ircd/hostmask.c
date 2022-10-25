@@ -389,26 +389,32 @@ find_conf_by_address(const char *name, const char *sockhost,
  * Side-effects: Mutate `user` to have a tilde, if it should have one
  */
 struct ConfItem *
-find_address_conf(const char *host, const char *sockhost, char *user,
-		bool got_id, struct sockaddr *ip, int aftype, char *auth_user)
+find_address_conf(const char *host, const char *sockhost, const char *user,
+		bool got_id, struct sockaddr *ip, int aftype, char *auth_user,
+		char **vuser)
 {
 	struct ConfItem *iconf, *kconf;
-	char vuser[USERLEN + 1];
+	char vuser_buf[USERLEN + 1];
 
-	/* Find the best I-line... If none, return NULL -A1kmm */
-	if(!(iconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_CLIENT, aftype, user, auth_user)))
-		return NULL;
 	/* Find what their visible username will be.
 	 * Note that the username without tilde may contain one char more.
 	 * -- jilles */
-	if (!got_id && !IsNoTilde(iconf))
-		rb_strlcpy(vuser, "~", sizeof vuser);
-	rb_strlcat(vuser, user, sizeof vuser);
+	if (!got_id)
+		rb_strlcpy(vuser_buf, "~", sizeof vuser_buf);
+	rb_strlcat(vuser_buf, user, sizeof vuser_buf);
 
-	/* pass up what their correct vuser should be so things like SNO_BANNED
-	 * can show the right thing
+	/* Find the best I-line... If none, return NULL -A1kmm */
+	if(!(iconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_CLIENT, aftype, vuser_buf, auth_user)))
+		return NULL;
+
+	/* pass up what their correct vuser should be, if the caller wanted it
 	 * -- jess */
-	rb_strlcpy(user, vuser, sizeof user);
+	if (vuser)
+	{
+		*vuser = rb_strdup(vuser_buf);
+		if (IsNoTilde(iconf))
+			vuser++;
+	}
 
 	/* If they are exempt from K-lines, return the best I-line. -A1kmm */
 	if(IsConfExemptKline(iconf))
@@ -429,7 +435,7 @@ find_address_conf(const char *host, const char *sockhost, char *user,
 			*p = '@';
 		}
 		else
-			kconf = find_conf_by_address(iconf->info.name, NULL, NULL, NULL, CONF_KILL, aftype, vuser, NULL);
+			kconf = find_conf_by_address(iconf->info.name, NULL, NULL, NULL, CONF_KILL, aftype, vuser_buf, NULL);
 
 		if(kconf)
 			return kconf;
@@ -448,9 +454,9 @@ find_address_conf(const char *host, const char *sockhost, char *user,
 
 	/* if no_tilde, check the username without tilde against klines too
 	 * -- jilles */
-	if(user != vuser)
+	if(user != vuser_buf)
 	{
-		kconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_KILL, aftype, vuser, NULL);
+		kconf = find_conf_by_address(host, sockhost, NULL, ip, CONF_KILL, aftype, vuser_buf, NULL);
 		if(kconf)
 			return kconf;
 	}

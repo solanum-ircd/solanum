@@ -83,8 +83,8 @@ static int cmp_prop_ban(const void *, const void *);
 FILE *conf_fbfile_in;
 extern char yytext[];
 
-static int verify_access(struct Client *client_p, char *username);
-static struct ConfItem *find_address_conf_by_client(struct Client *client_p, char *username);
+static int verify_access(struct Client *client_p, const char *username, char **vuser);
+static struct ConfItem *find_address_conf_by_client(struct Client *client_p, const char *username, char **vuser);
 static int attach_iline(struct Client *, struct ConfItem *);
 
 void
@@ -180,11 +180,11 @@ free_conf(struct ConfItem *aconf)
  *		  Mutate `username` to have a tilde, if it should have one
  */
 int
-check_client(struct Client *client_p, struct Client *source_p, char *username)
+check_client(struct Client *client_p, struct Client *source_p, const char *username, char **vuser)
 {
 	int i;
 
-	if((i = verify_access(source_p, username)))
+	if((i = verify_access(source_p, username, vuser)))
 	{
 		ilog(L_FUSER, "Access denied: %s[%s]",
 		     source_p->name, source_p->sockhost);
@@ -203,11 +203,11 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 		 */
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				"Too many local connections for %s[%s@%s] [%s]",
-				source_p->name, username, source_p->host,
+				source_p->name, *vuser, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many local connections from %s!%s@%s",
-			source_p->name, username, source_p->sockhost);
+			source_p->name, *vuser, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many host connections (local)");
@@ -216,10 +216,10 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 	case TOO_MANY_GLOBAL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				"Too many global connections for %s[%s@%s] [%s]",
-				source_p->name, username, source_p->host,
+				source_p->name, *vuser, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many global connections from %s!%s@%s",
-			source_p->name, username, source_p->sockhost);
+			source_p->name, *vuser, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many host connections (global)");
@@ -228,10 +228,10 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 	case TOO_MANY_IDENT:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				"Too many user connections for %s[%s@%s] [%s]",
-				source_p->name, username, source_p->host,
+				source_p->name, *vuser, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 		ilog(L_FUSER, "Too many user connections from %s!%s@%s",
-			source_p->name, username, source_p->sockhost);
+			source_p->name, *vuser, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many user connections (global)");
@@ -240,11 +240,11 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 	case I_LINE_FULL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
 				"I-line is full for %s[%s@%s] [%s]",
-				source_p->name, username, source_p->host,
+				source_p->name, *vuser, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
 		ilog(L_FUSER, "Too many connections from %s!%s@%s.",
-			source_p->name, username, source_p->sockhost);
+			source_p->name, *vuser, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me,
@@ -267,12 +267,12 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
 			sendto_realops_snomask(SNO_UNAUTH, L_NETWIDE,
 					"Unauthorised client connection from "
 					"%s!%s@%s [%s] on [%s/%u].",
-					source_p->name, username, source_p->host, source_p->sockhost,
+					source_p->name, *vuser, source_p->host, source_p->sockhost,
 					source_p->localClient->listener->name, port);
 
 			ilog(L_FUSER,
 				"Unauthorised client connection from %s!%s@%s on [%s/%u].",
-				source_p->name, username, source_p->sockhost,
+				source_p->name, *vuser, source_p->sockhost,
 				source_p->localClient->listener->name, port);
 			add_reject(client_p, NULL, NULL, NULL, "You are not authorised to use this server.");
 			exit_client(client_p, source_p, &me, "You are not authorised to use this server.");
@@ -299,11 +299,11 @@ check_client(struct Client *client_p, struct Client *source_p, char *username)
  * side effect	- find the first (best) I line to attach.
  */
 static int
-verify_access(struct Client *client_p, char *username)
+verify_access(struct Client *client_p, const char *username, char **vuser)
 {
 	struct ConfItem *aconf;
 
-	aconf = find_address_conf_by_client(client_p, username);
+	aconf = find_address_conf_by_client(client_p, username, vuser);
 	if(aconf == NULL)
 		return NOT_AUTHORISED;
 
@@ -359,7 +359,7 @@ verify_access(struct Client *client_p, char *username)
 					get_user_ban_reason(aconf));
 
 		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
-			"Rejecting K-Lined user %s[%s@%s] [%s] (%s@%s)", client_p->name, username,
+			"Rejecting K-Lined user %s[%s@%s] [%s] (%s@%s)", client_p->name, *vuser,
 			client_p->host, show_ip(NULL, client_p) ? client_p->sockhost : "255.255.255.255",
 			aconf->user, aconf->host);
 		add_reject(client_p, client_p->username, aconf->host, aconf, NULL);
@@ -375,13 +375,13 @@ verify_access(struct Client *client_p, char *username)
  * Side-effects: Mutate `username` to have a tilde, if it should have one
  */
 static struct ConfItem *
-find_address_conf_by_client(struct Client *client_p, char *username)
+find_address_conf_by_client(struct Client *client_p, const char *username, char **vuser)
 {
 	return find_address_conf(client_p->host, client_p->sockhost,
 			username, IsGotId(client_p),
 			(struct sockaddr *) &client_p->localClient->ip,
 			GET_SS_FAMILY(&client_p->localClient->ip),
-			client_p->localClient->auth_user);
+			client_p->localClient->auth_user, vuser);
 }
 
 
