@@ -72,7 +72,6 @@ mapi_clist_av1 sasl_clist[] = {
 	&authenticate_msgtab, &sasl_msgtab, &mechlist_msgtab, NULL
 };
 mapi_hfn_list_av1 sasl_hfnlist[] = {
-	{ "new_local_user",	abort_sasl },
 	{ "client_exit",	abort_sasl_exit },
 	{ NULL, NULL }
 };
@@ -300,9 +299,6 @@ me_mechlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	rb_strlcpy(mechlist_buf, parv[1], sizeof mechlist_buf);
 }
 
-/* If the client never finished authenticating but is
- * registering anyway, abort the exchange.
- */
 static void
 abort_sasl(void *data_)
 {

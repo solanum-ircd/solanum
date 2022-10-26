@@ -90,7 +90,7 @@ AC_HEADER_TIME
 dnl Networking Functions
 dnl ====================
 
-AC_SEARCH_LIBS(socket, [socket],,)
+AC_SEARCH_LIBS(socket, socket,,)
 
 
 AC_CHECK_MEMBER([struct sockaddr.sa_len], [AC_DEFINE(SOCKADDR_IN_HAS_LEN, 1, [Define to 1 if sockaddr has a 'sa_len'
