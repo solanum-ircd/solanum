@@ -184,7 +184,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 	if(msgtype != MESSAGE_TYPE_NOTICE &&
 		IsSetAnyCallerID(source_p) &&
 		!accept_message(target_p, source_p) &&
-		!IsOperGeneral(target_p))
+		!MayHavePrivilege(source_p, "oper:always_message"))
 	{
 		if(rb_dlink_list_length(&source_p->localClient->allow_list) <
 				(unsigned long)ConfigFileEntry.max_accept)
