@@ -566,7 +566,6 @@ timeout_dead_authd_clients(void *notused __unused)
 	{
 		if(client_p->preClient->auth.timeout < rb_current_time())
 		{
-			authd_free_client(client_p);
 			rb_dlinkAddAlloc(client_p, &freelist);
 		}
 	}
@@ -575,7 +574,8 @@ timeout_dead_authd_clients(void *notused __unused)
 	RB_DLINK_FOREACH_SAFE(ptr, nptr, freelist.head)
 	{
 		client_p = ptr->data;
-		rb_dictionary_delete(cid_clients, RB_UINT_TO_POINTER(client_p->preClient->auth.cid));
+		authd_abort_client(client_p);
+		rb_dlinkDestroy(ptr, &freelist);
 	}
 }
 
