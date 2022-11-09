@@ -289,7 +289,7 @@ quote_adminstring(struct Client *source_p, const char *arg, int newval)
 static void
 quote_spamnum(struct Client *source_p, const char *arg, int newval)
 {
-	if(newval > 0)
+	if(newval >= 0)
 	{
 		if(newval == 0)
 		{
