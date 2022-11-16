@@ -280,7 +280,7 @@ add_id(struct Client *source_p, struct Channel *chptr, const char *banid, const 
 
 	/* invalidate the can_send() cache */
 	if(mode_type == CHFL_BAN || mode_type == CHFL_QUIET || mode_type == CHFL_EXCEPTION)
-		chptr->bants = rb_current_time();
+		chptr->bants++;
 
 	return actualBan;
 }
@@ -310,7 +310,7 @@ del_id(struct Channel *chptr, const char *banid, rb_dlink_list * list, long mode
 
 			/* invalidate the can_send() cache */
 			if(mode_type == CHFL_BAN || mode_type == CHFL_QUIET || mode_type == CHFL_EXCEPTION)
-				chptr->bants = rb_current_time();
+				chptr->bants++;
 
 			return banptr;
 		}
