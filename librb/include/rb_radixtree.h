@@ -146,9 +146,6 @@ extern void *rb_radixtree_delete(rb_radixtree *dtree, const char *key);
 rb_radixtree_leaf *rb_radixtree_elem_add(rb_radixtree *dtree, const char *key, void *data);
 rb_radixtree_leaf *rb_radixtree_elem_find(rb_radixtree *dtree, const char *key, int fuzzy);
 void rb_radixtree_elem_delete(rb_radixtree *dtree, rb_radixtree_leaf *elem);
-const char *rb_radixtree_elem_get_key(rb_radixtree_leaf *elem);
-void rb_radixtree_elem_set_data(rb_radixtree_leaf *elem, void *data);
-void *rb_radixtree_elem_get_data(rb_radixtree_leaf *elem);
 
 unsigned int rb_radixtree_size(rb_radixtree *dict);
 void rb_radixtree_stats(rb_radixtree *dict, void (*cb)(const char *line, void *privdata), void *privdata);

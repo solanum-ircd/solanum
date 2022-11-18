@@ -112,7 +112,6 @@ extern rb_dlink_list auth_providers;
 extern rb_dictionary *auth_clients;
 
 void load_provider(struct auth_provider *provider);
-void unload_provider(struct auth_provider *provider);
 
 void init_providers(void);
 void destroy_providers(void);

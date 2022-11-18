@@ -596,31 +596,3 @@ rs_vsnprintf(char *dest, const size_t bytes, const char *format, va_list args)
 
 	return (written);
 }				/* vSnprintf() */
-
-/*
-rs_snprintf()
- Optimized version of snprintf().
-
-Inputs: dest   - destination string
-        bytes  - number of bytes to copy
-        format - formatted string
-        args   - args to 'format'
-
-Return: number of characters copied, NOT including the terminating
-        NULL which is always placed at the end of the string
-*/
-
-int
-rs_snprintf(char *dest, const size_t bytes, const char *format, ...)
-{
-	va_list args;
-	int count;
-
-	va_start(args, format);
-
-	count = rs_vsnprintf(dest, bytes, format, args);
-
-	va_end(args);
-
-	return (count);
-}				/* Snprintf() */

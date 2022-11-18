@@ -954,30 +954,6 @@ rb_radixtree_retrieve(rb_radixtree *dtree, const char *key)
 	return NULL;
 }
 
-const char *
-rb_radixtree_elem_get_key(rb_radixtree_leaf *leaf)
-{
-	lrb_assert(leaf != NULL);
-
-	return leaf->key;
-}
-
-void
-rb_radixtree_elem_set_data(rb_radixtree_leaf *leaf, void *data)
-{
-	lrb_assert(leaf != NULL);
-
-	leaf->data = data;
-}
-
-void *
-rb_radixtree_elem_get_data(rb_radixtree_leaf *leaf)
-{
-	lrb_assert(leaf != NULL);
-
-	return leaf->data;
-}
-
 /*
  * rb_radixtree_size(rb_radixtree *dict)
  *

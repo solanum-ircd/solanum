@@ -105,34 +105,6 @@ handle_dns_stat_failure(uint32_t xid)
 	req->data = NULL;
 }
 
-
-void
-cancel_lookup(uint32_t xid)
-{
-	struct dnsreq *req = rb_dictionary_retrieve(query_dict, RB_UINT_TO_POINTER(xid));
-	s_assert(req);
-
-	if (req == NULL)
-		return;
-
-	req->callback = NULL;
-	req->data = NULL;
-}
-
-void
-cancel_dns_stats(uint32_t xid)
-{
-	struct dnsstatreq *req = rb_dictionary_retrieve(stat_dict, RB_UINT_TO_POINTER(xid));
-	s_assert(req);
-
-	if (req == NULL)
-		return;
-
-	req->callback = NULL;
-	req->data = NULL;
-}
-
-
 uint32_t
 lookup_hostname(const char *hostname, int aftype, DNSCB callback, void *data)
 {
@@ -153,29 +125,6 @@ lookup_hostname(const char *hostname, int aftype, DNSCB callback, void *data)
 		aft = 4;
 
 	submit_dns(rid, aft == 4 ? DNS_HOST_IPV4 : DNS_HOST_IPV6, hostname);
-	return (rid);
-}
-
-uint32_t
-lookup_ip(const char *addr, int aftype, DNSCB callback, void *data)
-{
-	struct dnsreq *req = rb_malloc(sizeof(struct dnsreq));
-	int aft;
-	uint32_t rid = assign_id(&query_id);
-
-	check_authd();
-
-	rb_dictionary_add(query_dict, RB_UINT_TO_POINTER(rid), req);
-
-	req->callback = callback;
-	req->data = data;
-
-	if(aftype == AF_INET6)
-		aft = 6;
-	else
-		aft = 4;
-
-	submit_dns(rid, aft == 4 ? DNS_REVERSE_IPV4 : DNS_REVERSE_IPV6, addr);
 	return (rid);
 }
 

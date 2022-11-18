@@ -363,47 +363,6 @@ msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned i
 	return 0;
 }
 
-/*
- * unparse a MsgBuf stem + format string into a buffer
- * if origin is NULL, me.name will be used.
- * cmd may not be NULL.
- * returns 0 on success, 1 on error.
- */
-int
-msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, va_list va)
-{
-	size_t buflen_copy = buflen;
-	char *ws;
-	size_t prefixlen;
-
-	msgbuf_unparse_prefix(buf, &buflen_copy, head, capmask);
-	prefixlen = strlen(buf);
-
-	ws = buf + prefixlen;
-	vsnprintf(ws, buflen_copy - prefixlen, fmt, va);
-
-	return 0;
-}
-
-/*
- * unparse a MsgBuf stem + format string into a buffer (with va_list handling)
- * if origin is NULL, me.name will be used.
- * cmd may not be NULL.
- * returns 0 on success, 1 on error.
- */
-int
-msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, ...)
-{
-	va_list va;
-	int res;
-
-	va_start(va, fmt);
-	res = msgbuf_vunparse_fmt(buf, buflen, head, capmask, fmt, va);
-	va_end(va);
-
-	return res;
-}
-
 void
 msgbuf_cache_init(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message)
 {

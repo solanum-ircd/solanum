@@ -63,8 +63,6 @@ rb_patricia_tree_t;
 
 
 rb_patricia_node_t *rb_match_ip(rb_patricia_tree_t *tree, struct sockaddr *ip);
-rb_patricia_node_t *rb_match_ip_exact(rb_patricia_tree_t *tree, struct sockaddr *ip,
-				      unsigned int len);
 rb_patricia_node_t *rb_match_string(rb_patricia_tree_t *tree, const char *string);
 rb_patricia_node_t *rb_match_exact_string(rb_patricia_tree_t *tree, const char *string);
 rb_patricia_node_t *rb_patricia_search_exact(rb_patricia_tree_t *patricia, rb_prefix_t *prefix);
@@ -77,8 +75,6 @@ void rb_patricia_remove(rb_patricia_tree_t *patricia, rb_patricia_node_t *node);
 rb_patricia_tree_t *rb_new_patricia(int maxbits);
 void rb_clear_patricia(rb_patricia_tree_t *patricia, void (*func) (void *));
 void rb_destroy_patricia(rb_patricia_tree_t *patricia, void (*func) (void *));
-void rb_patricia_process(rb_patricia_tree_t *patricia, void (*func) (rb_prefix_t *, void *));
-void rb_init_patricia(void);
 
 
 #if 0

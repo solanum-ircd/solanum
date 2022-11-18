@@ -212,30 +212,6 @@ rb_bh_free(rb_bh *bh, void *ptr)
 	return (0);
 }
 
-
-/* ************************************************************************ */
-/* FUNCTION DOCUMENTATION:                                                  */
-/*    rb_bhDestroy                                                      */
-/* Description:                                                             */
-/*    Completely free()s a rb_bh.  Use for cleanup.                     */
-/* Parameters:                                                              */
-/*    bh (IN):  Pointer to the rb_bh to be destroyed.                   */
-/* Returns:                                                                 */
-/*   0 if successful, 1 if bh == NULL                                       */
-/* ************************************************************************ */
-int
-rb_bh_destroy(rb_bh *bh)
-{
-	if(bh == NULL)
-		return (1);
-
-	rb_dlinkDelete(&bh->hlist, heap_lists);
-	rb_free(bh->desc);
-	rb_free(bh);
-
-	return (0);
-}
-
 void
 rb_bh_usage(rb_bh *bh __attribute__((unused)), size_t *bused, size_t *bfree, size_t *bmemusage, const char **desc)
 {
@@ -247,52 +223,4 @@ rb_bh_usage(rb_bh *bh __attribute__((unused)), size_t *bused, size_t *bfree, siz
 		*bmemusage = 0;
 	if(desc != NULL)
 		*desc = "no blockheap";
-}
-
-void
-rb_bh_usage_all(rb_bh_usage_cb *cb, void *data)
-{
-	rb_dlink_node *ptr;
-	rb_bh *bh;
-	size_t used, freem, memusage, heapalloc;
-	static const char *unnamed = "(unnamed_heap)";
-	const char *desc = unnamed;
-
-	if(cb == NULL)
-		return;
-
-	RB_DLINK_FOREACH(ptr, heap_lists->head)
-	{
-		bh = (rb_bh *)ptr->data;
-		freem = rb_dlink_list_length(&bh->free_list);
-		used = (rb_dlink_list_length(&bh->block_list) * bh->elemsPerBlock) - freem;
-		memusage = used * bh->elemSize;
-		heapalloc = (freem + used) * bh->elemSize;
-		if(bh->desc != NULL)
-			desc = bh->desc;
-		cb(used, freem, memusage, heapalloc, desc, data);
-	}
-	return;
-}
-
-void
-rb_bh_total_usage(size_t *total_alloc, size_t *total_used)
-{
-	rb_dlink_node *ptr;
-	size_t total_memory = 0, used_memory = 0, used, freem;
-	rb_bh *bh;
-
-	RB_DLINK_FOREACH(ptr, heap_lists->head)
-	{
-		bh = (rb_bh *)ptr->data;
-		freem = rb_dlink_list_length(&bh->free_list);
-		used = (rb_dlink_list_length(&bh->block_list) * bh->elemsPerBlock) - freem;
-		used_memory += used * bh->elemSize;
-		total_memory += (freem + used) * bh->elemSize;
-	}
-
-	if(total_alloc != NULL)
-		*total_alloc = total_memory;
-	if(total_used != NULL)
-		*total_used = used_memory;
 }

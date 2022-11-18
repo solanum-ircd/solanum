@@ -36,7 +36,6 @@ extern rb_dlink_list links_cache_list;
 
 void init_cache(void);
 struct cachefile *cache_file(const char *, const char *, int);
-void cache_links(void *unused);
 void free_cachefile(struct cachefile *);
 
 void load_help(void);

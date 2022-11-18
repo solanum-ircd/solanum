@@ -91,15 +91,6 @@ void msgbuf_reconstruct_tail(struct MsgBuf *msgbuf, size_t n);
  */
 int msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
 
-/*
- * unparse a MsgBuf header plus payload into a buffer.
- * if origin is NULL, me.name will be used.
- * cmd may not be NULL.
- * returns 0 on success, 1 on error.
- */
-int msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, ...) AFP(5, 6);
-int msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, va_list va);
-
 int msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data);
 int msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
 

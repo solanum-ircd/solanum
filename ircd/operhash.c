@@ -74,12 +74,6 @@ operhash_add(const char *name)
 	return ohash->name;
 }
 
-const char *
-operhash_find(const char *name)
-{
-	return rb_radixtree_retrieve(operhash_tree, name);
-}
-
 void
 operhash_delete(const char *name)
 {

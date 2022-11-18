@@ -27,12 +27,6 @@
  * #define PATRICIA_DEBUG 1
  */
 
-void
-rb_init_patricia(void)
-{
-	return;
-}
-
 /* prefix_tochar
  * convert prefix information to bytes
  */
@@ -328,23 +322,6 @@ rb_destroy_patricia(rb_patricia_tree_t *patricia, void (*func) (void *))
 	num_active_patricia--;
 }
 
-
-/*
- * if func is supplied, it will be called as func(node->prefix, node->data)
- */
-
-void
-rb_patricia_process(rb_patricia_tree_t *patricia, void (*func) (rb_prefix_t *, void *))
-{
-	rb_patricia_node_t *node;
-	assert(func);
-
-	RB_PATRICIA_WALK(patricia->head, node)
-	{
-		func(node->prefix, node->data);
-	}
-	RB_PATRICIA_WALK_END;
-}
 
 rb_patricia_node_t *
 rb_patricia_search_exact(rb_patricia_tree_t *patricia, rb_prefix_t *prefix)
@@ -1003,40 +980,6 @@ rb_match_ip(rb_patricia_tree_t *tree, struct sockaddr *ip)
 	}
 	return NULL;
 }
-
-rb_patricia_node_t *
-rb_match_ip_exact(rb_patricia_tree_t *tree, struct sockaddr *ip, unsigned int len)
-{
-	rb_prefix_t *prefix;
-	rb_patricia_node_t *node;
-	void *ipptr;
-	int family;
-
-	if(ip->sa_family == AF_INET6)
-	{
-		if(len > 128)
-			len = 128;
-		family = AF_INET6;
-		ipptr = &((struct sockaddr_in6 *)ip)->sin6_addr;
-	}
-	else
-	{
-		if(len > 32)
-			len = 32;
-		family = AF_INET;
-		ipptr = &((struct sockaddr_in *)ip)->sin_addr;
-	}
-
-	if((prefix = New_Prefix(family, ipptr, len)) != NULL)
-	{
-		node = rb_patricia_search_exact(tree, prefix);
-		Deref_Prefix(prefix);
-		return (node);
-	}
-	return NULL;
-}
-
-
 
 rb_patricia_node_t *
 rb_match_string(rb_patricia_tree_t *tree, const char *string)

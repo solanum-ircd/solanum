@@ -39,8 +39,6 @@ struct ev_entry *rb_event_addish(const char *name, EVH * func, void *arg, time_t
 void rb_event_run(void);
 void rb_event_init(void);
 void rb_event_delete(struct ev_entry *);
-void rb_event_find_delete(EVH * func, void *);
-void rb_event_update(struct ev_entry *, time_t freq);
 void rb_set_back_events(time_t);
 void rb_dump_events(void (*func) (char *, void *), void *ptr);
 void rb_run_one_event(struct ev_entry *);

@@ -77,17 +77,14 @@ void authd_reject_client(struct Client *client_p, const char *ident, const char 
 void authd_abort_client(struct Client *);
 
 void add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_list *filters);
-void del_dnsbl_entry(const char *host);
 void del_dnsbl_entry_all(void);
 
 bool set_authd_timeout(const char *key, int timeout);
 void ident_check_enable(bool enabled);
 
 void conf_create_opm_listener(const char *ip, uint16_t port);
-void create_opm_listener(const char *ip, uint16_t port);
 void conf_create_opm_proxy_scanner(const char *type, uint16_t port);
 void create_opm_proxy_scanner(const char *type, uint16_t port);
-void delete_opm_proxy_scanner(const char *type, uint16_t port);
 void delete_opm_proxy_scanner_all(void);
 void delete_opm_listener_all(void);
 void opm_check_enable(bool enabled);

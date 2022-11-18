@@ -93,7 +93,6 @@ struct Client *whowas_get_history(const char *, time_t);
 					/* Time limit in seconds */
 
 rb_dlink_list *whowas_get_list(const char *name);
-void whowas_set_size(int whowas_length);
 void whowas_memory_usage(size_t *count, size_t *memused);
 
 #endif /* INCLUDED_whowas_h */
