@@ -157,43 +157,6 @@ cache_file(const char *filename, const char *shortname, int flags)
 	return cacheptr;
 }
 
-void
-cache_links(void *unused)
-{
-	struct Client *target_p;
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
-	char *links_line;
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, links_cache_list.head)
-	{
-		rb_free(ptr->data);
-		rb_free_rb_dlink_node(ptr);
-	}
-
-	links_cache_list.head = links_cache_list.tail = NULL;
-	links_cache_list.length = 0;
-
-	RB_DLINK_FOREACH(ptr, global_serv_list.head)
-	{
-		target_p = ptr->data;
-
-		/* skip ourselves (done in /links) and hidden servers */
-		if(IsMe(target_p) ||
-		   (IsHidden(target_p) && !ConfigServerHide.disable_hidden))
-			continue;
-
-		/* if the below is ever modified, change LINKSLINELEN */
-		links_line = rb_malloc(LINKSLINELEN);
-		snprintf(links_line, LINKSLINELEN, "%s %s :1 %s",
-			   target_p->name, me.name,
-			   target_p->info[0] ? target_p->info :
-			    "(Unknown Location)");
-
-		rb_dlinkAddTailAlloc(links_line, &links_cache_list);
-	}
-}
-
 /* free_cachefile()
  *
  * inputs	- cachefile to free

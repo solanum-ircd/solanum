@@ -175,29 +175,6 @@ load_provider(struct auth_provider *provider)
 }
 
 void
-unload_provider(struct auth_provider *provider)
-{
-	if(provider->opt_handlers != NULL)
-	{
-		struct auth_opts_handler *handler;
-
-		for(handler = provider->opt_handlers; handler->option != NULL; handler++)
-			rb_dictionary_delete(authd_option_handlers, handler->option);
-	}
-
-	if(provider->stats_handler.letter != '\0')
-		authd_stat_handlers[(unsigned char)provider->stats_handler.letter] = NULL;
-
-	if(provider->destroy != NULL)
-		provider->destroy();
-
-	rb_dlinkDelete(&provider->node, &auth_providers);
-
-	/* Reclaim ID */
-	rb_dlinkAddAlloc(RB_UINT_TO_POINTER(provider->id), &free_pids);
-}
-
-void
 auth_client_free(struct auth_client *auth)
 {
 	rb_dictionary_delete(auth_clients, RB_UINT_TO_POINTER(auth->cid));

@@ -89,13 +89,6 @@ rb_sleep(unsigned int seconds, unsigned int useconds)
 	nanosleep(&tv, NULL);
 }
 
-/* this is to keep some linkers from bitching about exporting a non-existant symbol..bleh */
-char *
-rb_strerror(int error)
-{
-	return strerror(error);
-}
-
 int
 rb_kill(pid_t pid, int sig)
 {
@@ -106,57 +99,4 @@ int
 rb_setenv(const char *name, const char *value, int overwrite)
 {
 	return setenv(name, value, overwrite);
-}
-
-pid_t
-rb_waitpid(pid_t pid, int *status, int options)
-{
-	return waitpid(pid, status, options);
-}
-
-pid_t
-rb_getpid(void)
-{
-	return getpid();
-}
-
-const char *
-rb_path_to_self(void)
-{
-	static char path_buf[4096];
-#if defined(HAVE_GETEXECNAME)
-	const char *s = getexecname();
-	if (s == NULL)
-		return NULL;
-	realpath(s, path_buf);
-	return path_buf;
-#elif defined(__linux__) || (defined(__FreeBSD__) && !defined(KERN_PROC_PATHNAME))
-	if (readlink("/proc/self/exe", path_buf, sizeof(path_buf)) != -1)
-		return path_buf;
-	return NULL;
-#elif defined(__FreeBSD__) || defined(__DragonFly__)
-	size_t path_len = sizeof(path_buf);
-	int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
-	if (sysctl(mib, 4, path_buf, &path_len, NULL, 0) == 0)
-		return path_buf;
-	return NULL;
-#elif defined(HAVE_DLINFO)
-	struct link_map *map = NULL;
-	dlinfo(RTLD_SELF, RTLD_DI_LINKMAP, &map);
-	if (map == NULL)
-		return NULL;
-	realpath(map->l_name, path_buf);
-	return path_buf;
-#elif defined(__APPLE__)
-	char tmp_path[4096];
-	uint32_t pathlen = 4096;
-
-	if (_NSGetExecutablePath(tmp_path, &pathlen) < 0)
-		return NULL;
-
-	realpath(tmp_path, path_buf);
-	return path_buf;
-#else
-	return NULL;
-#endif
 }

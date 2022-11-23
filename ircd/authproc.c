@@ -618,21 +618,6 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 	rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", host, iptype, filterbuf, reason);
 }
 
-/* Delete a DNSBL entry. */
-void
-del_dnsbl_entry(const char *host)
-{
-	struct DNSBLEntryStats *stats = rb_dictionary_retrieve(dnsbl_stats, host);
-	if(stats != NULL)
-	{
-		rb_dictionary_delete(dnsbl_stats, host);
-		rb_free(stats->host);
-		rb_free(stats);
-	}
-
-	rb_helper_write(authd_helper, "O rbl_del %s", host);
-}
-
 static void
 dnsbl_delete_elem(rb_dictionary_element *delem, void *unused)
 {
@@ -695,23 +680,6 @@ conf_create_opm_listener(const char *ip, uint16_t port)
 }
 
 void
-create_opm_listener(const char *ip, uint16_t port)
-{
-	char ipbuf[HOSTIPLEN];
-
-	/* XXX duplicated in conf_create_opm_listener */
-	rb_strlcpy(ipbuf, ip, sizeof(ipbuf));
-	if(ipbuf[0] == ':')
-	{
-		memmove(ipbuf + 1, ipbuf, sizeof(ipbuf) - 1);
-		ipbuf[0] = '0';
-	}
-
-	conf_create_opm_listener(ip, port);
-	rb_helper_write(authd_helper, "O opm_listener %s %hu", ipbuf, port);
-}
-
-void
 delete_opm_listener_all(void)
 {
 	memset(&opm_listeners, 0, sizeof(opm_listeners));
@@ -744,27 +712,6 @@ create_opm_proxy_scanner(const char *type, uint16_t port)
 {
 	conf_create_opm_proxy_scanner(type, port);
 	rb_helper_write(authd_helper, "O opm_scanner %s %hu", type, port);
-}
-
-void
-delete_opm_proxy_scanner(const char *type, uint16_t port)
-{
-	rb_dlink_node *ptr, *nptr;
-
-	RB_DLINK_FOREACH_SAFE(ptr, nptr, opm_list.head)
-	{
-		struct OPMScanner *scanner = ptr->data;
-
-		if(rb_strncasecmp(scanner->type, type, sizeof(scanner->type)) == 0 &&
-			scanner->port == port)
-		{
-			rb_dlinkDelete(ptr, &opm_list);
-			rb_free(scanner);
-			break;
-		}
-	}
-
-	rb_helper_write(authd_helper, "O opm_scanner_del %s %hu", type, port);
 }
 
 void

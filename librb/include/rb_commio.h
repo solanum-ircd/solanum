@@ -135,7 +135,6 @@ int rb_socketpair(int family, int sock_type, int proto, rb_fde_t **F1, rb_fde_t 
 
 int rb_bind(rb_fde_t *F, struct sockaddr *addr);
 int rb_sctp_bindx(rb_fde_t *F, struct sockaddr_storage *addrs, size_t len);
-int rb_inet_get_proto(rb_fde_t *F);
 
 void rb_accept_tcp(rb_fde_t *, ACPRE * precb, ACCB * callback, void *data);
 ssize_t rb_write(rb_fde_t *, const void *buf, int count);
@@ -165,15 +164,11 @@ const char *rb_get_ssl_strerror(rb_fde_t *F);
 int rb_get_ssl_certfp(rb_fde_t *F, uint8_t certfp[RB_SSL_CERTFP_LEN], int method);
 int rb_get_ssl_certfp_file(const char *filename, uint8_t certfp[RB_SSL_CERTFP_LEN], int method);
 
-rb_fde_t *rb_get_fde(int fd);
-
 int rb_send_fd_buf(rb_fde_t *xF, rb_fde_t **F, int count, void *data, size_t datasize, pid_t pid);
 int rb_recv_fd_buf(rb_fde_t *F, void *data, size_t datasize, rb_fde_t **xF, int count);
 
 void rb_set_type(rb_fde_t *F, uint8_t type);
 uint8_t rb_get_type(rb_fde_t *F);
-
-const char *rb_get_iotype(void);
 
 typedef enum
 {

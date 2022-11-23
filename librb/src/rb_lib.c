@@ -36,17 +36,6 @@ static char errbuf[512];
 
 /* this doesn't do locales...oh well i guess */
 
-static const char *months[] = {
-	"January", "February", "March", "April",
-	"May", "June", "July", "August",
-	"September", "October", "November", "December"
-};
-
-static const char *weekdays[] = {
-	"Sunday", "Monday", "Tuesday", "Wednesday",
-	"Thursday", "Friday", "Saturday"
-};
-
 static const char *s_month[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
 	"Aug", "Sep", "Oct", "Nov", "Dec"
@@ -89,27 +78,6 @@ rb_ctime(const time_t t, char *buf, size_t len)
 	return (p);
 }
 
-
-/* I hate this..but its sort of ircd standard now.. */
-char *
-rb_date(const time_t t, char *buf, size_t len)
-{
-	struct tm *gm;
-	struct tm gmbuf;
-	gm = gmtime_r(&t, &gmbuf);
-
-	if(rb_unlikely(gm == NULL))
-	{
-		rb_strlcpy(buf, "", len);
-		return (buf);
-	}
-
-	snprintf(buf, len, "%s %s %d %d -- %02u:%02u:%02u +00:00",
-		    weekdays[gm->tm_wday], months[gm->tm_mon], gm->tm_mday,
-		    gm->tm_year + 1900, gm->tm_hour, gm->tm_min, gm->tm_sec);
-	return (buf);
-}
-
 time_t
 rb_current_time(void)
 {
@@ -132,18 +100,6 @@ rb_lib_log(const char *format, ...)
 	vsnprintf(errbuf, sizeof(errbuf), format, args);
 	va_end(args);
 	rb_log(errbuf);
-}
-
-void
-rb_lib_die(const char *format, ...)
-{
-	va_list args;
-	if(rb_die == NULL)
-		abort();
-	va_start(args, format);
-	vsnprintf(errbuf, sizeof(errbuf), format, args);
-	va_end(args);
-	rb_die(errbuf);
 }
 
 void

@@ -221,12 +221,6 @@ rb_strlcpy(char *dest, const char *src, size_t size)
 #endif
 
 
-size_t
-rb_strnlen(const char *s, size_t count)
-{
-	return strnlen(s, count);
-}
-
 /*
  * rb_snprintf_append()
  * appends snprintf formatted string to the end of the buffer but not
@@ -383,17 +377,3 @@ int rb_fsnprint(char *buf, size_t len, const rb_strf_t *strings)
 
 	return used;
 }
-
-int rb_fsnprintf(char *buf, size_t len, const rb_strf_t *strings, const char *format, ...)
-{
-	va_list args;
-	rb_strf_t prepend_string = { .format = format, .format_args = &args, .next = strings };
-	int ret;
-
-	va_start(args, format);
-	ret = rb_fsnprint(buf, len, &prepend_string);
-	va_end(args);
-
-	return ret;
-}
-

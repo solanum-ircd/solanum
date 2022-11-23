@@ -85,13 +85,6 @@ rsdb_init(rsdb_error_cb * ecb)
 	return 0;
 }
 
-void
-rsdb_shutdown(void)
-{
-	if(rb_bandb)
-		sqlite3_close(rb_bandb);
-}
-
 const char *
 rsdb_quote(const char *src)
 {

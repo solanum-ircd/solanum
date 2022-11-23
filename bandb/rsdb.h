@@ -22,7 +22,6 @@ struct rsdb_table
 };
 
 int rsdb_init(rsdb_error_cb *);
-void rsdb_shutdown(void);
 
 const char *rsdb_quote(const char *src);
 
@@ -35,7 +34,5 @@ void rsdb_transaction(rsdb_transtype type);
 /* rsdb_snprintf.c */
 
 int rs_vsnprintf(char *dest, const size_t bytes, const char *format, va_list args);
-int rs_snprintf(char *dest, const size_t bytes, const char *format, ...);
-
 
 #endif

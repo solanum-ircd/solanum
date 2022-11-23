@@ -135,31 +135,6 @@ static int wsockd_spin_count = 0;
 static time_t last_spin;
 static int wsockd_wait = 0;
 
-void
-restart_wsockd(void)
-{
-	rb_dlink_node *ptr, *next;
-	ws_ctl_t *ctl;
-
-	RB_DLINK_FOREACH_SAFE(ptr, next, wsock_daemons.head)
-	{
-		ctl = ptr->data;
-		if(ctl->dead)
-			continue;
-		if(ctl->shutdown)
-			continue;
-		ctl->shutdown = 1;
-		wsockd_count--;
-		if(!ctl->cli_count)
-		{
-			rb_kill(ctl->pid, SIGKILL);
-			free_ws_daemon(ctl);
-		}
-	}
-
-	start_wsockd(ServerInfo.wsockd_count);
-}
-
 #if 0
 static void
 ws_killall(void)
@@ -560,20 +535,6 @@ int
 get_wsockd_count(void)
 {
 	return wsockd_count;
-}
-
-void
-wsockd_foreach_info(void (*func)(void *data, pid_t pid, int cli_count, enum wsockd_status status), void *data)
-{
-	rb_dlink_node *ptr, *next;
-	ws_ctl_t *ctl;
-	RB_DLINK_FOREACH_SAFE(ptr, next, wsock_daemons.head)
-	{
-		ctl = ptr->data;
-		func(data, ctl->pid, ctl->cli_count,
-			ctl->dead ? WSOCKD_DEAD :
-				(ctl->shutdown ? WSOCKD_SHUTDOWN : WSOCKD_ACTIVE));
-	}
 }
 
 void

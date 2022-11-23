@@ -52,29 +52,6 @@ static rb_dlink_list event_list;
 
 static time_t event_time_min = -1;
 
-/*
- * struct ev_entry *
- * rb_event_find(EVH *func, void *arg)
- *
- * Input: Event function and the argument passed to it
- * Output: Index to the slow in the event_table
- * Side Effects: None
- */
-static struct ev_entry *
-rb_event_find(EVH * func, void *arg)
-{
-	rb_dlink_node *ptr;
-	struct ev_entry *ev;
-	RB_DLINK_FOREACH(ptr, event_list.head)
-	{
-		ev = ptr->data;
-		if((ev->func == func) && (ev->arg == arg))
-			return ev;
-	}
-
-	return NULL;
-}
-
 static
 struct ev_entry *
 rb_event_add_common(const char *name, EVH * func, void *arg, time_t when, time_t frequency)
@@ -146,19 +123,6 @@ rb_event_delete(struct ev_entry *ev)
 	ev->dead = 1;
 
 	rb_io_unsched_event(ev);
-}
-
-/*
- * void rb_event_find_delete(EVH *func, void *arg)
- *
- * Input: pointer to func and data
- * Output: None
- * Side Effects: Removes the event from the event list
- */
-void
-rb_event_find_delete(EVH * func, void *arg)
-{
-	rb_event_delete(rb_event_find(func, arg));
 }
 
 static time_t
@@ -332,23 +296,6 @@ rb_set_back_events(time_t by)
 		else
 			ev->when = 0;
 	}
-}
-
-void
-rb_event_update(struct ev_entry *ev, time_t freq)
-{
-	if(ev == NULL)
-		return;
-
-	ev->frequency = freq;
-
-	/* update when it's scheduled to run if it's higher
-	 * than the new frequency
-	 */
-	time_t next = rb_event_frequency(freq);
-	if((rb_current_time() + next) < ev->when)
-		ev->when = rb_current_time() + next;
-	return;
 }
 
 time_t

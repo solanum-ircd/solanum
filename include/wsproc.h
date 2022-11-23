@@ -33,12 +33,10 @@ enum wsockd_status {
 };
 
 void init_wsockd(void);
-void restart_wsockd(void);
 int start_wsockd(int count);
 ws_ctl_t *start_wsockd_accept(rb_fde_t *wsF, rb_fde_t *plainF, uint32_t id);
 void wsockd_decrement_clicount(ws_ctl_t *ctl);
 int get_wsockd_count(void);
-void wsockd_foreach_info(void (*func)(void *data, pid_t pid, int cli_count, enum wsockd_status status), void *data);
 
 #endif
 
