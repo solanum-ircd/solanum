@@ -7,6 +7,7 @@
 #include "modules.h"
 #include "client.h"
 #include "ircd.h"
+#include "supported.h"
 
 static const char extb_desc[] = "Account ($a) extban type";
 
@@ -20,6 +21,7 @@ static int
 _modinit(void)
 {
 	extban_table['a'] = eb_account;
+	add_isupport("ACCOUNTEXTBAN", isupport_string, "a");
 
 	return 0;
 }
@@ -28,6 +30,7 @@ static void
 _moddeinit(void)
 {
 	extban_table['a'] = NULL;
+	delete_isupport("ACCOUNTEXTBAN");
 }
 
 static int eb_account(const char *data, struct Client *client_p,
