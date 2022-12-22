@@ -374,7 +374,7 @@ m_join(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 			sendto_one(source_p, form_str(RPL_TOPICWHOTIME),
 				   me.name, source_p->name, chptr->chname,
 				   chptr->topic_info,
-				   (unsigned long)chptr->topic_time);
+				   (long long)chptr->topic_time);
 		}
 
 		channel_member_names(chptr, source_p, 1);

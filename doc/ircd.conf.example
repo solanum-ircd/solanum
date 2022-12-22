@@ -306,7 +306,7 @@ operator "god" {
 	privset = "admin";
 };
 
-// See connecting-servers.rst for an introduction to using these files.
+/* See connecting-servers.rst for an introduction to using these files. */
 
 connect "irc.uplink.com" {
 	host = "203.0.113.3";
@@ -586,8 +586,7 @@ general {
 	not_authorised_client_message = "You are not authorised to access this server.";
 	illegal_hostname_client_message = "You have an illegal character in your hostname.";
 	server_full_client_message = "Sorry, server is full - try later";
-	illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
-									   "only alphanumeric characters.";
+	illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains only alphanumeric characters.";
 	illegal_name_short_client_message = "Invalid username";
 	identify_service = "NickServ@services.int";
 	identify_command = "IDENTIFY";

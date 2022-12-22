@@ -4,8 +4,13 @@
 #include "stdinc.h"
 
 #ifdef HAVE_LIBCRYPTO
+#include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/decoder.h>
+#include <openssl/core.h>
+#endif
 #endif
 
 #include "newconf.h"
@@ -631,8 +636,26 @@ conf_end_oper(struct TopConf *tc)
 				return 0;
 			}
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+			OSSL_DECODER_CTX *const ctx = OSSL_DECODER_CTX_new_for_pkey(
+				&yy_tmpoper->rsa_pubkey, "PEM", NULL, "RSA",
+				OSSL_KEYMGMT_SELECT_PUBLIC_KEY, NULL, NULL);
+
+			if(ctx != NULL)
+			{
+				if(OSSL_DECODER_CTX_get_num_decoders(ctx) < 1 ||
+				   OSSL_DECODER_from_bio(ctx, file) < 1)
+				{
+					EVP_PKEY_free(yy_tmpoper->rsa_pubkey);
+					yy_tmpoper->rsa_pubkey = NULL;
+				}
+
+				OSSL_DECODER_CTX_free(ctx);
+			}
+#else
 			yy_tmpoper->rsa_pubkey =
 				(RSA *) PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
+#endif
 
 			(void)BIO_set_close(file, BIO_CLOSE);
 			BIO_free(file);
@@ -1037,6 +1060,9 @@ conf_end_auth(struct TopConf *tc)
 		if(yy_aconf->className)
 			yy_tmp->className = rb_strdup(yy_aconf->className);
 
+		if(yy_aconf->desc)
+			yy_tmp->desc = rb_strdup(yy_aconf->desc);
+
 		yy_tmp->flags = yy_aconf->flags;
 		yy_tmp->port = yy_aconf->port;
 
@@ -1170,6 +1196,13 @@ conf_set_auth_spoof(void *data)
 	rb_free(yy_aconf->info.name);
 	yy_aconf->info.name = rb_strdup(data);
 	yy_aconf->flags |= CONF_FLAGS_SPOOF_IP;
+}
+
+static void
+conf_set_auth_desc(void *data)
+{
+	rb_free(yy_aconf->desc);
+	yy_aconf->desc = rb_strdup(data);
 }
 
 static void
@@ -2318,7 +2351,7 @@ conf_report_error(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2338,7 +2371,7 @@ conf_report_warning(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2640,6 +2673,7 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
 	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
+	{ "description",CF_QSTRING, conf_set_auth_desc,         0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
 

@@ -86,6 +86,7 @@ unsigned int CAP_EUID;
 unsigned int CAP_EOPMOD;
 unsigned int CAP_BAN;
 unsigned int CAP_MLOCK;
+unsigned int CAP_EBMASK;
 
 unsigned int CLICAP_MULTI_PREFIX;
 unsigned int CLICAP_ACCOUNT_NOTIFY;
@@ -126,6 +127,7 @@ init_builtin_capabs(void)
 	CAP_EOPMOD = capability_put(serv_capindex, "EOPMOD", NULL);
 	CAP_BAN = capability_put(serv_capindex, "BAN", NULL);
 	CAP_MLOCK = capability_put(serv_capindex, "MLOCK", NULL);
+	CAP_EBMASK = capability_put(serv_capindex, "EBMASK", NULL);
 
 	capability_require(serv_capindex, "QS");
 	capability_require(serv_capindex, "EX");
@@ -511,8 +513,9 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 	rb_dlink_node *ptr;
 	struct Ban *banptr;
 
-	send_multiline_init(client_p, " ", ":%s BMASK %ld %s %c :",
+	send_multiline_init(client_p, " ", ":%s %s %ld %s %c :",
 			me.id,
+			IsCapable(client_p, CAP_EBMASK) ? "EBMASK" : "BMASK",
 			(long)chptr->channelts,
 			chptr->chname,
 			flag);
@@ -522,11 +525,18 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 		banptr = ptr->data;
 
 		if (banptr->forward)
-			send_multiline_item(client_p, "%s$%s",
-					banptr->banstr,
-					banptr->forward);
+			sprintf(buf, "%s$%s", banptr->banstr, banptr->forward);
 		else
-			send_multiline_item(client_p, "%s", banptr->banstr);
+			strcpy(buf, banptr->banstr);
+
+		if IsCapable(client_p, CAP_EBMASK)
+			send_multiline_item(client_p, "%s %ld %s",
+				buf,
+				(long)banptr->when,
+				banptr->who);
+		else
+			send_multiline_item(client_p, "%s", buf);
+
 	}
 
 	send_multiline_fini(client_p, NULL);
@@ -1017,12 +1027,16 @@ serv_connect(struct server_conf *server_p, struct Client *by)
 	else if(server_p->aftype == AF_INET || GET_SS_FAMILY(&server_p->connect4) == AF_INET)
 	{
 		sa_connect[0] = server_p->connect4;
+		sa_connect[1] = server_p->connect6;
 		sa_bind[0] = server_p->bind4;
+		sa_bind[1] = server_p->bind6;
 	}
 	else if(server_p->aftype == AF_INET6 || GET_SS_FAMILY(&server_p->connect6) == AF_INET6)
 	{
 		sa_connect[0] = server_p->connect6;
+		sa_connect[1] = server_p->connect4;
 		sa_bind[0] = server_p->bind6;
+		sa_bind[1] = server_p->bind4;
 	}
 
 	/* log */

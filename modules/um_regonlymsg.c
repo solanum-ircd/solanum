@@ -169,13 +169,13 @@ h_hdl_privmsg_user(void *vdata)
 	if (allow_message(source_p, target_p))
 		return;
 
+	data->approved = ERR_NONONREG;
+
 	if (data->msgtype == MESSAGE_TYPE_NOTICE)
 		return;
 
 	sendto_one_numeric(source_p, ERR_NONONREG, form_str(ERR_NONONREG),
 			   target_p->name);
-
-	data->approved = ERR_NONONREG;
 }
 
 static mapi_hfn_list_av1 um_regonlymsg_hfnlist[] = {

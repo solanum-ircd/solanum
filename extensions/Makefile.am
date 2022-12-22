@@ -66,6 +66,7 @@ extension_LTLIBRARIES =		\
   identify_msg.la		\
   cap_realhost.la		\
   invex_regonly.la		\
+  umode_hide_idle_time.la	\
   cap_oper.la			\
   example_module.la
 

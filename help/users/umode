@@ -11,14 +11,16 @@ User modes: (? designates that the umode is provided by an extension
        ? +h     - Has a cloaked host. May be +x depending on cloaking module
          +g     - Deny users not on your /ACCEPT list from messaging you and
                   inviting you to channels.
-       ? +u     - Receive messages that are filtered server side based
-                  on content.
+       ? +u     - Receive messages that would otherwise be filtered server side
+                  based on content.
          +w     - Can see oper wallops.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
          +G     - Deny users not on your /ACCEPT list and not in a channel
                   with you from messaging you and inviting you to channels.
                   This is a softer form of +g.
+       ? +I     - Hides your WHOIS idle time and prevents you seeing the idle
+                  time of other users.
          +Q     - Prevents you from being affected by channel forwarding.
          +R     - Prevents unidentified users that you have not accepted from
                   messaging you.

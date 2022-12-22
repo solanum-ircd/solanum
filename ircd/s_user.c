@@ -1624,7 +1624,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	struct membership *mscptr;
 	int changed = irccmp(target_p->name, nick);
 	int changed_case = strcmp(target_p->name, nick);
-	int do_qjm = irccmp(target_p->username, user) || irccmp(target_p->host, host);
+	int do_qjm = strcmp(target_p->username, user) || strcmp(target_p->host, host);
 	char mode[10], modeval[NICKLEN * 2 + 2], reason[256], *mptr;
 	va_list ap;
 
@@ -1640,7 +1640,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(do_qjm)
 	{
 		va_start(ap, format);
-		vsnprintf(reason, 255, format, ap);
+		vsnprintf(reason, sizeof reason, format, ap);
 		va_end(ap);
 
 		sendto_common_channels_local_butone(target_p, NOCAPS, CLICAP_CHGHOST, ":%s!%s@%s QUIT :%s",
