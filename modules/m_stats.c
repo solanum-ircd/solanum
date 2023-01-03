@@ -353,8 +353,6 @@ stats_connect(struct Client *source_p)
 				*s++ = 'S';
 			if(ServerConfTb(server_p))
 				*s++ = 'T';
-			if(ServerConfCompressed(server_p))
-				*s++ = 'Z';
 		}
 
 		if(s == buf)

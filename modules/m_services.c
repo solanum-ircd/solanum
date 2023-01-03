@@ -140,6 +140,16 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 					    target_p->name, target_p->username, target_p->host,
 					    EmptyString(target_p->user->suser) ? "*" : target_p->user->suser);
 
+	if (MyClient(target_p))
+	{
+		if (EmptyString(target_p->user->suser))
+	                sendto_one(target_p, form_str(RPL_LOGGEDOUT), me.name, target_p->name,
+				target_p->name, target_p->username, target_p->host);
+		else
+			sendto_one(target_p, form_str(RPL_LOGGEDIN), me.name, target_p->name,
+				target_p->name, target_p->username, target_p->host, parv[2], parv[2]);
+	}
+
 	invalidate_bancache_user(target_p);
 }
 

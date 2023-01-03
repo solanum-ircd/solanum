@@ -207,7 +207,6 @@ struct server_conf
 
 #define SERVER_ILLEGAL		0x0001
 #define SERVER_ENCRYPTED	0x0004
-#define SERVER_COMPRESSED	0x0008
 #define SERVER_TB		0x0010
 #define SERVER_AUTOCONN		0x0020
 #define SERVER_SSL		0x0040
@@ -216,7 +215,6 @@ struct server_conf
 
 #define ServerConfIllegal(x)	((x)->flags & SERVER_ILLEGAL)
 #define ServerConfEncrypted(x)	((x)->flags & SERVER_ENCRYPTED)
-#define ServerConfCompressed(x)	((x)->flags & SERVER_COMPRESSED)
 #define ServerConfTb(x)		((x)->flags & SERVER_TB)
 #define ServerConfAutoconn(x)	((x)->flags & SERVER_AUTOCONN)
 #define ServerConfSCTP(x)	((x)->flags & SERVER_SCTP)
