@@ -215,12 +215,12 @@ authd_check(struct Client *client_p, struct Client *source_p)
 	{
 	case 'B':	/* DNSBL */
 		{
-			struct DNSBLEntryStats *stats;
+			struct DNSBLEntry *entry;
 			char *dnsbl_name = source_p->preClient->auth.data;
 
 			if(dnsbl_stats != NULL)
-				if((stats = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
-					stats->hits++;
+				if((entry = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
+					entry->hits++;
 
 			if(IsExemptKline(source_p) || IsConfExemptDNSBL(aconf))
 			{
