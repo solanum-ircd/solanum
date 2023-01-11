@@ -1,0 +1,11 @@
+DEHELPER <nick>
+
+If you are using the helpops extension module,
+this command will remove someone's helper
+status (umode +h).
+
+This is useful if someone remains +h while
+being unavailable, and has not set themselves
+/away.
+
+- Requires Oper Priv: oper:dehelper
