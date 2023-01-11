@@ -2821,6 +2821,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "strip_topic_colors",	CF_YESNO, NULL, 0, &ConfigChannel.strip_topic_colors	},
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
 	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
+	{ "invite_notify_notice", CF_YESNO, NULL, 0, &ConfigChannel.invite_notify_notice	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 
