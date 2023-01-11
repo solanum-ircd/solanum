@@ -67,7 +67,7 @@ uint32_t cid;
 static rb_dictionary *cid_clients;
 static struct ev_entry *timeout_ev;
 
-rb_dictionary *dnsbl_stats;
+rb_dictionary *dnsbl_stats = NULL;
 
 rb_dlink_list opm_list;
 struct OPMListener opm_listeners[LISTEN_LAST];
@@ -350,12 +350,15 @@ configure_authd(void)
 		opm_check_enable(false);
 
 	/* Configure DNSBLs */
-	rb_dictionary_iter iter;
-	struct DNSBLEntry *entry;
-	RB_DICTIONARY_FOREACH(entry, &iter, dnsbl_stats)
+	if (dnsbl_stats != NULL)
 	{
-		rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", entry->host,
-		                entry->iptype, entry->filters, entry->reason);
+		rb_dictionary_iter iter;
+		struct DNSBLEntry *entry;
+		RB_DICTIONARY_FOREACH(entry, &iter, dnsbl_stats)
+		{
+			rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", entry->host,
+			                entry->iptype, entry->filters, entry->reason);
+		}
 	}
 }
 
