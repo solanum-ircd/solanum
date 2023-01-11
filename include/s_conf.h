@@ -296,6 +296,7 @@ struct config_channel_entry
 	int strip_topic_colors;
 	int opmod_send_statusmsg;
 	int ip_bans_through_vhost;
+	int invite_notify_notice;
 };
 
 struct config_server_hide

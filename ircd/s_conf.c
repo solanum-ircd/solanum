@@ -812,7 +812,8 @@ set_default_conf(void)
 	ConfigChannel.disable_local_channels = false;
 	ConfigChannel.displayed_usercount = 3;
 	ConfigChannel.opmod_send_statusmsg = false;
-	ConfigChannel.ip_bans_through_vhost= true;
+	ConfigChannel.ip_bans_through_vhost = true;
+	ConfigChannel.invite_notify_notice = true;
 
 	ConfigChannel.autochanmodes = MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
