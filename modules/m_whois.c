@@ -386,15 +386,25 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
 			   target_p->name,
-			   hdata_showidle.approved ? (long)(rb_current_time() - target_p->localClient->last) : 0,
+			   hdata_showidle.approved != WHOIS_IDLE_HIDE ? (long)(rb_current_time() - target_p->localClient->last) : 0,
 			   (unsigned long)target_p->localClient->firsttime);
 
-		if (hdata_showidle.approved == WHOIS_IDLE_HIDE && (source_p->umodes & user_modes['I']))
-			/* if the source has hidden their idle time, notify the source that they can't view others' idle times either */
-			sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "has a hidden idle time because your own idle time is hidden");
-		else if (hdata_showidle.approved != WHOIS_IDLE_SHOW)
+		if (hdata_showidle.approved != WHOIS_IDLE_SHOW && (source_p->umodes & user_modes['I']))
+		{
+			if (hdata_showidle.approved == WHOIS_IDLE_HIDE)
+				/* if the source has hidden their idle time, notify the source that they can't view others' idle times either */
+				sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "has a hidden idle time because your own idle time is hidden");
+			else
+				/* client has auspex to be able to see idle time, but make sure they know that's why they're seeing it */
+				sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name,
+					"has a hidden idle time because your own idle time is hidden, but you have auspex");
+		}
+		else if (hdata_showidle.approved == WHOIS_IDLE_HIDE)
 			/* if the target has hidden their idle time, notify the source */
 			sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "is hiding their idle time");
+		else if (hdata_showidle.approved == WHOIS_IDLE_AUSPEX)
+			/* if the target has hidden their idle time, notify the source */
+			sendto_one_numeric(source_p, RPL_WHOISTEXT, form_str(RPL_WHOISTEXT), target_p->name, "is hiding their idle time, but you have auspex");
 	}
 	else
 	{
