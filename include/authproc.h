@@ -30,9 +30,11 @@
 #include "rb_dictionary.h"
 #include "client.h"
 
-struct DNSBLEntryStats
+struct DNSBLEntry
 {
 	char *host;
+	char *reason;
+	char *filters;
 	uint8_t iptype;
 	unsigned int hits;
 };
