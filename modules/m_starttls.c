@@ -45,7 +45,14 @@ mapi_clist_av1 starttls_clist[] = { &starttls_msgtab, NULL };
 
 unsigned int CLICAP_TLS = 0;
 
+static bool
+tls_visible(struct Client *ignored)
+{
+	return ircd_ssl_ok && get_ssld_count();
+}
+
 static struct ClientCapability capdata_tls = {
+	.visible = tls_visible,
 	.flags = CLICAP_FLAGS_PRIORITY,
 };
 
