@@ -76,7 +76,7 @@ DECLARE_MODULE_AV2(webirc, NULL, NULL, webirc_clist, NULL, webirc_hfnlist, NULL,
 /*
  * mr_webirc - webirc message handler
  *	parv[1] = password
- *	parv[2] = fake username (we ignore this)
+ *	parv[2] = fake username
  *	parv[3] = fake hostname
  *	parv[4] = fake ip
  */
@@ -170,6 +170,13 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		rb_strlcpy(source_p->host, parv[3], sizeof(source_p->host));
 	else
 		rb_strlcpy(source_p->host, source_p->sockhost, sizeof(source_p->host));
+
+	if (aconf->flags & CONF_FLAGS_SPOOF_IDENT)
+	{
+		if (parv[2][0] != '~')
+			SetGotId(source_p);
+		rb_strlcpy(source_p->username, parv[2], sizeof(source_p->username));
+	}
 
 	/* Check dlines now, klines will be checked on registration */
 	if((aconf = find_dline((struct sockaddr *)&source_p->localClient->ip,

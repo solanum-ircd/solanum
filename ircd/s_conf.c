@@ -346,6 +346,8 @@ verify_access(struct Client *client_p, const char *username)
 			/* user@host spoof */
 			if((p = strchr(aconf->info.name, '@')) != NULL)
 			{
+				SetUserSpoof(client_p);
+
 				char *host = p+1;
 				*p = '\0';
 

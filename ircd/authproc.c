@@ -519,7 +519,7 @@ authd_decide_client(struct Client *client_p, const char *ident, const char *host
 	if(client_p->preClient == NULL || client_p->preClient->auth.cid == 0)
 		return;
 
-	if(*ident != '*')
+	if(*ident != '*' && !IsGotId(client_p))
 	{
 		rb_strlcpy(client_p->username, ident, sizeof(client_p->username));
 		SetGotId(client_p);
