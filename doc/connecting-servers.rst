@@ -112,7 +112,7 @@ hostname.
 
 For example, with atheme::
 
-   loadmodule "modules/protocol/charybdis";
+   loadmodule "modules/protocol/solanum";
 
    uplink "a.example.org" {
            host = "localhost";
