@@ -151,7 +151,7 @@ user_shedding_shed(void *unused)
 			continue;
 		if (IsExemptKline(client_p))
 			continue;
-		exit_client(client_p, client_p, &me, "Connection closed");
+		exit_client(client_p, client_p, &me, "Server closed connection");
 		break;
 	}
 
