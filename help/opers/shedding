@@ -4,6 +4,6 @@ SHEDDING <server> OFF
 Turns user shedding on or off on the specified server. When a server is
 shedding, a client will be disconnected from the server at a time period
 defined by rate, until shedding is turned off. Clients with kline_exempt
-are never effected by this feature.
+are never affected by this feature.
 
 - Requires Oper Priv: oper:shedding
