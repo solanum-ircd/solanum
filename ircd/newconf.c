@@ -4,8 +4,13 @@
 #include "stdinc.h"
 
 #ifdef HAVE_LIBCRYPTO
+#include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/decoder.h>
+#include <openssl/core.h>
+#endif
 #endif
 
 #include "newconf.h"
@@ -356,7 +361,7 @@ static struct mode_table auth_table[] = {
 
 static struct mode_table connect_table[] = {
 	{ "autoconn",	SERVER_AUTOCONN		},
-	{ "compressed",	SERVER_COMPRESSED	},
+	{ "compressed",	0			},
 	{ "encrypted",	SERVER_ENCRYPTED	},
 	{ "topicburst",	SERVER_TB		},
 	{ "sctp",	SERVER_SCTP		},
@@ -435,6 +440,53 @@ set_modes_from_table(int *modes, const char *whatis, struct mode_table *tab, con
 		}
 		else
 			*modes = 0;
+	}
+}
+
+static void
+parse_umodes(const char *pm, int *values, int *mask)
+{
+	int what = MODE_ADD, flag;
+
+	*values = 0;
+
+	if (NULL != mask)
+		*mask = 0;
+
+	for (; *pm; pm++)
+	{
+		switch (*pm)
+		{
+		case '+':
+			what = MODE_ADD;
+			break;
+		case '-':
+			what = MODE_DEL;
+			break;
+
+		/* don't allow +o */
+		case 'o':
+		case 'S':
+		case 'Z':
+		case ' ':
+			break;
+
+		default:
+			flag = user_modes[(unsigned char) *pm];
+			if (flag)
+			{
+				/* Proper value has probably not yet been set
+				 * so don't check oper_only_umodes -- jilles */
+				if (what == MODE_ADD)
+					*values |= flag;
+				else
+					*values &= ~flag;
+
+				if (NULL != mask)
+					*mask |= flag;
+			}
+			break;
+		}
 	}
 }
 
@@ -584,8 +636,26 @@ conf_end_oper(struct TopConf *tc)
 				return 0;
 			}
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+			OSSL_DECODER_CTX *const ctx = OSSL_DECODER_CTX_new_for_pkey(
+				&yy_tmpoper->rsa_pubkey, "PEM", NULL, "RSA",
+				OSSL_KEYMGMT_SELECT_PUBLIC_KEY, NULL, NULL);
+
+			if(ctx != NULL)
+			{
+				if(OSSL_DECODER_CTX_get_num_decoders(ctx) < 1 ||
+				   OSSL_DECODER_from_bio(ctx, file) < 1)
+				{
+					EVP_PKEY_free(yy_tmpoper->rsa_pubkey);
+					yy_tmpoper->rsa_pubkey = NULL;
+				}
+
+				OSSL_DECODER_CTX_free(ctx);
+			}
+#else
 			yy_tmpoper->rsa_pubkey =
 				(RSA *) PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
+#endif
 
 			(void)BIO_set_close(file, BIO_CLOSE);
 			BIO_free(file);
@@ -721,7 +791,7 @@ conf_end_class(struct TopConf *tc)
 
 	if(EmptyString(yy_class->class_name))
 	{
-		conf_report_error("Ignoring connect block -- missing name.");
+		conf_report_error("Ignoring class block -- missing name.");
 		return 0;
 	}
 
@@ -990,6 +1060,9 @@ conf_end_auth(struct TopConf *tc)
 		if(yy_aconf->className)
 			yy_tmp->className = rb_strdup(yy_aconf->className);
 
+		if(yy_aconf->desc)
+			yy_tmp->desc = rb_strdup(yy_aconf->desc);
+
 		yy_tmp->flags = yy_aconf->flags;
 		yy_tmp->port = yy_aconf->port;
 
@@ -1126,6 +1199,13 @@ conf_set_auth_spoof(void *data)
 }
 
 static void
+conf_set_auth_desc(void *data)
+{
+	rb_free(yy_aconf->desc);
+	yy_aconf->desc = rb_strdup(data);
+}
+
+static void
 conf_set_auth_flags(void *data)
 {
 	conf_parm_t *args = data;
@@ -1157,6 +1237,14 @@ conf_set_auth_class(void *data)
 	yy_aconf->className = rb_strdup(data);
 }
 
+static void
+conf_set_auth_umodes(void *data)
+{
+	char *umodes = data;
+
+	parse_umodes(umodes, &yy_aconf->umodes, &yy_aconf->umodes_mask);
+}
+
 static int
 conf_begin_connect(struct TopConf *tc)
 {
@@ -1176,50 +1264,53 @@ conf_begin_connect(struct TopConf *tc)
 static int
 conf_end_connect(struct TopConf *tc)
 {
-	if(EmptyString(yy_server->name))
+	if (EmptyString(yy_server->name))
 	{
 		conf_report_error("Ignoring connect block -- missing name.");
 		return 0;
 	}
 
-	if(ServerInfo.name != NULL && !irccmp(ServerInfo.name, yy_server->name))
+	if (ServerInfo.name != NULL && !irccmp(ServerInfo.name, yy_server->name))
 	{
-		conf_report_error("Ignoring connect block for %s -- name is equal to my own name.",
-				yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- name is "
+		                  "equal to my own name.", yy_server->name);
 		return 0;
 	}
 
-	if((EmptyString(yy_server->passwd) || EmptyString(yy_server->spasswd)) && EmptyString(yy_server->certfp))
+	if ((EmptyString(yy_server->passwd) || EmptyString(yy_server->spasswd))
+	    && EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- no fingerprint or password credentials provided.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- no "
+		                  "fingerprint or password credentials "
+		                  "provided.", yy_server->name);
 		return 0;
 	}
 
-	if((yy_server->flags & SERVER_SSL) && EmptyString(yy_server->certfp))
+	if ((yy_server->flags & SERVER_SSL) && EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- no fingerprint provided for SSL connection.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- no "
+		                  "fingerprint provided for SSL "
+		                  "connection.", yy_server->name);
 		return 0;
 	}
 
-	if(EmptyString(yy_server->connect_host)
-			&& GET_SS_FAMILY(&yy_server->connect4) != AF_INET
-			&& GET_SS_FAMILY(&yy_server->connect6) != AF_INET6
-		)
+	if (! (yy_server->flags & SERVER_SSL) && ! EmptyString(yy_server->certfp))
 	{
-		conf_report_error("Ignoring connect block for %s -- missing host.",
-					yy_server->name);
+		conf_report_error("Ignoring connect block for %s -- "
+		                  "fingerprint authentication has "
+		                  "been requested; but the ssl flag "
+		                  "is not set.", yy_server->name);
 		return 0;
 	}
 
-#ifndef HAVE_LIBZ
-	if(ServerConfCompressed(yy_server))
+	if (EmptyString(yy_server->connect_host)
+	    && GET_SS_FAMILY(&yy_server->connect4) != AF_INET
+	    && GET_SS_FAMILY(&yy_server->connect6) != AF_INET6)
 	{
-		conf_report_error("Ignoring connect::flags::compressed -- zlib not available.");
-		yy_server->flags &= ~SERVER_COMPRESSED;
+		conf_report_error("Ignoring connect block for %s -- missing "
+		                  "host.", yy_server->name);
+		return 0;
 	}
-#endif
 
 	add_server_conf(yy_server);
 	rb_dlinkAdd(yy_server, &yy_server->node, &server_conf_list);
@@ -1289,7 +1380,20 @@ conf_set_connect_send_password(void *data)
 		rb_free(yy_server->spasswd);
 	}
 
-	yy_server->spasswd = rb_strdup(data);
+	if (EmptyString((const char *) data))
+	{
+		yy_server->spasswd = NULL;
+		conf_report_warning("Invalid send_password for connect "
+		                    "block; must not be empty if provided");
+	}
+	else if (strpbrk(data, " :"))
+	{
+		yy_server->spasswd = NULL;
+		conf_report_error("Invalid send_password for connect "
+		                  "block; cannot contain spaces or colons");
+	}
+	else
+		yy_server->spasswd = rb_strdup(data);
 }
 
 static void
@@ -1300,7 +1404,21 @@ conf_set_connect_accept_password(void *data)
 		memset(yy_server->passwd, 0, strlen(yy_server->passwd));
 		rb_free(yy_server->passwd);
 	}
-	yy_server->passwd = rb_strdup(data);
+
+	if (EmptyString((const char *) data))
+	{
+		yy_server->passwd = NULL;
+		conf_report_warning("Invalid accept_password for connect "
+		                    "block; must not be empty if provided");
+	}
+	else if (strpbrk(data, " :"))
+	{
+		yy_server->passwd = NULL;
+		conf_report_error("Invalid accept_password for connect "
+		                  "block; cannot contain spaces or colons");
+	}
+	else
+		yy_server->passwd = rb_strdup(data);
 }
 
 static void
@@ -1343,9 +1461,6 @@ conf_set_connect_flags(void *data)
 {
 	conf_parm_t *args = data;
 
-	/* note, we allow them to set compressed, then remove it later if
-	 * they do and LIBZ isnt available
-	 */
 	set_modes_from_table(&yy_server->flags, "flag", connect_table, args);
 }
 
@@ -1526,61 +1641,11 @@ conf_set_general_stats_l_oper_only(void *data)
 }
 
 static void
-conf_set_general_compression_level(void *data)
-{
-#ifdef HAVE_LIBZ
-	ConfigFileEntry.compression_level = *(unsigned int *) data;
-
-	if((ConfigFileEntry.compression_level < 1) || (ConfigFileEntry.compression_level > 9))
-	{
-		conf_report_error
-			("Invalid general::compression_level %d -- using default.",
-			 ConfigFileEntry.compression_level);
-		ConfigFileEntry.compression_level = 0;
-	}
-#else
-	conf_report_error("Ignoring general::compression_level -- zlib not available.");
-#endif
-}
-
-static void
 conf_set_general_default_umodes(void *data)
 {
-	char *pm;
-	int what = MODE_ADD, flag;
+	char *umodes = data;
 
-	ConfigFileEntry.default_umodes = 0;
-	for (pm = (char *) data; *pm; pm++)
-	{
-		switch (*pm)
-		{
-		case '+':
-			what = MODE_ADD;
-			break;
-		case '-':
-			what = MODE_DEL;
-			break;
-
-		/* don't allow +o */
-		case 'o':
-		case 'S':
-		case 'Z':
-		case ' ':
-			break;
-
-		default:
-			if ((flag = user_modes[(unsigned char) *pm]))
-			{
-				/* Proper value has probably not yet been set
-				 * so don't check oper_only_umodes -- jilles */
-				if (what == MODE_ADD)
-					ConfigFileEntry.default_umodes |= flag;
-				else
-					ConfigFileEntry.default_umodes &= ~flag;
-			}
-			break;
-		}
-	}
+	parse_umodes(umodes, &ConfigFileEntry.default_umodes, NULL);
 }
 
 static void
@@ -2286,7 +2351,7 @@ conf_report_error(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2306,7 +2371,7 @@ conf_report_warning(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2607,6 +2672,8 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirserv",	CF_QSTRING, conf_set_auth_redir_serv,	0, NULL },
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
+	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
+	{ "description",CF_QSTRING, conf_set_auth_desc,         0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
 
@@ -2629,7 +2696,6 @@ static struct ConfEntry conf_general_table[] =
 	{ "oper_only_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_only_umodes, 0, NULL },
 	{ "oper_umodes", 	CF_STRING | CF_FLIST, conf_set_general_oper_umodes,	 0, NULL },
 	{ "oper_snomask",	CF_QSTRING, conf_set_general_oper_snomask, 0, NULL },
-	{ "compression_level", 	CF_INT,    conf_set_general_compression_level,	0, NULL },
 	{ "havent_read_conf", 	CF_YESNO,  conf_set_general_havent_read_conf,	0, NULL },
 	{ "hide_error_messages",CF_STRING, conf_set_general_hide_error_messages,0, NULL },
 	{ "stats_i_oper_only", 	CF_STRING, conf_set_general_stats_i_oper_only,	0, NULL },
@@ -2713,6 +2779,15 @@ static struct ConfEntry conf_general_table[] =
 	{ "hide_opers",		CF_YESNO, NULL, 0, &ConfigFileEntry.hide_opers		},
 	{ "certfp_method",	CF_STRING, conf_set_general_certfp_method, 0, NULL },
 	{ "drain_reason",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.drain_reason	},
+	{ "sasl_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.sasl_only_client_message	},
+	{ "identd_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.identd_only_client_message	},
+	{ "sctp_forbidden_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.sctp_forbidden_client_message	},
+	{ "ssltls_only_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.ssltls_only_client_message	},
+	{ "not_authorised_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.not_authorised_client_message	},
+	{ "illegal_hostname_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.not_authorised_client_message	},
+	{ "server_full_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.server_full_client_message	},
+	{ "illegal_name_long_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_long_client_message	},
+	{ "illegal_name_short_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_short_client_message	},
 	{ "tls_ciphers_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.tls_ciphers_oper_only	},
 	{ "oper_secure_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.oper_secure_only	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
@@ -2744,6 +2819,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "displayed_usercount",	CF_INT, NULL, 0, &ConfigChannel.displayed_usercount	},
 	{ "strip_topic_colors",	CF_YESNO, NULL, 0, &ConfigChannel.strip_topic_colors	},
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
+	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 

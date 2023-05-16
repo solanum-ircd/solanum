@@ -2,7 +2,7 @@
  *  wsockd.c: solanum websockets helper
  *  Copyright (C) 2007 Aaron Sethman <androsyn@ratbox.org>
  *  Copyright (C) 2007 ircd-ratbox development team
- *  Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>
+ *  Copyright (C) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -177,18 +177,15 @@ static rb_dlink_list dead_list;
 
 static void conn_plain_read_shutdown_cb(rb_fde_t *fd, void *data);
 
-#ifndef _WIN32
 static void
 dummy_handler(int sig)
 {
 	return;
 }
-#endif
 
 static void
 setup_signals()
 {
-#ifndef _WIN32
 	struct sigaction act;
 
 	act.sa_flags = 0;
@@ -211,20 +208,17 @@ setup_signals()
 
 	act.sa_handler = dummy_handler;
 	sigaction(SIGALRM, &act, 0);
-#endif
 }
 
 static int
 maxconn(void)
 {
-#if defined(RLIMIT_NOFILE) && defined(HAVE_SYS_RESOURCE_H)
 	struct rlimit limit;
 
 	if(!getrlimit(RLIMIT_NOFILE, &limit))
 	{
 		return limit.rlim_cur;
 	}
-#endif /* RLIMIT_FD_MAX */
 	return MAXCONNECTIONS;
 }
 
@@ -951,7 +945,7 @@ int
 main(int argc, char **argv)
 {
 	const char *s_ctlfd, *s_pipe, *s_pid;
-	int ctlfd, pipefd, maxfd;
+	int ctlfd, pipefd, maxfd, x;
 	maxfd = maxconn();
 
 	s_ctlfd = getenv("CTL_FD");
@@ -971,8 +965,6 @@ main(int argc, char **argv)
 	pipefd = atoi(s_pipe);
 	ppid = atoi(s_pid);
 
-#ifndef _WIN32
-	int x = 0;
 	for(x = 0; x < maxfd; x++)
 	{
 		if(x != ctlfd && x != pipefd && x > 2)
@@ -991,7 +983,7 @@ main(int argc, char **argv)
 		if(x > 2)
 			close(x);
 	}
-#endif
+
 	setup_signals();
 	rb_lib_init(NULL, NULL, NULL, 0, maxfd, 1024, 4096);
 	rb_linebuf_init(4096);

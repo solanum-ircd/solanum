@@ -56,6 +56,8 @@ static void echo_msg(struct Client *, struct Client *, enum message_type, const 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
+static unsigned int CAP_ECHO;
+
 static int
 modinit(void)
 {
@@ -85,7 +87,12 @@ struct Message echo_msgtab = {
 
 mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, NULL };
 
-DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, NULL, NULL, message_desc);
+mapi_cap_list_av2 message_cap_list[] = {
+	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
+	{ 0, NULL, NULL, NULL }
+};
+
+DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, message_cap_list, NULL, message_desc);
 
 struct entity
 {
@@ -507,7 +514,7 @@ msg_channel(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* idle time shouldnt be reset by notices --fl */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 	}
@@ -673,7 +680,7 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 
 	if(MyClient(source_p))
 	{
-		/* idletime shouldnt be reset by notice --fl */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 	}
@@ -742,6 +749,9 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 		return;
 	}
 
+	if (!(target_p->from->serv->caps & CAP_ECHO))
+		return;
+
 	sendto_one(target_p, ":%s ECHO %c %s :%s",
 		use_id(source_p),
 		msgtype == MESSAGE_TYPE_PRIVMSG ? 'P' : 'N',
@@ -769,8 +779,7 @@ msg_client(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* reset idle time for message only if its not to self
-		 * and its not a notice */
+		/* idle time shouldn't be reset by notices --fl */
 		if(msgtype != MESSAGE_TYPE_NOTICE)
 			source_p->localClient->last = rb_current_time();
 
@@ -867,7 +876,7 @@ flood_attack_client(enum message_type msgtype, struct Client *source_p, struct C
 	 * and msg user@server.
 	 * -- jilles
 	 */
-	if(GlobalSetOptions.floodcount && IsClient(source_p) && source_p != target_p && !IsService(target_p))
+	if(GlobalSetOptions.floodcount && IsClient(source_p) && source_p != target_p && !IsService(target_p) && !HasPrivilege(target_p, "oper:free_target"))
 	{
 		if((target_p->first_received_message_time + 1) < rb_current_time())
 		{

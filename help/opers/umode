@@ -16,12 +16,17 @@ User modes: (* designates that the umode is oper only)
        * +a     - Is marked as a server admin in whois.
        * +l     - Can see oper locops (local wallops).
        * +s     - Can see server notices (see /quote help snomask).
+       ? +u     - Receive messages that would otherwise be filtered server side
+                  based on content.
        * +z     - Can see operwalls.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
          +G     - Deny users not on your /ACCEPT list and not in a channel
                   with you from messaging you and inviting you to channels.
                   This is a softer form of +g.
+       ? +I     - Hides your WHOIS idle time and prevents you seeing the idle
+                  time of other users (unless you have the auspex:usertimes
+                  privilege).
          +Q     - Prevents you from being affected by channel forwarding.
          +R     - Prevents unidentified users that you have not accepted from
                   messaging you.

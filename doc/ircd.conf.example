@@ -29,7 +29,6 @@
 #loadmodule "extensions/m_locops";
 #loadmodule "extensions/no_oper_invis";
 #loadmodule "extensions/sno_farconnect";
-#loadmodule "extensions/sno_globalkline";
 #loadmodule "extensions/sno_globalnickchange";
 #loadmodule "extensions/sno_globaloper";
 #loadmodule "extensions/override";
@@ -232,8 +231,8 @@ auth {
  * means they must be defined before operator {}.
  */
 privset "local_op" {
-	privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, usermode:servnotice,
-		auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes;
+	privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, oper:message,
+		usermode:servnotice, auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes;
 };
 
 privset "server_bot" {
@@ -307,13 +306,15 @@ operator "god" {
 	privset = "admin";
 };
 
+/* See connecting-servers.rst for an introduction to using these files. */
+
 connect "irc.uplink.com" {
 	host = "203.0.113.3";
 	send_password = "password";
 	accept_password = "anotherpassword";
 	port = 6666;
 	class = "server";
-	flags = compressed, topicburst;
+	flags = topicburst;
 
 	#fingerprint = "c77106576abf7f9f90cca0f63874a60f2e40a64b";
 };
@@ -578,6 +579,15 @@ general {
 	kline_with_reason = yes;
 	hide_tkdline_duration = no;
 	kline_reason = "K-Lined";
+	sasl_only_client_message = "You need to identify via SASL to use this server.";
+	identd_only_client_message = "You need to install identd to use this server.";
+	sctp_forbidden_client_message = "You are not allowed to use SCTP on this server.";
+	ssltls_only_client_message = "You need to use SSL/TLS to use this server.";
+	not_authorised_client_message = "You are not authorised to access this server.";
+	illegal_hostname_client_message = "You have an illegal character in your hostname.";
+	server_full_client_message = "Sorry, server is full - try later";
+	illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains only alphanumeric characters.";
+	illegal_name_short_client_message = "Invalid username";
 	identify_service = "NickServ@services.int";
 	identify_command = "IDENTIFY";
 	non_redundant_klines = yes;

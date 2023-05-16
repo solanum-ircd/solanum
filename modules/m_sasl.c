@@ -49,17 +49,11 @@ static void m_authenticate(struct MsgBuf *, struct Client *, struct Client *, in
 static void me_sasl(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void me_mechlist(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
-static void abort_sasl(struct Client *);
-static void abort_sasl_exit(hook_data_client_exit *);
-
-static void advertise_sasl_cap(bool);
-static void advertise_sasl_new(struct Client *);
-static void advertise_sasl_exit(void *);
-static void advertise_sasl_config(void *);
+static void abort_sasl(void *);
+static void abort_sasl_exit(void *);
 
 static unsigned int CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
-static bool sasl_agent_present = false;
 
 struct Message authenticate_msgtab = {
 	"AUTHENTICATE", 0, 0, 0, 0,
@@ -78,24 +72,9 @@ mapi_clist_av1 sasl_clist[] = {
 	&authenticate_msgtab, &sasl_msgtab, &mechlist_msgtab, NULL
 };
 mapi_hfn_list_av1 sasl_hfnlist[] = {
-	{ "new_local_user",	(hookfn) abort_sasl },
-	{ "client_exit",	(hookfn) abort_sasl_exit },
-	{ "new_remote_user",	(hookfn) advertise_sasl_new },
-	{ "after_client_exit",	(hookfn) advertise_sasl_exit },
-	{ "conf_read_end",	(hookfn) advertise_sasl_config },
+	{ "client_exit",	abort_sasl_exit },
 	{ NULL, NULL }
 };
-
-static bool
-sasl_visible(struct Client *ignored)
-{
-	struct Client *agent_p = NULL;
-
-	if (ConfigFileEntry.sasl_service)
-		agent_p = find_named_client(ConfigFileEntry.sasl_service);
-
-	return agent_p != NULL && IsService(agent_p);
-}
 
 static const char *
 sasl_data(struct Client *client_p)
@@ -104,7 +83,6 @@ sasl_data(struct Client *client_p)
 }
 
 static struct ClientCapability capdata_sasl = {
-	.visible = sasl_visible,
 	.data = sasl_data,
 	.flags = CLICAP_FLAGS_STICKY | CLICAP_FLAGS_PRIORITY,
 };
@@ -118,19 +96,10 @@ static int
 _modinit(void)
 {
 	memset(mechlist_buf, 0, sizeof mechlist_buf);
-	sasl_agent_present = false;
-
-	advertise_sasl_config(NULL);
 	return 0;
 }
 
-static void
-_moddeinit(void)
-{
-	advertise_sasl_cap(false);
-}
-
-DECLARE_MODULE_AV2(sasl, _modinit, _moddeinit, sasl_clist, NULL, sasl_hfnlist, sasl_cap_list, NULL, sasl_desc);
+DECLARE_MODULE_AV2(sasl, _modinit, NULL, sasl_clist, NULL, sasl_hfnlist, sasl_cap_list, NULL, sasl_desc);
 
 static void
 m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
@@ -202,7 +171,7 @@ m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 		sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s H %s %s %c",
 					me.id, saslserv_p->servptr->name, source_p->id, saslserv_p->id,
 					source_p->host, source_p->sockhost,
-					IsSSL(source_p) ? 'S' : 'P');
+					IsSecure(source_p) ? 'S' : 'P');
 
 		if (source_p->certfp != NULL)
 			sendto_one(saslserv_p, ":%s ENCAP %s SASL %s %s S %s %s",
@@ -330,12 +299,10 @@ me_mechlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	rb_strlcpy(mechlist_buf, parv[1], sizeof mechlist_buf);
 }
 
-/* If the client never finished authenticating but is
- * registering anyway, abort the exchange.
- */
 static void
-abort_sasl(struct Client *data)
+abort_sasl(void *data_)
 {
+	struct Client *data = data_;
 	if(data->localClient->sasl_out == 0 || data->localClient->sasl_complete)
 		return;
 
@@ -361,50 +328,9 @@ abort_sasl(struct Client *data)
 }
 
 static void
-abort_sasl_exit(hook_data_client_exit *data)
+abort_sasl_exit(void *data_)
 {
+	hook_data_client_exit *data = data_;
 	if (data->target->localClient)
 		abort_sasl(data->target);
-}
-
-static void
-advertise_sasl_cap(bool available)
-{
-	if (sasl_agent_present != available) {
-		if (available) {
-			sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * NEW :sasl", me.name);
-		} else {
-			sendto_local_clients_with_capability(CLICAP_CAP_NOTIFY, ":%s CAP * DEL :sasl", me.name);
-		}
-		sasl_agent_present = available;
-	}
-}
-
-static void
-advertise_sasl_new(struct Client *client_p)
-{
-	if (!ConfigFileEntry.sasl_service)
-		return;
-
-	if (irccmp(client_p->name, ConfigFileEntry.sasl_service))
-		return;
-
-	advertise_sasl_cap(IsService(client_p));
-}
-
-static void
-advertise_sasl_exit(void *ignored)
-{
-	if (!ConfigFileEntry.sasl_service)
-		return;
-
-	if (sasl_agent_present) {
-		advertise_sasl_cap(sasl_visible(NULL));
-	}
-}
-
-static void
-advertise_sasl_config(void *ignored)
-{
-	advertise_sasl_cap(sasl_visible(NULL));
 }

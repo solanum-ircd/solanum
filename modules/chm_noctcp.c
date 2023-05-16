@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * chm_noctcp: block non-action CTCP (+C mode).
  *
- * Copyright (c) 2012 William Pitcock <nenolod@dereferenced.org>
+ * Copyright (c) 2012 Ariadne Conill <ariadne@dereferenced.org>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,21 +39,24 @@ static const char chm_noctcp_desc[] =
 
 static unsigned int mode_noctcp;
 
-static void chm_noctcp_process(hook_data_privmsg_channel *);
+static void chm_noctcp_process(void *);
 
 mapi_hfn_list_av1 chm_noctcp_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_noctcp_process },
+	{ "privmsg_channel", chm_noctcp_process },
 	{ NULL, NULL }
 };
 
 static void
-chm_noctcp_process(hook_data_privmsg_channel *data)
+chm_noctcp_process(void *data_)
 {
+	hook_data_privmsg_channel *data = data_;
 	/* don't waste CPU if message is already blocked */
-	if (data->approved || data->msgtype == MESSAGE_TYPE_NOTICE)
+	if (data->approved)
 		return;
 
-	if (*data->text == '\001' && rb_strncasecmp(data->text + 1, "ACTION ", 7) && data->chptr->mode.mode & mode_noctcp)
+	if (*data->text == '\001' &&
+	    data->chptr->mode.mode & mode_noctcp &&
+	    !(data->msgtype == MESSAGE_TYPE_PRIVMSG && !rb_strncasecmp(data->text + 1, "ACTION ", 7)))
 	{
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN), data->chptr->chname);
 		data->approved = ERR_CANNOTSENDTOCHAN;

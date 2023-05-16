@@ -2,7 +2,7 @@
  *  Solanum: a slightly advanced ircd
  *  m_scan.c: Provides information about various targets on various topics
  *
- *  Copyright (c) 2006 William Pitcock <nenolod -at- nenolod.net>
+ *  Copyright (c) 2006 Ariadne Conill <ariadne -at- dereferenced.org>
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -237,7 +237,7 @@ scan_umodes(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		if (mask != NULL)
 		{
-			snprintf(maskbuf, BUFSIZE, "%s!%s@%s",
+			snprintf(maskbuf, sizeof maskbuf, "%s!%s@%s",
 				target_p->name, target_p->username, target_p->host);
 
 			if (!match(mask, maskbuf))

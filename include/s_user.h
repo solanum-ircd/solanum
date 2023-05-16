@@ -51,6 +51,8 @@ extern int user_modes[256];
 extern unsigned int find_umode_slot(void);
 extern void construct_umodebuf(void);
 
+struct PrivilegeSet;
+extern void report_priv_change(struct Client *, struct PrivilegeSet *, struct PrivilegeSet *);
 extern void oper_up(struct Client *, struct oper_conf *);
 
 #endif

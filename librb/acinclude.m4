@@ -37,14 +37,8 @@ dnl RB_PROTO_INET6
 AC_DEFUN([RB_PROTO_INET6],[
   AC_CACHE_CHECK([for INET6 protocol support], [rb_cv_proto_inet6],[
     AC_TRY_CPP([
-#ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#endif
-
 #ifndef PF_INET6
 #error Missing PF_INET6
 #endif
@@ -73,14 +67,9 @@ AC_DEFUN([RB_TYPE_STRUCT_SOCKADDR_IN6],[
   ],[
     rb_have_sockaddr_in6=no
   ],[
-#ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#endif
   ])
 
   if test "X$rb_have_sockaddr_in6" = "Xyes"; then :
@@ -95,15 +84,9 @@ AC_DEFUN([RB_CHECK_TIMER_CREATE],
   [AC_CACHE_CHECK([for a working timer_create(CLOCK_REALTIME)],
     [rb__cv_timer_create_works],
     [AC_TRY_RUN([
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
-#ifdef HAVE_SIGNAL_H
 #include <signal.h>
-#endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 int main(int argc, char *argv[])
 {
 #if HAVE_TIMER_CREATE
@@ -136,15 +119,9 @@ AC_DEFUN([RB_CHECK_TIMERFD_CREATE],
   [AC_CACHE_CHECK([for a working timerfd_create(CLOCK_REALTIME)],
     [rb__cv_timerfd_create_works],
     [AC_TRY_RUN([
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
-#ifdef HAVE_SIGNAL_H
 #include <signal.h>
-#endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_SYS_TIMERFD_H
 #include <sys/timerfd.h>
 #endif

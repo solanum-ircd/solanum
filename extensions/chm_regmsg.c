@@ -36,39 +36,78 @@
 #include "inline/stringops.h"
 
 static const char chm_regmsg_desc[] =
-	"Adds channel mode +R, which blocks messagess from unregistered users";
+	"Adds channel mode +R, which blocks messages from unregistered users";
 
 static unsigned int mode_regmsg;
 
-static void chm_regmsg_process(void *);
+static void hook_privmsg_channel(void *);
+static void hook_can_send(void *);
 
 mapi_hfn_list_av1 chm_regmsg_hfnlist[] = {
-	{ "privmsg_channel", (hookfn) chm_regmsg_process },
+	{ "privmsg_channel", hook_privmsg_channel },
+	{ "can_send", hook_can_send },
 	{ NULL, NULL }
 };
 
+static bool
+chm_regmsg_test(struct Client *source_p, struct Channel *chptr)
+{
+	struct membership *msptr;
+
+	/* mode is unset, accept */
+	if (!(chptr->mode.mode & mode_regmsg))
+		return true;
+
+	/* user is identified, accept */
+	if (!EmptyString(source_p->user->suser))
+		return true;
+
+	/* voice and op override identification requirement, accept */
+	msptr = find_channel_membership(chptr, source_p);
+	if (is_chanop_voiced(msptr))
+		return true;
+
+	return false;
+}
+
 static void
-chm_regmsg_process(void *data_)
+hook_privmsg_channel(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
-	struct membership *msptr;
+
+	/* Only apply this hook if the channel isn't +z - if it is +z, then the can_send
+	 * hook should be used to enable +z to do its job, as an error numeric won't be sent in that case */
+	if (data->chptr->mode.mode & MODE_OPMODERATE)
+		return;
 
 	/* message is already blocked, defer */
 	if (data->approved)
 		return;
 
-	/* user is identified, accept */
-	if (!EmptyString(data->source_p->user->suser))
+	if (chm_regmsg_test(data->source_p, data->chptr))
 		return;
 
-	/* voice and op override identification requirement, accept */
-	msptr = find_channel_membership(data->chptr, data->source_p);
-	if (is_chanop_voiced(msptr))
-		return;
-
-	sendto_one_numeric(data->source_p, ERR_MSGNEEDREGGEDNICK, form_str(ERR_MSGNEEDREGGEDNICK),
-		data->source_p->name, data->chptr->chname);
+	sendto_one_numeric(data->source_p, ERR_MSGNEEDREGGEDNICK, form_str(ERR_MSGNEEDREGGEDNICK), data->chptr->chname);
 	data->approved = ERR_MSGNEEDREGGEDNICK;
+}
+
+static void hook_can_send(void *data_)
+{
+	hook_data_channel_approval *data = data_;
+
+	/* Only apply this hook if the channel is +z - if it isn't +z, then the privmsg_channel
+	 * hook should be used to enable a custom error numeric to be sent */
+	if (!(data->chptr->mode.mode & MODE_OPMODERATE))
+		return;
+
+	/* message is already blocked, defer */
+	if (data->approved == CAN_SEND_NO)
+		return;
+
+	if (chm_regmsg_test(data->client, data->chptr))
+		return;
+
+	data->approved = CAN_SEND_NO;
 }
 
 static int

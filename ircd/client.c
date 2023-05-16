@@ -5,7 +5,7 @@
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
  *  Copyright (C) 1996-2002 Hybrid Development Team
  *  Copyright (C) 2002-2005 ircd-ratbox development team
- *  Copyright (C) 2007 William Pitcock
+ *  Copyright (C) 2007 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -307,11 +307,6 @@ free_local_client(struct Client *client_p)
 
 	rb_free(client_p->localClient->cipher_string);
 
-	if (IsCapable(client_p, CAP_ZIP))
-		ssld_decrement_clicount(client_p->localClient->z_ctl);
-
-	rb_free(client_p->localClient->zipstats);
-
 	if (client_p->localClient->ws_ctl != NULL)
 		wsockd_decrement_clicount(client_p->localClient->ws_ctl);
 
@@ -555,9 +550,9 @@ check_klines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "KLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "Disconnecting K-Lined user %s (%s@%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->user, aconf->host);
 
 			notify_banned_client(client_p, aconf, K_LINED);
 			continue;
@@ -605,7 +600,7 @@ check_one_kline(struct ConfItem *kline)
 		case HM_IPV6:
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (client_p->localClient->ip.ss_family == AF_INET6 && sockaddr.ss_family == AF_INET &&
 					rb_ipv4_from_ipv6((struct sockaddr_in6 *)&client_p->localClient->ip, &ip4)
 						&& comp_with_mask_sock((struct sockaddr *)&ip4, (struct sockaddr *)&sockaddr, bits))
@@ -620,7 +615,7 @@ check_one_kline(struct ConfItem *kline)
 				matched = 1;
 			if (IsConfDoSpoofIp(client_p->localClient->att_conf) &&
 					IsConfKlineSpoof(client_p->localClient->att_conf))
-				continue;
+				break;
 			if (match(kline->host, client_p->sockhost))
 				matched = 1;
 			break;
@@ -638,9 +633,9 @@ check_one_kline(struct ConfItem *kline)
 			continue;
 		}
 
-		sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					 "KLINE active for %s",
-					 get_client_name(client_p, HIDE_IP));
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					 "Disconnecting K-Lined user %s (%s@%s)",
+					 get_client_name(client_p, HIDE_IP), kline->user, kline->host);
 
 		notify_banned_client(client_p, kline, K_LINED);
 	}
@@ -673,9 +668,9 @@ check_dlines(void)
 			if(aconf->status & CONF_EXEMPTDLINE)
 				continue;
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL,
-					     "DLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "Disconnecting D-Lined user %s (%s)",
+					     get_client_name(client_p, HIDE_IP), aconf->host);
 
 			notify_banned_client(client_p, aconf, D_LINED);
 			continue;
@@ -729,8 +724,9 @@ check_xlines(void)
 				continue;
 			}
 
-			sendto_realops_snomask(SNO_GENERAL, L_ALL, "XLINE active for %s",
-					     get_client_name(client_p, HIDE_IP));
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+						"Disconnecting X-Lined user %s (%s)",
+						get_client_name(client_p, HIDE_IP), aconf->host);
 
 			(void) exit_client(client_p, client_p, &me, "Bad user info");
 			continue;
@@ -1577,11 +1573,11 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
-			     " for %ld seconds.  %d/%d sendK/recvK.",
-			     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+			     " for %lld seconds.  %d/%d sendK/recvK.",
+			     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
-	ilog(L_SERVER, "%s was connected for %ld seconds.  %d/%d sendK/recvK.",
-	     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+	ilog(L_SERVER, "%s was connected for %lld seconds.  %d/%d sendK/recvK.",
+	     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
 	if(has_id(source_p))
 		del_from_id_hash(source_p->id, source_p);
@@ -1833,7 +1829,7 @@ show_ip(struct Client *source_p, struct Client *target_p)
 		 * to local opers.
 		 */
 		if(!ConfigFileEntry.hide_spoof_ips &&
-		   (source_p == NULL || (MyConnect(source_p) && HasPrivilege(source_p, "auspex:hostname"))))
+		   (source_p == NULL || HasPrivilege(source_p, "auspex:hostname")))
 			return 1;
 		return 0;
 	}
@@ -1848,7 +1844,7 @@ show_ip_conf(struct ConfItem *aconf, struct Client *source_p)
 {
 	if(IsConfDoSpoofIp(aconf))
 	{
-		if(!ConfigFileEntry.hide_spoof_ips && MyOper(source_p))
+		if(!ConfigFileEntry.hide_spoof_ips && IsOper(source_p))
 			return 1;
 
 		return 0;
@@ -1861,7 +1857,7 @@ int
 show_ip_whowas(struct Whowas *whowas, struct Client *source_p)
 {
 	if(whowas->flags & WHOWAS_IP_SPOOFING)
-		if(ConfigFileEntry.hide_spoof_ips || !MyOper(source_p))
+		if(ConfigFileEntry.hide_spoof_ips || !IsOper(source_p))
 			return 0;
 	if(whowas->flags & WHOWAS_DYNSPOOF)
 		if(!IsOper(source_p))

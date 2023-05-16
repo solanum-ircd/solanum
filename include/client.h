@@ -5,7 +5,7 @@
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
  *  Copyright (C) 1996-2002 Hybrid Development Team
  *  Copyright (C) 2002-2004 ircd-ratbox development team
- *  Copyright (C) 2005 William Pitcock and Jilles Tjoelker
+ *  Copyright (C) 2005 Ariadne Conill and Jilles Tjoelker
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -91,16 +91,6 @@ struct Server
 	int caps;		/* capabilities bit-field */
 	char *fullcaps;
 	struct scache_entry *nameinfo;
-};
-
-struct ZipStats
-{
-	unsigned long long in;
-	unsigned long long in_wire;
-	unsigned long long out;
-	unsigned long long out_wire;
-	double in_ratio;
-	double out_ratio;
 };
 
 struct Client
@@ -225,7 +215,7 @@ struct LocalUser
 	 */
 	char *passwd;
 	char *auth_user;
-	char *challenge;
+	unsigned char *challenge;
 	char *fullcaps;
 	char *cipher_string;
 
@@ -277,7 +267,6 @@ struct LocalUser
 	struct ws_ctl *ws_ctl;			/* ctl for wsockd */
 	SSL_OPEN_CB *ssl_callback;		/* ssl connection is now open */
 	uint32_t localflags;
-	struct ZipStats *zipstats;		/* zipstats */
 	uint16_t cork_count;			/* used for corking/uncorking connections */
 	struct ev_entry *event;			/* used for associated events */
 
@@ -319,7 +308,7 @@ struct PreClient
 
 struct ListClient
 {
-	char *chname;
+	char *chname, *mask, *nomask;
 	unsigned int users_min, users_max;
 	time_t created_min, created_max, topic_min, topic_max;
 	int operspy;

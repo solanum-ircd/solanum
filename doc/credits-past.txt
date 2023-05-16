@@ -174,6 +174,7 @@ recent releases of Hybrid, in nick alphabetical order:
 
 A1kmm, Andrew Miller <a1kmm@mware.virtualave.net>
 AndroSyn, Aaron Sethman <androsyn@ratbox.org>
+Ariadne, Ariadne Conill <ariadne@dereferenced.org>
 bane, Dragan Dosen <bane@idolnet.org>
 bysin, Ben Kittridge <bkittridge@cfl.rr.com>
 cosine, Patrick Alken <wnder@uwns.underworld.net>
@@ -187,7 +188,6 @@ jv, Jakub Vlasek <jv@pilsedu.cz>
 k9, Jeremy Chadwick <ircd@jdc.parodius.com>
 kre, Dinko Korunic <kreator@fly.srk.fer.hr>
 madmax, Paul Lomax <madmax@efnet.org>
-nenolod, William Pitcock <nenolod@nenolod.net>
 Riedel, Dennis Vink, <riedel@chaotic.nl>
 scuzzy, David Todd <scuzzy@aniverse.net>
 spookey, David Colburn <spookey@spookey.org>
@@ -239,9 +239,9 @@ network configurations.
 The Charybdis core team, listed in nick-alphabetical order:
 
 amdj, Aaron Jones <aaronmdjones -at- gmail.com>
+Ariadne, Ariadne Conill <ariadne -at- dereferenced.org>
 Elizafox, Elizabeth Myers <elizabeth -at- interlinked.me>
 jilles, Jilles Tjoelker <jilles -at- stack.nl>
-kaniini, William Pitcock <nenolod -at- dereferenced.org>
 mr_flea, Keith Buck <mr_flea -at- esper.net>
 
 The following people are also project members, listed in nick-alphabetical

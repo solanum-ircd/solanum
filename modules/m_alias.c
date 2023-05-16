@@ -37,11 +37,11 @@ static const char alias_desc[] = "Provides the system for services aliases";
 
 static int _modinit(void);
 static void _moddeinit(void);
-static int reload_aliases(hook_data *);
+static void reload_aliases(void *);
 static void m_alias(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 mapi_hfn_list_av1 alias_hfnlist[] = {
-	{ "rehash", (hookfn)reload_aliases },
+	{ "rehash", reload_aliases },
 	{ NULL, NULL },
 };
 
@@ -100,12 +100,11 @@ _moddeinit(void)
 	destroy_aliases();
 }
 
-static int
-reload_aliases(hook_data *data)
+static void
+reload_aliases(void *data)
 {
 	destroy_aliases(); /* Clear old aliases */
 	create_aliases();
-	return 0;
 }
 
 /* The below was mostly taken from the old do_alias */

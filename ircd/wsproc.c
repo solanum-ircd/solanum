@@ -233,12 +233,6 @@ start_wsockd(int count)
 {
 	rb_fde_t *F1, *F2;
 	rb_fde_t *P1, *P2;
-#ifdef _WIN32
-	const char *suffix = ".exe";
-#else
-	const char *suffix = "";
-#endif
-
 	char fullpath[PATH_MAX + 1];
 	char fdarg[6];
 	const char *parv[2];
@@ -265,17 +259,16 @@ start_wsockd(int count)
 
 	if(wsockd_path == NULL)
 	{
-		snprintf(fullpath, sizeof(fullpath), "%s%cwsockd%s", ircd_paths[IRCD_PATH_LIBEXEC], RB_PATH_SEPARATOR, suffix);
+		snprintf(fullpath, sizeof(fullpath), "%s/wsockd", ircd_paths[IRCD_PATH_LIBEXEC]);
 
 		if(access(fullpath, X_OK) == -1)
 		{
-			snprintf(fullpath, sizeof(fullpath), "%s%cbin%cwsockd%s",
-				    ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR, suffix);
+			snprintf(fullpath, sizeof(fullpath), "%s/bin/wsockd", ConfigFileEntry.dpath);
 			if(access(fullpath, X_OK) == -1)
 			{
 				ilog(L_MAIN,
-				     "Unable to execute wsockd%s in %s or %s/bin",
-				     suffix, ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
+				     "Unable to execute wsockd in %s or %s/bin",
+				     ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
 				return 0;
 			}
 		}
@@ -329,6 +322,8 @@ start_wsockd(int count)
 		ws_do_pipe(P2, ctl);
 
 	}
+	ilog(L_MAIN, "wsockd helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "wsockd helper started");
 	return started;
 }
 

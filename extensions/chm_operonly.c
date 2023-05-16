@@ -13,10 +13,10 @@
 static const char chm_operonly_desc[] =
 	"Adds channel mode +O which makes a channel operator-only";
 
-static void h_can_join(hook_data_channel *);
+static void h_can_join(void *);
 
 mapi_hfn_list_av1 operonly_hfnlist[] = {
-	{ "can_join", (hookfn) h_can_join },
+	{ "can_join", h_can_join },
 	{ NULL, NULL }
 };
 
@@ -42,8 +42,9 @@ _moddeinit(void)
 DECLARE_MODULE_AV2(chm_operonly, _modinit, _moddeinit, NULL, NULL, operonly_hfnlist, NULL, NULL, chm_operonly_desc);
 
 static void
-h_can_join(hook_data_channel *data)
+h_can_join(void *data_)
 {
+	hook_data_channel *data = data_;
 	struct Client *source_p = data->client;
 	struct Channel *chptr = data->chptr;
 

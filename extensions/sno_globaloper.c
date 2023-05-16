@@ -17,7 +17,7 @@ static const char sno_desc[] =
 static void h_sgo_umode_changed(void *);
 
 mapi_hfn_list_av1 sgo_hfnlist[] = {
-	{ "umode_changed", (hookfn) h_sgo_umode_changed },
+	{ "umode_changed", h_sgo_umode_changed },
 	{ NULL, NULL }
 };
 

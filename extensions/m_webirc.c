@@ -67,7 +67,7 @@ mapi_clist_av1 webirc_clist[] = { &webirc_msgtab, NULL };
 static void new_local_user(void *data);
 mapi_hfn_list_av1 webirc_hfnlist[] = {
 	/* unintuitive but correct--we want to be called first */
-	{ "new_local_user", (hookfn) new_local_user, HOOK_LOWEST },
+	{ "new_local_user", new_local_user, HOOK_LOWEST },
 	{ NULL, NULL }
 };
 
@@ -106,17 +106,17 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if (!IsConfDoSpoofIp(aconf) || irccmp(aconf->info.name, "webirc."))
 	{
 		/* XXX */
-		sendto_one(source_p, "NOTICE * :Not a CGI:IRC auth block");
+		exit_client(client_p, source_p, &me, "Not a CGI:IRC auth block");
 		return;
 	}
 	if (EmptyString(aconf->passwd))
 	{
-		sendto_one(source_p, "NOTICE * :CGI:IRC auth blocks must have a password");
+		exit_client(client_p, source_p, &me, "CGI:IRC auth blocks must have a password");
 		return;
 	}
 	if (!IsSecure(source_p) && aconf->flags & CONF_FLAGS_NEED_SSL)
 	{
-		sendto_one(source_p, "NOTICE * :Your CGI:IRC block requires TLS");
+		exit_client(client_p, source_p, &me, "Your CGI:IRC block requires TLS");
 		return;
 	}
 
@@ -129,13 +129,13 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (encr == NULL || strcmp(encr, aconf->passwd))
 	{
-		sendto_one(source_p, "NOTICE * :CGI:IRC password incorrect");
+		exit_client(client_p, source_p, &me, "CGI:IRC password incorrect");
 		return;
 	}
 
 	if (rb_inet_pton_sock(parv[4], &addr) <= 0)
 	{
-		sendto_one(source_p, "NOTICE * :Invalid IP");
+		exit_client(client_p, source_p, &me, "Invalid IP");
 		return;
 	}
 
@@ -190,6 +190,9 @@ new_local_user(void *data)
 {
 	struct Client *source_p = data;
 	struct ConfItem *aconf = source_p->localClient->att_conf;
+
+	if (aconf == NULL)
+		return;
 
 	if (!irccmp(aconf->info.name, "webirc."))
 		exit_client(source_p, source_p, &me, "Cannot log in using a WEBIRC block");

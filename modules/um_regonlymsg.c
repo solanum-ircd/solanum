@@ -78,7 +78,7 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	if (!IsSetRegOnlyMsg(target_p))
 		return true;
 
-	if (IsServer(source_p))
+	if (!IsPerson(source_p))
 		return true;
 
 	/* XXX: controversial?  allow opers to send through +R */
@@ -94,6 +94,35 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	return false;
 }
 
+static bool
+add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_p, struct Client *target_p)
+{
+	if (!MyClient(source_p))
+		return true;
+
+	if(msgtype != MESSAGE_TYPE_NOTICE &&
+		IsSetRegOnlyMsg(source_p) &&
+		!accept_message(target_p, source_p) &&
+		!IsOperGeneral(target_p))
+	{
+		if(rb_dlink_list_length(&source_p->localClient->allow_list) <
+				(unsigned long)ConfigFileEntry.max_accept)
+		{
+			rb_dlinkAddAlloc(target_p, &source_p->localClient->allow_list);
+			rb_dlinkAddAlloc(source_p, &target_p->on_allow_list);
+		}
+		else
+		{
+			sendto_one_numeric(source_p, ERR_OWNMODE,
+					form_str(ERR_OWNMODE),
+					target_p->name, "+R");
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static void
 h_hdl_invite(void *vdata)
 {
@@ -104,6 +133,12 @@ h_hdl_invite(void *vdata)
 
 	if (data->approved)
 		return;
+
+	if (!add_callerid_accept_for_source(MESSAGE_TYPE_PRIVMSG, source_p, target_p))
+	{
+		data->approved = ERR_NONONREG;
+		return;
+	}
 
 	if (allow_message(source_p, target_p))
 		return;
@@ -125,16 +160,22 @@ h_hdl_privmsg_user(void *vdata)
 	if (data->approved)
 		return;
 
+	if (!add_callerid_accept_for_source(data->msgtype, source_p, target_p))
+	{
+		data->approved = ERR_NONONREG;
+		return;
+	}
+
 	if (allow_message(source_p, target_p))
 		return;
+
+	data->approved = ERR_NONONREG;
 
 	if (data->msgtype == MESSAGE_TYPE_NOTICE)
 		return;
 
 	sendto_one_numeric(source_p, ERR_NONONREG, form_str(ERR_NONONREG),
 			   target_p->name);
-
-	data->approved = ERR_NONONREG;
 }
 
 static mapi_hfn_list_av1 um_regonlymsg_hfnlist[] = {

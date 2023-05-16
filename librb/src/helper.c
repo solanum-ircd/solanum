@@ -62,7 +62,6 @@ rb_helper_child(rb_helper_cb * read_cb, rb_helper_cb * error_cb, log_cb * ilog,
 	ofd = (int)strtol(tofd, NULL, 10);
 	maxfd = (int)strtol(tmaxfd, NULL, 10);
 
-#ifndef _WIN32
 	for(x = 0; x < maxfd; x++)
 	{
 		if(x != ifd && x != ofd)
@@ -77,9 +76,6 @@ rb_helper_child(rb_helper_cb * read_cb, rb_helper_cb * error_cb, log_cb * ilog,
 		dup2(x, 2);
 	if(x > 2)		/* don't undo what we just did */
 		close(x);
-#else
-	(void) x;	/* shut gcc up */
-#endif
 
 	rb_lib_init(ilog, irestart, idie, 0, maxfd, dh_size, fd_heap_size);
 	rb_linebuf_init(lb_heap_size);
@@ -109,7 +105,7 @@ rb_helper_start(const char *name, const char *fullpath, rb_helper_cb * read_cb,
 	rb_helper *helper;
 	const char *parv[2];
 	char buf[128];
-	char fx[16], fy[16];
+	char fx[16], fy[16], maxfd[16];
 	rb_fde_t *in_f[2];
 	rb_fde_t *out_f[2];
 	pid_t pid;
@@ -134,6 +130,7 @@ rb_helper_start(const char *name, const char *fullpath, rb_helper_cb * read_cb,
 
 	snprintf(fx, sizeof(fx), "%d", rb_get_fd(in_f[1]));
 	snprintf(fy, sizeof(fy), "%d", rb_get_fd(out_f[0]));
+	snprintf(maxfd, sizeof(maxfd), "%d", rb_getmaxconnect());
 
 	rb_set_nb(in_f[0]);
 	rb_set_nb(in_f[1]);
@@ -142,7 +139,7 @@ rb_helper_start(const char *name, const char *fullpath, rb_helper_cb * read_cb,
 
 	rb_setenv("IFD", fy, 1);
 	rb_setenv("OFD", fx, 1);
-	rb_setenv("MAXFD", "256", 1);
+	rb_setenv("MAXFD", maxfd, 1);
 
 	snprintf(buf, sizeof(buf), "-ircd %s daemon", name);
 	parv[0] = buf;

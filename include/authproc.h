@@ -5,7 +5,7 @@
  *  Copyright (C) 1990 Jarkko Oikarinen and University of Oulu, Co Center
  *  Copyright (C) 1996-2002 Hybrid Development Team
  *  Copyright (C) 2002-2012 ircd-ratbox development team
- *  Copyright (C) 2016 William Pitcock <nenolod@dereferenced.org>
+ *  Copyright (C) 2016 Ariadne Conill <ariadne@dereferenced.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,9 +30,11 @@
 #include "rb_dictionary.h"
 #include "client.h"
 
-struct DNSBLEntryStats
+struct DNSBLEntry
 {
 	char *host;
+	char *reason;
+	char *filters;
 	uint8_t iptype;
 	unsigned int hits;
 };

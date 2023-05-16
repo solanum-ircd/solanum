@@ -77,27 +77,21 @@ static int
 start_bandb(void)
 {
 	char fullpath[PATH_MAX + 1];
-#ifdef _WIN32
-	const char *suffix = ".exe";
-#else
-	const char *suffix = "";
-#endif
 
 	rb_setenv("BANDB_DBPATH", ircd_paths[IRCD_PATH_BANDB], 1);
 	if(bandb_path == NULL)
 	{
-		snprintf(fullpath, sizeof(fullpath), "%s%cbandb%s", ircd_paths[IRCD_PATH_LIBEXEC], RB_PATH_SEPARATOR, suffix);
+		snprintf(fullpath, sizeof(fullpath), "%s/bandb", ircd_paths[IRCD_PATH_LIBEXEC]);
 
 		if(access(fullpath, X_OK) == -1)
 		{
-			snprintf(fullpath, sizeof(fullpath), "%s%cbin%cbandb%s",
-				    ConfigFileEntry.dpath, RB_PATH_SEPARATOR, RB_PATH_SEPARATOR, suffix);
+			snprintf(fullpath, sizeof(fullpath), "%s/bin/bandb", ConfigFileEntry.dpath);
 
 			if(access(fullpath, X_OK) == -1)
 			{
 				ilog(L_MAIN,
-				     "Unable to execute bandb%s in %s or %s/bin",
-				     suffix, ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
+				     "Unable to execute bandb in %s or %s/bin",
+				     ircd_paths[IRCD_PATH_LIBEXEC], ConfigFileEntry.dpath);
 				return 0;
 			}
 		}
@@ -110,11 +104,13 @@ start_bandb(void)
 	if(bandb_helper == NULL)
 	{
 		ilog(L_MAIN, "Unable to start bandb: %s", strerror(errno));
-		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Unable to start bandb: %s",
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "Unable to start bandb helper: %s",
 				     strerror(errno));
 		return 1;
 	}
 
+	ilog(L_MAIN, "bandb helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "bandb helper started");
 	rb_helper_run(bandb_helper);
 	return 0;
 }
@@ -440,9 +436,9 @@ bandb_rehash_bans(void)
 static void
 bandb_restart_cb(rb_helper *helper)
 {
-	ilog(L_MAIN, "bandb - bandb_restart_cb called, bandb helper died?");
+	ilog(L_MAIN, "bandb helper died - attempting to restart");
 	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-			     "bandb - bandb_restart_cb called, bandb helper died?");
+			     "bandb helper died - attempting to restart");
 	if(helper != NULL)
 	{
 		rb_helper_close(helper);

@@ -82,7 +82,13 @@ me_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 static int do_grant(struct Client *source_p, struct Client *target_p, const char *new_privset)
 {
 	int dooper = 0, dodeoper = 0;
-	struct PrivilegeSet *privset = 0;
+	struct PrivilegeSet *privset = NULL, *old_privset = NULL;
+
+	if (!IsPerson(source_p))
+	{
+		/* This can only happen if a broken server sends us nonsense, so ignore it */
+		return 0;
+	}
 
 	if (!strcasecmp(new_privset, "deoper"))
 	{
@@ -144,6 +150,8 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 		modeparv[2] = "-o";
 		modeparv[3] = NULL;
 		user_mode(target_p, target_p, 3, modeparv);
+
+		return 0;
 	}
 
 	if (dooper)
@@ -154,25 +162,31 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 
 		oper_up(target_p, &oper);
 	}
-	else if (privset != NULL)
+	else
 	{
-		privilegeset_ref(privset);
+		if (privset != NULL)
+			privilegeset_ref(privset);
+
+		if (target_p->user->privset != NULL)
+			old_privset = target_p->user->privset;
+
+		target_p->user->privset = privset;
+
+		if (privset != NULL)
+			sendto_server(NULL, NULL, CAP_TS6, NOCAPS, ":%s OPER %s %s",
+					use_id(target_p), target_p->user->opername, privset->name);
+
+		report_priv_change(target_p, old_privset, privset);
+
+		if (old_privset != NULL)
+			privilegeset_unref(old_privset);
+
+		const char *modeparv[4];
+		modeparv[0] = modeparv[1] = target_p->name;
+		modeparv[2] = "+";
+		modeparv[3] = NULL;
+		user_mode(target_p, target_p, 3, modeparv);
 	}
-
-	if (target_p->user->privset != NULL)
-		privilegeset_unref(target_p->user->privset);
-
-	target_p->user->privset = privset;
-
-	if (privset != NULL)
-		sendto_server(NULL, NULL, CAP_TS6, NOCAPS, ":%s OPER %s %s",
-				use_id(target_p), target_p->user->opername, privset->name);
-
-	const char *modeparv[4];
-	modeparv[0] = modeparv[1] = target_p->name;
-	modeparv[2] = "+";
-	modeparv[3] = NULL;
-	user_mode(target_p, target_p, 3, modeparv);
 
 	return 0;
 }

@@ -16,10 +16,14 @@ NO PARAMETERS:
               join the channel.
      +r     - Registered users only.  Only users identified to services
               may join.
+  ?  +R     - Blocks messages from unregistered users.  Only users
+              identified to services may talk in the channel.
      +c     - No color.  All markup (color, bold, underline, etc.) in
               messages is stripped.
      +g     - Free invite.  Everyone may invite users.  Significantly
               weakens +i control.
+  ?  +u     - Unfiltered. Receive messages that would otherwise be filtered
+              server side based on content.
      +z     - Op moderated.  Messages blocked by +m, +b and +q are instead
               sent to ops.
      +L     - Large ban list.  Increase maximum number of +beIq entries.

@@ -32,6 +32,7 @@
 #define MAXMODEPARAMSSERV 10
 
 #include <setup.h>
+#include "hook.h"
 
 struct Client;
 
@@ -248,7 +249,7 @@ extern void destroy_channel(struct Channel *);
 
 extern int can_send(struct Channel *chptr, struct Client *who,
 		    struct membership *);
-extern bool flood_attack_channel(int p_or_n, struct Client *source_p,
+extern bool flood_attack_channel(enum message_type msgtype, struct Client *source_p,
 				struct Channel *chptr, char *chname);
 struct matchset;
 extern int is_banned(struct Channel *chptr, struct Client *who,
@@ -301,7 +302,7 @@ extern void set_channel_mlock(struct Client *client_p, struct Client *source_p,
 
 extern struct ChannelMode chmode_table[256];
 
-extern bool add_id(struct Client *source_p, struct Channel *chptr, const char *banid,
+extern struct Ban * add_id(struct Client *source_p, struct Channel *chptr, const char *banid,
 	const char *forward, rb_dlink_list * list, long mode_type);
 
 extern struct Ban * del_id(struct Channel *chptr, const char *banid, rb_dlink_list * list,

@@ -63,12 +63,9 @@ rb_ctime(const time_t t, char *buf, size_t len)
 	struct tm *tp;
 	static char timex[128];
 	size_t tlen;
-#if defined(HAVE_GMTIME_R)
 	struct tm tmr;
 	tp = gmtime_r(&t, &tmr);
-#else
-	tp = gmtime(&t);
-#endif
+
 	if(buf == NULL)
 	{
 		p = timex;
@@ -98,12 +95,8 @@ char *
 rb_date(const time_t t, char *buf, size_t len)
 {
 	struct tm *gm;
-#if defined(HAVE_GMTIME_R)
 	struct tm gmbuf;
 	gm = gmtime_r(&t, &gmbuf);
-#else
-	gm = gmtime(&t);
-#endif
 
 	if(rb_unlikely(gm == NULL))
 	{
@@ -249,44 +242,11 @@ rb_lib_loop(long delay)
 	}
 }
 
-#ifndef HAVE_STRTOK_R
-char *
-rb_strtok_r(char *s, const char *delim, char **save)
-{
-	char *token;
-
-	if(s == NULL)
-		s = *save;
-
-	/* Scan leading delimiters.  */
-	s += strspn(s, delim);
-
-	if(*s == '\0')
-	{
-		*save = s;
-		return NULL;
-	}
-
-	token = s;
-	s = strpbrk(token, delim);
-
-	if(s == NULL)
-		*save = (token + strlen(token));
-	else
-	{
-		*s = '\0';
-		*save = s + 1;
-	}
-	return token;
-}
-#else
 char *
 rb_strtok_r(char *s, const char *delim, char **save)
 {
 	return strtok_r(s, delim, save);
 }
-#endif
-
 
 static const char base64_table[] =
 	{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',

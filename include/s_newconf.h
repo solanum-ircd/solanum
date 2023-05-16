@@ -40,6 +40,9 @@
 #include <openssl/rsa.h>
 #endif
 
+#define MAX_TEMP_TIME (52 * 7 * 24 * 60 * 60)
+
+struct Client;
 struct ConfItem;
 
 extern rb_dlink_list cluster_conf_list;
@@ -118,7 +121,11 @@ struct oper_conf
 
 #ifdef HAVE_LIBCRYPTO
 	char *rsa_pubkey_file;
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+	EVP_PKEY *rsa_pubkey;
+#else
 	RSA *rsa_pubkey;
+#endif
 #endif
 };
 
@@ -200,7 +207,6 @@ struct server_conf
 
 #define SERVER_ILLEGAL		0x0001
 #define SERVER_ENCRYPTED	0x0004
-#define SERVER_COMPRESSED	0x0008
 #define SERVER_TB		0x0010
 #define SERVER_AUTOCONN		0x0020
 #define SERVER_SSL		0x0040
@@ -209,7 +215,6 @@ struct server_conf
 
 #define ServerConfIllegal(x)	((x)->flags & SERVER_ILLEGAL)
 #define ServerConfEncrypted(x)	((x)->flags & SERVER_ENCRYPTED)
-#define ServerConfCompressed(x)	((x)->flags & SERVER_COMPRESSED)
 #define ServerConfTb(x)		((x)->flags & SERVER_TB)
 #define ServerConfAutoconn(x)	((x)->flags & SERVER_AUTOCONN)
 #define ServerConfSCTP(x)	((x)->flags & SERVER_SCTP)

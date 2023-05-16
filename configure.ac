@@ -34,24 +34,6 @@ LTDL_INIT
 build_ltdl=$with_included_ltdl
 AM_CONDITIONAL([BUILD_LTDL], [test x"$build_ltdl" = x"yes"])
 
-case "$host_os" in
-*cygwin*)
-     AC_DEFINE_UNQUOTED(CYGWIN,1,[This is a Cygwin system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     ;;
-*mingw* | *msys*)
-     AC_DEFINE_UNQUOTED(MINGW,1,[This is a MinGW system])
-     AC_DEFINE_UNQUOTED(WINDOWS,1,[This is a Windows system])
-     AC_CHECK_HEADER(winsock2.h, , [AC_MSG_ERROR([** MinGW and no winsock2.h.  I give up.])])
-     LIBS="$LIBS -lws2_32 -liphlpapi"
-     is_mingw="yes"
-     ;;
-*)
-     ;;
-esac
-
-AM_CONDITIONAL([MINGW], [test "$is_mingw" = "yes"])
-
 if test "$ac_cv_c_compiler_gnu" = yes; then
 	IRC_CFLAGS="$IRC_CFLAGS -O0 -Wall"
 fi
@@ -142,7 +124,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
 
-AC_CHECK_HEADERS([crypt.h sys/resource.h sys/param.h errno.h sys/syslog.h stddef.h sys/wait.h wait.h sys/epoll.h sys/uio.h machine/endian.h])
+AC_CHECK_HEADERS([crypt.h sys/param.h sys/syslog.h sys/epoll.h machine/endian.h])
 
 dnl Stuff that the memory manager (imalloc) depends on
 dnl ==================================================
@@ -161,7 +143,7 @@ AC_CHECK_SIZEOF(long long)
 dnl Networking Functions
 dnl ====================
 
-AC_SEARCH_LIBS(socket, [socket ws2_32], , [AC_MSG_ERROR([You have no socket()! Aborting.])])
+AC_SEARCH_LIBS(socket, socket,, [AC_MSG_ERROR([You have no socket()! Aborting.])])
 
 dnl SunOS/Solaris required libnsl for inet_ntoa()
 if test x"$SUN" = xyes; then
@@ -189,32 +171,11 @@ AC_CHECK_FUNCS([strlcat strlcpy])
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 
-AC_CHECK_TYPE([sa_family_t], [],
-[AC_DEFINE(sa_family_t, [u_int16_t], [If system does not define sa_family_t, define it here.])],
-[[#include <sys/types.h>
-#include <sys/socket.h>]])
-
 AC_CHECK_TYPES([uintptr_t])
 
 dnl check for various functions...
-AC_CHECK_FUNCS([snprintf vsnprintf socketpair mmap gettimeofday strdup strndup ])
 
 AC_FUNC_ALLOCA
-
-dnl Specialized functions checks
-dnl ============================
-
-dnl check for nanosleep
-AC_CHECK_FUNC(nanosleep,,[AC_CHECK_LIB(rt,nanosleep,
-                 LIBS="${LIBS} -lrt",
-                 [AC_CHECK_LIB(posix4,nanosleep, LIBS="${LIBS} -lposix4"
-                 )])])
-if test x$ac_cv_func_nanosleep = xno && test x$ac_cv_lib_posix4_nanosleep = xno  && test x$ac_cv_lib_rt_nanosleep = xno
-then
-         AC_MSG_RESULT("nanosleep not found..using select for delay")
-else
-	 AC_DEFINE([HAVE_NANOSLEEP], 1, [Define if nanosleep exists])
-fi
 
 dnl OpenSSL support
 AC_MSG_CHECKING(for OpenSSL)
@@ -342,26 +303,6 @@ AS_IF([test "$hyperscan" = no], [
 AM_CONDITIONAL([HAVE_HYPERSCAN], [test "$hyperscan" = "yes"])
 
 
-AC_ARG_WITH(zlib-path,
-AC_HELP_STRING([--with-zlib-path=DIR],[Path to libz.so for ziplinks support.]),
-[LIBS="$LIBS -L$withval"],)
-
-AC_ARG_ENABLE(zlib,
-AC_HELP_STRING([--disable-zlib],[Disable ziplinks support]),
-[zlib=$enableval],[zlib=yes])
-
-if test "$zlib" = yes; then
-
-AC_CHECK_HEADER(zlib.h, [
-	AC_CHECK_LIB(z, zlibVersion,
-	[
-		AC_SUBST(ZLIB_LD, -lz)
-		AC_DEFINE(HAVE_LIBZ, 1, [Define to 1 if zlib (-lz) is available.])
-	], zlib=no)
-], zlib=no)
-
-fi
-
 AC_ARG_WITH(sctp-path,
 AC_HELP_STRING([--with-sctp-path=DIR],[Path to libsctp.so for SCTP support.]),
 [LIBS="$LIBS -L$withval"],)
@@ -373,9 +314,8 @@ AC_HELP_STRING([--disable-sctp],[Disable SCTP support]),
 if test "$sctp" = yes; then
 
 AC_CHECK_HEADER(netinet/sctp.h, [
-	AC_CHECK_LIB(sctp, sctp_bindx,
+	AC_SEARCH_LIBS(sctp_bindx, sctp,
 	[
-		AC_SUBST(LIBSCTP_LD, -lsctp)
 		AC_DEFINE(HAVE_LIBSCTP, 1, [Define to 1 if libsctp (-lsctp) is available.])
 	], sctp=no)
 ], sctp=no)
@@ -535,7 +475,7 @@ elif test "$assert" = soft; then
 	AC_DEFINE(SOFT_ASSERT, 1, [Define this to enable soft asserts.])
 	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
 elif test "$assert" = yes; then
-	assert = "hard";
+	assert="hard"
 fi
 
 AC_MSG_CHECKING(if you want to do a profile build)
@@ -673,15 +613,10 @@ AC_SUBST(SEDOBJ)
 
 if test "$prefix" = "NONE"; then
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$ac_default_prefix", [Prefix where the ircd is installed.])
-
 else
-
-dnl Don't get bitten by Cygwin's stupidity if the user specified
-dnl a custom prefix with a trailing slash
-
+	dnl Strip trailing slashes to prevent a path of '//'
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
-
 fi
 
 AC_CONFIG_FILES(			\
@@ -713,7 +648,6 @@ echo "
 Configuration of ${BRANDING_NAME}-${BRANDING_VERSION}:
 	Install directory  : $prefix
 
-	Ziplinks           : $zlib
 	OpenSSL            : $openssl
 	SCTP               : $sctp
 

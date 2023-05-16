@@ -322,7 +322,7 @@ read_packet(rb_fde_t * F, void *data)
  *      with client_p of "local" variation, which contains all the
  *      necessary fields (buffer etc..)
  */
-void
+static void
 client_dopacket(struct Client *client_p, char *buffer, size_t length)
 {
 	s_assert(client_p != NULL);

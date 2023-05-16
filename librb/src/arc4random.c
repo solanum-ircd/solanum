@@ -34,10 +34,7 @@
 
 #include "arc4random.h"
 
-#ifdef HAVE_GETRUSAGE
 #include <sys/resource.h>
-#endif
-
 
 
 struct arc4_stream
@@ -91,10 +88,8 @@ arc4_stir(struct arc4_stream *as)
 {
 	struct timeval tv;
 	pid_t pid;
-	int n;
-#ifdef _WIN32
-	HMODULE lib;
-#endif
+	uint8_t rnd[128];
+	int fd, n;
 	/* XXX this doesn't support egd sources or similiar */
 
 	pid = getpid();
@@ -106,52 +101,20 @@ arc4_stir(struct arc4_stream *as)
 	rb_gettimeofday(&tv, NULL);
 	arc4_addrandom(as, (void *)&tv.tv_usec, sizeof(&tv.tv_usec));
 
-#if defined(HAVE_GETRUSAGE) && RUSAGE_SELF
 	{
 		struct rusage buf;
 		getrusage(RUSAGE_SELF, &buf);
 		arc4_addrandom(as, (void *)&buf, sizeof(buf));
-	memset(&buf, 0, sizeof(buf))}
-#endif
+	memset(&buf, 0, sizeof(buf));}
 
-#if !defined(_WIN32)
+	fd = open("/dev/urandom", O_RDONLY);
+	if(fd != -1)
 	{
-		uint8_t rnd[128];
-		int fd;
-		fd = open("/dev/urandom", O_RDONLY);
-		if(fd != -1)
-		{
-			read(fd, rnd, sizeof(rnd));
-			close(fd);
-			arc4_addrandom(as, (void *)rnd, sizeof(rnd));
-			memset(&rnd, 0, sizeof(rnd));
-		}
-
+		read(fd, rnd, sizeof(rnd));
+		close(fd);
+		arc4_addrandom(as, (void *)rnd, sizeof(rnd));
+		memset(&rnd, 0, sizeof(rnd));
 	}
-#else
-	{
-		LARGE_INTEGER performanceCount;
-		if(QueryPerformanceCounter(&performanceCount))
-		{
-			arc4_addrandom(as, (void *)&performanceCount, sizeof(performanceCount));
-		}
-		lib = LoadLibrary("ADVAPI32.DLL");
-		if(lib)
-		{
-			uint8_t rnd[128];
-			BOOLEAN(APIENTRY * pfn) (void *, ULONG) =
-				(BOOLEAN(APIENTRY *) (void *, ULONG))GetProcAddress(lib,
-										    "SystemFunction036");
-			if(pfn)
-			{
-				if(pfn(rnd, sizeof(rnd)) == TRUE)
-					arc4_addrandom(as, (void *)rnd, sizeof(rnd));
-				memset(&rnd, 0, sizeof(rnd));
-			}
-		}
-	}
-#endif
-
 
 	/*
 	 * Throw away the first N words of output, as suggested in the

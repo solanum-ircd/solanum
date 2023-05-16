@@ -2,7 +2,7 @@
  * Solanum: a slightly advanced ircd
  * rb_dictionary.h: Dictionary-based storage.
  *
- * Copyright (c) 2007 William Pitcock <nenolod -at- sacredspiral.co.uk>
+ * Copyright (c) 2007 Ariadne Conill <ariadne -at- dereferenced.org>
  * Copyright (c) 2007 Jilles Tjoelker <jilles -at- stack.nl>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -157,23 +157,11 @@ extern unsigned int rb_dictionary_size(rb_dictionary *dtree);
 void rb_dictionary_stats(rb_dictionary *dict, void (*cb)(const char *line, void *privdata), void *privdata);
 void rb_dictionary_stats_walk(void (*cb)(const char *line, void *privdata), void *privdata);
 
-#ifndef _WIN32
-
 #define RB_POINTER_TO_INT(x)		((int32_t) (long) (x))
 #define RB_INT_TO_POINTER(x)		((void *) (long) (int32_t) (x))
 
 #define RB_POINTER_TO_UINT(x)		((uint32_t) (unsigned long) (x))
 #define RB_UINT_TO_POINTER(x)		((void *) (unsigned long) (uint32_t) (x))
-
-#else
-
-#define RB_POINTER_TO_INT(x)		((int32_t) (unsigned long long) (x))
-#define RB_INT_TO_POINTER(x)		((void *) (unsigned long long) (int32_t) (x))
-
-#define RB_POINTER_TO_UINT(x)		((uint32_t) (unsigned long long) (x))
-#define RB_UINT_TO_POINTER(x)		((void *) (unsigned long long) (uint32_t) (x))
-
-#endif
 
 static inline int rb_int32cmp(const void *a, const void *b)
 {

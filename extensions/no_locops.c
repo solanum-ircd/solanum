@@ -14,18 +14,19 @@
 
 static const char no_locops_desc[] = "Disables local operators";
 
-static void h_nl_umode_changed(hook_data_umode_changed *);
+static void h_nl_umode_changed(void *);
 
 mapi_hfn_list_av1 nl_hfnlist[] = {
-	{ "umode_changed", (hookfn) h_nl_umode_changed },
+	{ "umode_changed", h_nl_umode_changed },
 	{ NULL, NULL }
 };
 
 DECLARE_MODULE_AV2(no_locops, NULL, NULL, NULL, NULL, nl_hfnlist, NULL, NULL, no_locops_desc);
 
 static void
-h_nl_umode_changed(hook_data_umode_changed *hdata)
+h_nl_umode_changed(void *data)
 {
+	hook_data_umode_changed *hdata = data;
 	struct Client *source_p = hdata->client;
 
 	if (MyClient(source_p) && source_p->umodes & UMODE_LOCOPS)

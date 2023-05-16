@@ -478,13 +478,8 @@ find_dline(struct sockaddr *addr, int aftype)
 	return NULL;
 }
 
-/* void find_exact_conf_by_address(const char*, int, const char *)
- * Input:
- * Output: ConfItem if found
- * Side-effects: None
- */
 struct ConfItem *
-find_exact_conf_by_address(const char *address, int type, const char *username)
+find_exact_conf_by_address_filtered(const char *address, int type, const char *username, bool (*filter)(struct ConfItem *))
 {
 	int masktype, bits;
 	unsigned long hv;
@@ -514,6 +509,9 @@ find_exact_conf_by_address(const char *address, int type, const char *username)
 				arec->masktype == masktype &&
 				(arec->username == NULL || username == NULL ? arec->username == username : !irccmp(arec->username, username)))
 		{
+			if (filter && !filter(arec->aconf))
+				continue;
+
 			if (masktype == HM_HOST)
 			{
 				if (!irccmp(arec->Mask.hostname, address))
@@ -528,6 +526,17 @@ find_exact_conf_by_address(const char *address, int type, const char *username)
 		}
 	}
 	return NULL;
+}
+
+/* void find_exact_conf_by_address(const char*, int, const char *)
+ * Input:
+ * Output: ConfItem if found
+ * Side-effects: None
+ */
+struct ConfItem *
+find_exact_conf_by_address(const char *address, int type, const char *username)
+{
+	return find_exact_conf_by_address_filtered(address, type, username, NULL);
 }
 
 /* void add_conf_by_address(const char*, int, const char *,
@@ -691,6 +700,8 @@ show_iline_prefix(struct Client *sptr, struct ConfItem *aconf, char *name)
 		*prefix_ptr++ = '+';
 	if(IsConfDoSpoofIp(aconf))
 		*prefix_ptr++ = '=';
+	if(IsNeedSasl(aconf))
+		*prefix_ptr++ = '%';
 	if(IsOper(sptr) && IsConfExemptFlood(aconf))
 		*prefix_ptr++ = '|';
 	if(IsOper(sptr) && IsConfExemptDNSBL(aconf) && !IsConfExemptKline(aconf))
@@ -699,8 +710,7 @@ show_iline_prefix(struct Client *sptr, struct ConfItem *aconf, char *name)
 		*prefix_ptr++ = '^';
 	if(IsOper(sptr) && IsConfExemptLimits(aconf))
 		*prefix_ptr++ = '>';
-	*prefix_ptr = '\0';
-	strncpy(prefix_ptr, name, USERLEN);
+	rb_strlcpy(prefix_ptr, name, USERLEN + 1);
 	return (prefix_of_host);
 }
 
@@ -713,7 +723,7 @@ show_iline_prefix(struct Client *sptr, struct ConfItem *aconf, char *name)
 void
 report_auth(struct Client *client_p)
 {
-	char *name, *host, *user, *classname;
+	char *name, *host, *user, *classname, *desc;
 	const char *pass;
 	struct AddressRec *arec;
 	struct ConfItem *aconf;
@@ -729,7 +739,7 @@ report_auth(struct Client *client_p)
 					continue;
 
 				get_printable_conf(aconf, &name, &host, &pass, &user, &port,
-						   &classname);
+						   &classname, &desc);
 
 				if(!EmptyString(aconf->spasswd))
 					pass = aconf->spasswd;
@@ -738,7 +748,7 @@ report_auth(struct Client *client_p)
 						   form_str(RPL_STATSILINE),
 						   name, pass, show_iline_prefix(client_p, aconf, user),
 						   show_ip_conf(aconf, client_p) ? host : "255.255.255.255",
-						   port, classname);
+						   port, classname, desc);
 			}
 }
 

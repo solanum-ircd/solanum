@@ -35,25 +35,14 @@ static int eb_extended(const char *data, struct Client *client_p,
 		struct Channel *chptr, long mode_type)
 {
 	char buf[BUFSIZE];
-	int ret;
 
 	(void)chptr;
 
 	if (data == NULL)
 		return EXTBAN_INVALID;
 
-	snprintf(buf, BUFSIZE, "%s!%s@%s#%s",
+	snprintf(buf, sizeof buf, "%s!%s@%s#%s",
 		client_p->name, client_p->username, client_p->host, client_p->info);
 
-	ret = match(data, buf) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
-
-	if (ret == EXTBAN_NOMATCH && IsDynSpoof(client_p))
-	{
-		snprintf(buf, BUFSIZE, "%s!%s@%s#%s",
-			client_p->name, client_p->username, client_p->orighost, client_p->info);
-
-		ret = match(data, buf) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
-	}
-
-	return ret;
+	return match(data, buf) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
 }

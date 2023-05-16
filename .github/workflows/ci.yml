@@ -6,11 +6,19 @@ on:
       - main
     paths-ignore:
       - 'doc/oper-guide/**'
+      - 'CREDITS'
+      - 'LICENSE'
+      - 'NEWS.md'
+      - 'README.md'
   pull_request:
     branches:
       - main
     paths-ignore:
       - 'doc/oper-guide/**'
+      - 'CREDITS'
+      - 'LICENSE'
+      - 'NEWS.md'
+      - 'README.md'
 
 jobs:
   linux:
@@ -21,17 +29,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-18.04
-        compiler:
-          - gcc-6 # Debian 9 (OFTC)
-          - gcc-7
-          - gcc-8
-          - clang-7
-          - clang-8
         include:
+          # Debian 10 Buster
           - os: ubuntu-20.04
+            compiler: gcc-8
+          - os: ubuntu-20.04
+            compiler: clang-7
+          # Ubuntu 20.04 Focal
+          - os: ubuntu-20.04
+            compiler: gcc-9
+          - os: ubuntu-20.04
+            compiler: clang-10
+          # Debian 11 Bullseye
+          - os: ubuntu-22.04
             compiler: gcc-10
+          - os: ubuntu-22.04
+            compiler: clang-11
+          # Ubuntu 22.04 Jammy
+          - os: ubuntu-22.04
+            compiler: gcc-11
+          - os: ubuntu-22.04
+            compiler: clang-14
+          # next
+          - os: ubuntu-22.04
+            compiler: gcc-12
 
     env:
       CC: ${{ matrix.compiler }}

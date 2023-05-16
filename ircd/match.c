@@ -22,6 +22,7 @@
 #include "client.h"
 #include "ircd.h"
 #include "match.h"
+#include "s_conf.h"
 #include "s_assert.h"
 
 /*
@@ -622,6 +623,7 @@ int ircncmp(const char *s1, const char *s2, int n)
 
 void matchset_for_client(struct Client *who, struct matchset *m)
 {
+	bool hide_ip = IsIPSpoof(who) || (!ConfigChannel.ip_bans_through_vhost && IsDynSpoof(who));
 	unsigned hostn = 0;
 	unsigned ipn = 0;
 
@@ -629,7 +631,7 @@ void matchset_for_client(struct Client *who, struct matchset *m)
 
 	sprintf(m->host[hostn++], "%s!%s@%s", who->name, who->username, who->host);
 
-	if (!IsIPSpoof(who))
+	if (!hide_ip)
 	{
 		sprintf(m->ip[ipn++], "%s!%s@%s", who->name, who->username, who->sockhost);
 	}
@@ -648,12 +650,13 @@ void matchset_for_client(struct Client *who, struct matchset *m)
 			sprintf(m->host[hostn++], "%s!%s@%s", who->name, who->username, who->localClient->mangledhost);
 		}
 	}
-	if (!IsIPSpoof(who) && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
+	if (!hide_ip && GET_SS_FAMILY(&who->localClient->ip) == AF_INET6 &&
 			rb_ipv4_from_ipv6((const struct sockaddr_in6 *)&who->localClient->ip, &ip4))
 	{
-		int n = sprintf(m->ip[ipn++], "%s!%s@", who->name, who->username);
+		int n = sprintf(m->ip[ipn], "%s!%s@", who->name, who->username);
 		rb_inet_ntop_sock((struct sockaddr *)&ip4,
 				m->ip[ipn] + n, sizeof m->ip[ipn] - n);
+		ipn++;
 	}
 
 	for (int i = hostn; i < ARRAY_SIZE(m->host); i++)

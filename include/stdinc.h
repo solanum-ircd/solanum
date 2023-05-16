@@ -64,11 +64,7 @@ char *alloca ();
 # endif
 #endif
 
-
-#ifdef HAVE_STDDEF_H
 #include <stddef.h>
-#endif
-
 
 #ifdef HAVE_STDBOOL_H
 # include <stdbool.h>
@@ -98,18 +94,11 @@ typedef bool _Bool;
 #include <ctype.h>
 
 #include <limits.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/file.h>
-#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
-#endif
-
 
 #include <sys/stat.h>
 
@@ -117,15 +106,8 @@ typedef bool _Bool;
 #include <sys/param.h>
 #endif
 
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#else
-extern int errno;
-#endif
-
-#ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h>
-#endif
 
 #if defined(__INTEL_COMPILER) || defined(__GNUC__)
 # ifdef __unused

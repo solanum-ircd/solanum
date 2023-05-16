@@ -34,7 +34,6 @@
 
 #define rb_hash_fd(x) ((x ^ (x >> RB_FD_HASH_BITS) ^ (x >> (RB_FD_HASH_BITS * 2))) & RB_FD_HASH_MASK)
 
-#ifdef HAVE_WRITEV
 #ifndef UIO_MAXIOV
 # if defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__)
 			/* FreeBSD 4.7 defines it in sys/uio.h only if _KERNEL is specified */
@@ -57,9 +56,6 @@
 # endif
 #else
 #define RB_UIO_MAXIOV UIO_MAXIOV
-#endif
-#else
-#define RB_UIO_MAXIOV 16
 #endif
 struct conndata
 {
@@ -87,10 +83,6 @@ struct acceptdata
 #define SetFDOpen(F)	(F->flags |= FLAG_OPEN)
 #define ClearFDOpen(F)	(F->flags &= ~FLAG_OPEN)
 
-#if !defined(SHUT_RDWR) && defined(_WIN32)
-# define SHUT_RDWR SD_BOTH
-#endif
-
 struct _fde
 {
 	/* New-school stuff, again pretty much ripped from squid */
@@ -99,7 +91,7 @@ struct _fde
 	 * filedescriptor. Think though: when do you think we'll need more?
 	 */
 	rb_dlink_node node;
-	rb_platform_fd_t fd;			/* So we can use the rb_fde_t as a callback ptr */
+	int fd;			/* So we can use the rb_fde_t as a callback ptr */
 	uint8_t flags;
 	uint8_t type;
 	int pflags;
@@ -131,7 +123,7 @@ typedef struct timer_data
 extern rb_dlink_list *rb_fd_table;
 
 static inline rb_fde_t *
-rb_find_fd(rb_platform_fd_t fd)
+rb_find_fd(int fd)
 {
 	rb_dlink_list *hlist;
 	rb_dlink_node *ptr;
@@ -221,18 +213,4 @@ void rb_kqueue_init_event(void);
 int rb_kqueue_sched_event(struct ev_entry *event, int when);
 void rb_kqueue_unsched_event(struct ev_entry *event);
 int rb_kqueue_supports_event(void);
-
-
-/* select versions */
-void rb_setselect_select(rb_fde_t *F, unsigned int type, PF * handler, void *client_data);
-int rb_init_netio_select(void);
-int rb_select_select(long);
-int rb_setup_fd_select(rb_fde_t *F);
-
-/* win32 versions */
-void rb_setselect_win32(rb_fde_t *F, unsigned int type, PF * handler, void *client_data);
-int rb_init_netio_win32(void);
-int rb_select_win32(long);
-int rb_setup_fd_win32(rb_fde_t *F);
 #endif
-
