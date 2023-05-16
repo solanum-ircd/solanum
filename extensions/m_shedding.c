@@ -37,19 +37,16 @@
 #include "messages.h"
 #include "numeric.h"
 
-
 #define SHED_RATE_MIN 5
 
 static int rate = 60;
 
-static struct ev_entry *user_shedding_main_ev = NULL;
-static struct ev_entry *user_shedding_shed_ev = NULL;
+static struct ev_entry *user_shedding_ev = NULL;
 
 static const char shed_desc[] = "Enables/disables user shedding.";
 
 static void mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
-static void user_shedding_main(void *rate);
-static void user_shedding_shed(void *unused);
+static void do_user_shedding(void *unused);
 
 static struct Message shedding_msgtab = {
 	"SHEDDING", 0, 0, 0, 0,
@@ -61,8 +58,7 @@ mapi_clist_av1 shedding_clist[] = { &shedding_msgtab, NULL };
 static void
 moddeinit(void)
 {
-	rb_event_delete(user_shedding_main_ev);
-	rb_event_delete(user_shedding_shed_ev);
+	rb_event_delete(user_shedding_ev);
 }
 
 DECLARE_MODULE_AV2(shed, NULL, moddeinit, shedding_clist, NULL, NULL, NULL, NULL, shed_desc);
@@ -105,10 +101,8 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	if (!irccmp(parv[2], "OFF"))
 	{
 		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s disabled user shedding", get_oper_name(source_p));
-		rb_event_delete(user_shedding_main_ev);
-		user_shedding_main_ev = NULL;
-		rb_event_delete(user_shedding_shed_ev);
-		user_shedding_shed_ev = NULL;
+		rb_event_delete(user_shedding_ev);
+		user_shedding_ev = NULL;
 		return;
 	}
 
@@ -123,22 +117,13 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, reason: %s)",
 		get_oper_name(source_p), rate, parv[3]);
 
-	rate -= (rate/5);
-	rb_event_delete(user_shedding_main_ev);
-	user_shedding_main_ev = NULL;
-	user_shedding_main_ev = rb_event_add("user shedding main event", user_shedding_main, NULL, rate);
+	rb_event_delete(user_shedding_ev);
+	user_shedding_ev = NULL;
+	user_shedding_ev = rb_event_add("user shedding event", do_user_shedding, NULL, rate);
 }
 
 static void
-user_shedding_main(void *unused)
-{
-	int deviation = (rate / (3+(int) (7.0f*rand()/(RAND_MAX+1.0f))));
-
-	user_shedding_shed_ev = rb_event_addish("user shedding shed event", user_shedding_shed, NULL, rate+deviation);
-}
-
-static void
-user_shedding_shed(void *unused)
+do_user_shedding(void *unused)
 {
 	rb_dlink_node *ptr;
 	struct Client *client_p;
@@ -154,7 +139,4 @@ user_shedding_shed(void *unused)
 		exit_client(client_p, client_p, &me, "Server closed connection");
 		break;
 	}
-
-	rb_event_delete(user_shedding_shed_ev);
-	user_shedding_shed_ev = NULL;
 }
