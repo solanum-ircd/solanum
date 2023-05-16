@@ -46,11 +46,12 @@ static struct ev_entry *user_shedding_ev = NULL;
 static const char shed_desc[] = "Enables/disables user shedding.";
 
 static void mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
+static void me_shedding(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
 static void do_user_shedding(void *unused);
 
 static struct Message shedding_msgtab = {
 	"SHEDDING", 0, 0, 0, 0,
-	{mg_unreg, mg_not_oper, {mo_shedding, 3}, mg_ignore, mg_ignore, {mo_shedding, 3}}
+	{mg_unreg, mg_not_oper, mg_ignore, mg_ignore, {me_shedding, 2}, {mo_shedding, 3}}
 };
 
 mapi_clist_av1 shedding_clist[] = { &shedding_msgtab, NULL };
@@ -62,6 +63,45 @@ moddeinit(void)
 }
 
 DECLARE_MODULE_AV2(shed, NULL, moddeinit, shedding_clist, NULL, NULL, NULL, NULL, shed_desc);
+
+static void
+set_shedding_state(struct Client *source_p, const char *chr, const char *reason)
+{
+	if (strcmp(chr, "OFF") == 0)
+	{
+		// disable shedding
+		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s disabled user shedding", get_oper_name(source_p));
+		rb_event_delete(user_shedding_ev);
+		user_shedding_ev = NULL;
+		return;
+	}
+
+	rate = atoi(chr);
+
+	if(rate < SHED_RATE_MIN)
+	{
+		sendto_one_notice(source_p, "Shedding rate must be at least %d", SHED_RATE_MIN);
+		return;
+	}
+
+	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, reason: %s)",
+	get_oper_name(source_p), rate, reason);
+
+	rb_event_delete(user_shedding_ev);
+	user_shedding_ev = NULL;
+	user_shedding_ev = rb_event_add("user shedding event", do_user_shedding, NULL, rate);
+}
+
+static bool
+contains_wildcard(const char *p)
+{
+    while(*p) {
+        if (*p == '*')
+            return true;
+        p++;
+    }
+    return false;
+}
 
 /*
  * mo_shedding
@@ -87,6 +127,13 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		return;
 	}
 
+	/* I can think of a thousand ways this could go wrong... */
+	if (contains_wildcard(parv[1]))
+	{
+		sendto_one_notice(source_p, "Wildcards are not permitted for shedding targets");
+		return;
+	}
+
 	if (parc != 4 && !(parc == 3 && irccmp(parv[2], "OFF") == 0))
 	{
 		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS),
@@ -94,33 +141,34 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		return;
 	}
 
-	if (hunt_server(client_p, source_p, ":%s SHEDDING %s %s %s :%s", 1,
-		parc, parv) != HUNTED_ISME)
-		return;
-
-	if (!irccmp(parv[2], "OFF"))
-	{
-		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s disabled user shedding", get_oper_name(source_p));
-		rb_event_delete(user_shedding_ev);
-		user_shedding_ev = NULL;
-		return;
-	}
-
-	rate = atoi(parv[2]);
-
-	if(rate < SHED_RATE_MIN)
-	{
-		sendto_one_notice(source_p, "Shedding rate must be at least %d", SHED_RATE_MIN);
+	if (irccmp(parv[1], me.name) != 0) {
+		/* it's not for us, pass it around */
+		if (irccmp(parv[2], "OFF") == 0)
+			sendto_match_servs(source_p, parv[1],
+				CAP_ENCAP, NOCAPS,
+				"ENCAP %s SHEDDING OFF", parv[1]);
+		else
+			sendto_match_servs(source_p, parv[1],
+				CAP_ENCAP, NOCAPS,
+				"ENCAP %s SHEDDING %s :%s",
+				parv[1], parv[2], parv[3]);
 		return;
 	}
 
-	sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s enabled user shedding (interval: %d seconds, reason: %s)",
-		get_oper_name(source_p), rate, parv[3]);
-
-	rb_event_delete(user_shedding_ev);
-	user_shedding_ev = NULL;
-	user_shedding_ev = rb_event_add("user shedding event", do_user_shedding, NULL, rate);
+	set_shedding_state(source_p, parv[2], parv[3]);
 }
+
+static void
+me_shedding(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+{
+	if(!IsPerson(source_p))
+		return;
+
+	set_shedding_state(source_p, parv[1], parv[2]);
+
+	return;
+}
+
 
 static void
 do_user_shedding(void *unused)
