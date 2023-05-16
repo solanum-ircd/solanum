@@ -147,7 +147,7 @@ user_shedding_shed(void *unused)
 	{
 		client_p = ptr->data;
 
-		if (!MyClient(client_p)) /* It could be servers */
+		if (!IsClient(client_p)) /* It could be servers */
 			continue;
 		if (IsExemptKline(client_p))
 			continue;
