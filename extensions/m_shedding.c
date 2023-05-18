@@ -39,8 +39,6 @@
 
 #define SHED_RATE_MIN 5
 
-static int rate = 60;
-
 static struct ev_entry *user_shedding_ev = NULL;
 
 static const char shed_desc[] = "Enables/disables user shedding.";
@@ -67,7 +65,8 @@ DECLARE_MODULE_AV2(shed, NULL, moddeinit, shedding_clist, NULL, NULL, NULL, NULL
 static void
 set_shedding_state(struct Client *source_p, const char *chr, const char *reason)
 {
-	if (strcmp(chr, "OFF") == 0)
+	int rate;
+	if (irccmp(chr, "OFF") == 0)
 	{
 		// disable shedding
 		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE, "%s disabled user shedding", get_oper_name(source_p));
@@ -90,17 +89,6 @@ set_shedding_state(struct Client *source_p, const char *chr, const char *reason)
 	rb_event_delete(user_shedding_ev);
 	user_shedding_ev = NULL;
 	user_shedding_ev = rb_event_add("user shedding event", do_user_shedding, NULL, rate);
-}
-
-static bool
-contains_wildcard(const char *p)
-{
-    while(*p) {
-        if (*p == '*')
-            return true;
-        p++;
-    }
-    return false;
 }
 
 /*
@@ -128,7 +116,7 @@ mo_shedding(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	}
 
 	/* I can think of a thousand ways this could go wrong... */
-	if (contains_wildcard(parv[1]))
+	if (strchr(parv[1], '*') != NULL)
 	{
 		sendto_one_notice(source_p, "Wildcards are not permitted for shedding targets");
 		return;
@@ -165,8 +153,6 @@ me_shedding(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *sourc
 		return;
 
 	set_shedding_state(source_p, parv[1], parv[2]);
-
-	return;
 }
 
 
