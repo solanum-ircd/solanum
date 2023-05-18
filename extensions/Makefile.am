@@ -55,6 +55,7 @@ extension_LTLIBRARIES =		\
   m_omode.la			\
   m_opme.la			\
   m_sendbans.la			\
+  m_shedding.la			\
   m_webirc.la			\
   m_remove.la			\
   hide_uncommon_channels.la	\
