@@ -420,6 +420,24 @@ check_pings_list(rb_dlink_list * list)
 				client_p->localClient->lasttime = rb_current_time() - ping;
 				sendto_one(client_p, "PING :%s", me.name);
 			}
+			else if (!(client_p->flags & FLAGS_PINGWARN) && ConfigFileEntry.ping_warn_time > 0 &&
+					(IsServer(client_p) || IsHandshake(client_p)) &&
+					(rb_current_time() - client_p->localClient->lasttime) >= (ping + ConfigFileEntry.ping_warn_time))
+			{
+				/*
+				 * if we haven't heard from a server in a while,
+				 * warn opers that something could be wrong...
+				 */
+				client_p->flags |= FLAGS_PINGWARN;
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "Warning: No response from %s for %ld seconds",
+					     client_p->name,
+					     (rb_current_time() - client_p->localClient->lasttime - ping));
+				ilog(L_SERVER,
+					     "Warning: No response from %s for %ld seconds",
+					     log_client_name(client_p, HIDE_IP),
+					     (rb_current_time() - client_p->localClient->lasttime - ping));
+			}
 		}
 		/* ping_timeout: */
 
