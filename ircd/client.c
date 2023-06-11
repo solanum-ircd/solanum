@@ -420,13 +420,16 @@ check_pings_list(rb_dlink_list * list)
 				client_p->localClient->lasttime = rb_current_time() - ping;
 				sendto_one(client_p, "PING :%s", me.name);
 			}
-			else if (!(client_p->flags & FLAGS_PINGWARN) && ConfigFileEntry.ping_warn_time > 0 &&
-					(IsServer(client_p) || IsHandshake(client_p)) &&
+			else if (ConfigFileEntry.ping_warn_time > 0 && (IsServer(client_p) || IsHandshake(client_p)) &&
 					(rb_current_time() - client_p->localClient->lasttime) >= (ping + ConfigFileEntry.ping_warn_time))
 			{
 				/*
 				 * if we haven't heard from a server in a while,
 				 * warn opers that something could be wrong...
+				 *
+				 * we'll do this about every 30 seconds until
+				 * the server either becomes responsive or
+				 * pings out. whichever comes first.
 				 */
 				client_p->flags |= FLAGS_PINGWARN;
 				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
