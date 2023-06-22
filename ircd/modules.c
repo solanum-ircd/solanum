@@ -465,6 +465,10 @@ load_a_module(const char *path, bool warn, int origin, bool core)
 	if((c = rb_strcasestr(mod_displayname, LT_MODULE_EXT)) != NULL)
 		*c = '\0';
 
+	/* Quietly succeed if the module is already loaded */
+	if(findmodule_byname(mod_displayname) != NULL)
+		return true;
+
 	tmpptr = lt_dlopenext(path);
 
 	if(tmpptr == NULL)
