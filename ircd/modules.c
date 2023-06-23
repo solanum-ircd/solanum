@@ -77,6 +77,9 @@ init_modules(void)
 		exit(EXIT_FAILURE);
 	}
 
+	memset(&module_list, 0, sizeof(module_list));
+	memset(&mod_paths, 0, sizeof(mod_paths));
+
 	/* Add the default paths we look in to the module system --nenolod */
 	mod_add_path(ircd_paths[IRCD_PATH_MODULES]);
 	mod_add_path(ircd_paths[IRCD_PATH_AUTOLOAD_MODULES]);
