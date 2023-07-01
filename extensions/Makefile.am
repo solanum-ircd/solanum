@@ -19,6 +19,7 @@ extension_LTLIBRARIES =		\
   extb_account.la		\
   extb_canjoin.la		\
   extb_channel.la		\
+	extb_guest.la		\
   extb_hostmask.la		\
   extb_oper.la			\
   extb_server.la		\
