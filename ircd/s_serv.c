@@ -81,6 +81,7 @@ unsigned int CAP_ENCAP;
 unsigned int CAP_TS6;
 unsigned int CAP_SERVICE;
 unsigned int CAP_RSFNC;
+unsigned int CAP_RSFNCF;
 unsigned int CAP_SAVE;
 unsigned int CAP_EUID;
 unsigned int CAP_EOPMOD;
@@ -122,6 +123,7 @@ init_builtin_capabs(void)
 	CAP_ENCAP = capability_put(serv_capindex, "ENCAP", NULL);
 	CAP_SERVICE = capability_put(serv_capindex, "SERVICES", NULL);
 	CAP_RSFNC = capability_put(serv_capindex, "RSFNC", NULL);
+	CAP_RSFNCF = capability_put(serv_capindex, "RSFNCF", NULL);
 	CAP_SAVE = capability_put(serv_capindex, "SAVE", NULL);
 	CAP_EUID = capability_put(serv_capindex, "EUID", NULL);
 	CAP_EOPMOD = capability_put(serv_capindex, "EOPMOD", NULL);

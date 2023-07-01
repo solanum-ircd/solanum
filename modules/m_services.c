@@ -163,6 +163,13 @@ me_login(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	rb_strlcpy(source_p->user->suser, parv[1], sizeof(source_p->user->suser));
 }
 
+/* me_rsfnc()
+ *     parv[1] = current user nickname
+ *     parv[2] = target nickname
+ *     parv[3] = new nickts
+ *     parv[4] = current nickts
+ *     parv[5] = optional; 0 (don't override RESVs) or 1 (override RESVs)
+ */
 static void
 me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
@@ -196,6 +203,12 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	 * nicknames before the RSFNC arrives.. --anfl
 	 */
 	if(target_p->tsinfo != curts)
+		return;
+
+	/* received a non-forced RSFNC for a nickname that is RESV.
+	 * silently ignore it. ~jess
+	 */
+	if(parc > 5 && atoi(parv[5]) == 0 && find_nick_resv(parv[2]))
 		return;
 
 	if((exist_p = find_named_client(parv[2])))
