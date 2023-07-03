@@ -184,7 +184,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 	if(msgtype != MESSAGE_TYPE_NOTICE &&
 		IsSetAnyCallerID(source_p) &&
 		!accept_message(target_p, source_p) &&
-		!IsOperGeneral(target_p))
+		!MayHavePrivilege(source_p, "oper:always_message"))
 	{
 		if(rb_dlink_list_length(&source_p->localClient->allow_list) <
 				(unsigned long)ConfigFileEntry.max_accept)
@@ -341,8 +341,8 @@ handle_client_exit(void *vdata)
 static mapi_hfn_list_av1 um_callerid_hfnlist[] = {
 	{ "umode_changed", check_umode_change },
 	{ "priv_change", check_priv_change },
-	{ "invite", h_hdl_invite },
-	{ "privmsg_user", h_hdl_privmsg_user },
+	{ "invite", h_hdl_invite, HOOK_HIGH },
+	{ "privmsg_user", h_hdl_privmsg_user, HOOK_HIGH },
 	{ "client_exit", handle_client_exit },
 	{ NULL, NULL }
 };

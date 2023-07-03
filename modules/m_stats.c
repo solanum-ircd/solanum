@@ -353,8 +353,6 @@ stats_connect(struct Client *source_p)
 				*s++ = 'S';
 			if(ServerConfTb(server_p))
 				*s++ = 'T';
-			if(ServerConfCompressed(server_p))
-				*s++ = 'Z';
 		}
 
 		if(s == buf)
@@ -729,16 +727,16 @@ static void
 stats_dnsbl(struct Client *source_p)
 {
 	rb_dictionary_iter iter;
-	struct DNSBLEntryStats *stats;
+	struct DNSBLEntry *entry;
 
 	if(dnsbl_stats == NULL)
 		return;
 
-	RB_DICTIONARY_FOREACH(stats, &iter, dnsbl_stats)
+	RB_DICTIONARY_FOREACH(entry, &iter, dnsbl_stats)
 	{
 		/* use RPL_STATSDEBUG for now -- jilles */
 		sendto_one_numeric(source_p, RPL_STATSDEBUG, "n :%d %s",
-				stats->hits, (const char *)iter.cur->key);
+				entry->hits, entry->host);
 	}
 }
 

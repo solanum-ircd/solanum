@@ -1,6 +1,6 @@
 This directory contains extensions (modules) to solanum ircd that
 have been contributed by other people, or written by our development
-team.  Unsupported extensions live under unsupported/.
+team.
 
 
 Modules
@@ -79,6 +79,7 @@ extb_account.so  - Account bans (+b $a[:mask])
 extb_canjoin.so  - Banned from another channel (+b $j:mask)
 extb_channel.so  - Other-channel bans (+b $c:mask)
 extb_extgecos.so - Extended ban (+b $x:mask)
+extb_guest.so    - Unidentified bans (+b $g:mask)
 extb_oper.so     - Oper bans (+b $o)
 extb_realname.so - Realname (gecos) bans (+b $r:mask)
 extb_server.so   - Server bans (+b $s:mask)

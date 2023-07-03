@@ -1,7 +1,6 @@
 /*
- * Extended extban type: bans all users with matching nick!user@host#gecos.
- * Requested by Lockwood.
- *  - nenolod
+ * Guest extban type: bans unidentified users matching nick!user@host.
+ * -- TheDaemoness
  */
 
 #include "stdinc.h"
@@ -9,18 +8,18 @@
 #include "client.h"
 #include "ircd.h"
 
-static const char extb_desc[] = "Extended mask ($x) extban type";
+static const char extb_desc[] = "Guest ($g) extban type - bans unidentified users matching nick!user@host";
 
 static int _modinit(void);
 static void _moddeinit(void);
-static int eb_extended(const char *data, struct Client *client_p, struct Channel *chptr, long mode_type);
+static int eb_guest(const char *data, struct Client *client_p, struct Channel *chptr, long mode_type);
 
-DECLARE_MODULE_AV2(extb_extended, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, extb_desc);
+DECLARE_MODULE_AV2(extb_guest, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, extb_desc);
 
 static int
 _modinit(void)
 {
-	extban_table['x'] = eb_extended;
+	extban_table['g'] = eb_guest;
 
 	return 0;
 }
@@ -28,10 +27,10 @@ _modinit(void)
 static void
 _moddeinit(void)
 {
-	extban_table['x'] = NULL;
+	extban_table['g'] = NULL;
 }
 
-static int eb_extended(const char *data, struct Client *client_p,
+static int eb_guest(const char *data, struct Client *client_p,
 		struct Channel *chptr, long mode_type)
 {
 	(void)chptr;
@@ -46,6 +45,9 @@ static int eb_extended(const char *data, struct Client *client_p,
 		 * so don't let a ban be set matching one
 		 */
 		return EXTBAN_INVALID;
+
+	if (!EmptyString(client_p->user->suser))
+		return EXTBAN_NOMATCH;
 
 	if (idx != NULL)
 	{

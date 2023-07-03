@@ -205,6 +205,7 @@ struct config_file_entry
 	int operspy_admin_only;
 	int pace_wait;
 	int pace_wait_simple;
+	int ping_warn_time;
 	int short_motd;
 	int no_oper_flood;
 	int hide_server;

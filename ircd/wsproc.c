@@ -322,6 +322,8 @@ start_wsockd(int count)
 		ws_do_pipe(P2, ctl);
 
 	}
+	ilog(L_MAIN, "wsockd helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "wsockd helper started");
 	return started;
 }
 

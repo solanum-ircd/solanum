@@ -20,6 +20,7 @@ extension_LTLIBRARIES =		\
   extb_canjoin.la		\
   extb_channel.la		\
   extb_gateway.la		\
+	extb_guest.la		\
   extb_hostmask.la		\
   extb_oper.la			\
   extb_server.la		\
@@ -56,6 +57,7 @@ extension_LTLIBRARIES =		\
   m_omode.la			\
   m_opme.la			\
   m_sendbans.la			\
+  m_shedding.la			\
   m_webirc.la			\
   m_remove.la			\
   hide_uncommon_channels.la	\

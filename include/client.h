@@ -420,6 +420,7 @@ struct ListClient
 #define FLAGS_EXEMPTSHIDE	0x04000000
 #define FLAGS_EXEMPTJUPE	0x08000000
 #define FLAGS_IDENTIFIED	0x10000000	/* owns their current nick */
+#define FLAGS_PINGWARN		0x20000000	/* whether we've warned about this client being unresponsive */
 
 
 /* flags for local clients, this needs stuff moved from above to here at some point */

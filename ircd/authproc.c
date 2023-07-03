@@ -67,7 +67,7 @@ uint32_t cid;
 static rb_dictionary *cid_clients;
 static struct ev_entry *timeout_ev;
 
-rb_dictionary *dnsbl_stats;
+rb_dictionary *dnsbl_stats = NULL;
 
 rb_dlink_list opm_list;
 struct OPMListener opm_listeners[LISTEN_LAST];
@@ -224,23 +224,23 @@ cmd_oper_warn(int parc, char **parv)
 	switch(*parv[1])
 	{
 	case 'D':	/* Debug */
-		sendto_realops_snomask(SNO_DEBUG, L_ALL, "authd debug: %s", parv[2]);
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE, "authd debug: %s", parv[2]);
 		idebug("authd: %s", parv[2]);
 		break;
 	case 'I':	/* Info */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd info: %s", parv[2]);
+		sendto_realops_snomask(SNO_DEBUG, L_NETWIDE, "authd info: %s", parv[2]);
 		inotice("authd: %s", parv[2]);
 		break;
 	case 'W':	/* Warning */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd WARNING: %s", parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd WARNING: %s", parv[2]);
 		iwarn("authd: %s", parv[2]);
 		break;
 	case 'C':	/* Critical (error) */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd CRITICAL: %s", parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd CRITICAL: %s", parv[2]);
 		ierror("authd: %s", parv[2]);
 		break;
 	default:	/* idk */
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd sent us an unknown oper notice type (%s): %s", parv[1], parv[2]);
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd sent us an unknown oper notice type (%s): %s", parv[1], parv[2]);
 		ilog(L_MAIN, "authd unknown oper notice type (%s): %s", parv[1], parv[2]);
 		break;
 	}
@@ -348,6 +348,18 @@ configure_authd(void)
 	}
 	else
 		opm_check_enable(false);
+
+	/* Configure DNSBLs */
+	if (dnsbl_stats != NULL)
+	{
+		rb_dictionary_iter iter;
+		struct DNSBLEntry *entry;
+		RB_DICTIONARY_FOREACH(entry, &iter, dnsbl_stats)
+		{
+			rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", entry->host,
+			                entry->iptype, entry->filters, entry->reason);
+		}
+	}
 }
 
 static void
@@ -383,8 +395,8 @@ authd_abort_client(struct Client *client_p)
 static void
 restart_authd_cb(rb_helper * helper)
 {
-	iwarn("authd: restart_authd_cb called, authd died?");
-	sendto_realops_snomask(SNO_GENERAL, L_ALL, "authd: restart_authd_cb called, authd died?");
+	iwarn("authd helper died - attempting to restart");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authdd helper died - attempting to restart");
 
 	if(helper != NULL)
 	{
@@ -566,7 +578,6 @@ timeout_dead_authd_clients(void *notused __unused)
 	{
 		if(client_p->preClient->auth.timeout < rb_current_time())
 		{
-			authd_free_client(client_p);
 			rb_dlinkAddAlloc(client_p, &freelist);
 		}
 	}
@@ -575,7 +586,8 @@ timeout_dead_authd_clients(void *notused __unused)
 	RB_DLINK_FOREACH_SAFE(ptr, nptr, freelist.head)
 	{
 		client_p = ptr->data;
-		rb_dictionary_delete(cid_clients, RB_UINT_TO_POINTER(client_p->preClient->auth.cid));
+		authd_abort_client(client_p);
+		rb_dlinkDestroy(ptr, &freelist);
 	}
 }
 
@@ -584,7 +596,7 @@ void
 add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_list *filters)
 {
 	rb_dlink_node *ptr;
-	struct DNSBLEntryStats *stats = rb_malloc(sizeof(*stats));
+	struct DNSBLEntry *entry = rb_malloc(sizeof(*entry));
 	char filterbuf[BUFSIZE] = "*";
 	size_t s = 0;
 
@@ -610,11 +622,13 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 	if(s)
 		filterbuf[s - 1] = '\0';
 
-	stats->host = rb_strdup(host);
-	stats->iptype = iptype;
-	stats->hits = 0;
-	rb_dictionary_add(dnsbl_stats, stats->host, stats);
+	entry->host = rb_strdup(host);
+	entry->reason = rb_strdup(reason);
+	entry->filters = rb_strdup(filterbuf);
+	entry->iptype = iptype;
+	entry->hits = 0;
 
+	rb_dictionary_add(dnsbl_stats, entry->host, entry);
 	rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", host, iptype, filterbuf, reason);
 }
 
@@ -622,12 +636,15 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 void
 del_dnsbl_entry(const char *host)
 {
-	struct DNSBLEntryStats *stats = rb_dictionary_retrieve(dnsbl_stats, host);
-	if(stats != NULL)
+	struct DNSBLEntry *entry = rb_dictionary_retrieve(dnsbl_stats, host);
+
+	if(entry != NULL)
 	{
-		rb_dictionary_delete(dnsbl_stats, host);
-		rb_free(stats->host);
-		rb_free(stats);
+		rb_dictionary_delete(dnsbl_stats, entry->host);
+		rb_free(entry->host);
+		rb_free(entry->reason);
+		rb_free(entry->filters);
+		rb_free(entry);
 	}
 
 	rb_helper_write(authd_helper, "O rbl_del %s", host);
@@ -636,10 +653,12 @@ del_dnsbl_entry(const char *host)
 static void
 dnsbl_delete_elem(rb_dictionary_element *delem, void *unused)
 {
-	struct DNSBLEntryStats *stats = delem->data;
+	struct DNSBLEntry *entry = delem->data;
 
-	rb_free(stats->host);
-	rb_free(stats);
+	rb_free(entry->host);
+	rb_free(entry->reason);
+	rb_free(entry->filters);
+	rb_free(entry);
 }
 
 /* Delete all the DNSBL entries. */

@@ -876,7 +876,7 @@ flood_attack_client(enum message_type msgtype, struct Client *source_p, struct C
 	 * and msg user@server.
 	 * -- jilles
 	 */
-	if(GlobalSetOptions.floodcount && IsClient(source_p) && source_p != target_p && !IsService(target_p))
+	if(GlobalSetOptions.floodcount && IsClient(source_p) && source_p != target_p && !IsService(target_p) && !HasPrivilege(target_p, "oper:free_target"))
 	{
 		if((target_p->first_received_message_time + 1) < rb_current_time())
 		{
