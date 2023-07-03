@@ -47,10 +47,10 @@ static int eb_extended(const char *data, struct Client *client_p,
 		 */
 		return EXTBAN_INVALID;
 
+	char buf[BUFSIZE];
+
 	if (idx != NULL)
 	{
-		char buf[BUFSIZE];
-
 		// Copy the nick!user@host part of the ban
 		memcpy(buf, data, (idx - data));
 		buf[(idx - data)] = '\0';
@@ -60,12 +60,16 @@ static int eb_extended(const char *data, struct Client *client_p,
 
 		if (client_matches_mask(client_p, buf) && match(idx, client_p->info))
 			return EXTBAN_MATCH;
-
-		return EXTBAN_NOMATCH;
 	}
+	else
+	{
+		// Treat data as a pattern to match against the full nick!user@host#gecos.
+		snprintf(buf, sizeof buf, "%s!%s@%s#%s",
+			client_p->name, client_p->username, client_p->host, client_p->info);
 
-	if (client_matches_mask(client_p, data))
-		return EXTBAN_MATCH;
+		if (match(data, buf))
+			return EXTBAN_MATCH;
+	}
 
 	return EXTBAN_NOMATCH;
 }
