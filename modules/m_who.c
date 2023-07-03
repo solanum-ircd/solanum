@@ -144,7 +144,7 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 				case 'u': fmt.fields |= FIELD_USER; break;
 				case 'a': fmt.fields |= FIELD_ACCOUNT; break;
 				case 'o': fmt.fields |= FIELD_OPLEVEL; break;
-				case 'g': fmt.fields |= FIELD_GATEWAY; break;
+				case 'w': fmt.fields |= FIELD_GATEWAY; break;
 				case ',':
 					  s++;
 					  fmt.querytype = s;
@@ -498,7 +498,7 @@ do_who(struct Client *source_p, struct Client *target_p, struct membership *mspt
 	char str[510 + 1]; /* linebuf.c will add \r\n */
 	size_t pos;
 	const char *q;
-	const char *g;
+	const char *w;
 
 	sprintf(status, "%c%s%s",
 		   target_p->user->away ? 'G' : 'H', SeesOper(target_p, source_p) ? "*" : "", msptr ? find_channel_status(msptr, fmt->fields || IsCapable(source_p, CLICAP_MULTI_PREFIX)) : "");
@@ -571,17 +571,17 @@ do_who(struct Client *source_p, struct Client *target_p, struct membership *mspt
 		if (fmt->fields & FIELD_GATEWAY)
 		{
 			/* use same the logic as account */
-			g = target_p->gateway;
-			if (!EmptyString(g))
+			w = target_p->gateway;
+			if (!EmptyString(w))
 			{
-				while(IsDigit(*g))
-					g++;
-				if(*g == '\0')
-					g = target_p->gateway;
+				while(IsDigit(*w))
+					w++;
+				if(*w == '\0')
+					w = target_p->gateway;
 			}
 			else
-				g = "0";
-			append_format(str, sizeof str, &pos, " %s", g);
+				w = "0";
+			append_format(str, sizeof str, &pos, " %s", w);
 		}
 		if (fmt->fields & FIELD_OPLEVEL)
 			append_format(str, sizeof str, &pos, " %s", is_chanop(msptr) ? "999" : "n/a");

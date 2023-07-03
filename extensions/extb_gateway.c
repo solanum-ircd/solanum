@@ -22,7 +22,7 @@
 #include "client.h"
 #include "ircd.h"
 
-static const char extb_desc[] = "Gateway name ($g) extban type";
+static const char extb_desc[] = "Gateway name ($w) extban type";
 
 static int _modinit(void);
 static void _moddeinit(void);
@@ -33,7 +33,7 @@ DECLARE_MODULE_AV2(extb_gateway, _modinit, _moddeinit, NULL, NULL, NULL, NULL, N
 static int
 _modinit(void)
 {
-	extban_table['g'] = eb_gateway;
+	extban_table['w'] = eb_gateway;
 
 	return 0;
 }
@@ -41,13 +41,13 @@ _modinit(void)
 static void
 _moddeinit(void)
 {
-	extban_table['g'] = NULL;
+	extban_table['w'] = NULL;
 }
 
 static int eb_gateway(const char *data, struct Client *client_p,
 		struct Channel *chptr, long mode_type)
 {
-	/* $g by itself will match all gateway users */
+	/* $w by itself will match all gateway users */
 	if (data == NULL)
 		return EmptyString(client_p->gateway) ? EXTBAN_NOMATCH : EXTBAN_MATCH;
 	return match(data, client_p->gateway) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
