@@ -1,0 +1,46 @@
+extensions/filter module documentation
+--------------------------------------
+
+The filter extension implements message content filtering using 
+solanum's hook framework and Intel's Hyperscan regular expression
+matching library.
+
+It requires an x86_64 processor with SSSE3 extensions.
+
+To operate, the filter requires a database of regular expessions
+that have been compiled using the Hyperscan library's 
+hs_compile_multi() or hs_compile_ext_multi() functions. 
+
+The command SETFILTER is used to manage operation of the filter and to
+load compiled Hyperscan databases.
+
+General documenation of SETFILTER is available using the 'HELP SETFILTER'
+command.
+
+For each expression in the database, the three least significant bits 
+of the expression ID are used to indicate which action the ircd should
+take in the event of a match:
+
+001 (1) DROP   - The message will be dropped and the client will be sent
+                 an ERR_CANNOTSENDTOCHAN message.
+010 (2) KILL   - The connection from which the message was recevied will
+                 be closed.
+100 (4) ALARM  - A Server Notice will be generated indicating that an
+                 expression was matched. The nick, user, hostname and
+                 IP address will be reported. For privacy, the expression
+                 that has been matched will not be disclosed.
+
+Messages are passed to the filter module in a format similar to an
+IRC messages:
+
+0:nick!user@host#1 PRIVMSG #help :hello!
+
+The number at the start of the line indicates the scanning pass:
+Messages are scanned twice, once as they were received (0), and once
+with any formatting or unprintable characters stripped (1).
+
+By default, 'nick', 'user' and 'host' will contain *. This behaviour
+can be changed at build time if filtering on these fields is required.
+
+The number after the # will be 0 or 1 depending on whether the sending
+client was identified to a NickServ account.
