@@ -50,7 +50,7 @@ The process for loading filters is as follows:
 1. The Hyperscan database is serialized using hs_serialize_database().
 2. A 'SETFILTER NEW' command is sent.
 3. The serialized data is split into chunks and base64 encoded. 
-   The chunk size need to be chosen to ensure that the resuliting
+   The chunk size needs to be chosen to ensure that the resuliting
    strings are short enough to fit into a 510 byte IRC line, taking 
    into account space needed for the 'SETFILTER +' command, check field, 
    server mask, and base64 overhead.
