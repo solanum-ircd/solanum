@@ -48,11 +48,12 @@ client was identified to a NickServ account.
 The process for loading filters is as follows:
 
 1. The Hyperscan database is serialized using hs_serialize_database().
-2. The serialized data is base64 encoded
-3. A 'SETFILTER NEW' command is sent.
-4. The base64 data is split into chunks short enough to fit into
-   a 512 byte IRC line, taking into account space needed for the
-   command, check field, and server mask, and send using 'SETFILTER +'
-   commands.
+2. A 'SETFILTER NEW' command is sent.
+3. The serialized data is split into chunks and base64 encoded. 
+   The chunk size need to be chosen to ensure that the resuliting
+   strings are short enough to fit into a 510 byte IRC line, taking 
+   into account space needed for the 'SETFILTER +' command, check field, 
+   server mask, and base64 overhead.
+4. The encoded chunks are sent using 'SETFILTER +' commands
 5. Once the entire database has been sent, a 'SETFILTER APPLY' command
    is sent to commit it.
