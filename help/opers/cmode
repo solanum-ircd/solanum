@@ -37,7 +37,7 @@ NO PARAMETERS:
      +C     - Disable CTCP. All CTCP messages to the channel, except ACTION,
               are disallowed.
   ?  +O     - IRC Operator only channel.
-     +M     - IRC Operators can not be kicked. Only settable by opers. Only
+  ?  +M     - IRC Operators can not be kicked. Only settable by opers. Only
               viewable by opers.
   ?  +A     - IRC server administrator only channel.
   ?  +T     - No NOTICEs allowed in the channel.
