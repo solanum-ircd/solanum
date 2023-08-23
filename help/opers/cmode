@@ -2,8 +2,6 @@ MODE <channel> <+|-><modes> [parameters]
 
 ? designates that the cmode is provided by an extension
 and may not be present on this server.
-
-* designates that the cmode is oper only.
  
 CHANNELMODE - DESCRIPTION
 ------------------------------------------------------------------------
@@ -39,8 +37,8 @@ NO PARAMETERS:
      +C     - Disable CTCP. All CTCP messages to the channel, except ACTION,
               are disallowed.
   ?  +O     - IRC Operator only channel.
-  *  +M     - IRC Operators can not be kicked. Can be set/unset, and viewed,
-              only by IRC Operators.
+     +M     - IRC Operators can not be kicked. Only settable by opers. Only
+              viewable by opers.
   ?  +A     - IRC server administrator only channel.
   ?  +T     - No NOTICEs allowed in the channel.
   ?  +S     - Only users connected via SSL/TLS may join the channel while this 
