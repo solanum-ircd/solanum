@@ -603,7 +603,7 @@ extern struct Client *find_named_person(const char *);
 extern struct Client *next_client(struct Client *, const char *);
 
 #define accept_message(s, t) ((s) == (t) || (rb_dlinkFind((s), &((t)->localClient->allow_list))))
-extern void del_all_accepts(struct Client *client_p);
+extern void del_all_accepts(struct Client *client_p, bool self_too);
 
 extern void dead_link(struct Client *client_p, int sendqex);
 extern int show_ip(struct Client *source_p, struct Client *target_p);

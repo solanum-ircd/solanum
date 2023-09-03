@@ -1725,7 +1725,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(changed)
 	{
 		monitor_signon(target_p);
-		del_all_accepts(target_p);
+		del_all_accepts(target_p, false);
 	}
 }
 
