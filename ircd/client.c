@@ -1385,7 +1385,7 @@ exit_generic_client(struct Client *client_p, struct Client *source_p, struct Cli
 	}
 
 	/* Clean up allow lists */
-	del_all_accepts(source_p);
+	del_all_accepts(source_p, true);
 
 	whowas_add_history(source_p, 0);
 	whowas_off_history(source_p);
@@ -1793,19 +1793,19 @@ count_remote_client_memory(size_t * count, size_t * remote_client_memory_used)
 /*
  * del_all_accepts
  *
- * inputs	- pointer to exiting client
+ * inputs	- pointer to exiting client, flag to include own allow_list
  * output	- NONE
  * side effects - Walk through given clients allow_list and on_allow_list
  *                remove all references to this client
  */
 void
-del_all_accepts(struct Client *client_p)
+del_all_accepts(struct Client *client_p, bool self_too)
 {
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	struct Client *target_p;
 
-	if(MyClient(client_p) && client_p->localClient->allow_list.head)
+	if(self_too && MyClient(client_p) && client_p->localClient->allow_list.head)
 	{
 		/* clear this clients accept list, and remove them from
 		 * everyones on_accept_list
@@ -1813,6 +1813,7 @@ del_all_accepts(struct Client *client_p)
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->allow_list.head)
 		{
 			target_p = ptr->data;
+
 			rb_dlinkFindDestroy(client_p, &target_p->on_allow_list);
 			rb_dlinkDestroy(ptr, &client_p->localClient->allow_list);
 		}
@@ -1822,6 +1823,13 @@ del_all_accepts(struct Client *client_p)
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->on_allow_list.head)
 	{
 		target_p = ptr->data;
+
+		/* If we're not doing our own, we're doing this because of a nick change.
+		 * Skip those that would see the nick change anyway
+		 */
+		if(!self_too && has_common_channel(client_p, target_p))
+			continue;
+
 		rb_dlinkFindDestroy(client_p, &target_p->localClient->allow_list);
 		rb_dlinkDestroy(ptr, &client_p->on_allow_list);
 	}

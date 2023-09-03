@@ -280,7 +280,10 @@ doit:
 
 	monitor_signon(target_p);
 
-	del_all_accepts(target_p);
+	/* Make sure everyone that has this client on its accept list
+	 * loses that reference.
+	 */
+	del_all_accepts(target_p, false);
 
 	snprintf(note, sizeof(note), "Nick: %s", target_p->name);
 	rb_note(target_p->localClient->F, note);
