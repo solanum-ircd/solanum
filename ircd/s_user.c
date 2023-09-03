@@ -648,6 +648,11 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 			SetDynSpoof(source_p);
 	}
 
+	if (!EmptyString(aconf->gateway))
+	{
+		rb_strlcpy(source_p->gateway, aconf->gateway, REALLEN + 1);
+	}
+
 	umodes = ConfigFileEntry.default_umodes & ~aconf->umodes_mask;
 	umodes |= aconf->umodes;
 	umodes &= ~ConfigFileEntry.oper_only_umodes;

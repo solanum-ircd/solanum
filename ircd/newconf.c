@@ -1245,6 +1245,12 @@ conf_set_auth_umodes(void *data)
 	parse_umodes(umodes, &yy_aconf->umodes, &yy_aconf->umodes_mask);
 }
 
+static void
+conf_set_auth_gateway(void *data)
+{
+	yy_aconf->gateway = rb_strdup(data);
+}
+
 static int
 conf_begin_connect(struct TopConf *tc)
 {
@@ -2673,6 +2679,7 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
 	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
+	{ "gateway",	CF_QSTRING, conf_set_auth_gateway,	0, NULL},
 	{ "description",CF_QSTRING, conf_set_auth_desc,         0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
