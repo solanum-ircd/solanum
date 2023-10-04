@@ -188,7 +188,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		if(oper_p == NULL)
 		{
 			sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
-			ilog(L_FOPER, "FAILED OPER (%s) by (%s!%s@%s) (%s)",
+			ilog(L_FOPER, "FAILED CHALLENGE (%s) by (%s!%s@%s) (%s)",
 			     source_p->user->opername, source_p->name,
 			     source_p->username, source_p->host,
 			     source_p->sockhost);
@@ -206,7 +206,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		oper_up(source_p, oper_p);
 
-		ilog(L_OPERED, "OPER %s by %s!%s@%s (%s)",
+		ilog(L_OPERED, "CHALLENGE %s by %s!%s@%s (%s)",
 		     source_p->user->opername, source_p->name,
 		     source_p->username, source_p->host, source_p->sockhost);
 		return;
@@ -220,7 +220,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	if(oper_p == NULL)
 	{
 		sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
-		ilog(L_FOPER, "FAILED OPER (%s) by (%s!%s@%s) (%s)",
+		ilog(L_FOPER, "FAILED CHALLENGE (%s) by (%s!%s@%s) (%s)",
 		     parv[1], source_p->name,
 		     source_p->username, source_p->host, source_p->sockhost);
 
@@ -258,14 +258,14 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		if (source_p->certfp == NULL || rb_strcasecmp(source_p->certfp, oper_p->certfp))
 		{
 			sendto_one_numeric(source_p, ERR_NOOPERHOST, form_str(ERR_NOOPERHOST));
-			ilog(L_FOPER, "FAILED OPER (%s) by (%s!%s@%s) (%s) -- client certificate fingerprint mismatch",
+			ilog(L_FOPER, "FAILED CHALLENGE (%s) by (%s!%s@%s) (%s) -- client certificate fingerprint mismatch",
 			     parv[1], source_p->name,
 			     source_p->username, source_p->host, source_p->sockhost);
 
 			if(ConfigFileEntry.failed_oper_notice)
 			{
 				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-						     "Failed OPER attempt - client certificate fingerprint mismatch by %s (%s@%s)",
+						     "Failed CHALLENGE attempt - client certificate fingerprint mismatch by %s (%s@%s)",
 						     source_p->name, source_p->username, source_p->host);
 			}
 			return;
