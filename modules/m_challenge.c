@@ -226,8 +226,8 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		if(ConfigFileEntry.failed_oper_notice)
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					     "Failed CHALLENGE attempt - host mismatch by %s (%s@%s)",
-					     source_p->name, source_p->username, source_p->host);
+					     "Failed CHALLENGE attempt - user@host mismatch or no operator block for %s by %s (%s@%s)",
+					     parv[1], source_p->name, source_p->username, source_p->host);
 		return;
 	}
 
