@@ -642,16 +642,18 @@ attach_conf(struct Client *client_p, struct ConfItem *aconf)
 	return (0);
 }
 
-/*
- * rehash
- *
- * Actual REHASH service routine. Called with sig == 0 if it has been called
- * as a result of an operator issuing this command, else assume it has been
- * called as a result of the server receiving a HUP signal.
- */
-bool
-rehash(bool sig)
+struct rehash_data {
+	bool sig;
+};
+
+static void
+service_rehash(void *data_)
 {
+	struct rehash_data *data = data_;
+	bool sig = data->sig;
+
+	free(data);
+
 	rb_dlink_node *n;
 
 	hook_data_rehash hdata = { sig };
@@ -684,6 +686,21 @@ rehash(bool sig)
 	privilegeset_cleanup_rehash();
 
 	call_hook(h_rehash, &hdata);
+}
+
+/*
+ * rehash
+ *
+ * Called with sig == 0 if it has been called as a result of an operator
+ * issuing this command, else assume it has been called as a result of the
+ * server receiving a HUP signal.
+ */
+bool
+rehash(bool sig)
+{
+	struct rehash_data *data = rb_malloc(sizeof *data);
+	data->sig = sig;
+	rb_defer(service_rehash, data);
 	return false;
 }
 
