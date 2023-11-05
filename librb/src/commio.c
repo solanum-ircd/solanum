@@ -51,6 +51,14 @@ static rb_bh *fd_heap;
 static rb_dlink_list timeout_list;
 static rb_dlink_list closed_list;
 
+struct defer
+{
+	rb_dlink_node node;
+	void (*fn)(void *);
+	void *data;
+};
+static rb_dlink_list defer_list;
+
 static struct ev_entry *rb_timeout_ev;
 
 
@@ -2015,10 +2023,27 @@ rb_setselect(rb_fde_t *F, unsigned int type, PF * handler, void *client_data)
 	setselect_handler(F, type, handler, client_data);
 }
 
+void
+rb_defer(void (*fn)(void *), void *data)
+{
+	struct defer *defer = rb_malloc(sizeof *defer);
+	defer->fn = fn;
+	defer->data = data;
+	rb_dlinkAdd(defer, &defer->node, &defer_list);
+}
+
 int
 rb_select(unsigned long timeout)
 {
 	int ret = select_handler(timeout);
+	rb_dlink_node *ptr, *next;
+	RB_DLINK_FOREACH_SAFE(ptr, next, defer_list.head)
+	{
+		struct defer *defer = ptr->data;
+		defer->fn(defer->data);
+		rb_dlinkDelete(ptr, &defer_list);
+		rb_free(defer);
+	}
 	rb_close_pending_fds();
 	return ret;
 }
