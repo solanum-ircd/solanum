@@ -652,7 +652,7 @@ service_rehash(void *data_)
 	struct rehash_data *data = data_;
 	bool sig = data->sig;
 
-	free(data);
+	rb_free(data);
 
 	rb_dlink_node *n;
 
