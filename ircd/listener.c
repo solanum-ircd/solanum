@@ -581,11 +581,17 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 	static time_t last_oper_notice = 0;
 	int len;
 
+	static const char *allinuse = "ERROR :All connections in use\r\n";
 	static const char *toofast = "ERROR :Reconnecting too fast, throttled.\r\n";
 
-	static const unsigned char sslerrcode[] = {
+	static const unsigned char ssldeniederrcode[] = {
 		// SSLv3.0 Fatal Alert: Access Denied
 		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x31
+	};
+
+	static const unsigned char sslinternalerrcode[] = {
+		// SSLv3.0 Fatal Alert: Internal Error
+		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x50
 	};
 
 	if(listener->ssl && (!ircd_ssl_ok || !get_ssld_count()))
@@ -608,7 +614,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 			last_oper_notice = rb_current_time();
 		}
 
-		rb_write(F, "ERROR :All connections in use\r\n", 31);
+		if(listener->ssl)
+			rb_write(F, sslinternalerrcode, sizeof(sslinternalerrcode));
+		else
+			rb_write(F, allinuse, strlen(allinuse));
+
 		rb_close(F);
 		return 0;
 	}
@@ -625,7 +635,7 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 
 		if(listener->ssl)
 		{
-			rb_write(F, sslerrcode, sizeof(sslerrcode));
+			rb_write(F, ssldeniederrcode, sizeof(ssldeniederrcode));
 		}
 		else if(ConfigFileEntry.dline_with_reason)
 		{
@@ -648,7 +658,7 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 		return 0;
 	}
 
-	if(check_reject(F, addr)) {
+	if(check_reject(F, addr, listener->ssl)) {
 		/* Reject the connection without closing the socket
 		 * because it is now on the delay_exit list. */
 		return 0;
@@ -656,7 +666,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 
 	if(throttle_add(addr))
 	{
-		rb_write(F, toofast, strlen(toofast));
+		if(listener->ssl)
+			rb_write(F, ssldeniederrcode, sizeof(ssldeniederrcode));
+		else
+			rb_write(F, toofast, strlen(toofast));
+
 		rb_close(F);
 		return 0;
 	}

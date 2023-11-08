@@ -619,8 +619,6 @@ static void
 change_local_nick(struct Client *client_p, struct Client *source_p,
 		char *nick, int dosend)
 {
-	struct Client *target_p;
-	rb_dlink_node *ptr, *next_ptr;
 	struct Channel *chptr;
 	char note[NICKLEN + 10];
 	int samenick;
@@ -704,20 +702,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	/* Make sure everyone that has this client on its accept list
 	 * loses that reference.
 	 */
-	/* we used to call del_all_accepts() here, but theres no real reason
-	 * to clear a clients own list of accepted clients.  So just remove
-	 * them from everyone elses list --anfl
-	 */
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, source_p->on_allow_list.head)
-	{
-		target_p = ptr->data;
-
-		if (!has_common_channel(source_p, target_p))
-		{
-			rb_dlinkFindDestroy(source_p, &target_p->localClient->allow_list);
-			rb_dlinkDestroy(ptr, &source_p->on_allow_list);
-		}
-	}
+	del_all_accepts(source_p, false);
 
 	snprintf(note, sizeof(note), "Nick: %s", nick);
 	rb_note(client_p->localClient->F, note);
