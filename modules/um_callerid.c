@@ -341,8 +341,8 @@ handle_client_exit(void *vdata)
 static mapi_hfn_list_av1 um_callerid_hfnlist[] = {
 	{ "umode_changed", check_umode_change },
 	{ "priv_change", check_priv_change },
-	{ "invite", h_hdl_invite },
-	{ "privmsg_user", h_hdl_privmsg_user },
+	{ "invite", h_hdl_invite, HOOK_HIGH },
+	{ "privmsg_user", h_hdl_privmsg_user, HOOK_HIGH },
 	{ "client_exit", handle_client_exit },
 	{ NULL, NULL }
 };

@@ -422,6 +422,11 @@ static struct InfoStruct info_table[] = {
 		INFO_INTBOOL(&ConfigFileEntry.ping_cookie),
 	},
 	{
+		"ping_warn_time",
+		"Amount of time between warnings about unresponsive servers",
+		INFO_DECIMAL(&ConfigFileEntry.ping_warn_time),
+	},
+	{
 		"reject_after_count",
 		"Client rejection threshold setting",
 		INFO_DECIMAL(&ConfigFileEntry.reject_after_count),

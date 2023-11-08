@@ -58,6 +58,7 @@ typedef struct _delay_data
 	rb_fde_t *F;
 	struct ConfItem *aconf;
 	const char *reason;
+	bool ssl;
 } delay_t;
 
 typedef struct _throttle
@@ -92,28 +93,39 @@ reject_exit(void *unused)
 	delay_t *ddata;
 	static const char *errbuf = "ERROR :Closing Link: (*** Banned (cache))\r\n";
 
+	static const unsigned char ssldeniederrcode[] = {
+		// SSLv3.0 Fatal Alert: Access Denied
+		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x31
+	};
+
 	RB_DLINK_FOREACH_SAFE(ptr, ptr_next, delay_exit.head)
 	{
 		ddata = ptr->data;
 
-		*dynamic_reason = '\0';
+		if (ddata->ssl)
+		{
+			rb_write(ddata->F, ssldeniederrcode, sizeof(ssldeniederrcode));
+		}
+		else
+		{
+			*dynamic_reason = '\0';
+
+			if (ddata->aconf)
+				snprintf(dynamic_reason, sizeof dynamic_reason, form_str(ERR_YOUREBANNEDCREEP) "\r\n",
+					me.name, "*", get_user_ban_reason(ddata->aconf));
+			else if (ddata->reason)
+				snprintf(dynamic_reason, sizeof dynamic_reason, ":%s 465 %s :%s\r\n",
+					me.name, "*", ddata->reason);
+
+			if (*dynamic_reason)
+				rb_write(ddata->F, dynamic_reason, strlen(dynamic_reason));
+
+			rb_write(ddata->F, errbuf, strlen(errbuf));
+		}
 
 		if (ddata->aconf)
-		{
-			snprintf(dynamic_reason, sizeof dynamic_reason, form_str(ERR_YOUREBANNEDCREEP) "\r\n",
-				me.name, "*", get_user_ban_reason(ddata->aconf));
-			rb_write(ddata->F, dynamic_reason, strlen(dynamic_reason));
-
 			deref_conf(ddata->aconf);
-		}
-		else if (ddata->reason)
-		{
-			snprintf(dynamic_reason, sizeof dynamic_reason, ":%s 465 %s :%s\r\n",
-				me.name, "*", ddata->reason);
-			rb_write(ddata->F, dynamic_reason, strlen(dynamic_reason));
-		}
 
-		rb_write(ddata->F, errbuf, strlen(errbuf));
 		rb_close(ddata->F);
 		rb_free(ddata);
 	}
@@ -228,7 +240,7 @@ add_reject(struct Client *client_p, const char *mask1, const char *mask2, struct
 }
 
 int
-check_reject(rb_fde_t *F, struct sockaddr *addr)
+check_reject(rb_fde_t *F, struct sockaddr *addr, bool ssl)
 {
 	rb_patricia_node_t *pnode;
 	reject_t *rdata;
@@ -276,6 +288,7 @@ check_reject(rb_fde_t *F, struct sockaddr *addr)
 		ddata->reason = NULL;
 	}
 	ddata->F = F;
+	ddata->ssl = ssl;
 	rb_dlinkAdd(ddata, &ddata->node, &delay_exit);
 	return 1;
 }
