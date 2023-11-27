@@ -120,7 +120,7 @@ init_client(void)
 	rb_event_addish("exit_aborted_clients", exit_aborted_clients, NULL, 1);
 	rb_event_add("flood_recalc", flood_recalc, NULL, 1);
 
-	nd_dict = rb_dictionary_create("nickdelay", irccmp);
+	nd_dict = rb_dictionary_create("nickdelay", (DCF)irccmp);
 }
 
 /*

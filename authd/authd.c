@@ -199,7 +199,7 @@ main(int argc, char *argv[])
 	rb_set_time();
 	setup_signals();
 
-	authd_option_handlers = rb_dictionary_create("authd options handlers", rb_strcasecmp);
+	authd_option_handlers = rb_dictionary_create("authd options handlers", (DCF)rb_strcasecmp);
 
 	init_resolver();
 	init_providers();

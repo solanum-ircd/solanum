@@ -778,7 +778,7 @@ static void   MD5Final (unsigned char [16], MD5_CTX *);
  */
 
 static void
-Encode (unsigned char *output, uint32_t *input, unsigned int len)
+Encode(unsigned char *output, uint32_t *input, unsigned int len)
 {
 	unsigned int i;
 	uint32_t *op = (uint32_t *)output;
@@ -793,7 +793,7 @@ Encode (unsigned char *output, uint32_t *input, unsigned int len)
  */
 
 static void
-Decode (uint32_t *output, const unsigned char *input, unsigned int len)
+Decode(uint32_t *output, const unsigned char *input, unsigned int len)
 {
 	unsigned int i;
 	const uint32_t *ip = (const uint32_t *)input;
@@ -846,8 +846,7 @@ static unsigned char PADDING[64] = {
 /* MD5 initialization. Begins an MD5 operation, writing a new context. */
 
 static void
-MD5Init (context)
-	MD5_CTX *context;
+MD5Init(MD5_CTX *context)
 {
 
 	context->count[0] = context->count[1] = 0;
@@ -866,10 +865,7 @@ MD5Init (context)
  */
 
 static void
-MD5Update (context, in, inputLen)
-	MD5_CTX *context;
-	const void *in;
-	unsigned int inputLen;
+MD5Update(MD5_CTX *context, const void *in, unsigned int inputLen)
 {
 	unsigned int i, idx, partLen;
 	const unsigned char *input = in;
@@ -909,8 +905,7 @@ MD5Update (context, in, inputLen)
  */
 
 static void
-MD5Pad (context)
-	MD5_CTX *context;
+MD5Pad(MD5_CTX *context)
 {
 	unsigned char bits[8];
 	unsigned int idx, padLen;
@@ -933,9 +928,7 @@ MD5Pad (context)
  */
 
 static void
-MD5Final (digest, context)
-	unsigned char digest[16];
-	MD5_CTX *context;
+MD5Final(unsigned char digest[16], MD5_CTX *context)
 {
 	/* Do padding. */
 	MD5Pad (context);
@@ -950,9 +943,7 @@ MD5Final (digest, context)
 /* MD5 basic transformation. Transforms state based on block. */
 
 static void
-MD5Transform (state, block)
-	uint32_t state[4];
-	const unsigned char block[64];
+MD5Transform(uint32_t state[4], const unsigned char block[64])
 {
 	uint32_t a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
