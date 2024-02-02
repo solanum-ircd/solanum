@@ -164,6 +164,14 @@ typedef struct
 	int del;
 } hook_data_cap_change;
 
+typedef struct
+{
+	struct Client *client;
+	const void *nick;
+	int approved;
+} hook_data_nick_approval;
+
+
 enum message_type {
 	MESSAGE_TYPE_NOTICE,
 	MESSAGE_TYPE_PRIVMSG,

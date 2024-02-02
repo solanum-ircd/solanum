@@ -79,7 +79,9 @@ static void perform_nick_collides(struct Client *, struct Client *,
 static void perform_nickchange_collides(struct Client *, struct Client *,
 					struct Client *, int, const char **, time_t, const char *);
 
+static int h_local_nick_set_approve;
 static int h_local_nick_change;
+static int h_local_nick_change_approve;
 static int h_remote_nick_change;
 
 struct Message nick_msgtab = {
@@ -103,7 +105,9 @@ mapi_clist_av1 nick_clist[] = { &nick_msgtab, &uid_msgtab, &euid_msgtab,
 	&save_msgtab, NULL };
 
 mapi_hlist_av1 nick_hlist[] = {
+	{ "local_nick_set_approve", &h_local_nick_set_approve },
 	{ "local_nick_change", &h_local_nick_change },
+	{ "local_nick_change_approve", &h_local_nick_change_approve },
 	{ "remote_nick_change", &h_remote_nick_change },
 	{ NULL, NULL }
 };
@@ -121,6 +125,7 @@ mr_nick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 {
 	struct Client *target_p;
 	char nick[NICKLEN];
+	hook_data_nick_approval hook_approve;
 
 	if (strlen(client_p->id) == 3 || (source_p->preClient && !EmptyString(source_p->preClient->id)))
 	{
@@ -157,6 +162,18 @@ mr_nick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if(rb_dictionary_find(nd_dict, nick))
 	{
 		sendto_one(source_p, form_str(ERR_UNAVAILRESOURCE),
+			   me.name, EmptyString(source_p->name) ? "*" : source_p->name, nick);
+		return;
+	}
+
+	hook_approve.client = source_p;
+	hook_approve.nick = nick;
+	hook_approve.approved = 1;
+	call_hook(h_local_nick_set_approve, &hook_approve);
+
+	if (!hook_approve.approved) {
+		/* send the same error they'd get if this nick was RESV */
+		sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
 			   me.name, EmptyString(source_p->name) ? "*" : source_p->name, nick);
 		return;
 	}
@@ -622,6 +639,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	struct Channel *chptr;
 	char note[NICKLEN + 10];
 	int samenick;
+	hook_data_nick_approval hook_approve;
 	hook_cdata hook_info;
 
 	if (dosend)
@@ -666,16 +684,21 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 			invalidate_bancache_user(source_p);
 	}
 
-	hook_info.client = source_p;
-	hook_info.arg1 = source_p->name;
-	hook_info.arg2 = nick;
-	call_hook(h_local_nick_change, &hook_info);
+	hook_approve.client = source_p;
+	hook_approve.nick = nick;
+	hook_approve.approved = 1;
+	call_hook(h_local_nick_change_approve, &hook_approve);
 
-	if (!hook_info.arg2) {
+	if (!hook_approve.approved) {
 		sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
 			   me.name, EmptyString(source_p->name) ? "*" : source_p->name, nick);
 		return;
 	}
+
+	hook_info.client = source_p;
+	hook_info.arg1 = source_p->name;
+	hook_info.arg2 = nick;
+	call_hook(h_local_nick_change, &hook_info);
 
 	sendto_realops_snomask(SNO_NCHANGE, L_ALL,
 			     "Nick change: From %s to %s [%s@%s]",

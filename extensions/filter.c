@@ -41,6 +41,8 @@
 #include "operhash.h"
 #include "inline/stringops.h"
 #include "msgbuf.h"
+#include "hostmask.h"
+#include "s_conf.h"
 
 #include <hs_common.h>
 #include <hs_runtime.h>
@@ -56,7 +58,8 @@ static const char filter_desc[] = "Filter messages using a precompiled Hyperscan
 static void filter_msg_user(void *data);
 static void filter_msg_channel(void *data);
 static void filter_client_quit(void *data);
-static void filter_client_nick(void *data);
+static void filter_client_nick_set(void *data);
+static void filter_client_nick_change(void *data);
 static void on_client_exit(void *data);
 
 static void mo_setfilter(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -94,7 +97,8 @@ mapi_hfn_list_av1 filter_hfnlist[] = {
 	{ "privmsg_user", filter_msg_user },
 	{ "privmsg_channel", filter_msg_channel },
 	{ "client_quit", filter_client_quit },
-	{ "local_nick_change", filter_client_nick },
+	{ "local_nick_set_approve", filter_client_nick_set },
+	{ "local_nick_change_approve", filter_client_nick_change },
 	{ "client_exit", on_client_exit },
 	{ NULL, NULL }
 };
@@ -353,21 +357,21 @@ unsigned match_message(const char *prefix,
 	snprintf(check_buffer, sizeof check_buffer, "%s:%s!%s@%s#%c %s%s%s :%s",
 	         prefix,
 #if FILTER_NICK
-	         source->name,
+	         source ? source->name : "*",
 #else
 	         "*",
 #endif
 #if FILTER_USER
-	         source->username,
+	         source ? source->username : "*",
 #else
 	         "*",
 #endif
 #if FILTER_HOST
-	         source->host,
+	         source ? source->host : "*",
 #else
 	         "*",
 #endif
-	         source->user && source->user->suser[0] != '\0' ? '1' : '0',
+	         source && source->user && source->user->suser[0] != '\0' ? '1' : '0',
 	         command,
 	         target ? " " : "",
 	         target ? target : "",
@@ -486,22 +490,47 @@ filter_client_quit(void *data_)
 }
 
 void
-filter_client_nick(void *data_)
+filter_client_nick_change(void *data_)
 {
-	hook_cdata *data = data_;
+	hook_data_nick_approval *data = data_;
 	struct Client *s = data->client;
 	if (IsOper(s)) {
 		return;
 	}
 
-	unsigned r = match_message("0", s, "NICK", NULL, data->arg2);
+	unsigned r = match_message("0", s, "NICK", NULL, data->nick);
 	if (r & ACT_DROP) {
-		data->arg2 = NULL;
+		data->approved = 0;
 	}
 	if (r & ACT_ALARM) {
 		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
 			"FILTER: %s!%s@%s [%s]",
 			s->name, s->username, s->host, s->sockhost);
+	}
+	if (r & ACT_KILL) {
+		exit_client(NULL, s, s, FILTER_EXIT_MSG);
+	}
+}
+
+void
+filter_client_nick_set(void *data_)
+{
+	hook_data_nick_approval *data = data_;
+	struct Client *s = data->client;
+	struct sockaddr *addr = (void *)&s->localClient->ip;
+
+	if(find_conf_by_address(
+			NULL, NULL, NULL, addr, CONF_EXEMPTDLINE | 1, GET_SS_FAMILY(addr), NULL, NULL))
+		return;
+
+	unsigned r = match_message("0", NULL, "NICK", NULL, data->nick);
+	if (r & ACT_DROP) {
+		data->approved = 0;
+	}
+	if (r & ACT_ALARM) {
+		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+			"FILTER:REGISTER: %s@%s",
+			s->id, s->sockhost);
 	}
 	if (r & ACT_KILL) {
 		exit_client(NULL, s, s, FILTER_EXIT_MSG);
