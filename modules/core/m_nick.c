@@ -690,6 +690,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	call_hook(h_local_nick_change_approve, &hook_approve);
 
 	if (!hook_approve.approved) {
+		/* send the same error they'd get if this nick was RESV */
 		sendto_one(source_p, form_str(ERR_ERRONEUSNICKNAME),
 			   me.name, EmptyString(source_p->name) ? "*" : source_p->name, nick);
 		return;
