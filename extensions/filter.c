@@ -529,8 +529,8 @@ filter_client_nick_set(void *data_)
 	}
 	if (r & ACT_ALARM) {
 		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
-			"FILTER:REGISTER: %s@%s",
-			s->id, s->sockhost);
+			"FILTER:REGISTER: %s [%s]",
+			s->host, s->sockhost);
 	}
 	if (r & ACT_KILL) {
 		exit_client(NULL, s, s, FILTER_EXIT_MSG);
