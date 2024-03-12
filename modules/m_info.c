@@ -637,6 +637,11 @@ static struct InfoStruct info_table[] = {
 		INFO_INTBOOL_YN(&ConfigChannel.ip_bans_through_vhost),
 	},
 	{
+		"invite_notify_notice",
+		"NOTICEs are sent to clients that do not support invite-notify",
+		INFO_INTBOOL_YN(&ConfigChannel.invite_notify_notice),
+	},
+	{
 		"hide_opers",
 		"Hide all opers from unprivileged users",
 		INFO_INTBOOL_YN(&ConfigFileEntry.hide_opers),

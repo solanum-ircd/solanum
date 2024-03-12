@@ -371,6 +371,7 @@ channel {
 	displayed_usercount = 3;
 	strip_topic_colors = no;
 	opmod_send_statusmsg = no;
+	invite_notify_notice = yes;
 };
 
 serverhide {
