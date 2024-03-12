@@ -1163,6 +1163,57 @@ sendto_local_clients_with_capability(int cap, const char *pattern, ...)
 	msgbuf_cache_free(&msgbuf_cache);
 }
 
+/*
+ * _sendto_monitor_with_capability_butserial()
+ *
+ * Shared implementation of sendto_monitor_with_capability_butserial and _sendto_monitor
+ */
+void
+_sendto_monitor_with_capability_butserial(struct Client *source_p, struct monitor *monptr, int caps, int negcaps, bool skipserial, const char *pattern, va_list * args)
+{
+	struct Client *target_p;
+	rb_dlink_node *ptr;
+	rb_dlink_node *next_ptr;
+	struct MsgBuf msgbuf;
+	struct MsgBuf_cache msgbuf_cache;
+	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
+
+	build_msgbuf_tags(&msgbuf, source_p);
+
+	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, monptr->users.head)
+	{
+		target_p = ptr->data;
+
+		if(IsIOError(target_p) ||
+			(skipserial && target_p->serial == current_serial) ||
+			!IsCapable(target_p, caps) ||
+			!NotCapable(target_p, negcaps))
+			continue;
+
+		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
+	}
+
+	msgbuf_cache_free(&msgbuf_cache);
+}
+
+/* sendto_monitor_with_capability_butserial()
+ *
+ * inputs	- monitor nick to send to, caps, negate caps, whether to send to clients having current serial, format, va_args
+ * outputs	- message to local users monitoring the given nick
+ * side effects -
+ */
+void
+sendto_monitor_with_capability_butserial(struct Client *source_p, struct monitor *monptr, int caps, int negcaps, bool skipserial, const char *pattern, ...)
+{
+	va_list args;
+
+	va_start(args, pattern);
+	_sendto_monitor_with_capability_butserial(source_p, monptr, caps, negcaps, skipserial, pattern, &args);
+	va_end(args);
+}
+
 /* sendto_monitor()
  *
  * inputs	- monitor nick to send to, format, va_args
@@ -1173,30 +1224,10 @@ void
 sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *pattern, ...)
 {
 	va_list args;
-	struct Client *target_p;
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
-	struct MsgBuf msgbuf;
-	struct MsgBuf_cache msgbuf_cache;
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
-
-	build_msgbuf_tags(&msgbuf, source_p);
 
 	va_start(args, pattern);
-	msgbuf_cache_init(&msgbuf_cache, &msgbuf, &strings);
+	_sendto_monitor_with_capability_butserial(source_p, monptr, NOCAPS, NOCAPS, false, pattern, &args);
 	va_end(args);
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, monptr->users.head)
-	{
-		target_p = ptr->data;
-
-		if(IsIOError(target_p))
-			continue;
-
-		_send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAPS_ONLY(target_p)));
-	}
-
-	msgbuf_cache_free(&msgbuf_cache);
 }
 
 /* _sendto_anywhere()
