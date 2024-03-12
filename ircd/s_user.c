@@ -215,12 +215,12 @@ authd_check(struct Client *client_p, struct Client *source_p)
 	{
 	case 'B':	/* DNSBL */
 		{
-			struct DNSBLEntryStats *stats;
+			struct DNSBLEntry *entry;
 			char *dnsbl_name = source_p->preClient->auth.data;
 
 			if(dnsbl_stats != NULL)
-				if((stats = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
-					stats->hits++;
+				if((entry = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
+					entry->hits++;
 
 			if(IsExemptKline(source_p) || IsConfExemptDNSBL(aconf))
 			{
@@ -1624,7 +1624,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	struct membership *mscptr;
 	int changed = irccmp(target_p->name, nick);
 	int changed_case = strcmp(target_p->name, nick);
-	int do_qjm = irccmp(target_p->username, user) || irccmp(target_p->host, host);
+	int do_qjm = strcmp(target_p->username, user) || strcmp(target_p->host, host);
 	char mode[10], modeval[NICKLEN * 2 + 2], reason[256], *mptr;
 	va_list ap;
 
@@ -1725,7 +1725,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(changed)
 	{
 		monitor_signon(target_p);
-		del_all_accepts(target_p);
+		del_all_accepts(target_p, false);
 	}
 }
 

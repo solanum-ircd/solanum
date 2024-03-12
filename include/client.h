@@ -419,6 +419,7 @@ struct ListClient
 #define FLAGS_EXEMPTSHIDE	0x04000000
 #define FLAGS_EXEMPTJUPE	0x08000000
 #define FLAGS_IDENTIFIED	0x10000000	/* owns their current nick */
+#define FLAGS_PINGWARN		0x20000000	/* whether we've warned about this client being unresponsive */
 
 
 /* flags for local clients, this needs stuff moved from above to here at some point */
@@ -602,7 +603,7 @@ extern struct Client *find_named_person(const char *);
 extern struct Client *next_client(struct Client *, const char *);
 
 #define accept_message(s, t) ((s) == (t) || (rb_dlinkFind((s), &((t)->localClient->allow_list))))
-extern void del_all_accepts(struct Client *client_p);
+extern void del_all_accepts(struct Client *client_p, bool self_too);
 
 extern void dead_link(struct Client *client_p, int sendqex);
 extern int show_ip(struct Client *source_p, struct Client *target_p);

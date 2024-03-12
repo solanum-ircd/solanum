@@ -67,7 +67,7 @@ uint32_t cid;
 static rb_dictionary *cid_clients;
 static struct ev_entry *timeout_ev;
 
-rb_dictionary *dnsbl_stats;
+rb_dictionary *dnsbl_stats = NULL;
 
 rb_dlink_list opm_list;
 struct OPMListener opm_listeners[LISTEN_LAST];
@@ -348,6 +348,18 @@ configure_authd(void)
 	}
 	else
 		opm_check_enable(false);
+
+	/* Configure DNSBLs */
+	if (dnsbl_stats != NULL)
+	{
+		rb_dictionary_iter iter;
+		struct DNSBLEntry *entry;
+		RB_DICTIONARY_FOREACH(entry, &iter, dnsbl_stats)
+		{
+			rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", entry->host,
+			                entry->iptype, entry->filters, entry->reason);
+		}
+	}
 }
 
 static void
@@ -584,7 +596,7 @@ void
 add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_list *filters)
 {
 	rb_dlink_node *ptr;
-	struct DNSBLEntryStats *stats = rb_malloc(sizeof(*stats));
+	struct DNSBLEntry *entry = rb_malloc(sizeof(*entry));
 	char filterbuf[BUFSIZE] = "*";
 	size_t s = 0;
 
@@ -610,11 +622,13 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 	if(s)
 		filterbuf[s - 1] = '\0';
 
-	stats->host = rb_strdup(host);
-	stats->iptype = iptype;
-	stats->hits = 0;
-	rb_dictionary_add(dnsbl_stats, stats->host, stats);
+	entry->host = rb_strdup(host);
+	entry->reason = rb_strdup(reason);
+	entry->filters = rb_strdup(filterbuf);
+	entry->iptype = iptype;
+	entry->hits = 0;
 
+	rb_dictionary_add(dnsbl_stats, entry->host, entry);
 	rb_helper_write(authd_helper, "O rbl %s %hhu %s :%s", host, iptype, filterbuf, reason);
 }
 
@@ -622,12 +636,15 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 void
 del_dnsbl_entry(const char *host)
 {
-	struct DNSBLEntryStats *stats = rb_dictionary_retrieve(dnsbl_stats, host);
-	if(stats != NULL)
+	struct DNSBLEntry *entry = rb_dictionary_retrieve(dnsbl_stats, host);
+
+	if(entry != NULL)
 	{
-		rb_dictionary_delete(dnsbl_stats, host);
-		rb_free(stats->host);
-		rb_free(stats);
+		rb_dictionary_delete(dnsbl_stats, entry->host);
+		rb_free(entry->host);
+		rb_free(entry->reason);
+		rb_free(entry->filters);
+		rb_free(entry);
 	}
 
 	rb_helper_write(authd_helper, "O rbl_del %s", host);
@@ -636,10 +653,12 @@ del_dnsbl_entry(const char *host)
 static void
 dnsbl_delete_elem(rb_dictionary_element *delem, void *unused)
 {
-	struct DNSBLEntryStats *stats = delem->data;
+	struct DNSBLEntry *entry = delem->data;
 
-	rb_free(stats->host);
-	rb_free(stats);
+	rb_free(entry->host);
+	rb_free(entry->reason);
+	rb_free(entry->filters);
+	rb_free(entry);
 }
 
 /* Delete all the DNSBL entries. */

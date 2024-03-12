@@ -204,6 +204,7 @@ struct config_file_entry
 	int operspy_admin_only;
 	int pace_wait;
 	int pace_wait_simple;
+	int ping_warn_time;
 	int short_motd;
 	int no_oper_flood;
 	int hide_server;
@@ -296,6 +297,7 @@ struct config_channel_entry
 	int strip_topic_colors;
 	int opmod_send_statusmsg;
 	int ip_bans_through_vhost;
+	int invite_notify_notice;
 };
 
 struct config_server_hide

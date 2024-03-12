@@ -422,6 +422,11 @@ static struct InfoStruct info_table[] = {
 		INFO_INTBOOL(&ConfigFileEntry.ping_cookie),
 	},
 	{
+		"ping_warn_time",
+		"Amount of time between warnings about unresponsive servers",
+		INFO_DECIMAL(&ConfigFileEntry.ping_warn_time),
+	},
+	{
 		"reject_after_count",
 		"Client rejection threshold setting",
 		INFO_DECIMAL(&ConfigFileEntry.reject_after_count),
@@ -630,6 +635,11 @@ static struct InfoStruct info_table[] = {
 		"ip_bans_through_vhost",
 		"Channel IP bans see through dynamic spoofs",
 		INFO_INTBOOL_YN(&ConfigChannel.ip_bans_through_vhost),
+	},
+	{
+		"invite_notify_notice",
+		"NOTICEs are sent to clients that do not support invite-notify",
+		INFO_INTBOOL_YN(&ConfigChannel.invite_notify_notice),
 	},
 	{
 		"hide_opers",

@@ -84,6 +84,12 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 	int dooper = 0, dodeoper = 0;
 	struct PrivilegeSet *privset = NULL, *old_privset = NULL;
 
+	if (!IsPerson(source_p))
+	{
+		/* This can only happen if a broken server sends us nonsense, so ignore it */
+		return 0;
+	}
+
 	if (!strcasecmp(new_privset, "deoper"))
 	{
 		if (!IsOper(target_p))

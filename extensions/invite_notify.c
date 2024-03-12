@@ -4,6 +4,7 @@
 #include <client.h>
 #include <hash.h>
 #include <send.h>
+#include <s_conf.h>
 #include <s_serv.h>
 
 static const char inv_notify_desc[] = "Notifies channel on /invite and provides the invite-notify client capability";
@@ -32,12 +33,16 @@ mapi_clist_av1 inv_notify_clist[] = { &invited_msgtab, NULL };
 static void
 invite_notify(struct Client *source, struct Client *target, struct Channel *channel)
 {
-	sendto_channel_local_with_capability(source, CHFL_CHANOP, 0, CAP_INVITE_NOTIFY, channel,
-		":%s NOTICE %s :%s is inviting %s to %s.",
-		me.name, channel->chname, source->name, target->name, channel->chname);
 	sendto_channel_local_with_capability(source, CHFL_CHANOP, CAP_INVITE_NOTIFY, 0, channel,
 		":%s!%s@%s INVITE %s %s", source->name, source->username,
 		source->host, target->name, channel->chname);
+
+	if (!ConfigChannel.invite_notify_notice)
+		return;
+
+	sendto_channel_local_with_capability(source, CHFL_CHANOP, 0, CAP_INVITE_NOTIFY, channel,
+		":%s NOTICE %s :%s is inviting %s to %s.",
+		me.name, channel->chname, source->name, target->name, channel->chname);
 }
 
 static void

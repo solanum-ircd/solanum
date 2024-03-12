@@ -135,7 +135,6 @@ static void mod_cmd_write_queue(mod_ctl_t * ctl, const void *data, size_t len);
 static const char *remote_closed = "Remote host closed the connection";
 static bool ssld_ssl_ok;
 static int certfp_method = RB_SSL_CERTFP_METH_CERT_SHA1;
-static bool zlib_ok = false;
 
 
 static conn_t *
@@ -1012,7 +1011,7 @@ main(int argc, char **argv)
 	read_pipe_ctl(mod_ctl->F_pipe, NULL);
 	mod_read_ctl(mod_ctl->F, mod_ctl);
 	send_version(mod_ctl);
-	if(!zlib_ok && !ssld_ssl_ok)
+	if(!ssld_ssl_ok)
 	{
 		/* this is really useless... */
 		send_i_am_useless(mod_ctl);
@@ -1021,8 +1020,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	if(!zlib_ok)
-		send_nozlib_support(mod_ctl, NULL);
+	send_nozlib_support(mod_ctl, NULL);
 	if(!ssld_ssl_ok)
 		send_nossl_support(mod_ctl, NULL);
 	rb_lib_loop(0);

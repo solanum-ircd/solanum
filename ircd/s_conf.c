@@ -642,16 +642,18 @@ attach_conf(struct Client *client_p, struct ConfItem *aconf)
 	return (0);
 }
 
-/*
- * rehash
- *
- * Actual REHASH service routine. Called with sig == 0 if it has been called
- * as a result of an operator issuing this command, else assume it has been
- * called as a result of the server receiving a HUP signal.
- */
-bool
-rehash(bool sig)
+struct rehash_data {
+	bool sig;
+};
+
+static void
+service_rehash(void *data_)
 {
+	struct rehash_data *data = data_;
+	bool sig = data->sig;
+
+	rb_free(data);
+
 	rb_dlink_node *n;
 
 	hook_data_rehash hdata = { sig };
@@ -684,6 +686,21 @@ rehash(bool sig)
 	privilegeset_cleanup_rehash();
 
 	call_hook(h_rehash, &hdata);
+}
+
+/*
+ * rehash
+ *
+ * Called with sig == 0 if it has been called as a result of an operator
+ * issuing this command, else assume it has been called as a result of the
+ * server receiving a HUP signal.
+ */
+bool
+rehash(bool sig)
+{
+	struct rehash_data *data = rb_malloc(sizeof *data);
+	data->sig = sig;
+	rb_defer(service_rehash, data);
 	return false;
 }
 
@@ -812,7 +829,8 @@ set_default_conf(void)
 	ConfigChannel.disable_local_channels = false;
 	ConfigChannel.displayed_usercount = 3;
 	ConfigChannel.opmod_send_statusmsg = false;
-	ConfigChannel.ip_bans_through_vhost= true;
+	ConfigChannel.ip_bans_through_vhost = true;
+	ConfigChannel.invite_notify_notice = true;
 
 	ConfigChannel.autochanmodes = MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 

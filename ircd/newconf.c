@@ -2751,6 +2751,7 @@ static struct ConfEntry conf_general_table[] =
 	{ "pace_wait",		CF_TIME,  NULL, 0, &ConfigFileEntry.pace_wait		},
 	{ "pace_wait_simple",	CF_TIME,  NULL, 0, &ConfigFileEntry.pace_wait_simple	},
 	{ "ping_cookie",	CF_YESNO, NULL, 0, &ConfigFileEntry.ping_cookie		},
+	{ "ping_warn_time",	CF_TIME,  NULL, 0, &ConfigFileEntry.ping_warn_time	},
 	{ "reject_after_count",	CF_INT,   NULL, 0, &ConfigFileEntry.reject_after_count	},
 	{ "reject_ban_time",	CF_TIME,  NULL, 0, &ConfigFileEntry.reject_ban_time	},
 	{ "reject_duration",	CF_TIME,  NULL, 0, &ConfigFileEntry.reject_duration	},
@@ -2820,6 +2821,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "strip_topic_colors",	CF_YESNO, NULL, 0, &ConfigChannel.strip_topic_colors	},
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
 	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
+	{ "invite_notify_notice", CF_YESNO, NULL, 0, &ConfigChannel.invite_notify_notice	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 
