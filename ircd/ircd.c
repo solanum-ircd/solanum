@@ -59,7 +59,6 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "chmode.h"
 #include "privilege.h"
 #include "bandbi.h"
@@ -668,7 +667,6 @@ solanum_main(int argc, char * const argv[])
 
 	init_bandb();
 	init_ssld();
-	init_wsockd();
 
 	rehash_bans();
 

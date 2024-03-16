@@ -39,13 +39,12 @@ struct Listener
 	int ssl;		/* ssl listener */
 	int defer_accept;	/* use TCP_DEFER_ACCEPT */
 	bool sctp;		/* use SCTP */
-	int wsock;		/* wsock listener */
 	struct rb_sockaddr_storage addr[2];
 	char vhost[(HOSTLEN * 2) + 1];	/* virtual name of listener */
 };
 
-extern void add_tcp_listener(int port, const char *vaddr_ip, int family, int ssl, int defer_accept, int wsock);
-extern void add_sctp_listener(int port, const char *vaddr_ip1, const char *vaddr_ip2, int ssl, int wsock);
+extern void add_tcp_listener(int port, const char *vaddr_ip, int family, int ssl, int defer_accept);
+extern void add_sctp_listener(int port, const char *vaddr_ip1, const char *vaddr_ip2, int ssl);
 extern void close_listener(struct Listener *listener);
 extern void close_listeners(void);
 extern const char *get_listener_name(const struct Listener *listener);
