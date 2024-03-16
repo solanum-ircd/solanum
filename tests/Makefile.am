@@ -39,7 +39,6 @@ check-local: $(check_PROGRAMS) \
 	../authd/authd \
 	../bandb/bandb \
 	../ssld/ssld \
-	../wsockd/wsockd \
 	$(patsubst ../modules/%.c,../modules/.libs/%.so,$(wildcard ../modules/*.c)) \
 	$(patsubst ../modules/core/%.c,../modules/core/.libs/%.so,$(wildcard ../modules/core/*.c))
 

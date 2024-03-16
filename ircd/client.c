@@ -51,7 +51,6 @@
 #include "scache.h"
 #include "rb_dictionary.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "s_assert.h"
 
 #define DEBUG_EXITED_CLIENTS
@@ -306,9 +305,6 @@ free_local_client(struct Client *client_p)
 		ssld_decrement_clicount(client_p->localClient->ssl_ctl);
 
 	rb_free(client_p->localClient->cipher_string);
-
-	if (client_p->localClient->ws_ctl != NULL)
-		wsockd_decrement_clicount(client_p->localClient->ws_ctl);
 
 	rb_bh_free(lclient_heap, client_p->localClient);
 	client_p->localClient = NULL;

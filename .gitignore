@@ -55,7 +55,6 @@ ircd/ircd_lexer.c
 ircd/version.c
 ircd/version.c.last
 ssld/ssld
-wsockd/wsockd
 testsuite/ircd.pid.*
 tools/solanum-mkpasswd
 tools/solanum-mkfingerprint

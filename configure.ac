@@ -624,7 +624,6 @@ AC_CONFIG_FILES(			\
 	authd/Makefile			\
 	bandb/Makefile			\
 	ssld/Makefile			\
-	wsockd/Makefile			\
 	extensions/Makefile		\
 	ircd/Makefile			\
 	modules/Makefile		\
