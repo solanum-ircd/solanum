@@ -62,7 +62,6 @@ struct LocalUser;
 struct PreClient;
 struct ListClient;
 struct scache_entry;
-struct ws_ctl;
 
 typedef int SSL_OPEN_CB(struct Client *, int status);
 
@@ -264,7 +263,6 @@ struct LocalUser
 
 	struct _ssl_ctl *ssl_ctl;		/* which ssl daemon we're associate with */
 	struct _ssl_ctl *z_ctl;			/* second ctl for ssl+zlib */
-	struct ws_ctl *ws_ctl;			/* ctl for wsockd */
 	SSL_OPEN_CB *ssl_callback;		/* ssl connection is now open */
 	uint32_t localflags;
 	uint16_t cork_count;			/* used for corking/uncorking connections */

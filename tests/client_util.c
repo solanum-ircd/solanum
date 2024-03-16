@@ -40,7 +40,6 @@ static struct Listener fake_listener = {
 	.ssl = 1,
 	.defer_accept = 0,
 	.sctp = false,
-	.wsock = 0,
 	.addr = {
 		{ .ss_family = AF_INET6 },
 		{ .ss_family = AF_INET6 },

@@ -30,7 +30,6 @@
 #include "ircd.h"
 #include "snomask.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "privilege.h"
 #include "chmode.h"
 #include "certfp.h"
@@ -38,7 +37,6 @@
 #define CF_TYPE(x) ((x) & CF_MTYPE)
 
 static int yy_defer_accept = 1;
-static int yy_wsock = 0;
 
 struct TopConf *conf_cur_block;
 static char *conf_cur_block_name = NULL;
@@ -890,7 +888,6 @@ conf_begin_listen(struct TopConf *tc)
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}
-	yy_wsock = 0;
 	yy_defer_accept = 0;
 	return 0;
 }
@@ -902,7 +899,6 @@ conf_end_listen(struct TopConf *tc)
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}
-	yy_wsock = 0;
 	yy_defer_accept = 0;
 	return 0;
 }
@@ -911,12 +907,6 @@ static void
 conf_set_listen_defer_accept(void *data)
 {
 	yy_defer_accept = *(unsigned int *) data;
-}
-
-static void
-conf_set_listen_wsock(void *data)
-{
-	yy_wsock = *(unsigned int *) data;
 }
 
 static void
@@ -935,8 +925,8 @@ conf_set_listen_port_both(void *data, int ssl, int sctp)
 			if (sctp) {
 				conf_report_error("listener::sctp_port has no addresses -- ignoring.");
 			} else {
-				add_tcp_listener(args->v.number, NULL, AF_INET, ssl, ssl || yy_defer_accept, yy_wsock);
-				add_tcp_listener(args->v.number, NULL, AF_INET6, ssl, ssl || yy_defer_accept, yy_wsock);
+				add_tcp_listener(args->v.number, NULL, AF_INET, ssl, ssl || yy_defer_accept);
+				add_tcp_listener(args->v.number, NULL, AF_INET6, ssl, ssl || yy_defer_accept);
 			}
                 }
 		else
@@ -949,12 +939,12 @@ conf_set_listen_port_both(void *data, int ssl, int sctp)
 
 			if (sctp) {
 #ifdef HAVE_LIBSCTP
-				add_sctp_listener(args->v.number, listener_address[0], listener_address[1], ssl, yy_wsock);
+				add_sctp_listener(args->v.number, listener_address[0], listener_address[1], ssl);
 #else
 				conf_report_error("Warning -- ignoring listener::sctp_port -- SCTP support not available.");
 #endif
 			} else {
-				add_tcp_listener(args->v.number, listener_address[0], family, ssl, ssl || yy_defer_accept, yy_wsock);
+				add_tcp_listener(args->v.number, listener_address[0], family, ssl, ssl || yy_defer_accept);
 			}
                 }
 	}
@@ -2851,7 +2841,6 @@ newconf_init()
 
 	add_top_conf("listen", conf_begin_listen, conf_end_listen, NULL);
 	add_conf_item("listen", "defer_accept", CF_YESNO, conf_set_listen_defer_accept);
-	add_conf_item("listen", "wsock", CF_YESNO, conf_set_listen_wsock);
 	add_conf_item("listen", "port", CF_INT | CF_FLIST, conf_set_listen_port);
 	add_conf_item("listen", "sslport", CF_INT | CF_FLIST, conf_set_listen_sslport);
 	add_conf_item("listen", "sctp_port", CF_INT | CF_FLIST, conf_set_listen_sctp_port);

@@ -39,7 +39,6 @@
 #include "reject.h"
 #include "hostmask.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "hash.h"
 #include "s_assert.h"
 #include "logger.h"
@@ -285,7 +284,7 @@ next:
  * the format "255.255.255.255"
  */
 void
-add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_accept, int wsock)
+add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_accept)
 {
 	struct Listener *listener;
 	struct rb_sockaddr_storage vaddr[ARRAY_SIZE(listener->addr)];
@@ -347,7 +346,6 @@ add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_
 	listener->ssl = ssl;
 	listener->defer_accept = defer_accept;
 	listener->sctp = 0;
-	listener->wsock = wsock;
 
 	if (inetport(listener)) {
 		listener->active = 1;
@@ -362,7 +360,7 @@ add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_
  * vhost_ip1/2 - if non-null must contain a valid IP address string
  */
 void
-add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ssl, int wsock)
+add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ssl)
 {
 	struct Listener *listener;
 	struct rb_sockaddr_storage vaddr[ARRAY_SIZE(listener->addr)];
@@ -417,7 +415,6 @@ add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ss
 	listener->ssl = ssl;
 	listener->defer_accept = 0;
 	listener->sctp = 1;
-	listener->wsock = wsock;
 
 	if (inetport(listener)) {
 		listener->active = 1;
@@ -536,26 +533,6 @@ add_connection(struct Listener *listener, rb_fde_t *F, struct sockaddr *sai, str
 
 		if (aconf != NULL)
 			SetSecure(new_client);
-	}
-
-	if (listener->wsock)
-	{
-		rb_fde_t *xF[2];
-		if(rb_socketpair(AF_UNIX, SOCK_STREAM, 0, &xF[0], &xF[1], "Incoming wsockd Connection") == -1)
-		{
-			SetIOError(new_client);
-			exit_client(new_client, new_client, new_client, "Fatal Error");
-			return;
-		}
-		new_client->localClient->ws_ctl = start_wsockd_accept(F, xF[1], connid_get(new_client));        /* this will close F for us */
-		if(new_client->localClient->ws_ctl == NULL)
-		{
-			SetIOError(new_client);
-			exit_client(new_client, new_client, new_client, "Service Unavailable");
-			return;
-		}
-		F = xF[0];
-		new_client->localClient->F = F;
 	}
 
 	new_client->localClient->listener = listener;

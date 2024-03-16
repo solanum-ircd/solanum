@@ -59,8 +59,8 @@ libircd_la_SOURCES =                  \
   supported.c                   \
   tgchange.c                    \
   version.c                     \
-  whowas.c			\
-  wsproc.c
+  whowas.c
+
 libircd_la_LDFLAGS = $(EXTRA_FLAGS) -avoid-version -no-undefined
 libircd_la_LIBADD = @LIBLTDL@ -L$(top_srcdir)/librb/src -lrb
 libircd_LTLIBRARIES = libircd.la
