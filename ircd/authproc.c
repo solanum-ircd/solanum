@@ -396,7 +396,7 @@ static void
 restart_authd_cb(rb_helper * helper)
 {
 	iwarn("authd helper died - attempting to restart");
-	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authdd helper died - attempting to restart");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "authd helper died - attempting to restart");
 
 	if(helper != NULL)
 	{
