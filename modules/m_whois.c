@@ -279,7 +279,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 			{
 				send_multiline_item(source_p, "%s%s%s",
 						hdata_vis.approved ? "" : "!",
-						find_channel_status(mt, 1),
+						find_channel_status(mt, IsCapable(source_p, CLICAP_MULTI_PREFIX)),
 						chptr->chname);
 			}
 		}
