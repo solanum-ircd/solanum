@@ -409,6 +409,32 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	else
 		rb_strlcpy(notildeusername, source_p->username, sizeof notildeusername);
 
+	/* valid user name check */
+
+	if(!valid_username(source_p->username))
+	{
+		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
+				     "Invalid username: %s (%s@%s)",
+				     source_p->name, source_p->username, source_p->host);
+
+		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
+		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
+
+		if (illegal_name_long_client_message == NULL)
+			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
+											   "only alphanumeric characters.";
+		if (illegal_name_short_client_message == NULL)
+			illegal_name_short_client_message = "Invalid username";
+
+		ServerStats.is_ref++;
+		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
+		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
+		exit_client(client_p, source_p, &me, tmpstr2);
+		return (CLIENT_EXITED);
+	}
+
+	/* end of valid user name check */
+
 	if((status = check_client(client_p, source_p, notildeusername)) < 0)
 		return (CLIENT_EXITED);
 
@@ -592,32 +618,6 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	/* authd rejection check */
 	if(authd_check(client_p, source_p))
 		return CLIENT_EXITED;
-
-	/* valid user name check */
-
-	if(!valid_username(source_p->username))
-	{
-		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
-				     "Invalid username: %s (%s@%s)",
-				     source_p->name, source_p->username, source_p->host);
-
-		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
-		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
-
-		if (illegal_name_long_client_message == NULL)
-			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
-											   "only alphanumeric characters.";
-		if (illegal_name_short_client_message == NULL)
-			illegal_name_short_client_message = "Invalid username";
-
-		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
-		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
-		exit_client(client_p, source_p, &me, tmpstr2);
-		return (CLIENT_EXITED);
-	}
-
-	/* end of valid user name check */
 
 	/* Store original hostname -- jilles */
 	rb_strlcpy(source_p->orighost, source_p->host, HOSTLEN + 1);
