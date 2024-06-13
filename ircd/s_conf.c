@@ -300,6 +300,23 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 }
 
 /*
+ * Remove all occurences of needle from haystack in-place.
+ *
+ * inputs       - string to filter
+ *              - character to remove
+ * side effect  - all occurences of needle removed from haystack
+ */
+static void
+filter_string(char *haystack, char needle)
+{
+	int o = 0;
+	for (int i = 0; haystack[i] != '\0'; i++)
+		if (haystack[i] != needle)
+			haystack[o++] = haystack[i];
+	haystack[o] = '\0';
+}
+
+/*
  * verify_access
  *
  * inputs	- pointer to client to verify
@@ -366,6 +383,9 @@ verify_access(struct Client *client_p, const char *username)
 					form_str(ERR_YOUREBANNEDCREEP),
 					me.name, client_p->name,
 					get_user_ban_reason(aconf));
+
+		// this snote is sent before username has been cleaned
+		filter_string(client_p->username, '[');
 
 		sendto_realops_snomask(SNO_BANNED, L_NETWIDE,
 			"Rejecting K-Lined user %s [%s] (%s@%s)", get_client_name(client_p, HIDE_IP),
