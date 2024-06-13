@@ -350,7 +350,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	struct ConfItem *aconf, *xconf;
 	char tmpstr2[BUFSIZE];
 	char ipaddr[HOSTIPLEN];
-	char myusername[USERLEN+1];
+	char notildeusername[USERLEN + 1];
 	int status, umodes;
 
 	s_assert(NULL != source_p);
@@ -390,27 +390,26 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	 * rather than initial connection.  */
 	source_p->localClient->firsttime = client_p->localClient->last = rb_current_time();
 
-	/* XXX - fixme. we shouldnt have to build a users buffer twice.. */
-	if(!IsGotId(source_p) && (strchr(source_p->username, '[') != NULL))
+	if (!IsGotId(source_p))
 	{
-		const char *p;
-		int i = 0;
+		const char *haystack;
+		int o = 0;
 
-		p = source_p->username;
+		haystack = source_p->username;
 
-		while(*p && i < USERLEN)
-		{
-			if(*p != '[')
-				myusername[i++] = *p;
-			p++;
-		}
+		for (int i = 0; haystack[i] != '\0'; i++)
+			if (haystack[i] != '[')
+				notildeusername[o++] = haystack[i];
 
-		myusername[i] = '\0';
+		notildeusername[o] = '\0';
+
+		rb_strlcpy(source_p->username, "~", sizeof(source_p->username));
+		rb_strlcat(source_p->username, notildeusername, sizeof(source_p->username));
 	}
 	else
-		rb_strlcpy(myusername, source_p->username, sizeof myusername);
+		rb_strlcpy(notildeusername, source_p->username, sizeof notildeusername);
 
-	if((status = check_client(client_p, source_p, myusername)) < 0)
+	if((status = check_client(client_p, source_p, notildeusername)) < 0)
 		return (CLIENT_EXITED);
 
 	/* Apply nick override */
@@ -481,9 +480,6 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(!IsGotId(source_p))
 	{
-		const char *p;
-		int i = 0;
-
 		if(IsNeedIdentd(aconf))
 		{
 
@@ -500,21 +496,9 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		}
 
 		/* dont replace username if its supposed to be spoofed --fl */
-		if(!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@'))
+		if (IsNoTilde(aconf) && (!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@')))
 		{
-			p = myusername;
-
-			if(!IsNoTilde(aconf))
-				source_p->username[i++] = '~';
-
-			while (*p && i < USERLEN)
-			{
-				if(*p != '[')
-					source_p->username[i++] = *p;
-				p++;
-			}
-
-			source_p->username[i] = '\0';
+			rb_strlcpy(source_p->username, notildeusername, sizeof(source_p->username));
 		}
 	}
 
