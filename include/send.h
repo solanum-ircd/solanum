@@ -75,6 +75,7 @@ extern void sendto_match_butone(struct Client *, struct Client *,
 extern void sendto_match_servs(struct Client *source_p, const char *mask,
 				int capab, int, const char *, ...) AFP(5, 6);
 
+extern void sendto_monitor_with_capability_butserial(struct Client *, struct monitor *monptr, int caps, int negcaps, bool skipserial, const char *, ...) AFP(6, 7);
 extern void sendto_monitor(struct Client *, struct monitor *monptr, const char *, ...) AFP(3, 4);
 
 extern void sendto_anywhere(struct Client *, struct Client *, const char *,
