@@ -9,6 +9,7 @@ extension_LTLIBRARIES =		\
   chantype_dummy.la		\
   chm_adminonly.la		\
   chm_operonly.la		\
+  chm_serviceonly.la		\
   chm_insecure.la		\
   chm_nonotice.la		\
   chm_operpeace.la		\
