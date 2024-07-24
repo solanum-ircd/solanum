@@ -45,7 +45,6 @@ static const char info_desc[] =
 static void send_conf_options(struct Client *source_p);
 static void send_birthdate_online_time(struct Client *source_p);
 static void send_info_text(struct Client *source_p);
-static void info_spy(struct Client *);
 
 static void m_info(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mo_info(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -704,8 +703,6 @@ m_info(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if(hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
-	info_spy(source_p);
-
 	send_info_text(source_p);
 	send_birthdate_online_time(source_p);
 
@@ -721,7 +718,6 @@ mo_info(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 {
 	if(hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) == HUNTED_ISME)
 	{
-		info_spy(source_p);
 		send_info_text(source_p);
 
 		if(IsOperGeneral(source_p))
@@ -899,21 +895,4 @@ send_conf_options(struct Client *source_p)
 	 */
 
 	sendto_one_numeric(source_p, RPL_INFO, form_str(RPL_INFO), "");
-}
-
-/* info_spy()
- *
- * input        - pointer to client
- * output       - none
- * side effects - hook doing_info is called
- */
-static void
-info_spy(struct Client *source_p)
-{
-	hook_data hd;
-
-	hd.client = source_p;
-	hd.arg1 = hd.arg2 = NULL;
-
-	call_hook(doing_info_hook, &hd);
 }

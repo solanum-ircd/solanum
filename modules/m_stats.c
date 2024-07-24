@@ -79,9 +79,6 @@ static void stats_l_list(struct Client *s, const char *, bool, bool, rb_dlink_li
 static void stats_l_client(struct Client *source_p, struct Client *target_p,
 				char statchar);
 
-static int stats_spy(struct Client *, char, const char *);
-static void stats_p_spy(struct Client *);
-
 typedef void (*handler_t)(struct Client *source_p);
 typedef void (*handler_parv_t)(struct Client *source_p, int parc, const char *parv[]);
 
@@ -206,7 +203,6 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	static time_t last_used = 0;
 	struct stats_cmd *cmd;
 	unsigned char statchar;
-	int did_stats = 0;
 
 	statchar = parv[1][0];
 
@@ -228,14 +224,6 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if(hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
 		return;
-
-	if(tolower(statchar) != 'l')
-		/* FIXME */
-		did_stats = stats_spy(source_p, statchar, NULL);
-
-	/* if did_stats is true, a module grabbed this STATS request */
-	if(did_stats)
-		goto stats_out;
 
 	/* Look up */
 	cmd = &stats_cmd_table[statchar];
@@ -272,7 +260,7 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 stats_out:
-	/* Send the end of stats notice, and the stats_spy */
+	/* Send the end of stats notice */
 	sendto_one_numeric(source_p, RPL_ENDOFSTATS,
 			   form_str(RPL_ENDOFSTATS), statchar);
 }
@@ -817,8 +805,6 @@ stats_operedup (struct Client *source_p)
 
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
 				"p :%u staff members", count);
-
-	stats_p_spy (source_p);
 }
 
 static void
@@ -1515,7 +1501,6 @@ stats_ltrace(struct Client *source_p, int parc, const char *parv[])
 			}
 			else if (target_p != NULL)
 			{
-				stats_spy(source_p, statchar, target_p->name);
 				stats_l_client(source_p, target_p, statchar);
 			}
 			else
@@ -1533,8 +1518,6 @@ stats_ltrace(struct Client *source_p, int parc, const char *parv[])
 		name = me.name;
 		doall = true;
 	}
-
-	stats_spy(source_p, statchar, name);
 
 	if (ConfigFileEntry.stats_l_oper_only != STATS_L_OPER_ONLY_NO && !IsOperGeneral(source_p))
 	{
@@ -1658,45 +1641,4 @@ static void
 stats_comm(struct Client *source_p)
 {
 	rb_dump_fd(rb_dump_fd_callback, source_p);
-}
-
-/*
- * stats_spy
- *
- * inputs	- pointer to client doing the /stats
- *		- char letter they are doing /stats on
- * output	- none
- * side effects -
- * This little helper function reports to opers if configured.
- */
-static int
-stats_spy(struct Client *source_p, char statchar, const char *name)
-{
-	hook_data_int data;
-
-	data.client = source_p;
-	data.arg1 = name;
-	data.arg2 = (int) statchar;
-	data.result = 0;
-
-	call_hook(doing_stats_hook, &data);
-
-	return data.result;
-}
-
-/* stats_p_spy()
- *
- * input	- pointer to client doing stats
- * ouput	-
- * side effects - call hook doing_stats_p
- */
-static void
-stats_p_spy (struct Client *source_p)
-{
-	hook_data data;
-
-	data.client = source_p;
-	data.arg1 = data.arg2 = NULL;
-
-	call_hook(doing_stats_p_hook, &data);
 }
