@@ -72,7 +72,7 @@ mapi_hlist_av1 stats_hlist[] = {
 
 DECLARE_MODULE_AV2(stats, NULL, NULL, stats_clist, stats_hlist, NULL, NULL, NULL, stats_desc);
 
-const char *Lformat = "%s %u %u %u %u %u :%u %u %s";
+const char *Lformat = "%s %d %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" :%"PRId64" %"PRId64" %s";
 
 static void stats_l_list(struct Client *s, const char *, bool, bool, rb_dlink_list *, char,
 				bool (*check_fn)(struct Client *source_p, struct Client *target_p));
@@ -1399,7 +1399,7 @@ stats_memory (struct Client *source_p)
 static void
 stats_servlinks (struct Client *source_p)
 {
-	static char Sformat[] = ":%s %d %s %s %u %u %u %u %u :%u %u %s";
+	static char Sformat[] = ":%s %d %s %s %d %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32" :%"PRId64" %"PRId64" %s";
 	long uptime, sendK, receiveK;
 	struct Client *target_p;
 	rb_dlink_node *ptr;
@@ -1427,14 +1427,14 @@ stats_servlinks (struct Client *source_p)
 		sendto_one(source_p, Sformat,
 			get_id(&me, source_p), RPL_STATSLINKINFO, get_id(source_p, source_p),
 			target_p->name,
-			(int) rb_linebuf_len (&target_p->localClient->buf_sendq),
-			(int) target_p->localClient->sendM,
-			(int) target_p->localClient->sendK,
-			(int) target_p->localClient->receiveM,
-			(int) target_p->localClient->receiveK,
-			rb_current_time() - target_p->localClient->firsttime,
-			(rb_current_time() > target_p->localClient->lasttime) ?
-			 (rb_current_time() - target_p->localClient->lasttime) : 0,
+			rb_linebuf_len(&target_p->localClient->buf_sendq),
+			target_p->localClient->sendM,
+			target_p->localClient->sendK,
+			target_p->localClient->receiveM,
+			target_p->localClient->receiveK,
+			(int64_t)(rb_current_time() - target_p->localClient->firsttime),
+			(int64_t)((rb_current_time() > target_p->localClient->lasttime) ?
+			 (rb_current_time() - target_p->localClient->lasttime) : 0),
 			IsOperGeneral (source_p) ? show_capabilities (target_p) : "TS");
 	}
 
@@ -1608,14 +1608,14 @@ stats_l_client(struct Client *source_p, struct Client *target_p,
 	{
 		sendto_one_numeric(source_p, RPL_STATSLINKINFO, Lformat,
 				target_p->name,
-				(int) rb_linebuf_len(&target_p->localClient->buf_sendq),
-				(int) target_p->localClient->sendM,
-				(int) target_p->localClient->sendK,
-				(int) target_p->localClient->receiveM,
-				(int) target_p->localClient->receiveK,
-				rb_current_time() - target_p->localClient->firsttime,
-				(rb_current_time() > target_p->localClient->lasttime) ?
-				 (rb_current_time() - target_p->localClient->lasttime) : 0,
+				rb_linebuf_len(&target_p->localClient->buf_sendq),
+				target_p->localClient->sendM,
+				target_p->localClient->sendK,
+				target_p->localClient->receiveM,
+				target_p->localClient->receiveK,
+				(int64_t)(rb_current_time() - target_p->localClient->firsttime),
+				(int64_t)((rb_current_time() > target_p->localClient->lasttime) ?
+				 (rb_current_time() - target_p->localClient->lasttime) : 0),
 				IsOperGeneral(source_p) ? show_capabilities(target_p) : "-");
 	}
 
@@ -1635,14 +1635,14 @@ stats_l_client(struct Client *source_p, struct Client *target_p,
 				     get_client_name(target_p, SHOW_IP) :
 				     get_client_name(target_p, HIDE_IP)) :
 				    get_client_name(target_p, MASK_IP),
-				    hdata_showidle.approved ? (int) rb_linebuf_len(&target_p->localClient->buf_sendq) : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->sendM : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->sendK : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->receiveM : 0,
-				    hdata_showidle.approved ? (int) target_p->localClient->receiveK : 0,
-				    rb_current_time() - target_p->localClient->firsttime,
-				    (rb_current_time() > target_p->localClient->lasttime) && hdata_showidle.approved ?
-				     (rb_current_time() - target_p->localClient->lasttime) : 0,
+				    hdata_showidle.approved ? rb_linebuf_len(&target_p->localClient->buf_sendq) : 0,
+				    hdata_showidle.approved ? target_p->localClient->sendM : (uint32_t)0,
+				    hdata_showidle.approved ? target_p->localClient->sendK : (uint32_t)0,
+				    hdata_showidle.approved ? target_p->localClient->receiveM : (uint32_t)0,
+				    hdata_showidle.approved ? target_p->localClient->receiveK : (uint32_t)0,
+				    (int64_t)(rb_current_time() - target_p->localClient->firsttime),
+				    (int64_t)((rb_current_time() > target_p->localClient->lasttime) && hdata_showidle.approved ?
+				     (rb_current_time() - target_p->localClient->lasttime) : 0),
 				    "-");
 	}
 }
