@@ -1494,7 +1494,6 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	SetExtendChans(source_p);
 	SetExemptKline(source_p);
 
-	source_p->flags |= oper_p->flags;
 	source_p->user->opername = rb_strdup(oper_p->name);
 	source_p->user->privset = privilegeset_ref(oper_p->privset);
 
