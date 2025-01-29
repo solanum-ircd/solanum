@@ -1177,8 +1177,6 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 				if(MyConnect(source_p))
 				{
 					source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
-					source_p->flags &= ~OPER_FLAGS;
-
 					rb_dlinkFindDestroy(source_p, &local_oper_list);
 				}
 
