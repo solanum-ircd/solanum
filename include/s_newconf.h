@@ -140,8 +140,6 @@ extern void cluster_generic(struct Client *, const char *, int cltype,
 #define OPER_ENCRYPTED	0x00001
 #define OPER_NEEDSSL    0x80000
 
-#define OPER_FLAGS	0	 /* no oper privs in Client.flags/oper_conf.flags currently */
-
 #define IsOperConfEncrypted(x)	((x)->flags & OPER_ENCRYPTED)
 #define IsOperConfNeedSSL(x)	((x)->flags & OPER_NEEDSSL)
 

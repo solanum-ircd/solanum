@@ -1177,8 +1177,6 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 				if(MyConnect(source_p))
 				{
 					source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
-					source_p->flags &= ~OPER_FLAGS;
-
 					rb_dlinkFindDestroy(source_p, &local_oper_list);
 				}
 
@@ -1494,7 +1492,6 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	SetExtendChans(source_p);
 	SetExemptKline(source_p);
 
-	source_p->flags |= oper_p->flags;
 	source_p->user->opername = rb_strdup(oper_p->name);
 	source_p->user->privset = privilegeset_ref(oper_p->privset);
 
