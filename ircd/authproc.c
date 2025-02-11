@@ -601,7 +601,7 @@ add_dnsbl_entry(const char *host, const char *reason, uint8_t iptype, rb_dlink_l
 	size_t s = 0;
 
 	if(dnsbl_stats == NULL)
-		dnsbl_stats = rb_dictionary_create("dnsbl statistics", rb_strcasecmp);
+		dnsbl_stats = rb_dictionary_create("dnsbl statistics", (DCF)rb_strcasecmp);
 
 	/* Build a list of comma-separated values for authd.
 	 * We don't check for validity - do it elsewhere.
