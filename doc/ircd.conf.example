@@ -138,6 +138,7 @@ class "server" {
 	ping_time = 5 minutes;
 	connectfreq = 5 minutes;
 	max_number = 1;
+	max_autoconn = 1;
 	sendq = 4 megabytes;
 };
 

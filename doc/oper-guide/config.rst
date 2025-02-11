@@ -138,6 +138,7 @@ class {} block
             ping_time = duration;
             connectfreq = duration;
             max_number = number;
+            max_autoconn = number;
             sendq = size;
     };    
    
@@ -200,9 +201,15 @@ connectfreq
     minute, as autoconnects are evaluated with that granularity.
 
 max\_number
-    The amount of servers to autoconnect to in this class. More
-    precisely, no autoconnects are done if the number of servers in this
-    class is greater than or equal max\_number
+    The amount of servers that can be connected in this class.
+
+max\_autoconn
+    The amount of servers to autoconnect to. If the number of servers
+    in the class is or exceeds this, no more servers in the class are
+    autoconnected. Oper initiated connects are unaffected. This should
+    usually be set to either 0 or 1 (autoconnecting from hubs to
+    leaves may cause leaves to function as hubs by having multiple
+    servers connected to them).
 
 sendq
     The maximum size of the queue of data to be sent to a server before
