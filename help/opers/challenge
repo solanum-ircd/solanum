@@ -7,4 +7,4 @@ operator block, while matching the username
 and hostname specified.  The server will
 send you an RSA challenge.  You must send
 a valid RSA response back to the server,
-proceeded with a '+' symbol.
+preceded with a '+' symbol.
