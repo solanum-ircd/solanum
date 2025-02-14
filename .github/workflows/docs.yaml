@@ -11,11 +11,10 @@ on:
       - main
     paths:
       - 'doc/oper-guide/**'
-      
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
-
+    runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
         run: |
@@ -24,6 +23,9 @@ jobs:
             python-sphinx \
             texinfo \
             # EOF
-      - uses: actions/checkout@v2
-      - name: Build
+      - uses: actions/checkout
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - name: Build Oper Guide
         run: make -C doc/oper-guide html man info
