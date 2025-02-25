@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            python-sphinx \
+            python3-sphinx \
             texinfo \
             # EOF
       - uses: actions/checkout@main
