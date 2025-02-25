@@ -73,11 +73,11 @@ bool matches_mask(const struct matchset *m, const char *mask);
 /*
  * irccmp - case insensitive comparison of s1 and s2
  */
-extern int irccmp(const char *s1, const char *s2);
+extern int irccmp(const void *s1, const void *s2);
 /*
  * ircncmp - counted case insensitive comparison of s1 and s2
  */
-extern int ircncmp(const char *s1, const char *s2, int n);
+extern int ircncmp(const void *s1, const void *s2, int n);
 /*
 ** canonize - reduce a string of duplicate list entries to contain
 ** only the unique items.

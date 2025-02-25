@@ -588,7 +588,7 @@ SOLANUM_C_GCC_TRY_FLAGS([-Wmissing-noreturn], solanum_cv_c_gcc_w_missing_noretur
 SOLANUM_C_GCC_TRY_FLAGS([-Wundef], solanum_cv_c_gcc_w_undef)
 SOLANUM_C_GCC_TRY_FLAGS([-Wpacked], solanum_cv_c_gcc_w_packed)
 SOLANUM_C_GCC_TRY_FLAGS([-Wnested-externs], solanum_cv_c_gcc_w_nested_externs)
-SOLANUM_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-value -Wunused-variable], solanum_cv_c_gcc_w_unused)
+SOLANUM_C_GCC_TRY_FLAGS([-Wunused-function -Wunused-label -Wunused-variable], solanum_cv_c_gcc_w_unused)
 SOLANUM_C_GCC_TRY_FLAGS([-Wredundant-decls], solanum_cv_c_gcc_w_redundant_decls)
 SOLANUM_C_GCC_TRY_FLAGS([-Wfloat-equal], solanum_cv_c_gcc_w_float_equal)
 SOLANUM_C_GCC_TRY_FLAGS([-Wformat -Wformat-y2k -Wno-format-security], solanum_cv_c_gcc_w_format)
@@ -617,6 +617,11 @@ else
 	dnl Strip trailing slashes to prevent a path of '//'
 	prefix=`echo $prefix | sed 's/\/$//'`
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
+fi
+
+if test "x${RUNNING_IN_CI}" = "xyes"; then
+	IRC_CFLAGS="${IRC_CFLAGS} -Werror -Wno-unused-value -Wno-unused-parameter"
+	AC_SUBST(IRC_CFLAGS)
 fi
 
 AC_CONFIG_FILES(			\

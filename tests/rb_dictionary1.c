@@ -33,7 +33,7 @@
 
 static void replace1(void)
 {
-	rb_dictionary *dict = rb_dictionary_create("replace1", strcmp);
+	rb_dictionary *dict = rb_dictionary_create("replace1", rb_strcasecmp);
 	rb_dictionary_element *original = rb_dictionary_add(dict, "test", "data1");
 
 	ok(original != NULL, MSG);
