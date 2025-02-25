@@ -40,6 +40,11 @@ jobs:
             compiler: gcc-12
           - os: ubuntu-24.04
             compiler: clang-14
+          # Debian 13 Trixie
+          - os: ubuntu-24.04
+            compiler: gcc-14
+          - os: ubuntu-24.04
+            compiler: clang-19
           # Ubuntu 22.04 Jammy
           - os: ubuntu-22.04
             compiler: gcc-11
