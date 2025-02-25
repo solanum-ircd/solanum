@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: 
+    branches:
       - main
     paths-ignore:
+      - '.github/workflows/docs.yaml'
       - 'doc/oper-guide/**'
       - 'CREDITS'
       - 'LICENSE'
@@ -14,6 +15,7 @@ on:
     branches:
       - main
     paths-ignore:
+      - '.github/workflows/docs.yaml'
       - 'doc/oper-guide/**'
       - 'CREDITS'
       - 'LICENSE'
@@ -23,36 +25,31 @@ on:
 jobs:
   linux:
     name: Linux
-
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Debian 10 Buster
-          - os: ubuntu-20.04
-            compiler: gcc-8
-          - os: ubuntu-20.04
-            compiler: clang-7
-          # Ubuntu 20.04 Focal
-          - os: ubuntu-20.04
-            compiler: gcc-9
-          - os: ubuntu-20.04
-            compiler: clang-10
           # Debian 11 Bullseye
           - os: ubuntu-22.04
             compiler: gcc-10
           - os: ubuntu-22.04
             compiler: clang-11
+          # Debian 12 Bookworm
+          - os: ubuntu-24.04
+            compiler: gcc-12
+          - os: ubuntu-24.04
+            compiler: clang-14
           # Ubuntu 22.04 Jammy
           - os: ubuntu-22.04
             compiler: gcc-11
           - os: ubuntu-22.04
             compiler: clang-14
-          # next
-          - os: ubuntu-22.04
-            compiler: gcc-12
+          # Ubuntu 24.04 Noble
+          - os: ubuntu-24.04
+            compiler: gcc-13
+          - os: ubuntu-24.04
+            compiler: clang-18
 
     env:
       CC: ${{ matrix.compiler }}
@@ -69,7 +66,10 @@ jobs:
           libsqlite3-dev \
           libhyperscan-dev \
           # EOF
-    - uses: actions/checkout@v2
+    - uses: actions/checkout
+      with:
+        persist-credentials: false
+        submodules: recursive
     - name: autogen.sh
       run: bash autogen.sh
     - name: configure
