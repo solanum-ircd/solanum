@@ -79,7 +79,7 @@ jobs:
     - name: autogen.sh
       run: bash autogen.sh
     - name: configure
-      run: CFLAGS="-Werror -Wno-unused-value -Wno-unused-parameter" ./configure --enable-assert=hard --enable-warnings
+      run: CFLAGS="-Werror -Wno-unused-value -Wno-unused-parameter -Wno-error=deprecated-non-prototype" ./configure --enable-assert=hard --enable-warnings
     - name: make
       run: make -j2
     - name: make check
