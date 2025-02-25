@@ -58,6 +58,7 @@ jobs:
 
     env:
       CC: ${{ matrix.compiler }}
+      RUNNING_IN_CI: yes
 
     steps:
     - name: Install dependencies
@@ -79,7 +80,7 @@ jobs:
     - name: autogen.sh
       run: bash autogen.sh
     - name: configure
-      run: RUNNING_IN_CI="yes" ./configure --enable-assert=hard --enable-warnings
+      run: ./configure --enable-assert=hard --enable-warnings
     - name: make
       run: make -j2
     - name: make check
