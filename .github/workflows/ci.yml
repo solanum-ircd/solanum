@@ -63,6 +63,7 @@ jobs:
           automake \
           autoconf \
           libtool \
+          libltdl-dev \
           libsqlite3-dev \
           libhyperscan-dev \
           # EOF
