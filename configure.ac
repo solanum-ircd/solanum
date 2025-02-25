@@ -619,6 +619,11 @@ else
 	AC_DEFINE_UNQUOTED(IRCD_PREFIX, "$prefix", [Prefix where the ircd is installed.])
 fi
 
+if test "x${RUNNING_IN_CI}" = "xyes"; then
+	IRC_CFLAGS="-Werror -Wno-unused-value -Wno-unused-parameter ${IRC_CFLAGS}"
+	AC_SUBST(IRC_CFLAGS)
+fi
+
 AC_CONFIG_FILES(			\
 	Makefile			\
 	authd/Makefile			\
