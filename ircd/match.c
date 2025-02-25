@@ -583,7 +583,7 @@ char *collapse_esc(char *pattern)
  *              <0, if s1 lexicographically less than s2
  *              >0, if s1 lexicographically greater than s2
  */
-int irccmp(const char *s1, const char *s2)
+int irccmp(const void *s1, const void *s2)
 {
 	const unsigned char *str1 = (const unsigned char *)s1;
 	const unsigned char *str2 = (const unsigned char *)s2;
@@ -602,7 +602,7 @@ int irccmp(const char *s1, const char *s2)
 	return (res);
 }
 
-int ircncmp(const char *s1, const char *s2, int n)
+int ircncmp(const void *s1, const void *s2, int n)
 {
 	const unsigned char *str1 = (const unsigned char *)s1;
 	const unsigned char *str2 = (const unsigned char *)s2;
