@@ -26,6 +26,7 @@
 #include "client.h"
 #include "match.h"
 #include "ircd.h"
+#include "monitor.h"
 #include "numeric.h"
 #include "send.h"
 #include "msg.h"
@@ -89,6 +90,10 @@ m_away(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 			sendto_common_channels_local_butone(source_p, CLICAP_AWAY_NOTIFY, NOCAPS, ":%s!%s@%s AWAY",
 							    source_p->name, source_p->username, source_p->host);
+			struct monitor *monptr = find_monitor(source_p->name, 0);
+			if(monptr)
+				sendto_monitor_with_capability_butserial(source_p, monptr, CLICAP_EXTENDED_MONITOR | CLICAP_AWAY_NOTIFY, NOCAPS, true, ":%s!%s@%s AWAY",
+							    source_p->name, source_p->username, source_p->host);
 		}
 		if(MyConnect(source_p))
 			sendto_one_numeric(source_p, RPL_UNAWAY, form_str(RPL_UNAWAY));
@@ -122,6 +127,14 @@ m_away(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 			      ":%s AWAY :%s", use_id(source_p), source_p->user->away);
 		sendto_common_channels_local_butone(source_p,
 					            CLICAP_AWAY_NOTIFY, NOCAPS,
+						    ":%s!%s@%s AWAY :%s",
+						    source_p->name,
+						    source_p->username,
+						    source_p->host,
+						    source_p->user->away);
+		struct monitor *monptr = find_monitor(source_p->name, 0);
+		if(monptr)
+			sendto_monitor_with_capability_butserial(source_p, monptr, CLICAP_EXTENDED_MONITOR | CLICAP_AWAY_NOTIFY, NOCAPS, true,
 						    ":%s!%s@%s AWAY :%s",
 						    source_p->name,
 						    source_p->username,
