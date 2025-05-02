@@ -253,9 +253,10 @@ m_join(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		}
 		else
 		{
-			hook_data_client_approval moduledata;
+			hook_data_can_create_channel moduledata;
 
 			moduledata.client = source_p;
+			moduledata.name = name;
 			moduledata.approved = 0;
 
 			call_hook(h_can_create_channel, &moduledata);

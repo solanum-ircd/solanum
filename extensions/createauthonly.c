@@ -31,7 +31,7 @@ DECLARE_MODULE_AV2(createauthonly, NULL, NULL, NULL, NULL, restrict_hfnlist, NUL
 static void
 h_can_create_channel_authenticated(void *data_)
 {
-	hook_data_client_approval *data = data_;
+	hook_data_can_create_channel *data = data_;
 	struct Client *source_p = data->client;
 
 	if (*source_p->user->suser == '\0' && !IsOperGeneral(source_p))

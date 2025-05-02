@@ -101,6 +101,13 @@ typedef struct
 typedef struct
 {
 	struct Client *client;
+	const char *name;
+	int approved;
+} hook_data_can_create_channel;
+
+typedef struct
+{
+	struct Client *client;
 	struct Channel *chptr;
 	const char *key;
 } hook_data_channel_activity;
