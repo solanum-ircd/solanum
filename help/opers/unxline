@@ -1,8 +1,7 @@
 UNXLINE <gecos>
 
-Will attempt to UNXLINE the given <gecos> on the local
+Will attempt to UNXLINE the given gecos on the local
 server.
-
 
 UNXLINE <gecos> ON <irc.server>
 

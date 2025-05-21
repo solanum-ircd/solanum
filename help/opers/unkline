@@ -1,7 +1,7 @@
 UNKLINE <user@host>
 
-Will attempt to UNKLINE the given <user@host>
-Will UNKLINE a temporary kline.
+Will attempt to UNKLINE the given user@host
+Will UNKLINE a temporary KLINE.
 
 UNKLINE <user@host> ON irc.server
 
