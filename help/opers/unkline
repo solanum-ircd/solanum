@@ -1,10 +1,11 @@
 UNKLINE <user@host>
 
-Will attempt to unkline the given <user@host>
-Will unkline a temporary kline.
+Will attempt to UNKLINE the given <user@host>
+Will UNKLINE a temporary kline.
 
-UNKLINE <user@host> ON irc.server will unkline
-the user on irc.server if irc.server accepts
-remote unklines.
+UNKLINE <user@host> ON irc.server
+
+Will attempt to UNKLINE the given gecos on servers
+that match irc.server. irc.server can contain wildcards.
 
 - Requires Oper Priv: oper:unkline
