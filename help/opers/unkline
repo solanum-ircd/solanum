@@ -5,7 +5,7 @@ Will UNKLINE a temporary kline.
 
 UNKLINE <user@host> ON irc.server
 
-Will attempt to UNKLINE the given IP on servers
+Will attempt to UNKLINE the given user@host on servers
 that match irc.server. irc.server can contain wildcards.
 
 - Requires Oper Priv: oper:unkline
