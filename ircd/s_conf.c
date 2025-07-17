@@ -315,6 +315,14 @@ verify_access(struct Client *client_p, const char *notildeusername)
 			return (NOT_AUTHORISED);
 		}
 
+		if(IsMarked(client_p))
+		{
+			if(IsConfForbidMark(aconf))
+				return NOT_AUTHORISED;
+
+			ClearMark(client_p);
+		}
+
 		/* Thanks for spoof idea amm */
 		if(IsConfDoSpoofIp(aconf))
 		{
