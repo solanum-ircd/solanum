@@ -34,6 +34,8 @@
 #include "s_newconf.h"
 #include "hash.h"
 
+#include "rb_lib.h"
+
 #define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
 
 static rb_fde_t *last_F = NULL;
@@ -55,7 +57,7 @@ void rb_connect_tcp(rb_fde_t *F, struct sockaddr *dest, struct sockaddr *clocal,
 	last_connect_callback = callback;
 	last_connect_data = data;
 
-	void *(*func)() = dlsym(RTLD_NEXT, "rb_connect_tcp");
+	void *(*func)(rb_fde_t *, struct sockaddr *, struct sockaddr *, CNCB *, void *, int) = dlsym(RTLD_NEXT, "rb_connect_tcp");
 	func(F, dest, clocal, callback, data, timeout);
 }
 
