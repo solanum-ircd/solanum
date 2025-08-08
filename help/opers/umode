@@ -24,6 +24,9 @@ User modes: (* designates that the umode is oper only)
          +G     - Deny users not on your /ACCEPT list and not in a channel
                   with you from messaging you and inviting you to channels.
                   This is a softer form of +g.
+       ? +I     - Hides your WHOIS idle time and prevents you seeing the idle
+                  time of other users (unless you have the auspex:usertimes
+                  privilege).
          +Q     - Prevents you from being affected by channel forwarding.
          +R     - Prevents unidentified users that you have not accepted from
                   messaging you.

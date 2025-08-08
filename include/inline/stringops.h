@@ -24,7 +24,7 @@
 #define __INLINE_STRINGOPS_H
 
 /*
- * strip_colour - remove colour codes from a string
+ * strip_colour - remove colour and formatting codes from a string
  * -asuffield (?)
  */
 static inline char *
@@ -57,10 +57,12 @@ strip_colour(char *string)
 		case 6:
 		case 7:
 		case 15:
+		case 17:
 		case 22:
 		case 23:
 		case 27:
 		case 29:
+		case 30:
 		case 31:
 			break;
 		case 32:

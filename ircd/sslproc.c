@@ -336,6 +336,8 @@ start_ssldaemon(int count)
 		ssl_do_pipe(P2, ctl);
 
 	}
+	ilog(L_MAIN, "ssld helper started");
+	sendto_realops_snomask(SNO_GENERAL, L_NETWIDE, "ssld helper started");
 	return started;
 }
 

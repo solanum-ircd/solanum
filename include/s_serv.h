@@ -93,6 +93,7 @@ extern unsigned int CAP_EUID;			/* supports EUID (ext UID + nonencap CHGHOST) */
 extern unsigned int CAP_EOPMOD;			/* supports EOPMOD (ext +z + ext topic) */
 extern unsigned int CAP_BAN;			/* supports propagated bans */
 extern unsigned int CAP_MLOCK;			/* supports MLOCK messages */
+extern unsigned int CAP_EBMASK;			/* supports sending BMASK set by/at metadata */
 extern unsigned int CAP_STAG;			/* supports s2s tags and labeled-response */
 
 /* XXX: added for backwards compatibility. --nenolod */

@@ -294,23 +294,21 @@ rb_event_init(void)
 void
 rb_dump_events(void (*func) (char *, void *), void *ptr)
 {
-	int len;
 	char buf[512];
 	rb_dlink_node *dptr;
 	struct ev_entry *ev;
-	len = sizeof(buf);
 
-	snprintf(buf, len, "Last event to run: %s", last_event_ran);
+	snprintf(buf, sizeof buf, "Last event to run: %s", last_event_ran);
 	func(buf, ptr);
 
-	rb_strlcpy(buf, "Operation                    Next Execution", len);
+	rb_strlcpy(buf, "Operation                    Next Execution", sizeof buf);
 	func(buf, ptr);
 
 	RB_DLINK_FOREACH(dptr, event_list.head)
 	{
 		ev = dptr->data;
-		snprintf(buf, len, "%-28s %-4ld seconds (frequency=%d)", ev->name,
-			    ev->when - (long)rb_current_time(), (int)ev->frequency);
+		snprintf(buf, sizeof buf, "%-28s %-4lld seconds (frequency=%d)", ev->name,
+			    (long long)(ev->when - rb_current_time()), (int)ev->frequency);
 		func(buf, ptr);
 	}
 }

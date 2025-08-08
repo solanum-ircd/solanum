@@ -34,9 +34,9 @@
 #include "s_newconf.h"
 #include "hash.h"
 
-#define MSG "%s:%d (%s; aborted=%d, by_user=%d)", __FILE__, __LINE__, __FUNCTION__, aborted, by_user
+#define MSG "%s:%d (%s; aborted=%d)", __FILE__, __LINE__, __FUNCTION__, aborted
 
-static void common_sasl_test(bool aborted, bool by_user)
+static void common_sasl_test(bool aborted)
 {
 	ircd_util_init(__FILE__);
 	client_util_init();
@@ -78,19 +78,12 @@ static void common_sasl_test(bool aborted, bool by_user)
 	is_client_sendq_empty(server, MSG);
 
 	if (aborted) {
-		if (by_user) {
-			// Explicit abort by user
-			client_util_parse(user, "AUTHENTICATE *" CRLF);
-			is_client_sendq(":" TEST_ME_NAME " 906 " TEST_NICK " :SASL authentication aborted" CRLF, user, MSG);
+		// Explicit abort by user
+		client_util_parse(user, "AUTHENTICATE *" CRLF);
+		is_client_sendq(":" TEST_ME_NAME " 906 " TEST_NICK " :SASL authentication aborted" CRLF, user, MSG);
 
-			client_util_parse(user, "CAP END" CRLF);
-			ok(IsClient(user), MSG);
-		} else {
-			// Implicit abort by completing registration
-			client_util_parse(user, "CAP END" CRLF);
-			ok(IsClient(user), MSG);
-			is_client_sendq_one(":" TEST_ME_NAME " 906 " TEST_NICK " :SASL authentication aborted" CRLF, user, MSG);
-		}
+		client_util_parse(user, "CAP END" CRLF);
+		ok(IsClient(user), MSG);
 
 		is_client_sendq_one(":" TEST_ME_ID " ENCAP " TEST_SERVER_NAME " SASL " TEST_ME_ID "AAAAAB " TEST_REMOTE_ID " D A" CRLF, server, MSG);
 		is_client_sendq(":" TEST_ME_ID " UID " TEST_NICK " 1 42 +i ~" TEST_USERNAME " " TEST_HOSTNAME " " TEST_IP " " TEST_ME_ID "AAAAAB :" TEST_REALNAME CRLF, server, MSG);
@@ -128,17 +121,12 @@ static void common_sasl_test(bool aborted, bool by_user)
 
 static void successful_login(void)
 {
-	common_sasl_test(false, false);
-}
-
-static void successful_login_after_aborted_by_registration(void)
-{
-	common_sasl_test(true, false);
+	common_sasl_test(false);
 }
 
 static void successful_login_after_aborted_by_user(void)
 {
-	common_sasl_test(true, true);
+	common_sasl_test(true);
 }
 
 int main(int argc, char *argv[])
@@ -146,7 +134,6 @@ int main(int argc, char *argv[])
 	plan_lazy();
 
 	successful_login();
-	successful_login_after_aborted_by_registration();
 	successful_login_after_aborted_by_user();
 
 	return 0;

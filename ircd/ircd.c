@@ -59,7 +59,6 @@
 #include "patchlevel.h"
 #include "serno.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "chmode.h"
 #include "privilege.h"
 #include "bandbi.h"
@@ -197,7 +196,6 @@ ircd_shutdown(const char *reason)
 static void
 init_sys(void)
 {
-#if defined(RLIMIT_NOFILE) && defined(HAVE_SYS_RESOURCE_H)
 	struct rlimit limit;
 
 	if(!getrlimit(RLIMIT_NOFILE, &limit))
@@ -211,7 +209,6 @@ init_sys(void)
 		}
 		return;
 	}
-#endif /* RLIMIT_FD_MAX */
 	maxconnections = MAXCONNECTIONS;
 }
 
@@ -425,7 +422,6 @@ check_pidfile(const char *filename)
 static void
 setup_corefile(void)
 {
-#ifdef HAVE_SYS_RESOURCE_H
 	struct rlimit rlim;	/* resource limits */
 
 	/* Set corefilesize to maximum */
@@ -434,7 +430,6 @@ setup_corefile(void)
 		rlim.rlim_cur = rlim.rlim_max;
 		setrlimit(RLIMIT_CORE, &rlim);
 	}
-#endif
 }
 
 static void
@@ -672,7 +667,6 @@ solanum_main(int argc, char * const argv[])
 
 	init_bandb();
 	init_ssld();
-	init_wsockd();
 
 	rehash_bans();
 
@@ -756,8 +750,8 @@ solanum_main(int argc, char * const argv[])
 		check_splitmode_ev = rb_event_add("check_splitmode", check_splitmode, NULL, 5);
 
 	if(server_state_foreground)
-		inotice("now running in foreground mode from %s as pid %d ...",
-		        ConfigFileEntry.dpath, getpid());
+		inotice("now running in foreground mode from %s as pid %ld ...",
+		        ConfigFileEntry.dpath, (long)getpid());
 
 	rb_lib_loop(0);
 

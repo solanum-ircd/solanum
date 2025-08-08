@@ -30,10 +30,10 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "s_conf.h"
+#include "s_user.h"
 #include "s_serv.h"
 #include "send.h"
 #include "match.h"
-#include "s_conf.h"
 #include "logger.h"
 #include "msg.h"
 #include "parse.h"
@@ -60,12 +60,14 @@ struct Message whois_msgtab = {
 int doing_whois_hook;
 int doing_whois_global_hook;
 int doing_whois_channel_visibility_hook;
+int doing_whois_show_idle_hook;
 
 mapi_clist_av1 whois_clist[] = { &whois_msgtab, NULL };
 mapi_hlist_av1 whois_hlist[] = {
 	{ "doing_whois",			&doing_whois_hook },
 	{ "doing_whois_global",			&doing_whois_global_hook },
 	{ "doing_whois_channel_visibility",	&doing_whois_channel_visibility_hook },
+	{ "doing_whois_show_idle",		&doing_whois_show_idle_hook },
 	{ NULL, NULL }
 };
 
@@ -368,15 +370,44 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 		{
 			rb_inet_ntop_sock((struct sockaddr *)&ip4,
 					buf, sizeof buf);
-			sendto_one_numeric(source_p, RPL_WHOISTEXT,
+			sendto_one_numeric(source_p, RPL_WHOISSPECIAL,
 					"%s :Underlying IPv4 is %s",
 					target_p->name, buf);
 		}
 
+		/* fire the doing_whois_show_idle hook to allow modules to tell us whether to show the idle time */
+		hook_data_client_approval hdata_showidle;
+
+		hdata_showidle.client = source_p;
+		hdata_showidle.target = target_p;
+		hdata_showidle.approved = WHOIS_IDLE_SHOW;
+
+		call_hook(doing_whois_show_idle_hook, &hdata_showidle);
+
 		sendto_one_numeric(source_p, RPL_WHOISIDLE, form_str(RPL_WHOISIDLE),
-				   target_p->name,
-				   (long)(rb_current_time() - target_p->localClient->last),
-				   (unsigned long)target_p->localClient->firsttime);
+			   target_p->name,
+			   hdata_showidle.approved != WHOIS_IDLE_HIDE ? (long)(rb_current_time() - target_p->localClient->last) : 0,
+			   (unsigned long)target_p->localClient->firsttime);
+
+		if (hdata_showidle.approved != WHOIS_IDLE_SHOW)
+		{
+			if (target_p->umodes & user_modes['I'])
+			{
+				if (hdata_showidle.approved == WHOIS_IDLE_HIDE)
+					/* if the target has hidden their idle time, notify the source */
+					sendto_one_numeric(source_p, RPL_WHOISSPECIAL, form_str(RPL_WHOISSPECIAL), target_p->name, "is hiding their idle time");
+				else
+					/* if the target has hidden their idle time, notify the source */
+					sendto_one_numeric(source_p, RPL_WHOISSPECIAL, form_str(RPL_WHOISSPECIAL), target_p->name, "is hiding their idle time, but you have auspex");
+			}
+			else if (hdata_showidle.approved == WHOIS_IDLE_HIDE)
+				/* if the source has hidden their idle time, notify the source that they can't view others' idle times either */
+				sendto_one_numeric(source_p, RPL_WHOISSPECIAL, form_str(RPL_WHOISSPECIAL), target_p->name, "has a hidden idle time because your own idle time is hidden");
+			else
+				/* client has auspex to be able to see idle time, but make sure they know that's why they're seeing it */
+				sendto_one_numeric(source_p, RPL_WHOISSPECIAL, form_str(RPL_WHOISSPECIAL), target_p->name,
+					"has a hidden idle time because your own idle time is hidden, but you have auspex");
+		}
 	}
 	else
 	{

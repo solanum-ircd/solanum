@@ -51,10 +51,12 @@ chm_noctcp_process(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
 	/* don't waste CPU if message is already blocked */
-	if (data->approved || data->msgtype == MESSAGE_TYPE_NOTICE)
+	if (data->approved)
 		return;
 
-	if (*data->text == '\001' && rb_strncasecmp(data->text + 1, "ACTION ", 7) && data->chptr->mode.mode & mode_noctcp)
+	if (*data->text == '\001' &&
+	    data->chptr->mode.mode & mode_noctcp &&
+	    !(data->msgtype == MESSAGE_TYPE_PRIVMSG && !rb_strncasecmp(data->text + 1, "ACTION ", 7)))
 	{
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, form_str(ERR_CANNOTSENDTOCHAN), data->chptr->chname);
 		data->approved = ERR_CANNOTSENDTOCHAN;

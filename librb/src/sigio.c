@@ -35,17 +35,16 @@
 #include <event-int.h>
 #include <fcntl.h>		/* Yes this needs to be before the ifdef */
 
-#if defined(HAVE_SYS_POLL_H) && (HAVE_POLL) && (F_SETSIG)
+#if defined(HAVE_SYS_POLL_H) && defined(F_SETSIG)
 #define USING_SIGIO
 #endif
-
 
 #ifdef USING_SIGIO
 
 #include <signal.h>
 #include <sys/poll.h>
 
-#if defined(USE_TIMER_CREATE)
+#ifdef USE_TIMER_CREATE
 #define SIGIO_SCHED_EVENT 1
 #endif
 

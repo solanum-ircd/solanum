@@ -318,7 +318,7 @@ ident_start(struct auth_client *auth)
 
 	if((query->F = rb_socket(family, SOCK_STREAM, auth->protocol, "ident")) == NULL)
 	{
-		warn_opers(L_DEBUG, "Could not create ident socket: %s", strerror(errno));
+		warn_opers(L_WARN, "Could not create ident socket: %s", strerror(errno));
 		client_fail(auth, REPORT_FAIL);
 		return true;	/* Not a fatal error */
 	}

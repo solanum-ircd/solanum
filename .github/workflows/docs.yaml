@@ -6,24 +6,28 @@ on:
       - main
     paths:
       - 'doc/oper-guide/**'
+      - '.github/workflows/docs.yaml'
   pull_request:
     branches:
       - main
     paths:
       - 'doc/oper-guide/**'
-      
+      - '.github/workflows/docs.yaml'
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
-
+    runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            python-sphinx \
+            python3-sphinx \
             texinfo \
             # EOF
-      - uses: actions/checkout@v2
-      - name: Build
+      - uses: actions/checkout@main
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - name: Build Oper Guide
         run: make -C doc/oper-guide html man info

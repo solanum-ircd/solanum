@@ -237,7 +237,7 @@ scan_umodes(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		if (mask != NULL)
 		{
-			snprintf(maskbuf, BUFSIZE, "%s!%s@%s",
+			snprintf(maskbuf, sizeof maskbuf, "%s!%s@%s",
 				target_p->name, target_p->username, target_p->host);
 
 			if (!match(mask, maskbuf))

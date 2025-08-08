@@ -172,7 +172,7 @@ int
 rb_ports_supports_event(void)
 {
 	return 1;
-};
+}
 
 void
 rb_ports_init_event(void)

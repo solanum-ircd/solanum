@@ -4,7 +4,7 @@ Bans by gecos (aka 'real name') field.  If [time] is not specified
 this is added to the database, otherwise is temporary for [time]
 minutes.
 
-Eg. /quote xline eggdrop?bot :no bots
+Eg. /quote XLINE eggdrop?bot :no bots
 
 The <gecos> field contains certain special characters:
   ? - Match any single character
@@ -20,9 +20,9 @@ If the <gecos> field is purely numeric (ie "123") then the time
 field must be specified.  "0" must be used to denote a permanent
 numeric XLINE.
 
-XLINE [time] <gecos> ON <server> :<reason>
+XLINE [time] <gecos> ON <irc.server> :<reason>
 
-Will attempt to set the XLINE on <server> if <server> accepts
-remote xlines.
+Will XLINE the gecos on matching irc.servers that accept a
+remote XLINE. irc.server can contain wildcards.
 
 - Requires Oper Priv: oper:xline

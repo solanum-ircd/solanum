@@ -319,6 +319,21 @@ Sets a D:line (IP ban checked directly after accepting connection).
 
 The mask must be an IP address or CIDR mask.
 
+EBMASK
+source: server
+propagation: broadcast
+parameters: channelTS, channel, type, space separated "masks ts hostmask" chunks
+
+If the channelTS in the message is greater (newer) than the current TS of
+the channel, drop the message and do not propagate it.
+
+Type is the mode letter of a ban-like mode. In efnet TS6 this is 'b', 'e' or
+'I'. In charybdis TS6 additionally 'q' is possible.
+
+Add all the masks and their set at/by to the given list of the channel.
+
+All ban-like modes must be bursted using this command, not using MODE or TMODE.
+
 ECHO
 source: user
 parameters: "P"/"N", target, text

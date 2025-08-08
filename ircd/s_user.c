@@ -215,12 +215,12 @@ authd_check(struct Client *client_p, struct Client *source_p)
 	{
 	case 'B':	/* DNSBL */
 		{
-			struct DNSBLEntryStats *stats;
+			struct DNSBLEntry *entry;
 			char *dnsbl_name = source_p->preClient->auth.data;
 
 			if(dnsbl_stats != NULL)
-				if((stats = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
-					stats->hits++;
+				if((entry = rb_dictionary_retrieve(dnsbl_stats, dnsbl_name)) != NULL)
+					entry->hits++;
 
 			if(IsExemptKline(source_p) || IsConfExemptDNSBL(aconf))
 			{
@@ -350,7 +350,7 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	struct ConfItem *aconf, *xconf;
 	char tmpstr2[BUFSIZE];
 	char ipaddr[HOSTIPLEN];
-	char myusername[USERLEN+1];
+	char notildeusername[USERLEN + 1];
 	int status, umodes;
 
 	s_assert(NULL != source_p);
@@ -390,27 +390,52 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	 * rather than initial connection.  */
 	source_p->localClient->firsttime = client_p->localClient->last = rb_current_time();
 
-	/* XXX - fixme. we shouldnt have to build a users buffer twice.. */
-	if(!IsGotId(source_p) && (strchr(source_p->username, '[') != NULL))
+	if (!IsGotId(source_p))
 	{
-		const char *p;
-		int i = 0;
+		const char *haystack;
+		int o = 0;
 
-		p = source_p->username;
+		haystack = source_p->username;
 
-		while(*p && i < USERLEN)
-		{
-			if(*p != '[')
-				myusername[i++] = *p;
-			p++;
-		}
+		for (int i = 0; haystack[i] != '\0'; i++)
+			if (haystack[i] != '[')
+				notildeusername[o++] = haystack[i];
 
-		myusername[i] = '\0';
+		notildeusername[o] = '\0';
+
+		rb_strlcpy(source_p->username, "~", sizeof(source_p->username));
+		rb_strlcat(source_p->username, notildeusername, sizeof(source_p->username));
 	}
 	else
-		rb_strlcpy(myusername, source_p->username, sizeof myusername);
+		rb_strlcpy(notildeusername, source_p->username, sizeof notildeusername);
 
-	if((status = check_client(client_p, source_p, myusername)) < 0)
+	/* valid user name check */
+
+	if(!valid_username(source_p->username))
+	{
+		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
+				     "Invalid username: %s (%s@%s)",
+				     source_p->name, source_p->username, source_p->host);
+
+		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
+		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
+
+		if (illegal_name_long_client_message == NULL)
+			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
+											   "only alphanumeric characters.";
+		if (illegal_name_short_client_message == NULL)
+			illegal_name_short_client_message = "Invalid username";
+
+		ServerStats.is_ref++;
+		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
+		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
+		exit_client(client_p, source_p, &me, tmpstr2);
+		return (CLIENT_EXITED);
+	}
+
+	/* end of valid user name check */
+
+	if((status = check_client(client_p, source_p, notildeusername)) < 0)
 		return (CLIENT_EXITED);
 
 	/* Apply nick override */
@@ -481,9 +506,6 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 
 	if(!IsGotId(source_p))
 	{
-		const char *p;
-		int i = 0;
-
 		if(IsNeedIdentd(aconf))
 		{
 
@@ -500,21 +522,9 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 		}
 
 		/* dont replace username if its supposed to be spoofed --fl */
-		if(!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@'))
+		if (IsNoTilde(aconf) && (!IsConfDoSpoofIp(aconf) || !strchr(aconf->info.name, '@')))
 		{
-			p = myusername;
-
-			if(!IsNoTilde(aconf))
-				source_p->username[i++] = '~';
-
-			while (*p && i < USERLEN)
-			{
-				if(*p != '[')
-					source_p->username[i++] = *p;
-				p++;
-			}
-
-			source_p->username[i] = '\0';
+			rb_strlcpy(source_p->username, notildeusername, sizeof(source_p->username));
 		}
 	}
 
@@ -608,32 +618,6 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 	/* authd rejection check */
 	if(authd_check(client_p, source_p))
 		return CLIENT_EXITED;
-
-	/* valid user name check */
-
-	if(!valid_username(source_p->username))
-	{
-		sendto_realops_snomask(SNO_REJ, L_NETWIDE,
-				     "Invalid username: %s (%s@%s)",
-				     source_p->name, source_p->username, source_p->host);
-
-		const char *illegal_name_long_client_message = ConfigFileEntry.illegal_name_long_client_message;
-		const char *illegal_name_short_client_message = ConfigFileEntry.illegal_name_short_client_message;
-
-		if (illegal_name_long_client_message == NULL)
-			illegal_name_long_client_message = "Your username is invalid. Please make sure that your username contains "
-											   "only alphanumeric characters.";
-		if (illegal_name_short_client_message == NULL)
-			illegal_name_short_client_message = "Invalid username";
-
-		ServerStats.is_ref++;
-		sendto_one_notice(source_p, ":*** %s", illegal_name_long_client_message);
-		sprintf(tmpstr2, "%s [%s]", illegal_name_short_client_message, source_p->username);
-		exit_client(client_p, source_p, &me, tmpstr2);
-		return (CLIENT_EXITED);
-	}
-
-	/* end of valid user name check */
 
 	/* Store original hostname -- jilles */
 	rb_strlcpy(source_p->orighost, source_p->host, HOSTLEN + 1);
@@ -1193,8 +1177,6 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 				if(MyConnect(source_p))
 				{
 					source_p->umodes &= ~ConfigFileEntry.oper_only_umodes;
-					source_p->flags &= ~OPER_FLAGS;
-
 					rb_dlinkFindDestroy(source_p, &local_oper_list);
 				}
 
@@ -1510,7 +1492,6 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	SetExtendChans(source_p);
 	SetExemptKline(source_p);
 
-	source_p->flags |= oper_p->flags;
 	source_p->user->opername = rb_strdup(oper_p->name);
 	source_p->user->privset = privilegeset_ref(oper_p->privset);
 
@@ -1624,7 +1605,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	struct membership *mscptr;
 	int changed = irccmp(target_p->name, nick);
 	int changed_case = strcmp(target_p->name, nick);
-	int do_qjm = irccmp(target_p->username, user) || irccmp(target_p->host, host);
+	int do_qjm = strcmp(target_p->username, user) || strcmp(target_p->host, host);
 	char mode[10], modeval[NICKLEN * 2 + 2], reason[256], *mptr;
 	va_list ap;
 
@@ -1640,7 +1621,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(do_qjm)
 	{
 		va_start(ap, format);
-		vsnprintf(reason, 255, format, ap);
+		vsnprintf(reason, sizeof reason, format, ap);
 		va_end(ap);
 
 		sendto_common_channels_local_butone(target_p, NOCAPS, CLICAP_CHGHOST, ":%s!%s@%s QUIT :%s",
@@ -1725,7 +1706,7 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	if(changed)
 	{
 		monitor_signon(target_p);
-		del_all_accepts(target_p);
+		del_all_accepts(target_p, false);
 	}
 }
 

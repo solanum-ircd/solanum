@@ -286,7 +286,7 @@ do_modreload(struct Client *source_p, const char *module)
 	struct modreload *info = rb_malloc(sizeof *info);
 	strcpy(info->module, module);
 	strcpy(info->id, source_p->id);
-	rb_event_addonce("modules_do_reload", modules_do_reload, info, 1);
+	rb_defer(&modules_do_reload, info);
 }
 
 static void
@@ -304,7 +304,7 @@ do_modrestart(struct Client *source_p)
 	 *
 	 * So, defer the restart to the event loop and return now.
 	 */
-	rb_event_addonce("modules_do_restart", modules_do_restart, NULL, 1);
+	rb_defer(&modules_do_restart, NULL);
 }
 
 static void

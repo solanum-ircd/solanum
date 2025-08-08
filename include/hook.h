@@ -21,6 +21,14 @@ enum hook_priority
 	HOOK_MONITOR = 100
 };
 
+/* for idle time privacy features */
+enum whois_idle_approval
+{
+	WHOIS_IDLE_HIDE = 0,
+	WHOIS_IDLE_SHOW = 1,
+	WHOIS_IDLE_AUSPEX = 2
+};
+
 typedef void (*hookfn) (void *data);
 
 extern int h_iosend_id;
@@ -90,6 +98,13 @@ typedef struct
 	struct Channel *chptr;
 	int approved;
 } hook_data_channel;
+
+typedef struct
+{
+	struct Client *client;
+	const char *name;
+	int approved;
+} hook_data_can_create_channel;
 
 typedef struct
 {

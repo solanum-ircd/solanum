@@ -1,5 +1,10 @@
 UNDLINE <ip>
 
-Will attempt to undline the given <ip>
+Will attempt to UNDLINE the given IP on the local server.
+
+UNDLINE <ip> ON <irc.server>
+
+Will attempt to UNDLINE the IP on all servers that match
+irc.server. irc.server can contain wildcards.
 
 - Requires Oper Priv: oper:unkline

@@ -1,6 +1,7 @@
 check_PROGRAMS = runtests \
 	chmode1 \
 	match1 \
+	misc \
 	msgbuf_parse1 \
 	msgbuf_unparse1 \
 	hostmask1 \
@@ -38,7 +39,6 @@ check-local: $(check_PROGRAMS) \
 	../authd/authd \
 	../bandb/bandb \
 	../ssld/ssld \
-	../wsockd/wsockd \
 	$(patsubst ../modules/%.c,../modules/.libs/%.so,$(wildcard ../modules/*.c)) \
 	$(patsubst ../modules/core/%.c,../modules/core/.libs/%.so,$(wildcard ../modules/core/*.c))
 

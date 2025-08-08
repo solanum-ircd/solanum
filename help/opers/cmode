@@ -16,6 +16,8 @@ NO PARAMETERS:
               join the channel.
      +r     - Registered users only.  Only users identified to services
               may join.
+  ?  +R     - Blocks messages from unregistered users.  Only users
+              identified to services may talk in the channel.
      +c     - No color.  All markup (color, bold, underline, etc.) in
               messages is stripped.
      +g     - Free invite.  Everyone may invite users.  Significantly
@@ -35,6 +37,8 @@ NO PARAMETERS:
      +C     - Disable CTCP. All CTCP messages to the channel, except ACTION,
               are disallowed.
   ?  +O     - IRC Operator only channel.
+  ?  +M     - IRC Operators can not be kicked. Only settable by opers. Only
+              viewable by opers.
   ?  +A     - IRC server administrator only channel.
   ?  +T     - No NOTICEs allowed in the channel.
   ?  +S     - Only users connected via SSL/TLS may join the channel while this 

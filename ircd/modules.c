@@ -77,6 +77,9 @@ init_modules(void)
 		exit(EXIT_FAILURE);
 	}
 
+	memset(&module_list, 0, sizeof(module_list));
+	memset(&mod_paths, 0, sizeof(mod_paths));
+
 	/* Add the default paths we look in to the module system --nenolod */
 	mod_add_path(ircd_paths[IRCD_PATH_MODULES]);
 	mod_add_path(ircd_paths[IRCD_PATH_AUTOLOAD_MODULES]);
@@ -461,6 +464,10 @@ load_a_module(const char *path, bool warn, int origin, bool core)
 	/* Trim off the ending for the display name if we have to */
 	if((c = rb_strcasestr(mod_displayname, LT_MODULE_EXT)) != NULL)
 		*c = '\0';
+
+	/* Quietly succeed if the module is already loaded */
+	if(findmodule_byname(mod_displayname) != NULL)
+		return true;
 
 	tmpptr = lt_dlopenext(path);
 

@@ -65,6 +65,7 @@ struct ConfItem
 	char *passwd;		/* doubles as kline reason *ugh* */
 	char *spasswd;		/* Password to send. */
 	char *user;		/* user part of user@host */
+	char *desc;             /* description */
 	int port;
 	time_t hold;		/* Hold action until this time (calendar time) */
 	time_t created;		/* Creation time (for klines etc) */
@@ -203,6 +204,7 @@ struct config_file_entry
 	int operspy_admin_only;
 	int pace_wait;
 	int pace_wait_simple;
+	int ping_warn_time;
 	int short_motd;
 	int no_oper_flood;
 	int hide_server;
@@ -295,6 +297,7 @@ struct config_channel_entry
 	int strip_topic_colors;
 	int opmod_send_statusmsg;
 	int ip_bans_through_vhost;
+	int invite_notify_notice;
 };
 
 struct config_server_hide
@@ -320,7 +323,6 @@ struct server_info
 	char *ssl_dh_params;
 	char *ssl_cipher_list;
 	int ssld_count;
-	int wsockd_count;
 };
 
 struct admin_info
@@ -384,7 +386,7 @@ extern int detach_conf(struct Client *);
 extern struct ConfItem *find_tkline(const char *, const char *, struct sockaddr *);
 extern char *show_iline_prefix(struct Client *, struct ConfItem *, char *);
 extern void get_printable_conf(struct ConfItem *,
-			       char **, char **, const char **, char **, int *, char **);
+			       char **, char **, const char **, char **, int *, char **, char **);
 extern char *get_user_ban_reason(struct ConfItem *aconf);
 extern void get_printable_kline(struct Client *, struct ConfItem *,
 				char **, char **, char **, char **);

@@ -545,7 +545,6 @@ rb_linebuf_flush(rb_fde_t *F, buf_head_t * bufhead)
  * autoconf checks for this..but really just want to use it if we have a
  * native version even if libircd provides a fake version...
  */
-#ifdef HAVE_WRITEV
 	if(!rb_fd_ssl(F))
 	{
 		rb_dlink_node *ptr;
@@ -624,7 +623,6 @@ rb_linebuf_flush(rb_fde_t *F, buf_head_t * bufhead)
 
 		return retval;
 	}
-#endif
 
 	/* this is the non-writev case */
 

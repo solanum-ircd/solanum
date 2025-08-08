@@ -27,6 +27,7 @@ rb_ctime
 rb_current_time
 rb_current_time_tv
 rb_date
+rb_defer
 rb_destroy_patricia
 rb_dictionary_add
 rb_dictionary_create

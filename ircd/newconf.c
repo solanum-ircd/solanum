@@ -4,8 +4,13 @@
 #include "stdinc.h"
 
 #ifdef HAVE_LIBCRYPTO
+#include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+#include <openssl/decoder.h>
+#include <openssl/core.h>
+#endif
 #endif
 
 #include "newconf.h"
@@ -25,7 +30,6 @@
 #include "ircd.h"
 #include "snomask.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "privilege.h"
 #include "chmode.h"
 #include "certfp.h"
@@ -33,7 +37,6 @@
 #define CF_TYPE(x) ((x) & CF_MTYPE)
 
 static int yy_defer_accept = 1;
-static int yy_wsock = 0;
 
 struct TopConf *conf_cur_block;
 static char *conf_cur_block_name = NULL;
@@ -631,8 +634,26 @@ conf_end_oper(struct TopConf *tc)
 				return 0;
 			}
 
+#if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
+			OSSL_DECODER_CTX *const ctx = OSSL_DECODER_CTX_new_for_pkey(
+				&yy_tmpoper->rsa_pubkey, "PEM", NULL, "RSA",
+				OSSL_KEYMGMT_SELECT_PUBLIC_KEY, NULL, NULL);
+
+			if(ctx != NULL)
+			{
+				if(OSSL_DECODER_CTX_get_num_decoders(ctx) < 1 ||
+				   OSSL_DECODER_from_bio(ctx, file) < 1)
+				{
+					EVP_PKEY_free(yy_tmpoper->rsa_pubkey);
+					yy_tmpoper->rsa_pubkey = NULL;
+				}
+
+				OSSL_DECODER_CTX_free(ctx);
+			}
+#else
 			yy_tmpoper->rsa_pubkey =
 				(RSA *) PEM_read_bio_RSA_PUBKEY(file, NULL, 0, NULL);
+#endif
 
 			(void)BIO_set_close(file, BIO_CLOSE);
 			BIO_free(file);
@@ -867,7 +888,6 @@ conf_begin_listen(struct TopConf *tc)
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}
-	yy_wsock = 0;
 	yy_defer_accept = 0;
 	return 0;
 }
@@ -879,7 +899,6 @@ conf_end_listen(struct TopConf *tc)
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}
-	yy_wsock = 0;
 	yy_defer_accept = 0;
 	return 0;
 }
@@ -888,12 +907,6 @@ static void
 conf_set_listen_defer_accept(void *data)
 {
 	yy_defer_accept = *(unsigned int *) data;
-}
-
-static void
-conf_set_listen_wsock(void *data)
-{
-	yy_wsock = *(unsigned int *) data;
 }
 
 static void
@@ -912,8 +925,8 @@ conf_set_listen_port_both(void *data, int ssl, int sctp)
 			if (sctp) {
 				conf_report_error("listener::sctp_port has no addresses -- ignoring.");
 			} else {
-				add_tcp_listener(args->v.number, NULL, AF_INET, ssl, ssl || yy_defer_accept, yy_wsock);
-				add_tcp_listener(args->v.number, NULL, AF_INET6, ssl, ssl || yy_defer_accept, yy_wsock);
+				add_tcp_listener(args->v.number, NULL, AF_INET, ssl, ssl || yy_defer_accept);
+				add_tcp_listener(args->v.number, NULL, AF_INET6, ssl, ssl || yy_defer_accept);
 			}
                 }
 		else
@@ -926,12 +939,12 @@ conf_set_listen_port_both(void *data, int ssl, int sctp)
 
 			if (sctp) {
 #ifdef HAVE_LIBSCTP
-				add_sctp_listener(args->v.number, listener_address[0], listener_address[1], ssl, yy_wsock);
+				add_sctp_listener(args->v.number, listener_address[0], listener_address[1], ssl);
 #else
 				conf_report_error("Warning -- ignoring listener::sctp_port -- SCTP support not available.");
 #endif
 			} else {
-				add_tcp_listener(args->v.number, listener_address[0], family, ssl, ssl || yy_defer_accept, yy_wsock);
+				add_tcp_listener(args->v.number, listener_address[0], family, ssl, ssl || yy_defer_accept);
 			}
                 }
 	}
@@ -1036,6 +1049,9 @@ conf_end_auth(struct TopConf *tc)
 
 		if(yy_aconf->className)
 			yy_tmp->className = rb_strdup(yy_aconf->className);
+
+		if(yy_aconf->desc)
+			yy_tmp->desc = rb_strdup(yy_aconf->desc);
 
 		yy_tmp->flags = yy_aconf->flags;
 		yy_tmp->port = yy_aconf->port;
@@ -1170,6 +1186,13 @@ conf_set_auth_spoof(void *data)
 	rb_free(yy_aconf->info.name);
 	yy_aconf->info.name = rb_strdup(data);
 	yy_aconf->flags |= CONF_FLAGS_SPOOF_IP;
+}
+
+static void
+conf_set_auth_desc(void *data)
+{
+	rb_free(yy_aconf->desc);
+	yy_aconf->desc = rb_strdup(data);
 }
 
 static void
@@ -2318,7 +2341,7 @@ conf_report_error(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2338,7 +2361,7 @@ conf_report_warning(const char *fmt, ...)
 	char msg[BUFSIZE + 1] = { 0 };
 
 	va_start(ap, fmt);
-	vsnprintf(msg, BUFSIZE, fmt, ap);
+	vsnprintf(msg, sizeof msg, fmt, ap);
 	va_end(ap);
 
 	if (testing_conf)
@@ -2640,6 +2663,7 @@ static struct ConfEntry conf_auth_table[] =
 	{ "redirport",	CF_INT,     conf_set_auth_redir_port,	0, NULL },
 	{ "flags",	CF_STRING | CF_FLIST, conf_set_auth_flags,	0, NULL },
 	{ "umodes",     CF_QSTRING, conf_set_auth_umodes,	0, NULL},
+	{ "description",CF_QSTRING, conf_set_auth_desc,         0, NULL},
 	{ "\0",	0, NULL, 0, NULL }
 };
 
@@ -2717,6 +2741,7 @@ static struct ConfEntry conf_general_table[] =
 	{ "pace_wait",		CF_TIME,  NULL, 0, &ConfigFileEntry.pace_wait		},
 	{ "pace_wait_simple",	CF_TIME,  NULL, 0, &ConfigFileEntry.pace_wait_simple	},
 	{ "ping_cookie",	CF_YESNO, NULL, 0, &ConfigFileEntry.ping_cookie		},
+	{ "ping_warn_time",	CF_TIME,  NULL, 0, &ConfigFileEntry.ping_warn_time	},
 	{ "reject_after_count",	CF_INT,   NULL, 0, &ConfigFileEntry.reject_after_count	},
 	{ "reject_ban_time",	CF_TIME,  NULL, 0, &ConfigFileEntry.reject_ban_time	},
 	{ "reject_duration",	CF_TIME,  NULL, 0, &ConfigFileEntry.reject_duration	},
@@ -2786,6 +2811,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "strip_topic_colors",	CF_YESNO, NULL, 0, &ConfigChannel.strip_topic_colors	},
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
 	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
+	{ "invite_notify_notice", CF_YESNO, NULL, 0, &ConfigChannel.invite_notify_notice	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 
@@ -2815,7 +2841,6 @@ newconf_init()
 
 	add_top_conf("listen", conf_begin_listen, conf_end_listen, NULL);
 	add_conf_item("listen", "defer_accept", CF_YESNO, conf_set_listen_defer_accept);
-	add_conf_item("listen", "wsock", CF_YESNO, conf_set_listen_wsock);
 	add_conf_item("listen", "port", CF_INT | CF_FLIST, conf_set_listen_port);
 	add_conf_item("listen", "sslport", CF_INT | CF_FLIST, conf_set_listen_sslport);
 	add_conf_item("listen", "sctp_port", CF_INT | CF_FLIST, conf_set_listen_sctp_port);

@@ -140,6 +140,16 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 					    target_p->name, target_p->username, target_p->host,
 					    EmptyString(target_p->user->suser) ? "*" : target_p->user->suser);
 
+	if (MyClient(target_p))
+	{
+		if (EmptyString(target_p->user->suser))
+	                sendto_one(target_p, form_str(RPL_LOGGEDOUT), me.name, target_p->name,
+				target_p->name, target_p->username, target_p->host);
+		else
+			sendto_one(target_p, form_str(RPL_LOGGEDIN), me.name, target_p->name,
+				target_p->name, target_p->username, target_p->host, parv[2], parv[2]);
+	}
+
 	invalidate_bancache_user(target_p);
 }
 
@@ -153,6 +163,13 @@ me_login(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	rb_strlcpy(source_p->user->suser, parv[1], sizeof(source_p->user->suser));
 }
 
+/* me_rsfnc()
+ *     parv[1] = current user nickname
+ *     parv[2] = target nickname
+ *     parv[3] = new nickts
+ *     parv[4] = current nickts
+ *     parv[5] = optional; 0 (don't override RESVs) or 1 (override RESVs)
+ */
 static void
 me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
@@ -186,6 +203,12 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	 * nicknames before the RSFNC arrives.. --anfl
 	 */
 	if(target_p->tsinfo != curts)
+		return;
+
+	/* received a non-forced RSFNC for a nickname that is RESV.
+	 * silently ignore it. ~jess
+	 */
+	if(parc > 5 && atoi(parv[5]) == 0 && find_nick_resv(parv[2]))
 		return;
 
 	if((exist_p = find_named_client(parv[2])))
@@ -257,7 +280,10 @@ doit:
 
 	monitor_signon(target_p);
 
-	del_all_accepts(target_p);
+	/* Make sure everyone that has this client on its accept list
+	 * loses that reference.
+	 */
+	del_all_accepts(target_p, false);
 
 	snprintf(note, sizeof(note), "Nick: %s", target_p->name);
 	rb_note(target_p->localClient->F, note);

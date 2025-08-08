@@ -1,0 +1,27 @@
+SETFILTER * ENABLE
+SETFILTER * DISABLE
+SETFILTER * DROP
+SETFILTER * ABORT
+SETFILTER [server-mask] <check> { NEW | APPLY | +<data> }
+
+Manages Hyperscan message filtering.
+
+ENABLE activates filtering.
+
+DISABLE deactivates filtering. It can be re-enabled with ENABLE.
+
+DROP unloads the currently loaded Hyperscan database, if any.
+
+ABORT cancels a database load operation started with NEW.
+
+NEW prepares a buffer to accept a new Hyperscan database.
+
+<data> is a base64 encoded chunk of a serialized hyperscan database.
+
+APPLY deserialises the buffer and sets the resulting hyperscan database
+as the one to use for filtering.
+
+<check> can be any string and must be the same for all NEW, +<data>, and
+APPLY commands for a single hyperscan database.
+
+Requires Oper Priv: oper:admin

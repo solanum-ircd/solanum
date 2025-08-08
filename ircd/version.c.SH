@@ -26,6 +26,7 @@ else \
          { print $1 " "  $2 " " $3 " " $7 " at " $4 " " $5 " " $6 }}'`
 else
     creation="$EXTERNAL_BUILD_TIMESTAMP"
+    generation=1
 fi
 
 $spitshell >version.c <<!SUB!THIS!

@@ -1,8 +1,8 @@
 JOIN <#channel> [key]
 
 The JOIN command allows you to enter a public chat area known as
-a channel. Network wide channels are proceeded by a '#', while
-a local server channel is proceeded by an '&'. More than one
+a channel. Network wide channels are preceded by a '#', while
+a local server channel is preceded by an '&'. More than one
 channel may be specified, separated with commas (no spaces).
 
 If the channel has a key set, the 2nd argument must be

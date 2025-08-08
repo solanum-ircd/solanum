@@ -44,18 +44,18 @@ static const char trace_desc[] =
 
 static void m_trace(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
-static void trace_spy(struct Client *, struct Client *);
-
 struct Message trace_msgtab = {
 	"TRACE", 0, 0, 0, 0,
 	{mg_unreg, {m_trace, 0}, {m_trace, 0}, mg_ignore, mg_ignore, {m_trace, 0}}
 };
 
 int doing_trace_hook;
+int doing_trace_show_idle_hook;
 
 mapi_clist_av1 trace_clist[] = { &trace_msgtab, NULL };
 mapi_hlist_av1 trace_hlist[] = {
 	{ "doing_trace",	&doing_trace_hook },
+	{ "doing_trace_show_idle", &doing_trace_show_idle_hook },
 	{ NULL, NULL }
 };
 DECLARE_MODULE_AV2(trace, NULL, NULL, trace_clist, trace_hlist, NULL, NULL, NULL, trace_desc);
@@ -177,14 +177,10 @@ m_trace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			tname = target_p->name;
 		}
 
-		trace_spy(source_p, target_p);
-
 		sendto_one_numeric(source_p, RPL_ENDOFTRACE,
 				   form_str(RPL_ENDOFTRACE), tname);
 		return;
 	}
-
-	trace_spy(source_p, NULL);
 
 	/* give non-opers a limited trace output of themselves (if local),
 	 * opers and servers (if no shide) --fl
@@ -381,13 +377,22 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 
 	case STAT_CLIENT:
 		{
+			/* fire the doing_trace_show_idle hook to allow modules to tell us whether to show the idle time */
+	                hook_data_client_approval hdata_showidle;
+
+	                hdata_showidle.client = source_p;
+	                hdata_showidle.target = target_p;
+	                hdata_showidle.approved = WHOIS_IDLE_SHOW;
+
+			call_hook(doing_trace_show_idle_hook, &hdata_showidle);
+
 			sendto_one_numeric(source_p,
 					SeesOper(target_p, source_p) ? RPL_TRACEOPERATOR : RPL_TRACEUSER,
 					SeesOper(target_p, source_p) ? form_str(RPL_TRACEOPERATOR) : form_str(RPL_TRACEUSER),
 					class_name, name,
 					show_ip(source_p, target_p) ? ip : empty_sockhost,
-					(unsigned long)(rb_current_time() - target_p->localClient->lasttime),
-					(unsigned long)(rb_current_time() - target_p->localClient->last));
+					hdata_showidle.approved ? (unsigned long)(rb_current_time() - target_p->localClient->lasttime) : 0,
+					hdata_showidle.approved ? (unsigned long)(rb_current_time() - target_p->localClient->last) : 0);
 
 			cnt++;
 		}
@@ -418,21 +423,4 @@ report_this_status(struct Client *source_p, struct Client *target_p)
 	}
 
 	return (cnt);
-}
-
-/* trace_spy()
- *
- * input        - pointer to client
- * output       - none
- * side effects - hook event doing_trace is called
- */
-static void
-trace_spy(struct Client *source_p, struct Client *target_p)
-{
-	hook_data_client hdata;
-
-	hdata.client = source_p;
-	hdata.target = target_p;
-
-	call_hook(doing_trace_hook, &hdata);
 }

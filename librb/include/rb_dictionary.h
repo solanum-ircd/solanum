@@ -33,7 +33,7 @@ typedef struct rb_dictionary_iter rb_dictionary_iter;
 
 struct rb_dictionary;
 
-typedef int (*DCF)(/* const void *a, const void *b */);
+typedef int (*DCF)(const void *a, const void *b);
 
 struct rb_dictionary_element
 {

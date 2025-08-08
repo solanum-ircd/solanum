@@ -26,6 +26,8 @@
 #include "notice.h"
 #include "provider.h"
 
+#include <netinet/tcp.h> // TCP_NODELAY
+
 #define SELF_PID (opm_provider.id)
 
 #define OPM_READSIZE 128

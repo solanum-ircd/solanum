@@ -39,7 +39,6 @@
 #include "reject.h"
 #include "hostmask.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "hash.h"
 #include "s_assert.h"
 #include "logger.h"
@@ -285,7 +284,7 @@ next:
  * the format "255.255.255.255"
  */
 void
-add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_accept, int wsock)
+add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_accept)
 {
 	struct Listener *listener;
 	struct rb_sockaddr_storage vaddr[ARRAY_SIZE(listener->addr)];
@@ -347,7 +346,6 @@ add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_
 	listener->ssl = ssl;
 	listener->defer_accept = defer_accept;
 	listener->sctp = 0;
-	listener->wsock = wsock;
 
 	if (inetport(listener)) {
 		listener->active = 1;
@@ -362,7 +360,7 @@ add_tcp_listener(int port, const char *vhost_ip, int family, int ssl, int defer_
  * vhost_ip1/2 - if non-null must contain a valid IP address string
  */
 void
-add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ssl, int wsock)
+add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ssl)
 {
 	struct Listener *listener;
 	struct rb_sockaddr_storage vaddr[ARRAY_SIZE(listener->addr)];
@@ -417,7 +415,6 @@ add_sctp_listener(int port, const char *vhost_ip1, const char *vhost_ip2, int ss
 	listener->ssl = ssl;
 	listener->defer_accept = 0;
 	listener->sctp = 1;
-	listener->wsock = wsock;
 
 	if (inetport(listener)) {
 		listener->active = 1;
@@ -538,26 +535,6 @@ add_connection(struct Listener *listener, rb_fde_t *F, struct sockaddr *sai, str
 			SetSecure(new_client);
 	}
 
-	if (listener->wsock)
-	{
-		rb_fde_t *xF[2];
-		if(rb_socketpair(AF_UNIX, SOCK_STREAM, 0, &xF[0], &xF[1], "Incoming wsockd Connection") == -1)
-		{
-			SetIOError(new_client);
-			exit_client(new_client, new_client, new_client, "Fatal Error");
-			return;
-		}
-		new_client->localClient->ws_ctl = start_wsockd_accept(F, xF[1], connid_get(new_client));        /* this will close F for us */
-		if(new_client->localClient->ws_ctl == NULL)
-		{
-			SetIOError(new_client);
-			exit_client(new_client, new_client, new_client, "Service Unavailable");
-			return;
-		}
-		F = xF[0];
-		new_client->localClient->F = F;
-	}
-
 	new_client->localClient->listener = listener;
 
 	++listener->ref_count;
@@ -572,8 +549,6 @@ accept_sslcallback(struct Client *client_p, int status)
 	return 0; /* use default handler if status != RB_OK */
 }
 
-static const char *toofast = "ERROR :Reconnecting too fast, throttled.\r\n";
-
 static int
 accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, void *data)
 {
@@ -582,6 +557,19 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 	struct ConfItem *aconf;
 	static time_t last_oper_notice = 0;
 	int len;
+
+	static const char *allinuse = "ERROR :All connections in use\r\n";
+	static const char *toofast = "ERROR :Reconnecting too fast, throttled.\r\n";
+
+	static const unsigned char ssldeniederrcode[] = {
+		// SSLv3.0 Fatal Alert: Access Denied
+		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x31
+	};
+
+	static const unsigned char sslinternalerrcode[] = {
+		// SSLv3.0 Fatal Alert: Internal Error
+		0x15, 0x03, 0x00, 0x00, 0x02, 0x02, 0x50
+	};
 
 	if(listener->ssl && (!ircd_ssl_ok || !get_ssld_count()))
 	{
@@ -603,7 +591,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 			last_oper_notice = rb_current_time();
 		}
 
-		rb_write(F, "ERROR :All connections in use\r\n", 31);
+		if(listener->ssl)
+			rb_write(F, sslinternalerrcode, sizeof(sslinternalerrcode));
+		else
+			rb_write(F, allinuse, strlen(allinuse));
+
 		rb_close(F);
 		return 0;
 	}
@@ -618,7 +610,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 	{
 		ServerStats.is_ref++;
 
-		if(ConfigFileEntry.dline_with_reason)
+		if(listener->ssl)
+		{
+			rb_write(F, ssldeniederrcode, sizeof(ssldeniederrcode));
+		}
+		else if(ConfigFileEntry.dline_with_reason)
 		{
 			len = snprintf(buf, sizeof(buf), "ERROR :*** Banned: %s\r\n", get_user_ban_reason(aconf));
 			if (len >= (int)(sizeof(buf)-1))
@@ -627,16 +623,19 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 				buf[sizeof(buf) - 2] = '\n';
 				buf[sizeof(buf) - 1] = '\0';
 			}
+			rb_write(F, buf, strlen(buf));
 		}
 		else
+		{
 			strcpy(buf, "ERROR :You have been D-lined.\r\n");
+			rb_write(F, buf, strlen(buf));
+		}
 
-		rb_write(F, buf, strlen(buf));
 		rb_close(F);
 		return 0;
 	}
 
-	if(check_reject(F, addr)) {
+	if(check_reject(F, addr, listener->ssl)) {
 		/* Reject the connection without closing the socket
 		 * because it is now on the delay_exit list. */
 		return 0;
@@ -644,7 +643,11 @@ accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, voi
 
 	if(throttle_add(addr))
 	{
-		rb_write(F, toofast, strlen(toofast));
+		if(listener->ssl)
+			rb_write(F, ssldeniederrcode, sizeof(ssldeniederrcode));
+		else
+			rb_write(F, toofast, strlen(toofast));
+
 		rb_close(F);
 		return 0;
 	}

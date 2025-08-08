@@ -1,10 +1,11 @@
 UNXLINE <gecos>
 
-Will attempt to unxline the given <gecos>
+Will attempt to UNXLINE the given gecos on the local
+server.
 
+UNXLINE <gecos> ON <irc.server>
 
-UNXLINE <gecos> ON <server>
-
-Will attempt to unxline the given <gecos> on <server>.
+Will attempt to UNXLINE the given gecos on servers
+that match irc.server. irc.server can contain wildcards.
 
 - Requires Oper Priv: oper:xline

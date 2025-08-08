@@ -272,6 +272,23 @@ read_packet(rb_fde_t * F, void *data)
 			client_p->localClient->lasttime = rb_current_time();
 		client_p->flags &= ~FLAGS_PINGSENT;
 
+		if (client_p->flags & FLAGS_PINGWARN)
+		{
+			/*
+			 * if we warned about this server being unresponsive
+			 * before, let's let everyone know there's no need
+			 * to panic
+			 */
+			client_p->flags &= ~FLAGS_PINGWARN;
+			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+				"Received response from previously unresponsive link %s",
+				client_p->name);
+			ilog(L_SERVER,
+				"Received response from previously unresponsive link %s",
+				log_client_name(client_p, HIDE_IP));
+		}
+
+
 		/*
 		 * Before we even think of parsing what we just read, stick
 		 * it on the end of the receive queue and do it when its

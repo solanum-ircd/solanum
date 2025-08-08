@@ -42,7 +42,6 @@
 #include <sys/sysctl.h>
 #endif
 
-#if defined(HAVE_SPAWN_H) && defined(HAVE_POSIX_SPAWN)
 #include <spawn.h>
 
 #ifndef __APPLE__
@@ -74,56 +73,20 @@ rb_spawn_process(const char *path, const char **argv)
 	}
 	return pid;
 }
-#else
-pid_t
-rb_spawn_process(const char *path, const char **argv)
-{
-	pid_t pid;
-	if(!(pid = vfork()))
-	{
-		execv(path, (const void *)argv);	/* make gcc shut up */
-		_exit(1);	/* if we're still here, we're screwed */
-	}
-	return (pid);
-}
-#endif
 
-#ifndef HAVE_GETTIMEOFDAY
-int
-rb_gettimeofday(struct timeval *tv, void *tz)
-{
-	if(tv == NULL)
-	{
-		errno = EFAULT;
-		return -1;
-	}
-	tv->tv_usec = 0;
-	if(time(&tv->tv_sec) == -1)
-		return -1;
-	return 0;
-}
-#else
 int
 rb_gettimeofday(struct timeval *tv, void *tz)
 {
 	return (gettimeofday(tv, tz));
 }
-#endif
 
 void
 rb_sleep(unsigned int seconds, unsigned int useconds)
 {
-#ifdef HAVE_NANOSLEEP
 	struct timespec tv;
 	tv.tv_nsec = (useconds * 1000);
 	tv.tv_sec = seconds;
 	nanosleep(&tv, NULL);
-#else
-	struct timeval tv;
-	tv.tv_sec = seconds;
-	tv.tv_usec = useconds;
-	select(0, NULL, NULL, NULL, &tv);
-#endif
 }
 
 /* this is to keep some linkers from bitching about exporting a non-existant symbol..bleh */
@@ -162,7 +125,7 @@ rb_path_to_self(void)
 {
 	static char path_buf[4096];
 #if defined(HAVE_GETEXECNAME)
-	char *s = getexecname();
+	const char *s = getexecname();
 	if (s == NULL)
 		return NULL;
 	realpath(s, path_buf);

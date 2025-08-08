@@ -165,6 +165,11 @@ mo_kline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	}
 
 	reason = LOCAL_COPY(parv[loc]);
+	if(strlen(reason) > BANREASONLEN)
+	{
+		sendto_one_notice(source_p, ":K-Line reason exceeds %d characters", BANREASONLEN);
+		return;
+	}
 
 	if(parse_netmask_strict(host, NULL, NULL) == HM_ERROR)
 	{
@@ -233,9 +238,6 @@ mo_kline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	aconf->user = rb_strdup(user);
 	aconf->port = 0;
 	aconf->info.oper = operhash_add(get_oper_name(source_p));
-
-	if(strlen(reason) > BANREASONLEN)
-		reason[BANREASONLEN] = '\0';
 
 	/* Look for an oper reason */
 	if((oper_reason = strchr(reason, '|')) != NULL)

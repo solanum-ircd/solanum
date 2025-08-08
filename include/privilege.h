@@ -43,6 +43,8 @@
 
 #include "stdinc.h"
 
+struct Client;
+
 enum {
 	PRIV_NEEDOPER = 1
 };

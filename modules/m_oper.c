@@ -107,8 +107,8 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		if(ConfigFileEntry.failed_oper_notice)
 		{
 			sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
-					     "Failed OPER attempt - host mismatch by %s (%s@%s)",
-					     source_p->name, source_p->username, source_p->host);
+					     "Failed OPER attempt - user@host mismatch or no operator block for %s by %s (%s@%s)",
+					     name, source_p->name, source_p->username, source_p->host);
 		}
 
 		return;

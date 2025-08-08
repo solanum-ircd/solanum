@@ -112,6 +112,7 @@ whowas_add_history(struct Client *client_p, int online)
 	rb_strlcpy(who->hostname, client_p->host, sizeof(who->hostname));
 	rb_strlcpy(who->realname, client_p->info, sizeof(who->realname));
 	rb_strlcpy(who->sockhost, client_p->sockhost, sizeof(who->sockhost));
+	rb_strlcpy(who->suser, client_p->user->suser, sizeof(who->suser));
 
 	who->flags = (IsIPSpoof(client_p) ? WHOWAS_IP_SPOOFING : 0) |
 		(IsDynSpoof(client_p) ? WHOWAS_DYNSPOOF : 0);

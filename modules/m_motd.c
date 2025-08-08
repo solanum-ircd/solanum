@@ -56,8 +56,6 @@ mapi_hlist_av1 motd_hlist[] = {
 
 DECLARE_MODULE_AV2(motd, NULL, NULL, motd_clist, motd_hlist, NULL, NULL, NULL, motd_desc);
 
-static void motd_spy(struct Client *);
-
 /*
 ** m_motd
 **      parv[1] = servername
@@ -83,7 +81,6 @@ m_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if(hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
-	motd_spy(source_p);
 	send_user_motd(source_p);
 }
 
@@ -97,23 +94,5 @@ mo_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	if(hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
-	motd_spy(source_p);
 	send_user_motd(source_p);
-}
-
-/* motd_spy()
- *
- * input        - pointer to client
- * output       - none
- * side effects - hook doing_motd is called
- */
-static void
-motd_spy(struct Client *source_p)
-{
-	hook_data data;
-
-	data.client = source_p;
-	data.arg1 = data.arg2 = NULL;
-
-	call_hook(doing_motd_hook, &data);
 }

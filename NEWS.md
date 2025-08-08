@@ -14,6 +14,8 @@ bolded warnings in the full release notes below.
 - Add `--with-asan` to configure to produce an ASan instrumented build
 
 ### server protocol
+- **Breaking:** Don't implicitly abort SASL when connection registration handshake completes;
+  requires updating atheme to include https://github.com/atheme/atheme/pull/833.
 - OPER is now propagated globally, as :operator OPER opername privset
 
 ### user
@@ -74,6 +76,7 @@ bolded warnings in the full release notes below.
   be disconnected on registration
 
 ### misc
+- **Breaking:** WebSocket support has been removed.
 - **Breaking:** WEBIRC now processes the "secure" option as specified by IRCv3. Web gateways that
   do not set this option will need to be updated or their connections will show as insecure.
 - Successfully changing IP with WEBIRC now drops an identd username

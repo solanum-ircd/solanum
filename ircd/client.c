@@ -51,7 +51,6 @@
 #include "scache.h"
 #include "rb_dictionary.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "s_assert.h"
 
 #define DEBUG_EXITED_CLIENTS
@@ -307,9 +306,6 @@ free_local_client(struct Client *client_p)
 
 	rb_free(client_p->localClient->cipher_string);
 
-	if (client_p->localClient->ws_ctl != NULL)
-		wsockd_decrement_clicount(client_p->localClient->ws_ctl);
-
 	rb_bh_free(lclient_heap, client_p->localClient);
 	client_p->localClient = NULL;
 }
@@ -419,6 +415,27 @@ check_pings_list(rb_dlink_list * list)
 				/* not nice but does the job */
 				client_p->localClient->lasttime = rb_current_time() - ping;
 				sendto_one(client_p, "PING :%s", me.name);
+			}
+			else if (ConfigFileEntry.ping_warn_time > 0 && (IsServer(client_p) || IsHandshake(client_p)) &&
+					(rb_current_time() - client_p->localClient->lasttime) >= (ping + ConfigFileEntry.ping_warn_time))
+			{
+				/*
+				 * if we haven't heard from a server in a while,
+				 * warn opers that something could be wrong...
+				 *
+				 * we'll do this about every 30 seconds until
+				 * the server either becomes responsive or
+				 * pings out. whichever comes first.
+				 */
+				client_p->flags |= FLAGS_PINGWARN;
+				sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+					     "Warning: No response from %s for %ld seconds",
+					     client_p->name,
+					     (rb_current_time() - client_p->localClient->lasttime - ping));
+				ilog(L_SERVER,
+					     "Warning: No response from %s for %ld seconds",
+					     log_client_name(client_p, HIDE_IP),
+					     (rb_current_time() - client_p->localClient->lasttime - ping));
 			}
 		}
 		/* ping_timeout: */
@@ -1364,7 +1381,7 @@ exit_generic_client(struct Client *client_p, struct Client *source_p, struct Cli
 	}
 
 	/* Clean up allow lists */
-	del_all_accepts(source_p);
+	del_all_accepts(source_p, true);
 
 	whowas_add_history(source_p, 0);
 	whowas_off_history(source_p);
@@ -1573,11 +1590,11 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
-			     " for %ld seconds.  %d/%d sendK/recvK.",
-			     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+			     " for %lld seconds.  %d/%d sendK/recvK.",
+			     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
-	ilog(L_SERVER, "%s was connected for %ld seconds.  %d/%d sendK/recvK.",
-	     source_p->name, (long) rb_current_time() - source_p->localClient->firsttime, sendk, recvk);
+	ilog(L_SERVER, "%s was connected for %lld seconds.  %d/%d sendK/recvK.",
+	     source_p->name, (long long)(rb_current_time() - source_p->localClient->firsttime), sendk, recvk);
 
 	if(has_id(source_p))
 		del_from_id_hash(source_p->id, source_p);
@@ -1772,19 +1789,19 @@ count_remote_client_memory(size_t * count, size_t * remote_client_memory_used)
 /*
  * del_all_accepts
  *
- * inputs	- pointer to exiting client
+ * inputs	- pointer to exiting client, flag to include own allow_list
  * output	- NONE
  * side effects - Walk through given clients allow_list and on_allow_list
  *                remove all references to this client
  */
 void
-del_all_accepts(struct Client *client_p)
+del_all_accepts(struct Client *client_p, bool self_too)
 {
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	struct Client *target_p;
 
-	if(MyClient(client_p) && client_p->localClient->allow_list.head)
+	if(self_too && MyClient(client_p) && client_p->localClient->allow_list.head)
 	{
 		/* clear this clients accept list, and remove them from
 		 * everyones on_accept_list
@@ -1792,6 +1809,7 @@ del_all_accepts(struct Client *client_p)
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->allow_list.head)
 		{
 			target_p = ptr->data;
+
 			rb_dlinkFindDestroy(client_p, &target_p->on_allow_list);
 			rb_dlinkDestroy(ptr, &client_p->localClient->allow_list);
 		}
@@ -1801,6 +1819,13 @@ del_all_accepts(struct Client *client_p)
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->on_allow_list.head)
 	{
 		target_p = ptr->data;
+
+		/* If we're not doing our own, we're doing this because of a nick change.
+		 * Skip those that would see the nick change anyway
+		 */
+		if(!self_too && has_common_channel(client_p, target_p))
+			continue;
+
 		rb_dlinkFindDestroy(client_p, &target_p->localClient->allow_list);
 		rb_dlinkDestroy(ptr, &client_p->on_allow_list);
 	}
@@ -1844,7 +1869,7 @@ show_ip_conf(struct ConfItem *aconf, struct Client *source_p)
 {
 	if(IsConfDoSpoofIp(aconf))
 	{
-		if(!ConfigFileEntry.hide_spoof_ips && MyOper(source_p))
+		if(!ConfigFileEntry.hide_spoof_ips && IsOper(source_p))
 			return 1;
 
 		return 0;
@@ -1857,7 +1882,7 @@ int
 show_ip_whowas(struct Whowas *whowas, struct Client *source_p)
 {
 	if(whowas->flags & WHOWAS_IP_SPOOFING)
-		if(ConfigFileEntry.hide_spoof_ips || !MyOper(source_p))
+		if(ConfigFileEntry.hide_spoof_ips || !IsOper(source_p))
 			return 0;
 	if(whowas->flags & WHOWAS_DYNSPOOF)
 		if(!IsOper(source_p))

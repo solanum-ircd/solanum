@@ -26,9 +26,11 @@
 #include <librb_config.h>
 #include <rb_lib.h>
 #include <commio-int.h>
+#include <poll.h>
 
-#if defined(HAVE_POLL) && (HAVE_SYS_POLL_H)
+#ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
+#endif
 
 
 /* I hate linux -- adrian */
@@ -228,34 +230,3 @@ rb_select_poll(long delay)
 	}
 	return 0;
 }
-
-#else /* poll not supported */
-int
-rb_init_netio_poll(void)
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-void
-rb_setselect_poll(rb_fde_t *F __attribute__((unused)), unsigned int type __attribute__((unused)), PF * handler __attribute__((unused)), void *client_data __attribute__((unused)))
-{
-	errno = ENOSYS;
-	return;
-}
-
-int
-rb_select_poll(long delay __attribute__((unused)))
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-int
-rb_setup_fd_poll(rb_fde_t *F __attribute__((unused)))
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-#endif

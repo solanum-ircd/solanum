@@ -46,7 +46,6 @@
 #include "cache.h"
 #include "privilege.h"
 #include "sslproc.h"
-#include "wsproc.h"
 #include "bandbi.h"
 #include "operhash.h"
 #include "chmode.h"
@@ -83,8 +82,8 @@ static int cmp_prop_ban(const void *, const void *);
 FILE *conf_fbfile_in;
 extern char yytext[];
 
-static int verify_access(struct Client *client_p, const char *username);
-static struct ConfItem *find_address_conf_by_client(struct Client *client_p, const char *username);
+static int verify_access(struct Client *client_p, const char *notildeusername);
+static struct ConfItem *find_address_conf_by_client(struct Client *client_p, const char *notildeusername);
 static int attach_iline(struct Client *, struct ConfItem *);
 
 void
@@ -154,6 +153,7 @@ free_conf(struct ConfItem *aconf)
 	rb_free(aconf->className);
 	rb_free(aconf->user);
 	rb_free(aconf->host);
+	rb_free(aconf->desc);
 
 	if(IsConfBan(aconf))
 		operhash_delete(aconf->info.oper);
@@ -178,11 +178,11 @@ free_conf(struct ConfItem *aconf)
  * 		  status as the flags passed.
  */
 int
-check_client(struct Client *client_p, struct Client *source_p, const char *username)
+check_client(struct Client *client_p, struct Client *source_p, const char *notildeusername)
 {
 	int i;
 
-	if((i = verify_access(source_p, username)))
+	if((i = verify_access(source_p, notildeusername)))
 	{
 		ilog(L_FUSER, "Access denied: %s[%s]",
 		     source_p->name, source_p->sockhost);
@@ -200,14 +200,12 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 		 * see the IP, we still cannot send it.
 		 */
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many local connections for %s[%s%s@%s] [%s]",
-				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username, source_p->host,
+				"Too many local connections for %s[%s@%s] [%s]",
+				source_p->name, source_p->username, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
-		ilog(L_FUSER, "Too many local connections from %s!%s%s@%s",
-			source_p->name, IsGotId(source_p) ? "" : "~",
-			source_p->username, source_p->sockhost);
+		ilog(L_FUSER, "Too many local connections from %s!%s@%s",
+			source_p->name, source_p->username, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many host connections (local)");
@@ -215,13 +213,11 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_GLOBAL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many global connections for %s[%s%s@%s] [%s]",
-				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username, source_p->host,
+				"Too many global connections for %s[%s@%s] [%s]",
+				source_p->name, source_p->username, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
-		ilog(L_FUSER, "Too many global connections from %s!%s%s@%s",
-			source_p->name, IsGotId(source_p) ? "" : "~",
-			source_p->username, source_p->sockhost);
+		ilog(L_FUSER, "Too many global connections from %s!%s@%s",
+			source_p->name, source_p->username, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many host connections (global)");
@@ -229,13 +225,11 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case TOO_MANY_IDENT:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"Too many user connections for %s[%s%s@%s] [%s]",
-				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username, source_p->host,
+				"Too many user connections for %s[%s@%s] [%s]",
+				source_p->name, source_p->username, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
-		ilog(L_FUSER, "Too many user connections from %s!%s%s@%s",
-			source_p->name, IsGotId(source_p) ? "" : "~",
-			source_p->username, source_p->sockhost);
+		ilog(L_FUSER, "Too many user connections from %s!%s@%s",
+			source_p->name, source_p->username, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me, "Too many user connections (global)");
@@ -243,14 +237,12 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 
 	case I_LINE_FULL:
 		sendto_realops_snomask(SNO_FULL, L_NETWIDE,
-				"I-line is full for %s[%s%s@%s] [%s]",
-				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username, source_p->host,
+				"I-line is full for %s[%s@%s] [%s]",
+				source_p->name, source_p->username, source_p->host,
 				show_ip(NULL, source_p) && !IsIPSpoof(source_p) ? source_p->sockhost : "0");
 
-		ilog(L_FUSER, "Too many connections from %s!%s%s@%s.",
-			source_p->name, IsGotId(source_p) ? "" : "~",
-			source_p->username, source_p->sockhost);
+		ilog(L_FUSER, "Too many connections from %s!%s@%s.",
+			source_p->name, source_p->username, source_p->sockhost);
 
 		ServerStats.is_ref++;
 		exit_client(client_p, source_p, &me,
@@ -272,16 +264,14 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
 #endif
 			sendto_realops_snomask(SNO_UNAUTH, L_NETWIDE,
 					"Unauthorised client connection from "
-					"%s!%s%s@%s [%s] on [%s/%u].",
-					source_p->name, IsGotId(source_p) ? "" : "~",
-					source_p->username, source_p->host,
+					"%s!%s@%s [%s] on [%s/%u].",
+					source_p->name, source_p->username, source_p->host,
 					source_p->sockhost,
 					source_p->localClient->listener->name, port);
 
 			ilog(L_FUSER,
-				"Unauthorised client connection from %s!%s%s@%s on [%s/%u].",
-				source_p->name, IsGotId(source_p) ? "" : "~",
-				source_p->username, source_p->sockhost,
+				"Unauthorised client connection from %s!%s@%s on [%s/%u].",
+				source_p->name, source_p->username, source_p->sockhost,
 				source_p->localClient->listener->name, port);
 			add_reject(client_p, NULL, NULL, NULL, "You are not authorised to use this server.");
 			exit_client(client_p, source_p, &me, "You are not authorised to use this server.");
@@ -303,16 +293,16 @@ check_client(struct Client *client_p, struct Client *source_p, const char *usern
  * verify_access
  *
  * inputs	- pointer to client to verify
- *		- pointer to proposed username
+ *		- pointer to proposed notildeusername
  * output	- 0 if success -'ve if not
  * side effect	- find the first (best) I line to attach.
  */
 static int
-verify_access(struct Client *client_p, const char *username)
+verify_access(struct Client *client_p, const char *notildeusername)
 {
 	struct ConfItem *aconf;
 
-	aconf = find_address_conf_by_client(client_p, username);
+	aconf = find_address_conf_by_client(client_p, notildeusername);
 	if(aconf == NULL)
 		return NOT_AUTHORISED;
 
@@ -382,29 +372,17 @@ verify_access(struct Client *client_p, const char *username)
  * find_address_conf_by_client
  */
 static struct ConfItem *
-find_address_conf_by_client(struct Client *client_p, const char *username)
+find_address_conf_by_client(struct Client *client_p, const char *notildeusername)
 {
 	struct ConfItem *aconf;
-	char non_ident[USERLEN + 1];
 
-	if(IsGotId(client_p))
-	{
-		aconf = find_address_conf(client_p->host, client_p->sockhost,
-					client_p->username, client_p->username,
-					(struct sockaddr *) &client_p->localClient->ip,
-					GET_SS_FAMILY(&client_p->localClient->ip),
-					client_p->localClient->auth_user);
-	}
-	else
-	{
-		rb_strlcpy(non_ident, "~", sizeof(non_ident));
-		rb_strlcat(non_ident, username, sizeof(non_ident));
-		aconf = find_address_conf(client_p->host, client_p->sockhost,
-					non_ident, client_p->username,
-					(struct sockaddr *) &client_p->localClient->ip,
-					GET_SS_FAMILY(&client_p->localClient->ip),
-					client_p->localClient->auth_user);
-	}
+	aconf = find_address_conf(client_p->host, client_p->sockhost,
+				client_p->username,
+				IsGotId(client_p) ? client_p->username : notildeusername,
+				(struct sockaddr *) &client_p->localClient->ip,
+				GET_SS_FAMILY(&client_p->localClient->ip),
+				client_p->localClient->auth_user);
+
 	return aconf;
 }
 
@@ -641,16 +619,18 @@ attach_conf(struct Client *client_p, struct ConfItem *aconf)
 	return (0);
 }
 
-/*
- * rehash
- *
- * Actual REHASH service routine. Called with sig == 0 if it has been called
- * as a result of an operator issuing this command, else assume it has been
- * called as a result of the server receiving a HUP signal.
- */
-bool
-rehash(bool sig)
+struct rehash_data {
+	bool sig;
+};
+
+static void
+service_rehash(void *data_)
 {
+	struct rehash_data *data = data_;
+	bool sig = data->sig;
+
+	rb_free(data);
+
 	rb_dlink_node *n;
 
 	hook_data_rehash hdata = { sig };
@@ -683,6 +663,21 @@ rehash(bool sig)
 	privilegeset_cleanup_rehash();
 
 	call_hook(h_rehash, &hdata);
+}
+
+/*
+ * rehash
+ *
+ * Called with sig == 0 if it has been called as a result of an operator
+ * issuing this command, else assume it has been called as a result of the
+ * server receiving a HUP signal.
+ */
+bool
+rehash(bool sig)
+{
+	struct rehash_data *data = rb_malloc(sizeof *data);
+	data->sig = sig;
+	rb_defer(service_rehash, data);
 	return false;
 }
 
@@ -811,7 +806,8 @@ set_default_conf(void)
 	ConfigChannel.disable_local_channels = false;
 	ConfigChannel.displayed_usercount = 3;
 	ConfigChannel.opmod_send_statusmsg = false;
-	ConfigChannel.ip_bans_through_vhost= true;
+	ConfigChannel.ip_bans_through_vhost = true;
+	ConfigChannel.invite_notify_notice = true;
 
 	ConfigChannel.autochanmodes = MODE_TOPICLIMIT | MODE_NOPRIVMSGS;
 
@@ -888,9 +884,6 @@ validate_conf(void)
 	if(ServerInfo.ssld_count < 1)
 		ServerInfo.ssld_count = 1;
 
-	/* XXX: configurable? */
-	ServerInfo.wsockd_count = 1;
-
 	if(!rb_setup_ssl_server(ServerInfo.ssl_cert, ServerInfo.ssl_private_key, ServerInfo.ssl_dh_params, ServerInfo.ssl_cipher_list))
 	{
 		ilog(L_MAIN, "WARNING: Unable to setup SSL.");
@@ -905,12 +898,6 @@ validate_conf(void)
 		int start = ServerInfo.ssld_count - get_ssld_count();
 		/* start up additional ssld if needed */
 		start_ssldaemon(start);
-	}
-
-	if(ServerInfo.wsockd_count > get_wsockd_count())
-	{
-		int start = ServerInfo.wsockd_count - get_wsockd_count();
-		start_wsockd(start);
 	}
 
 	/* General conf */
@@ -1346,7 +1333,8 @@ get_oper_name(struct Client *client_p)
  */
 void
 get_printable_conf(struct ConfItem *aconf, char **name, char **host,
-		   const char **pass, char **user, int *port, char **classname)
+		   const char **pass, char **user, int *port,
+		   char **classname, char **desc)
 {
 	static char null[] = "<NULL>";
 	static char zero[] = "default";
@@ -1356,6 +1344,7 @@ get_printable_conf(struct ConfItem *aconf, char **name, char **host,
 	*pass = EmptyString(aconf->passwd) ? null : aconf->passwd;
 	*user = EmptyString(aconf->user) ? null : aconf->user;
 	*classname = EmptyString(aconf->className) ? zero : aconf->className;
+	*desc = CheckEmpty(aconf->desc);
 	*port = (int) aconf->port;
 }
 
