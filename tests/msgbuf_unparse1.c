@@ -42,6 +42,32 @@ static const char text[] =
 "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
 "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ;
 
 #define MKTEXT(n) &text[sizeof(text) - ((n) + 1)]
@@ -94,10 +120,10 @@ static void basic_tags2(void)
 	}
 }
 
-static void basic_tags15(void)
+static void basic_tags30(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 15,
+		.n_tags = 30,
 		.tags = {
 			{ .key = "tag1", .value = "value1", .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
@@ -114,6 +140,21 @@ static void basic_tags15(void)
 			{ .key = "tag13", .value = "value13", .capmask = 1 },
 			{ .key = "tag14", .value = "value14", .capmask = 1 },
 			{ .key = "tag15", .value = "value15", .capmask = 1 },
+			{ .key = "tag16", .value = "value16", .capmask = 1 },
+			{ .key = "tag17", .value = "value17", .capmask = 1 },
+			{ .key = "tag18", .value = "value18", .capmask = 1 },
+			{ .key = "tag19", .value = "value19", .capmask = 1 },
+			{ .key = "tag20", .value = "value20", .capmask = 1 },
+			{ .key = "tag21", .value = "value21", .capmask = 1 },
+			{ .key = "tag22", .value = "value22", .capmask = 1 },
+			{ .key = "tag23", .value = "value23", .capmask = 1 },
+			{ .key = "tag24", .value = "value24", .capmask = 1 },
+			{ .key = "tag25", .value = "value25", .capmask = 1 },
+			{ .key = "tag26", .value = "value26", .capmask = 1 },
+			{ .key = "tag27", .value = "value27", .capmask = 1 },
+			{ .key = "tag28", .value = "value28", .capmask = 1 },
+			{ .key = "tag29", .value = "value29", .capmask = 1 },
+			{ .key = "tag30", .value = "value30", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -126,7 +167,7 @@ static void basic_tags15(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		is_string("@tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15 :origin PRIVMSG #test test test :test test", output, MSG);
+		is_string("@tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=value30 :origin PRIVMSG #test test test :test test", output, MSG);
 	}
 }
 
@@ -247,11 +288,14 @@ static void empty_tag(void)
 static void too_long_for_tag2a_0remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(250), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2047), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4088), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -264,14 +308,16 @@ static void too_long_for_tag2a_0remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(250));
+		strcat(tmp, MKTEXT(2047));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4088));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(8191, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -281,11 +327,14 @@ static void too_long_for_tag2a_0remaining(void)
 static void too_long_for_tag2a_1remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(249), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2046), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4087), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -298,14 +347,16 @@ static void too_long_for_tag2a_1remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(249));
+		strcat(tmp, MKTEXT(2046));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4087));
 		strcat(tmp, " ");
-		is_int(512 - 1, strlen(tmp), MSG);
+		is_int(8191 - 2, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -315,11 +366,14 @@ static void too_long_for_tag2a_1remaining(void)
 static void too_long_for_tag2a_2remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(248), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2045), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4086), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -332,14 +386,16 @@ static void too_long_for_tag2a_2remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(248));
+		strcat(tmp, MKTEXT(2045));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4086));
 		strcat(tmp, " ");
-		is_int(512 - 2, strlen(tmp), MSG);
+		is_int(8191 - 4, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -349,11 +405,14 @@ static void too_long_for_tag2a_2remaining(void)
 static void too_long_for_tag2a_3remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(247), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2044), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4085), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -366,14 +425,16 @@ static void too_long_for_tag2a_3remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(247));
+		strcat(tmp, MKTEXT(2044));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4085));
 		strcat(tmp, " ");
-		is_int(512 - 3, strlen(tmp), MSG);
+		is_int(8191 - 6, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -383,11 +444,14 @@ static void too_long_for_tag2a_3remaining(void)
 static void too_long_for_tag2a_3short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(241), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2038), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4078), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -400,14 +464,16 @@ static void too_long_for_tag2a_3short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(241));
+		strcat(tmp, MKTEXT(2038));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4078));
 		strcat(tmp, " ");
-		is_int(512 - 9, strlen(tmp), MSG);
+		is_int(8191 - 19, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -417,11 +483,14 @@ static void too_long_for_tag2a_3short(void)
 static void too_long_for_tag2a_2short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(240), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2037), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4077), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -434,14 +503,16 @@ static void too_long_for_tag2a_2short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(240));
+		strcat(tmp, MKTEXT(2037));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4077));
 		strcat(tmp, " ");
-		is_int(512 - 10, strlen(tmp), MSG);
+		is_int(8191 - 21, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -451,11 +522,14 @@ static void too_long_for_tag2a_2short(void)
 static void too_long_for_tag2a_1short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(239), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2036), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4076), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -468,14 +542,16 @@ static void too_long_for_tag2a_1short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(239));
+		strcat(tmp, MKTEXT(2036));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4076));
 		strcat(tmp, " ");
-		is_int(512 - 11, strlen(tmp), MSG);
+		is_int(8191 - 23, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -485,11 +561,14 @@ static void too_long_for_tag2a_1short(void)
 static void exact_space_for_tag2a(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(238), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2035), .capmask = 1 },
 			{ .key = "tag2", .value = "value2", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4075), .capmask = 1 },
+			{ .key = "+tag5", .value = "value5", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -502,14 +581,16 @@ static void exact_space_for_tag2a(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(238));
-		strcat(tmp, ";tag2=value2 ");
-		is_int(512, strlen(tmp), MSG);
+		strcat(tmp, MKTEXT(2035));
+		strcat(tmp, ";tag2=value2;+tag4=");
+		strcat(tmp, MKTEXT(4075));
+		strcat(tmp, ";+tag5=value5 ");
+		is_int(8191, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -519,11 +600,14 @@ static void exact_space_for_tag2a(void)
 static void too_long_for_tag2b_0remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(250), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2047), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4088), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -536,14 +620,16 @@ static void too_long_for_tag2b_0remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(250));
+		strcat(tmp, MKTEXT(2047));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4088));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(8191, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -553,11 +639,14 @@ static void too_long_for_tag2b_0remaining(void)
 static void too_long_for_tag2b_1remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(249), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2046), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4087), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -570,14 +659,16 @@ static void too_long_for_tag2b_1remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(249));
+		strcat(tmp, MKTEXT(2046));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4087));
 		strcat(tmp, " ");
-		is_int(512 - 1, strlen(tmp), MSG);
+		is_int(8191 - 2, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -587,11 +678,14 @@ static void too_long_for_tag2b_1remaining(void)
 static void too_long_for_tag2b_2remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(248), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2045), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4086), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -604,14 +698,16 @@ static void too_long_for_tag2b_2remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(248));
+		strcat(tmp, MKTEXT(2045));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4086));
 		strcat(tmp, " ");
-		is_int(512 - 2, strlen(tmp), MSG);
+		is_int(8191 - 4, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -621,11 +717,14 @@ static void too_long_for_tag2b_2remaining(void)
 static void too_long_for_tag2b_3remaining(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(259), .value = MKTEXT(247), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2044), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4085), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -638,14 +737,16 @@ static void too_long_for_tag2b_3remaining(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(259));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(247));
+		strcat(tmp, MKTEXT(2044));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4085));
 		strcat(tmp, " ");
-		is_int(512 - 3, strlen(tmp), MSG);
+		is_int(8191 - 6, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -655,11 +756,14 @@ static void too_long_for_tag2b_3remaining(void)
 static void too_long_for_tag2b_3short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(267), .value = MKTEXT(241), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2046), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4086), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -672,14 +776,16 @@ static void too_long_for_tag2b_3short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(267));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(241));
+		strcat(tmp, MKTEXT(2046));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4086));
 		strcat(tmp, " ");
-		is_int(512 - 1, strlen(tmp), MSG);
+		is_int(8191 - 3, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -689,11 +795,14 @@ static void too_long_for_tag2b_3short(void)
 static void too_long_for_tag2b_2short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(267), .value = MKTEXT(240), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2045), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4085), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -706,14 +815,16 @@ static void too_long_for_tag2b_2short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(267));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(240));
+		strcat(tmp, MKTEXT(2045));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4085));
 		strcat(tmp, " ");
-		is_int(512 - 2, strlen(tmp), MSG);
+		is_int(8191 - 5, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -723,11 +834,14 @@ static void too_long_for_tag2b_2short(void)
 static void too_long_for_tag2b_1short(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(267), .value = MKTEXT(239), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2044), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4084), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -740,14 +854,16 @@ static void too_long_for_tag2b_1short(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(267));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(239));
+		strcat(tmp, MKTEXT(2044));
+		strcat(tmp, ";+tag4=");
+		strcat(tmp, MKTEXT(4084));
 		strcat(tmp, " ");
-		is_int(512 - 3, strlen(tmp), MSG);
+		is_int(8191 - 7, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -757,11 +873,14 @@ static void too_long_for_tag2b_1short(void)
 static void exact_space_for_tag2b(void)
 {
 	const struct MsgBuf msgbuf = {
-		.n_tags = 3,
+		.n_tags = 6,
 		.tags = {
-			{ .key = MKTEXT(267), .value = MKTEXT(238), .capmask = 1 },
+			{ .key = MKTEXT(2046), .value = MKTEXT(2043), .capmask = 1 },
 			{ .key = "a", .value = "b", .capmask = 1 },
 			{ .key = "tag3", .value = "value3", .capmask = 1 },
+			{ .key = "+tag4", .value = MKTEXT(4083), .capmask = 1 },
+			{ .key = "+a", .value = "b", .capmask = 1 },
+			{ .key = "+tag6", .value = "value6", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -774,14 +893,16 @@ static void exact_space_for_tag2b(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8300];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(267));
+		strcat(tmp, MKTEXT(2046));
 		strcat(tmp, "=");
-		strcat(tmp, MKTEXT(238));
-		strcat(tmp, ";a=b ");
-		is_int(512, strlen(tmp), MSG);
+		strcat(tmp, MKTEXT(2043));
+		strcat(tmp, ";a=b;+tag4=");
+		strcat(tmp, MKTEXT(4083));
+		strcat(tmp, ";+a=b ");
+		is_int(8191, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -793,7 +914,7 @@ static void long_tag1_no_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(510), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4094), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -806,12 +927,12 @@ static void long_tag1_no_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(510));
+		strcat(tmp, MKTEXT(4094));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -823,7 +944,7 @@ static void long_tag1_empty_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(509), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4093), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -836,12 +957,12 @@ static void long_tag1_empty_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(509));
+		strcat(tmp, MKTEXT(4093));
 		strcat(tmp, "= ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -853,7 +974,7 @@ static void long_tag1_short_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(508), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4092), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -866,12 +987,12 @@ static void long_tag1_short_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@");
-		strcat(tmp, MKTEXT(508));
+		strcat(tmp, MKTEXT(4092));
 		strcat(tmp, "=x ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -883,7 +1004,7 @@ static void short_tag1_long_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = "x", .value = MKTEXT(508), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4092), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -896,12 +1017,12 @@ static void short_tag1_long_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@x=");
-		strcat(tmp, MKTEXT(508));
+		strcat(tmp, MKTEXT(4092));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -913,7 +1034,7 @@ static void too_long_tag1_no_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(511), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4095), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -935,7 +1056,7 @@ static void too_long_tag1_empty_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(510), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4094), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -957,7 +1078,7 @@ static void too_long_tag1_short_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = MKTEXT(509), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4093), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -979,7 +1100,7 @@ static void short_tag1_too_long_value(void)
 	const struct MsgBuf msgbuf = {
 		.n_tags = 1,
 		.tags = {
-			{ .key = "x", .value = MKTEXT(509), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4093), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1002,7 +1123,7 @@ static void long_tag2a_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(508), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4092), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1015,12 +1136,12 @@ static void long_tag2a_no_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a;");
-		strcat(tmp, MKTEXT(508));
+		strcat(tmp, MKTEXT(4092));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1033,7 +1154,7 @@ static void long_tag2b_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(507), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4091), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1046,12 +1167,12 @@ static void long_tag2b_no_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=;");
-		strcat(tmp, MKTEXT(507));
+		strcat(tmp, MKTEXT(4091));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1064,7 +1185,7 @@ static void long_tag2c_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(506), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4090), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1077,12 +1198,12 @@ static void long_tag2c_no_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=b;");
-		strcat(tmp, MKTEXT(506));
+		strcat(tmp, MKTEXT(4090));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1095,7 +1216,7 @@ static void long_tag2a_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(507), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4091), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1108,12 +1229,12 @@ static void long_tag2a_empty_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a;");
-		strcat(tmp, MKTEXT(507));
+		strcat(tmp, MKTEXT(4091));
 		strcat(tmp, "= ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1126,7 +1247,7 @@ static void long_tag2b_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(506), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4090), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1139,12 +1260,12 @@ static void long_tag2b_empty_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=;");
-		strcat(tmp, MKTEXT(506));
+		strcat(tmp, MKTEXT(4090));
 		strcat(tmp, "= ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1157,7 +1278,7 @@ static void long_tag2c_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(505), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4089), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1170,12 +1291,12 @@ static void long_tag2c_empty_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=b;");
-		strcat(tmp, MKTEXT(505));
+		strcat(tmp, MKTEXT(4089));
 		strcat(tmp, "= ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1188,7 +1309,7 @@ static void long_tag2a_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(506), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4090), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1201,12 +1322,12 @@ static void long_tag2a_short_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a;");
-		strcat(tmp, MKTEXT(506));
+		strcat(tmp, MKTEXT(4090));
 		strcat(tmp, "=x ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1219,7 +1340,7 @@ static void long_tag2b_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(505), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4089), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1232,12 +1353,12 @@ static void long_tag2b_short_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=;");
-		strcat(tmp, MKTEXT(505));
+		strcat(tmp, MKTEXT(4089));
 		strcat(tmp, "=x ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1250,7 +1371,7 @@ static void long_tag2c_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(504), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4088), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1263,12 +1384,12 @@ static void long_tag2c_short_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=b;");
-		strcat(tmp, MKTEXT(504));
+		strcat(tmp, MKTEXT(4088));
 		strcat(tmp, "=x ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1281,7 +1402,7 @@ static void short_tag2a_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(506), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4090), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1294,12 +1415,12 @@ static void short_tag2a_long_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a;x=");
-		strcat(tmp, MKTEXT(506));
+		strcat(tmp, MKTEXT(4090));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1312,7 +1433,7 @@ static void short_tag2b_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(505), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4089), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1325,12 +1446,12 @@ static void short_tag2b_long_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=;x=");
-		strcat(tmp, MKTEXT(505));
+		strcat(tmp, MKTEXT(4089));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1343,7 +1464,7 @@ static void short_tag2c_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(504), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4088), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1356,12 +1477,12 @@ static void short_tag2c_long_value(void)
 	char output[OUTPUT_BUFSIZE];
 
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
-		char tmp[2048];
+		char tmp[8192];
 
 		strcpy(tmp, "@a=b;x=");
-		strcat(tmp, MKTEXT(504));
+		strcat(tmp, MKTEXT(4088));
 		strcat(tmp, " ");
-		is_int(512, strlen(tmp), MSG);
+		is_int(4096, strlen(tmp), MSG);
 		strcat(tmp, ":origin PRIVMSG #test test test :test test");
 
 		is_string(tmp, output, MSG);
@@ -1374,7 +1495,7 @@ static void too_long_tag2a_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(509), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4093), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1397,7 +1518,7 @@ static void too_long_tag2b_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(508), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4092), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1420,7 +1541,7 @@ static void too_long_tag2c_no_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(507), .value = NULL, .capmask = 1 },
+			{ .key = MKTEXT(4091), .value = NULL, .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1443,7 +1564,7 @@ static void too_long_tag2a_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(508), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4092), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1466,7 +1587,7 @@ static void too_long_tag2b_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(507), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4091), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1489,7 +1610,7 @@ static void too_long_tag2c_empty_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(506), .value = "", .capmask = 1 },
+			{ .key = MKTEXT(4090), .value = "", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1512,7 +1633,7 @@ static void too_long_tag2a_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = MKTEXT(507), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4092), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1535,7 +1656,7 @@ static void too_long_tag2b_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = MKTEXT(506), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4091), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1558,7 +1679,7 @@ static void too_long_tag2c_short_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = MKTEXT(505), .value = "x", .capmask = 1 },
+			{ .key = MKTEXT(4090), .value = "x", .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1581,7 +1702,7 @@ static void short_tag2a_too_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = NULL, .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(507), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4092), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1604,7 +1725,7 @@ static void short_tag2b_too_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "", .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(506), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4091), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -1627,7 +1748,7 @@ static void short_tag2c_too_long_value(void)
 		.n_tags = 2,
 		.tags = {
 			{ .key = "a", .value = "b", .capmask = 1 },
-			{ .key = "x", .value = MKTEXT(505), .capmask = 1 },
+			{ .key = "x", .value = MKTEXT(4090), .capmask = 1 },
 		},
 
 		.cmd = "PRIVMSG",
@@ -2503,9 +2624,10 @@ static void small_buffer15(void)
 }
 
 static const struct MsgBuf long_tags_small_buffer_msgbuf = {
-	.n_tags = 1,
+	.n_tags = 2,
 	.tags = {
-		{ .key = MKTEXT(510), .value = NULL, .capmask = 1 },
+		{ .key = MKTEXT(4094), .value = NULL, .capmask = 1 },
+		{ .key = "+a", .value = MKTEXT(4091), .capmask = 1 },
 	},
 
 	.cmd = "PRIVMSG",
@@ -2516,76 +2638,97 @@ static const struct MsgBuf long_tags_small_buffer_msgbuf = {
 	.para = { "test", "test", "test test" },
 };
 
-#define LONG_TAGS "@10abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx"\
-"yzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcbaZYXWVUT"\
-"SRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"\
-"QRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCB"\
-"AzyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefgh"\
-"ijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
+static char long_tags_str[8192];
+
+static void long_tags_init(void)
+{
+	strcpy(long_tags_str, "@");
+	strcat(long_tags_str, MKTEXT(4094));
+	strcat(long_tags_str, ";+a=");
+	strcat(long_tags_str, MKTEXT(4091));
+	strcat(long_tags_str, " ");
+}
 
 static void long_tags_small_buffer0(void)
 {
 	char output[TAGSLEN + 0 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS "", output, MSG);
+		strcpy(tmp, long_tags_str);
+		is_string(tmp, output, MSG);
 	}
 }
 
 static void long_tags_small_buffer1(void)
 {
 	char output[TAGSLEN + 1 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS ":", output, MSG);
+		strcpy(tmp, long_tags_str);
+		strcat(tmp, ":");
+		is_string(tmp, output, MSG);
 	}
 }
 
 static void long_tags_small_buffer2(void)
 {
 	char output[TAGSLEN + 2 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS ":o", output, MSG);
+		strcpy(tmp, long_tags_str);
+		strcat(tmp, ":o");
+		is_string(tmp, output, MSG);
 	}
 }
 
 static void long_tags_small_buffer3(void)
 {
 	char output[TAGSLEN + 3 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS ":or", output, MSG);
+		strcpy(tmp, long_tags_str);
+		strcat(tmp, ":or");
+		is_string(tmp, output, MSG);
 	}
 }
 
 static void long_tags_small_buffer4(void)
 {
 	char output[TAGSLEN + 4 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS ":ori", output, MSG);
+		strcpy(tmp, long_tags_str);
+		strcat(tmp, ":ori");
+		is_string(tmp, output, MSG);
 	}
 }
 
 static void long_tags_small_buffer5(void)
 {
 	char output[TAGSLEN + 5 + 1];
+	char tmp[8200];
 
 	memset(output, 0, sizeof(output));
 	if (is_int(0, msgbuf_unparse(output, sizeof(output), &long_tags_small_buffer_msgbuf, 1), MSG)) {
 		is_int(sizeof(output) - 1, strlen(output), MSG);
-		is_string(LONG_TAGS ":orig", output, MSG);
+		strcpy(tmp, long_tags_str);
+		strcat(tmp, ":orig");
+		is_string(tmp, output, MSG);
 	}
 }
 
@@ -2806,13 +2949,13 @@ int main(int argc, char *argv[])
 
 	plan_lazy();
 
-	is_int(512, TAGSLEN, MSG);
+	is_int(8191, TAGSLEN, MSG);
 	is_int(510, DATALEN, MSG);
-	is_int(512 + 510 + 1, EXT_BUFSIZE, MSG);
+	is_int(8191 + 510 + 1, EXT_BUFSIZE, MSG);
 
 	basic_tags1();
 	basic_tags2();
-	basic_tags15();
+	basic_tags30();
 	basic_tags15_capmask1();
 	basic_tags15_capmask2();
 
@@ -2921,6 +3064,7 @@ int main(int argc, char *argv[])
 	small_buffer14();
 	small_buffer15();
 
+	long_tags_init();
 	long_tags_small_buffer0();
 	long_tags_small_buffer1();
 	long_tags_small_buffer2();
