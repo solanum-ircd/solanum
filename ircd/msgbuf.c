@@ -133,7 +133,7 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 			return 1;
 		}
 	}
-	
+
 	return msgbuf_partial_parse(msgbuf, ch);
 }
 
@@ -141,6 +141,7 @@ int
 msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line)
 {
 	char *ch = strdup(line);
+	const char *start = ch;
 
 	/* truncate message if it's too long */
 	if (strlen(ch) > DATALEN) {
@@ -167,6 +168,9 @@ msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line)
 	if (msgbuf->n_para == 0)
 		return 3;
 
+	const char *potential_colon = msgbuf->para[msgbuf->n_para - 1] - 1;
+	if (potential_colon >= start && *potential_colon == ':')
+		msgbuf->preserve_trailing = true;
 	msgbuf->cmd = msgbuf->para[0];
 	return 0;
 }
@@ -217,67 +221,71 @@ msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsig
 	char *output = buf;
 	const char * const end = &buf[buflen - 2]; /* this is where the final ' ' goes */
 
-	for (size_t i = 0; i < msgbuf->n_tags; i++) {
-		size_t len;
+	for (int clientonly = 0; clientonly < 2; clientonly++)
+	{
+		const char *stop = commit + TAGSPARTLEN + 1;
+		if (stop > end)
+			stop = end;
 
-		if ((msgbuf->tags[i].capmask & capmask) == 0)
-			continue;
+		for (size_t i = 0; i < msgbuf->n_tags; i++)
+		{
+			output = commit;
 
-		if (has_tags) {
-			if (output >= end)
-				break;
-			*output++ = ';';
-		} else {
-			if (output >= end)
-				break;
-			*output++ = '@';
-		}
+			if ((msgbuf->tags[i].capmask & capmask) == 0)
+				continue;
 
-		if (msgbuf->tags[i].key == NULL)
-			continue;
+			if (msgbuf->tags[i].key == NULL)
+				continue;
 
-		len = strlen(msgbuf->tags[i].key);
-		if (len == 0)
-			continue;
+			size_t len = strlen(msgbuf->tags[i].key);
+			if (len == 0 || (len == 1 && *msgbuf->tags[i].key == '+'))
+				continue;
 
-		if (output + len > end)
-			break;
-		strcat(output, msgbuf->tags[i].key);
-		output += len;
+			/* spec requires that server tags are always provided before client-only tags */
+			if (clientonly ^ (*msgbuf->tags[i].key == '+'))
+				continue;
 
-		if (msgbuf->tags[i].value != NULL) {
-			if (output >= end)
-				break;
-			*output++ = '=';
-
-			len = strlen(msgbuf->tags[i].value);
-			/* this only checks the unescaped length,
-			 * but the escaped length could be longer
-			 */
-			if (output + len > end)
+			if (output + len + 1 > stop)
 				break;
 
-			for (size_t n = 0; n < len; n++) {
-				const unsigned char c = msgbuf->tags[i].value[n];
-				const char escape = tag_escape_table[c];
+			*output++ = has_tags ? ';' : '@';
+			strcpy(output, msgbuf->tags[i].key);
+			output += len;
 
-				if (escape) {
-					if (output + 2 > end)
-						break;
+			if (msgbuf->tags[i].value != NULL) {
+				if (output >= stop)
+					break;
+				*output++ = '=';
 
-					*output++ = '\\';
-					*output++ = escape;
-				} else {
-					if (output >= end)
-						break;
+				len = strlen(msgbuf->tags[i].value);
+				/* this only checks the unescaped length,
+				 * but the escaped length could be longer
+				 */
+				if (output + len > stop)
+					break;
 
-					*output++ = c;
+				for (size_t n = 0; n < len; n++) {
+					const unsigned char c = msgbuf->tags[i].value[n];
+					const char escape = tag_escape_table[c];
+
+					if (escape) {
+						if (output + 2 > stop)
+							break;
+
+						*output++ = '\\';
+						*output++ = escape;
+					} else {
+						if (output >= stop)
+							break;
+
+						*output++ = c;
+					}
 				}
 			}
-		}
 
-		has_tags = true;
-		commit = output;
+			has_tags = true;
+			commit = output;
+		}
 	}
 
 	if (has_tags)
@@ -288,9 +296,45 @@ msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsig
 }
 
 int
+msgbuf_unparse_linebuf(char *buf, size_t buflen, void *data)
+{
+	struct MsgBuf_str_data *str_data = data;
+	size_t used = 0;
+	int ret;
+
+	size_t tags_buflen = buflen;
+	if (tags_buflen > TAGSLEN + 1)
+		tags_buflen = TAGSLEN + 1;
+
+	/* msgbuf_unparse / msgbuf_unparse_prefix have a couple of undesirable behaviors:
+	 * 1. it enforces a source (using me.name if origin is NULL)
+	 * 2. it adds in the cmd and target if defined (duplicating work done by msgbuf_unparse_para)
+	 *
+	 * As such, just unparse tags directly and then only add in origin if non-NULL
+	 */
+	used = msgbuf_unparse_tags(buf, tags_buflen, str_data->msgbuf, str_data->caps);
+	if (buflen > used + DATALEN + 1)
+		buflen = used + DATALEN + 1;
+
+	if (str_data->msgbuf->origin != NULL)
+	{
+		/* rb_snprintf_append returns the complete length of the final string, not just the number of bytes it wrote */
+		ret = rb_snprintf_append(buf, buflen, ":%s ", str_data->msgbuf->origin);
+		if (ret > 0)
+			used = ret;
+	}
+
+	used += msgbuf_unparse_para(buf, buflen, str_data->msgbuf);
+
+	return used;
+}
+
+int
 msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data)
 {
 	struct MsgBuf_str_data *str_data = data;
+	if (buflen > TAGSLEN + 1)
+		buflen = TAGSLEN + 1;
 
 	return msgbuf_unparse_tags(buf, buflen, str_data->msgbuf, str_data->caps);
 }
@@ -321,26 +365,55 @@ msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, un
 	if (*buflen > data_bufmax)
 		*buflen = data_bufmax;
 
+	/* rb_snprintf_append returns the complete length of the final string, not just the number of bytes it wrote */
 	ret = rb_snprintf_append(buf, *buflen, ":%s ", msgbuf->origin != NULL ? msgbuf->origin : me.name);
 	if (ret > 0)
-		used += ret;
+		used = ret;
 
 	if (msgbuf->cmd != NULL) {
 		ret = rb_snprintf_append(buf, *buflen, "%s ", msgbuf->cmd);
 		if (ret > 0)
-			used += ret;
+			used = ret;
 	}
 
 	if (msgbuf->target != NULL) {
 		ret = rb_snprintf_append(buf, *buflen, "%s ", msgbuf->target);
 		if (ret > 0)
-			used += ret;
+			used = ret;
 	}
 
 	if (used > data_bufmax - 1)
 		used = data_bufmax - 1;
 
 	return used;
+}
+
+int
+msgbuf_unparse_para(char *buf, size_t buflen, const struct MsgBuf *msgbuf)
+{
+	size_t orig_len = strlen(buf);
+	size_t new_len = orig_len;
+	int ret;
+
+	for (size_t i = 0; i < msgbuf->n_para; i++) {
+		const char *fmt;
+
+		if (i == msgbuf->n_para - 1 && (msgbuf->preserve_trailing || strchr(msgbuf->para[i], ' ') != NULL || *msgbuf->para[i] == ':')) {
+			fmt = i == 0 ? ":%s" : " :%s";
+		} else {
+			fmt = i == 0 ? "%s" : " %s";
+		}
+
+		/* rb_snprintf_append returns the complete length of the final string, not just the number of bytes it wrote */
+		ret = rb_snprintf_append(buf, buflen, fmt, msgbuf->para[i]);
+		if (ret > 0)
+			new_len = ret;
+	}
+
+	if (new_len > buflen - 1)
+		new_len = buflen - 1;
+
+	return new_len - orig_len;
 }
 
 /*
@@ -355,18 +428,7 @@ msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned i
 	size_t buflen_copy = buflen;
 
 	msgbuf_unparse_prefix(buf, &buflen_copy, msgbuf, capmask);
-
-	for (size_t i = 0; i < msgbuf->n_para; i++) {
-		const char *fmt;
-
-		if (i == (msgbuf->n_para - 1) && strchr(msgbuf->para[i], ' ') != NULL) {
-			fmt = (i == 0) ? ":%s" : " :%s";
-		} else {
-			fmt = (i == 0) ? "%s" : " %s";
-		}
-
-		rb_snprintf_append(buf, buflen_copy, fmt, msgbuf->para[i]);
-	}
+	msgbuf_unparse_para(buf, buflen_copy, msgbuf);
 
 	return 0;
 }
@@ -426,37 +488,30 @@ msgbuf_get_tag(const struct MsgBuf *buf, const char *name)
 }
 
 void
-msgbuf_cache_init(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message)
+msgbuf_cache_init(struct MsgBuf_cache *cache, struct MsgBuf *msgbuf, const char *local_source, const char *remote_source)
 {
+	const char *orig_source = msgbuf->origin;
+	struct MsgBuf_str_data data = { .msgbuf = msgbuf, .caps = 0 };
+	rb_strf_t strings = { .func = msgbuf_unparse_linebuf, .func_args = &data, .length = DATALEN + 1, .next = NULL };
+
+	memset(cache, 0, sizeof(struct MsgBuf_cache));
 	cache->msgbuf = msgbuf;
-	cache->head = NULL;
-	cache->overall_capmask = 0;
+
+	msgbuf->origin = local_source != NULL ? local_source : orig_source;
+	rb_fsnprint(cache->local, sizeof(cache->local), &strings);
+
+	msgbuf->origin = remote_source != NULL ? remote_source : orig_source;
+	rb_fsnprint(cache->remote, sizeof(cache->remote), &strings);
+
+	msgbuf->origin = orig_source;
 
 	for (size_t i = 0; i < msgbuf->n_tags; i++) {
 		cache->overall_capmask |= msgbuf->tags[i].capmask;
 	}
-
-	for (int i = 0; i < MSGBUF_CACHE_SIZE; i++) {
-		cache->entry[i].caps = 0;
-		cache->entry[i].next = NULL;
-	}
-
-	rb_fsnprint(cache->message, sizeof(cache->message), message);
-}
-
-void
-msgbuf_cache_initf(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message, const char *format, ...)
-{
-	va_list va;
-	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
-
-	va_start(va, format);
-	msgbuf_cache_init(cache, msgbuf, &strings);
-	va_end(va);
 }
 
 buf_head_t*
-msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
+msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps, bool is_remote)
 {
 	struct MsgBuf_cache_entry *entry = cache->head;
 	struct MsgBuf_cache_entry *prev = NULL;
@@ -467,7 +522,7 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 	caps &= cache->overall_capmask;
 
 	while (entry != NULL) {
-		if (entry->caps == caps) {
+		if (entry->caps == caps && entry->is_remote == is_remote) {
 			/* Cache hit */
 			result = entry;
 			break;
@@ -494,14 +549,15 @@ msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps)
 			rb_linebuf_donebuf(&result->linebuf);
 		}
 
-		/* Construct the line using the tags followed by the no tags line */
+		/* Construct the line using the tags followed by the (already saved) message */
 		struct MsgBuf_str_data msgbuf_str_data = { .msgbuf = cache->msgbuf, .caps = caps };
 		rb_strf_t strings[2] = {
-			{ .func = msgbuf_unparse_linebuf_tags, .func_args = &msgbuf_str_data, .length = TAGSLEN + 1, .next = &strings[1] },
-			{ .format = cache->message, .length = DATALEN + 1, .next = NULL }
+			{ .func = msgbuf_unparse_linebuf_tags, .func_args = &msgbuf_str_data, .next = &strings[1] },
+			{ .format = is_remote ? cache->remote : cache->local, .format_args = NULL, .next = NULL },
 		};
 
 		result->caps = caps;
+		result->is_remote = is_remote;
 		rb_linebuf_newbuf(&result->linebuf);
 		rb_linebuf_put(&result->linebuf, &strings[0]);
 	}
