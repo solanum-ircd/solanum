@@ -8,7 +8,6 @@ LIBS += $(top_srcdir)/ircd/libircd.la
 auto_load_moddir=@moduledir@/autoload
 
 auto_load_mod_LTLIBRARIES = \
-	cap_message_tags.la \
   cap_account_tag.la \
   cap_server_time.la \
   chm_nocolour.la \
