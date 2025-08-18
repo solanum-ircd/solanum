@@ -31,8 +31,70 @@
 #define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
 
 struct Client me;
-static char tmp[2048];
+static char tmp[10240];
 static const char text[] =
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
+"ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
 "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba"
@@ -412,7 +474,7 @@ static void basic_tags16(void)
 	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15 PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(16, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -457,6 +519,9 @@ static void basic_tags16(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -468,15 +533,15 @@ static void basic_tags16(void)
 	}
 }
 
-static void basic_tags17(void)
+static void basic_tags30(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16 PRIVMSG #test :test");
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29 PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -521,6 +586,51 @@ static void basic_tags17(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -532,18 +642,236 @@ static void basic_tags17(void)
 	}
 }
 
-static void too_long_tags15a(void)
+static void basic_tags31(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=");
-	strcat(tmp, MKTEXT(328));
-	is_int(511, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=value30 PRIVMSG #test :test");
+
+	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
+			is_string("tag0", msgbuf.tags[0].key, MSG);
+			is_string("value0", msgbuf.tags[0].value, MSG);
+
+			is_string("tag1", msgbuf.tags[1].key, MSG);
+			is_string("value1", msgbuf.tags[1].value, MSG);
+
+			is_string("tag2", msgbuf.tags[2].key, MSG);
+			is_string("value2", msgbuf.tags[2].value, MSG);
+
+			is_string("tag3", msgbuf.tags[3].key, MSG);
+			is_string("value3", msgbuf.tags[3].value, MSG);
+
+			is_string("tag4", msgbuf.tags[4].key, MSG);
+			is_string("value4", msgbuf.tags[4].value, MSG);
+
+			is_string("tag5", msgbuf.tags[5].key, MSG);
+			is_string("value5", msgbuf.tags[5].value, MSG);
+
+			is_string("tag6", msgbuf.tags[6].key, MSG);
+			is_string("value6", msgbuf.tags[6].value, MSG);
+
+			is_string("tag7", msgbuf.tags[7].key, MSG);
+			is_string("value7", msgbuf.tags[7].value, MSG);
+
+			is_string("tag8", msgbuf.tags[8].key, MSG);
+			is_string("value8", msgbuf.tags[8].value, MSG);
+
+			is_string("tag9", msgbuf.tags[9].key, MSG);
+			is_string("value9", msgbuf.tags[9].value, MSG);
+
+			is_string("tag10", msgbuf.tags[10].key, MSG);
+			is_string("value10", msgbuf.tags[10].value, MSG);
+
+			is_string("tag11", msgbuf.tags[11].key, MSG);
+			is_string("value11", msgbuf.tags[11].value, MSG);
+
+			is_string("tag12", msgbuf.tags[12].key, MSG);
+			is_string("value12", msgbuf.tags[12].value, MSG);
+
+			is_string("tag13", msgbuf.tags[13].key, MSG);
+			is_string("value13", msgbuf.tags[13].value, MSG);
+
+			is_string("tag14", msgbuf.tags[14].key, MSG);
+			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
+		}
+
+		is_string("PRIVMSG", msgbuf.cmd, MSG);
+		if (is_int(3, msgbuf.n_para, MSG)) {
+			is_string("PRIVMSG", msgbuf.para[0], MSG);
+			is_string("#test", msgbuf.para[1], MSG);
+			is_string("test", msgbuf.para[2], MSG);
+		}
+	}
+}
+
+static void basic_tags32(void)
+{
+	struct MsgBuf msgbuf;
+
+	memset(&msgbuf, 0, sizeof(msgbuf));
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=value30;tag31=value31 PRIVMSG #test :test");
+
+	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
+			is_string("tag0", msgbuf.tags[0].key, MSG);
+			is_string("value0", msgbuf.tags[0].value, MSG);
+
+			is_string("tag1", msgbuf.tags[1].key, MSG);
+			is_string("value1", msgbuf.tags[1].value, MSG);
+
+			is_string("tag2", msgbuf.tags[2].key, MSG);
+			is_string("value2", msgbuf.tags[2].value, MSG);
+
+			is_string("tag3", msgbuf.tags[3].key, MSG);
+			is_string("value3", msgbuf.tags[3].value, MSG);
+
+			is_string("tag4", msgbuf.tags[4].key, MSG);
+			is_string("value4", msgbuf.tags[4].value, MSG);
+
+			is_string("tag5", msgbuf.tags[5].key, MSG);
+			is_string("value5", msgbuf.tags[5].value, MSG);
+
+			is_string("tag6", msgbuf.tags[6].key, MSG);
+			is_string("value6", msgbuf.tags[6].value, MSG);
+
+			is_string("tag7", msgbuf.tags[7].key, MSG);
+			is_string("value7", msgbuf.tags[7].value, MSG);
+
+			is_string("tag8", msgbuf.tags[8].key, MSG);
+			is_string("value8", msgbuf.tags[8].value, MSG);
+
+			is_string("tag9", msgbuf.tags[9].key, MSG);
+			is_string("value9", msgbuf.tags[9].value, MSG);
+
+			is_string("tag10", msgbuf.tags[10].key, MSG);
+			is_string("value10", msgbuf.tags[10].value, MSG);
+
+			is_string("tag11", msgbuf.tags[11].key, MSG);
+			is_string("value11", msgbuf.tags[11].value, MSG);
+
+			is_string("tag12", msgbuf.tags[12].key, MSG);
+			is_string("value12", msgbuf.tags[12].value, MSG);
+
+			is_string("tag13", msgbuf.tags[13].key, MSG);
+			is_string("value13", msgbuf.tags[13].value, MSG);
+
+			is_string("tag14", msgbuf.tags[14].key, MSG);
+			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
+		}
+
+		is_string("PRIVMSG", msgbuf.cmd, MSG);
+		if (is_int(3, msgbuf.n_para, MSG)) {
+			is_string("PRIVMSG", msgbuf.para[0], MSG);
+			is_string("#test", msgbuf.para[1], MSG);
+			is_string("test", msgbuf.para[2], MSG);
+		}
+	}
+}
+
+static void too_long_tags30a(void)
+{
+	struct MsgBuf msgbuf;
+
+	memset(&msgbuf, 0, sizeof(msgbuf));
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=");
+	strcat(tmp, MKTEXT(7797));
+	is_int(8190, strlen(tmp), MSG);
 	strcat(tmp, " PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -587,7 +915,52 @@ static void too_long_tags15a(void)
 			is_string("value13", msgbuf.tags[13].value, MSG);
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
-			is_string(MKTEXT(328), msgbuf.tags[14].value, MSG);
+			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string(MKTEXT(7797), msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -599,22 +972,22 @@ static void too_long_tags15a(void)
 	}
 }
 
-static void too_long_tags15b(void)
+static void too_long_tags30b(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=");
-	strcat(tmp, MKTEXT(329)); /* final character will be replaced with ' ' */
-	is_int(512, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=");
+	strcat(tmp, MKTEXT(7798)); /* final character will be replaced with ' ' */
+	is_int(8191, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
-			char tmp2[2048];
+		if (is_int(30, msgbuf.n_tags, MSG)) {
+			char tmp2[10240];
 
 			/* the value will be truncated */
-			strcpy(tmp2, MKTEXT(329));
+			strcpy(tmp2, MKTEXT(7798));
 			tmp2[strlen(tmp2) - 1] = 0;
 
 			is_string("tag0", msgbuf.tags[0].key, MSG);
@@ -660,7 +1033,52 @@ static void too_long_tags15b(void)
 			is_string("value13", msgbuf.tags[13].value, MSG);
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
-			is_string(tmp2, msgbuf.tags[14].value, MSG);
+			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string(tmp2, msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -672,18 +1090,18 @@ static void too_long_tags15b(void)
 	}
 }
 
-static void too_long_tags16a(void)
+static void too_long_tags31a(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=");
-	strcat(tmp, MKTEXT(314));
-	is_int(511, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=");
+	strcat(tmp, MKTEXT(7783));
+	is_int(8190, strlen(tmp), MSG);
 	strcat(tmp, " PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -728,6 +1146,51 @@ static void too_long_tags16a(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -739,18 +1202,18 @@ static void too_long_tags16a(void)
 	}
 }
 
-static void too_long_tags16b(void)
+static void too_long_tags31b(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=");
-	strcat(tmp, MKTEXT(315)); /* final character will be replaced with ' ' */
-	is_int(512, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=");
+	strcat(tmp, MKTEXT(7784)); /* final character will be replaced with ' ' */
+	is_int(8191, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -795,6 +1258,51 @@ static void too_long_tags16b(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -806,18 +1314,18 @@ static void too_long_tags16b(void)
 	}
 }
 
-static void too_long_tags17a(void)
+static void too_long_tags32a(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=");
-	strcat(tmp, MKTEXT(300));
-	is_int(511, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=value30;tag31=");
+	strcat(tmp, MKTEXT(7769));
+	is_int(8190, strlen(tmp), MSG);
 	strcat(tmp, " PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -862,6 +1370,51 @@ static void too_long_tags17a(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -873,18 +1426,18 @@ static void too_long_tags17a(void)
 	}
 }
 
-static void too_long_tags17b(void)
+static void too_long_tags32b(void)
 {
 	struct MsgBuf msgbuf;
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
-	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=");
-	strcat(tmp, MKTEXT(301)); /* final character will be replaced with ' ' */
-	is_int(512, strlen(tmp), MSG);
+	strcpy(tmp, "@tag0=value0;tag1=value1;tag2=value2;tag3=value3;tag4=value4;tag5=value5;tag6=value6;tag7=value7;tag8=value8;tag9=value9;tag10=value10;tag11=value11;tag12=value12;tag13=value13;tag14=value14;tag15=value15;tag16=value16;tag17=value17;tag18=value18;tag19=value19;tag20=value20;tag21=value21;tag22=value22;tag23=value23;tag24=value24;tag25=value25;tag26=value26;tag27=value27;tag28=value28;tag29=value29;tag30=value30;tag31=");
+	strcat(tmp, MKTEXT(7770)); /* final character will be replaced with ' ' */
+	is_int(8191, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		if (is_int(15, msgbuf.n_tags, MSG)) {
+		if (is_int(30, msgbuf.n_tags, MSG)) {
 			is_string("tag0", msgbuf.tags[0].key, MSG);
 			is_string("value0", msgbuf.tags[0].value, MSG);
 
@@ -929,6 +1482,51 @@ static void too_long_tags17b(void)
 
 			is_string("tag14", msgbuf.tags[14].key, MSG);
 			is_string("value14", msgbuf.tags[14].value, MSG);
+
+			is_string("tag15", msgbuf.tags[15].key, MSG);
+			is_string("value15", msgbuf.tags[15].value, MSG);
+
+			is_string("tag16", msgbuf.tags[16].key, MSG);
+			is_string("value16", msgbuf.tags[16].value, MSG);
+
+			is_string("tag17", msgbuf.tags[17].key, MSG);
+			is_string("value17", msgbuf.tags[17].value, MSG);
+
+			is_string("tag18", msgbuf.tags[18].key, MSG);
+			is_string("value18", msgbuf.tags[18].value, MSG);
+
+			is_string("tag19", msgbuf.tags[19].key, MSG);
+			is_string("value19", msgbuf.tags[19].value, MSG);
+
+			is_string("tag20", msgbuf.tags[20].key, MSG);
+			is_string("value20", msgbuf.tags[20].value, MSG);
+
+			is_string("tag21", msgbuf.tags[21].key, MSG);
+			is_string("value21", msgbuf.tags[21].value, MSG);
+
+			is_string("tag22", msgbuf.tags[22].key, MSG);
+			is_string("value22", msgbuf.tags[22].value, MSG);
+
+			is_string("tag23", msgbuf.tags[23].key, MSG);
+			is_string("value23", msgbuf.tags[23].value, MSG);
+
+			is_string("tag24", msgbuf.tags[24].key, MSG);
+			is_string("value24", msgbuf.tags[24].value, MSG);
+
+			is_string("tag25", msgbuf.tags[25].key, MSG);
+			is_string("value25", msgbuf.tags[25].value, MSG);
+
+			is_string("tag26", msgbuf.tags[26].key, MSG);
+			is_string("value26", msgbuf.tags[26].value, MSG);
+
+			is_string("tag27", msgbuf.tags[27].key, MSG);
+			is_string("value27", msgbuf.tags[27].value, MSG);
+
+			is_string("tag28", msgbuf.tags[28].key, MSG);
+			is_string("value28", msgbuf.tags[28].value, MSG);
+
+			is_string("tag29", msgbuf.tags[29].key, MSG);
+			is_string("value29", msgbuf.tags[29].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -1262,14 +1860,14 @@ static void too_long_tag1(void)
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
 	strcpy(tmp, "@");
-	strcat(tmp, MKTEXT(510));
-	is_int(511, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8189));
+	is_int(8190, strlen(tmp), MSG);
 	/* the '=' will be replaced with a ' ' when parsing */
 	strcat(tmp, "=PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
 		if (is_int(1, msgbuf.n_tags, MSG)) {
-			is_string(MKTEXT(510), msgbuf.tags[0].key, MSG);
+			is_string(MKTEXT(8189), msgbuf.tags[0].key, MSG);
 			is_string(NULL, msgbuf.tags[0].value, MSG);
 		}
 
@@ -1288,15 +1886,15 @@ static void too_long_tag2(void)
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
 	strcpy(tmp, "@");
-	strcat(tmp, MKTEXT(511)); /* the last byte will be replaced with a ' ' when parsing */
-	is_int(512, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8190)); /* the last byte will be replaced with a ' ' when parsing */
+	is_int(8191, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		char tmp2[2048];
+		char tmp2[10240];
 
 		/* the tag will be truncated */
-		strcpy(tmp2, MKTEXT(511));
+		strcpy(tmp2, MKTEXT(8190));
 		tmp2[strlen(tmp2) - 1] = 0;
 
 		if (is_int(1, msgbuf.n_tags, MSG)) {
@@ -1319,14 +1917,14 @@ static void too_long_tag3(void)
 
 	memset(&msgbuf, 0, sizeof(msgbuf));
 	strcpy(tmp, "@");
-	strcat(tmp, MKTEXT(510));
-	is_int(511, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8189));
+	is_int(8190, strlen(tmp), MSG);
 	/* the ';' will be replaced with a ' ' when parsing */
 	strcat(tmp, ";PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
 		if (is_int(1, msgbuf.n_tags, MSG)) {
-			is_string(MKTEXT(510), msgbuf.tags[0].key, MSG);
+			is_string(MKTEXT(8189), msgbuf.tags[0].key, MSG);
 			is_string(NULL, msgbuf.tags[0].value, MSG);
 		}
 
@@ -1347,15 +1945,15 @@ static void too_long_value1(void)
 	strcpy(tmp, "@");
 	strcat(tmp, MKTEXT(1));
 	strcat(tmp, "=");
-	strcat(tmp, MKTEXT(508));
-	is_int(511, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8187));
+	is_int(8190, strlen(tmp), MSG);
 	/* the ';' will be replaced with a ' ' when parsing */
 	strcat(tmp, ";PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
 		if (is_int(1, msgbuf.n_tags, MSG)) {
 			is_string(MKTEXT(1), msgbuf.tags[0].key, MSG);
-			is_string(MKTEXT(508), msgbuf.tags[0].value, MSG);
+			is_string(MKTEXT(8187), msgbuf.tags[0].value, MSG);
 		}
 
 		is_string("PRIVMSG", msgbuf.cmd, MSG);
@@ -1375,15 +1973,15 @@ static void too_long_value2(void)
 	strcpy(tmp, "@");
 	strcat(tmp, MKTEXT(1));
 	strcat(tmp, "=");
-	strcat(tmp, MKTEXT(509)); /* the last byte will be replaced with a ' ' when parsing */
-	is_int(512, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8188)); /* the last byte will be replaced with a ' ' when parsing */
+	is_int(8191, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		char tmp2[2048];
+		char tmp2[10240];
 
 		/* the value will be truncated */
-		strcpy(tmp2, MKTEXT(509));
+		strcpy(tmp2, MKTEXT(8188));
 		tmp2[strlen(tmp2) - 1] = 0;
 
 		if (is_int(1, msgbuf.n_tags, MSG)) {
@@ -1408,15 +2006,15 @@ static void too_long_value3(void)
 	strcpy(tmp, "@");
 	strcat(tmp, MKTEXT(1));
 	strcat(tmp, "=");
-	strcat(tmp, MKTEXT(510)); /* the second-last byte will be replaced with a ' ' when parsing */
-	is_int(513, strlen(tmp), MSG);
+	strcat(tmp, MKTEXT(8189)); /* the second-last byte will be replaced with a ' ' when parsing */
+	is_int(8192, strlen(tmp), MSG);
 	strcat(tmp, "PRIVMSG #test :test");
 
 	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
-		char tmp2[2048];
+		char tmp2[10240];
 
 		/* the value will be truncated */
-		strcpy(tmp2, MKTEXT(510));
+		strcpy(tmp2, MKTEXT(8189));
 		tmp2[strlen(tmp2) - 2] = 0;
 
 		if (is_int(1, msgbuf.n_tags, MSG)) {
@@ -3347,7 +3945,7 @@ int main(int argc, char *argv[])
 
 	plan_lazy();
 
-	is_int(512, TAGSLEN, MSG);
+	is_int(8191, TAGSLEN, MSG);
 	is_int(510, DATALEN, MSG);
 
 	basic_tags1();
@@ -3360,7 +3958,9 @@ int main(int argc, char *argv[])
 	basic_tags14();
 	basic_tags15();
 	basic_tags16();
-	basic_tags17();
+	basic_tags30();
+	basic_tags31();
+	basic_tags32();
 
 	empty_value1();
 	empty_value2();
@@ -3383,12 +3983,12 @@ int main(int argc, char *argv[])
 	too_long_tag1();
 	too_long_tag2();
 	too_long_tag3();
-	too_long_tags15a();
-	too_long_tags15b();
-	too_long_tags16a();
-	too_long_tags16b();
-	too_long_tags17a();
-	too_long_tags17b();
+	too_long_tags30a();
+	too_long_tags30b();
+	too_long_tags31a();
+	too_long_tags31b();
+	too_long_tags32a();
+	too_long_tags32b();
 
 	too_long_value1();
 	too_long_value2();

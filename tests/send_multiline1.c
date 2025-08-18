@@ -43,38 +43,38 @@ static void sendto_multiline_basic(void)
 	send_multiline_fini(user, NULL);
 	is_client_sendq_empty(user, MSG);
 
-	/* 510 = 17 * 30. line the end of an item with the end of the 510-byte data exactly */
-	send_multiline_init(user, " ", "prefix78901234567 ");
-	for (size_t i = 0; i < 29; i++)
-		send_multiline_item(user, "item567890123456");
+	/* 510 = 34 * 15. line the end of an item with the end of the 510-byte data exactly */
+	send_multiline_init(user, " ", "prefix7890123456789012345678901234 ");
+	for (size_t i = 0; i < 14; i++)
+		send_multiline_item(user, "item56789012345678901234567890123");
 	send_multiline_fini(user, NULL);
 
 	s = get_client_sendq(user);
 	is_int(512, strlen(s), MSG);
-	is_string("item567890123456\r\n", &s[494], MSG);
+	is_string("item56789012345678901234567890123\r\n", &s[477], MSG);
 	is_client_sendq_empty(user, MSG);
 
 	/* just run exactly the same thing again, there's static state */
-	send_multiline_init(user, " ", "prefix78901234567 ");
-	for (size_t i = 0; i < 29; i++)
-		send_multiline_item(user, "item567890123456");
+	send_multiline_init(user, " ", "prefix7890123456789012345678901234 ");
+	for (size_t i = 0; i < 14; i++)
+		send_multiline_item(user, "item56789012345678901234567890123");
 	send_multiline_fini(user, NULL);
 
 	s = get_client_sendq(user);
 	is_int(512, strlen(s), MSG);
-	is_string("item567890123456\r\n", &s[494], MSG);
+	is_string("item56789012345678901234567890123\r\n", &s[477], MSG);
 	is_client_sendq_empty(user, MSG);
 
 	/* the same thing again but with one extra character, so we have an item that just won't fit */
-	send_multiline_init(user, " ", "prefix789012345678 ");
-	for (size_t i = 0; i < 29; i++)
-		send_multiline_item(user, "item567890123456");
+	send_multiline_init(user, " ", "prefix78901234567890123456789012345 ");
+	for (size_t i = 0; i < 14; i++)
+		send_multiline_item(user, "item56789012345678901234567890123");
 	send_multiline_item(user, "bar");
 	send_multiline_fini(user, "foo ");
 
 	s = get_client_sendq(user);
-	is_string("item567890123456\r\n", &s[478], MSG);
-	is_client_sendq("foo item567890123456 bar\r\n", user, MSG);
+	is_string("item56789012345678901234567890123\r\n", &s[444], MSG);
+	is_client_sendq("foo item56789012345678901234567890123 bar\r\n", user, MSG);
 
 	remove_local_person(user);
 }
