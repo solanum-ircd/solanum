@@ -36,9 +36,6 @@ for another server to handle:
 			  (const char *) hdata->arg1 = optional stats l target
 			  (char) hdata->arg2 = statchar being requested
 
-"doing_stats_p"		- Passes hook_data:
-			  hdata->client = client doing STATS p
-
 "doing_trace"		- Passes hook_data_client:
 			  hdata->client = client doing TRACE
 			  hdata->target = optional target of TRACE
