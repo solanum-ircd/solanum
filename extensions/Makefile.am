@@ -69,6 +69,7 @@ extension_LTLIBRARIES =		\
   sno_globalnickchange.la	\
   sno_globaloper.la		\
   tag_message_id.la		\
+  tag_typing.la		\
   umode_hide_idle_time.la	\
   umode_noctcp.la		\
   example_module.la
