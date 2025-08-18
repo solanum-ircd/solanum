@@ -38,10 +38,12 @@
 static const char cap_server_time_desc[] =
 	"Provides the server-time client capability";
 
+static void cap_server_time_incoming(void *);
 static void cap_server_time_process(void *);
 unsigned int CLICAP_SERVER_TIME = 0;
 
 mapi_hfn_list_av1 cap_server_time_hfnlist[] = {
+	{ "message_tag", cap_server_time_incoming },
 	{ "outbound_msgbuf", cap_server_time_process },
 	{ NULL, NULL }
 };
@@ -49,6 +51,16 @@ mapi_cap_list_av2 cap_server_time_cap_list[] = {
 	{ MAPI_CAP_CLIENT, "server-time", NULL, &CLICAP_SERVER_TIME },
 	{ 0, NULL, NULL, NULL }
 };
+
+static void
+cap_server_time_incoming(void *data_)
+{
+	hook_data_message_tag *data = data_;
+	if (IsServer(data->client) && !strcmp("time", data->key)) {
+		data->capmask = CLICAP_SERVER_TIME;
+		data->approved = MESSAGE_TAG_ALLOW;
+	}
+}
 
 static void
 cap_server_time_process(void *data_)
@@ -59,9 +71,13 @@ cap_server_time_process(void *data_)
 	struct MsgBuf *msgbuf = data->arg1;
 	struct timeval tv;
 
-	if (incoming_client != NULL && IsServer(incoming_client) && !msgbuf_get_tag(msgbuf, "time") && (tagged_time = msgbuf_get_tag(incoming_message, "time")))
+	if (msgbuf_get_tag(msgbuf, "time"))
+		return;
+
+	if (incoming_client != NULL && IsServer(incoming_client) && (tagged_time = msgbuf_get_tag(incoming_message, "time")) != NULL)
 	{
 		msgbuf_append_tag(msgbuf, "time", tagged_time, CLICAP_SERVER_TIME);
+		return;
 	}
 
 	if (data->client != NULL && !IsMe(data->client) && !MyClient(data->client))

@@ -73,7 +73,7 @@ int h_outbound_msgbuf;
 int h_rehash;
 int h_priv_change;
 int h_cap_change;
-int h_client_tag_accept;
+int h_message_tag;
 
 void
 init_hook(void)
@@ -100,7 +100,7 @@ init_hook(void)
 	h_rehash = register_hook("rehash");
 	h_priv_change = register_hook("priv_change");
 	h_cap_change = register_hook("cap_change");
-	h_client_tag_accept = register_hook("client_tag_accept");
+	h_message_tag = register_hook("message_tag");
 }
 
 /* grow_hooktable()
