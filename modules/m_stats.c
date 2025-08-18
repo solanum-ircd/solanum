@@ -59,13 +59,11 @@ struct Message stats_msgtab = {
 };
 
 int doing_stats_hook;
-int doing_stats_p_hook;
 int doing_stats_show_idle_hook;
 
 mapi_clist_av1 stats_clist[] = { &stats_msgtab, NULL };
 mapi_hlist_av1 stats_hlist[] = {
 	{ "doing_stats",	&doing_stats_hook },
-	{ "doing_stats_p",	&doing_stats_p_hook },
 	{ "doing_stats_show_idle", &doing_stats_show_idle_hook },
 	{ NULL, NULL }
 };
@@ -224,6 +222,18 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if(hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
 		return;
+
+	hook_data_int data = {
+		.client = source_p,
+		.arg1 = NULL,
+		.arg2 = (int) statchar,
+		.result = 0,
+	};
+
+	call_hook(doing_stats_hook, &data);
+
+	if (data.result != 0)
+		goto stats_out;
 
 	/* Look up */
 	cmd = &stats_cmd_table[statchar];
