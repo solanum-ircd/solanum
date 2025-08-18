@@ -163,10 +163,57 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		return;
 	}
 
-	incoming_message = &msgbuf;
+	/* The tags array may be mutated via hooks; this holds the updated array */
+	struct MsgBuf updated_msg;
+	size_t ntags = msgbuf.n_tags;
+	hook_data_message_tag tagdata;
+
+	/* Filter out tags that we don't allow or recognize */
+	memcpy(&updated_msg, &msgbuf, sizeof(struct MsgBuf));
+	updated_msg.n_tags = 0;
+	tagdata.source = from;
+	tagdata.client = client_p;
+	tagdata.message = &msgbuf;
+
+	for (int i = 0; i < ntags; i++)
+	{
+		/* a hook can adjust key/value/capmask according to its needs;
+		 * value can be set to NULL in order to strip a value
+		 */
+		tagdata.key = msgbuf.tags[i].key;
+		tagdata.value = msgbuf.tags[i].value;
+		tagdata.capmask = CLICAP_MESSAGE_TAGS;
+		tagdata.approved = MESSAGE_TAG_REMOVE;
+
+		if (tagdata.key == NULL)
+			continue;
+
+		size_t keylen = strlen(tagdata.key);
+		if (keylen == 0 || (keylen == 1 && *tagdata.key == '+'))
+			continue;
+
+		call_hook(h_message_tag, &tagdata);
+
+		switch (tagdata.approved)
+		{
+		case MESSAGE_TAG_ALLOW:
+			msgbuf_append_tag(&updated_msg, tagdata.key, tagdata.value, tagdata.capmask);
+			break;
+
+		case MESSAGE_TAG_REMOVE:
+			/* tag is rejected, don't add it to the outbound list of tags */
+			break;
+
+		case MESSAGE_TAG_DROP:
+			/* entire message is rejected, don't send at all */
+			return;
+		}
+	}
+
+	incoming_message = &updated_msg;
 	incoming_client = client_p;
 
-	if(handle_command(mptr, &msgbuf, client_p, from) < -1)
+	if(handle_command(mptr, &updated_msg, client_p, from) < -1)
 	{
 		char *p;
 		for (p = pbuffer; p <= end; p += 8)
