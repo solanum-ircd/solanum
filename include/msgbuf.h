@@ -23,6 +23,7 @@
 #define SOLANUM__MSGBUF_H
 
 #define MAXPARA		(15)
+#define MAXTAGS (30)
 
 /* a key-value structure for each message tag. */
 struct MsgTag {
@@ -33,7 +34,7 @@ struct MsgTag {
 
 struct MsgBuf {
 	size_t n_tags;			/* the number of tags in the MsgBuf */
-	struct MsgTag tags[MAXPARA];	/* the tags themselves, upto MAXPARA tags available */
+	struct MsgTag tags[MAXTAGS];	/* the tags themselves, upto MAXTAGS tags available */
 
 	const char *origin;		/* the origin of the message (or NULL) */
 	const char *target;		/* the target of the message (either NULL, or custom defined) */
@@ -125,7 +126,7 @@ msgbuf_init(struct MsgBuf *msgbuf)
 static inline void
 msgbuf_append_tag(struct MsgBuf *msgbuf, const char *key, const char *value, unsigned int capmask)
 {
-	if (msgbuf->n_tags < MAXPARA) {
+	if (msgbuf->n_tags < MAXTAGS) {
 		msgbuf->tags[msgbuf->n_tags].key = key;
 		msgbuf->tags[msgbuf->n_tags].value = value;
 		msgbuf->tags[msgbuf->n_tags].capmask = capmask;
