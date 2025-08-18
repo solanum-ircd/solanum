@@ -127,6 +127,13 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		}
 	}
 
+	/* too many tags or tag data too long? */
+	if (IsClient(client_p) && (msgbuf.n_tags == MAXTAGS || (*pbuffer == '@' && strlen(pbuffer) > TAGSPARTLEN + 2)))
+	{
+		sendto_one(from, form_str(ERR_INPUTTOOLONG), me.name, from->name);
+		return;
+	}
+
 	if(IsDigit(*msgbuf.cmd) && IsDigit(*(msgbuf.cmd + 1)) && IsDigit(*(msgbuf.cmd + 2)))
 	{
 		mptr = NULL;
