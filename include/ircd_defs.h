@@ -91,7 +91,8 @@
 
 /* 23+1 for \0 */
 #define KEYLEN          24
-#define TAGSLEN         512	/* IRCv3 message tags */
+#define TAGSLEN         8191	/* IRCv3 message tags */
+#define TAGSPARTLEN     4094	/* maximum tag data for either client or server tags */
 #define DATALEN         510	/* RFC1459 message data */
 #define BUFSIZE         512	/* WARNING: *DONT* CHANGE THIS!!!! */
 #define EXT_BUFSIZE     (TAGSLEN + DATALEN + 1)
