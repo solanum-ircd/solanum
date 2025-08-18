@@ -4611,7 +4611,7 @@ static void sendto_realops_snomask_from1__tags(void)
 	is_client_sendq_empty(server, MSG);
 
 	sendto_realops_snomask_from(SNO_BOTS, L_ALL, server, "Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper1, "Matches mask; " MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper1, "Matches mask; " MSG);
 	is_client_sendq_empty(oper2, "Doesn't match mask; " MSG);
 	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper3, "Matches mask; " MSG);
 	is_client_sendq_empty(oper4, "Doesn't match mask; " MSG);
@@ -4625,7 +4625,7 @@ static void sendto_realops_snomask_from1__tags(void)
 	is_client_sendq_empty(server, MSG);
 
 	sendto_realops_snomask_from(SNO_BOTS, L_OPER, server, "Hello %s!", "World");
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper1, "Matches mask; " MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper1, "Matches mask; " MSG);
 	is_client_sendq_empty(oper2, "Doesn't match mask; " MSG);
 	is_client_sendq_empty(oper3, "Not an oper; " MSG);
 	is_client_sendq_empty(oper4, "Doesn't match mask; " MSG);
@@ -4654,7 +4654,7 @@ static void sendto_realops_snomask_from1__tags(void)
 
 	sendto_realops_snomask_from(SNO_GENERAL, L_ALL, server, "Hello %s!", "World");
 	is_client_sendq_empty(oper1, "Doesn't match mask; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper2, "Matches mask; " MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper2, "Matches mask; " MSG);
 	is_client_sendq_empty(oper3, "Doesn't match mask; " MSG);
 	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper4, "Matches mask; " MSG);
 	is_client_sendq_empty(server, MSG);
@@ -4668,7 +4668,7 @@ static void sendto_realops_snomask_from1__tags(void)
 
 	sendto_realops_snomask_from(SNO_GENERAL, L_OPER, server, "Hello %s!", "World");
 	is_client_sendq_empty(oper1, "Doesn't match mask; " MSG);
-	is_client_sendq("@time=" ADVENTURE_TIME " :" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper2, "Matches mask; " MSG);
+	is_client_sendq(":" TEST_SERVER_NAME " NOTICE * :*** Notice -- Hello World!" CRLF, oper2, "Matches mask; " MSG);
 	is_client_sendq_empty(oper3, "Doesn't match mask; " MSG);
 	is_client_sendq_empty(oper4, "Not an oper; " MSG);
 	is_client_sendq_empty(server, MSG);
