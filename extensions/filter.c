@@ -83,6 +83,9 @@ enum filter_state {
 #define ACT_DROP  (1 << 0)
 #define ACT_KILL  (1 << 1)
 #define ACT_ALARM (1 << 2)
+#define ACT_SUPERDROP (1 << 3)
+/* the following is used as a mask and contains all bits defined above */
+#define ACT_ALL 0x0f
 
 static enum filter_state state = FILTER_EMPTY;
 static char check_str[21] = "";
@@ -381,6 +384,7 @@ filter_msg_user(void *data_)
 {
 	hook_data_privmsg_user *data = data_;
 	struct Client *s = data->source_p;
+	unsigned mask = ACT_ALL;
 	/* we only need to filter once */
 	if (!MyClient(s)) {
 		return;
@@ -392,14 +396,15 @@ filter_msg_user(void *data_)
 		return;
 	}
 	if (data->target_p->umodes & filter_umode) {
-		return;
+		mask = ACT_SUPERDROP;
 	}
 	char *text = strcpy(clean_buffer, data->text);
 	strip_colour(text);
 	strip_unprintable(text);
 	unsigned r = match_message("0", s, cmdname[data->msgtype], "0", data->text) |
 	             match_message("1", s, cmdname[data->msgtype], "0", text);
-	if (r & ACT_DROP) {
+	r &= mask;
+	if (r & (ACT_DROP | ACT_SUPERDROP)) {
 		if (data->msgtype == MESSAGE_TYPE_PRIVMSG) {
 			sendto_one_numeric(s, ERR_CANNOTSENDTOCHAN,
 			                   form_str(ERR_CANNOTSENDTOCHAN),
@@ -423,6 +428,7 @@ filter_msg_channel(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
 	struct Client *s = data->source_p;
+	unsigned mask = ACT_ALL;
 	/* we only need to filter once */
 	if (!MyClient(s)) {
 		return;
@@ -433,14 +439,15 @@ filter_msg_channel(void *data_)
 		return;
 	}
 	if (data->chptr->mode.mode & filter_chmode) {
-		return;
+		mask = ACT_SUPERDROP;
 	}
 	char *text = strcpy(clean_buffer, data->text);
 	strip_colour(text);
 	strip_unprintable(text);
 	unsigned r = match_message("0", s, cmdname[data->msgtype], data->chptr->chname, data->text) |
 	             match_message("1", s, cmdname[data->msgtype], data->chptr->chname, text);
-	if (r & ACT_DROP) {
+	r &= mask;
+	if (r & (ACT_DROP | ACT_SUPERDROP)) {
 		if (data->msgtype == MESSAGE_TYPE_PRIVMSG) {
 			sendto_one_numeric(s, ERR_CANNOTSENDTOCHAN,
 			                   form_str(ERR_CANNOTSENDTOCHAN),
@@ -472,7 +479,7 @@ filter_client_quit(void *data_)
 	strip_unprintable(text);
 	unsigned r = match_message("0", s, "QUIT", NULL, data->orig_reason) |
 	             match_message("1", s, "QUIT", NULL, text);
-	if (r & ACT_DROP) {
+	if (r & (ACT_DROP | ACT_SUPERDROP)) {
 		data->reason = NULL;
 	}
 	if (r & ACT_ALARM) {
