@@ -29,6 +29,17 @@ enum whois_idle_approval
 	WHOIS_IDLE_AUSPEX = 2
 };
 
+/* for processing message tags sent by clients */
+enum message_tag_approval
+{
+	/* allow the tag */
+	MESSAGE_TAG_ALLOW = 0,
+	/* remove the tag from the message but otherwise let the message be sent */
+	MESSAGE_TAG_REMOVE = 1,
+	/* drop the entire message, preventing it from being sent */
+	MESSAGE_TAG_DROP = 2,
+};
+
 typedef void (*hookfn) (void *data);
 
 extern int h_iosend_id;
@@ -55,6 +66,7 @@ extern int h_outbound_msgbuf;
 extern int h_rehash;
 extern int h_priv_change;
 extern int h_cap_change;
+extern int h_message_tag;
 
 void init_hook(void);
 int register_hook(const char *name);
@@ -171,10 +183,22 @@ typedef struct
 	int del;
 } hook_data_cap_change;
 
+typedef struct
+{
+	struct Client *client;
+	struct Client *source;
+	const char *key;
+	const char *value;
+	unsigned int capmask;
+	const struct MsgBuf *message;
+	int approved;
+} hook_data_message_tag;
+
 enum message_type {
 	MESSAGE_TYPE_NOTICE,
 	MESSAGE_TYPE_PRIVMSG,
 	MESSAGE_TYPE_PART,
+	MESSAGE_TYPE_TAGMSG,
 	MESSAGE_TYPE_COUNT
 };
 
