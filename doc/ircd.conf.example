@@ -33,6 +33,7 @@
 #loadmodule "extensions/sno_globaloper";
 #loadmodule "extensions/override";
 #loadmodule "extensions/no_kill_services";
+#loadmodule "extensions/tag_message_id"
 
 /*
  * IP cloaking extensions: use ip_cloaking_4.0
