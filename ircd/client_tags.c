@@ -66,13 +66,17 @@ void
 format_client_tags(char *dst, size_t dst_sz, const char *individual_fmt, const char *join_sep)
 {
 	size_t start = 0;
+	size_t join_len = strlen(join_sep);
 	for (size_t index = 0; index < num_client_tags; index++) {
 		if (start >= dst_sz)
 			break;
 
 		if (index > 0) {
-			dst[start] = ',';
-			start++;
+			if (start + join_len >= dst_sz)
+				break;
+
+			strcpy(dst + start, join_sep);
+			start += join_len;
 		}
 		start += snprintf((dst + start), dst_sz - start, individual_fmt, supported_client_tags[index].name);
 	}
