@@ -45,6 +45,7 @@ extension_LTLIBRARIES =		\
   sno_globaloper.la		\
   umode_noctcp.la		\
   m_adminwall.la		\
+  m_botmode.la			\
   m_echotags.la			\
   m_extendchans.la		\
   m_findforwards.la		\
