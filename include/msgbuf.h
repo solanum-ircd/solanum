@@ -35,6 +35,7 @@ struct MsgTag {
 struct MsgBuf {
 	size_t n_tags;			/* the number of tags in the MsgBuf */
 	struct MsgTag tags[MAXTAGS];	/* the tags themselves, upto MAXTAGS tags available */
+	size_t tagslen;			/* length of the tags buffer in the original array */
 
 	const char *origin;		/* the origin of the message (or NULL) */
 	const char *target;		/* the target of the message (either NULL, or custom defined) */

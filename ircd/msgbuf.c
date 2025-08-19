@@ -94,43 +94,43 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 		char *t = ch + 1;
 
 		ch = strchr(ch, ' ');
+		if (ch == NULL)
+			return 1;
+
+		msgbuf->tagslen = ch - line + 1;
 
 		/* truncate tags if they're too long */
-		if ((ch != NULL && (ch - line) + 1 > TAGSLEN) || (ch == NULL && strlen(line) >= TAGSLEN)) {
+		if (ch - line + 1 > TAGSLEN) {
 			ch = &line[TAGSLEN - 1];
 		}
 
-		if (ch != NULL) {
-			/* NULL terminate the tags string */
-			*ch++ = '\0';
+		/* NULL terminate the tags string */
+		*ch++ = '\0';
 
-			while (1) {
-				char *next = strchr(t, ';');
-				char *eq = strchr(t, '=');
+		while (1) {
+			char *next = strchr(t, ';');
+			char *eq = strchr(t, '=');
 
-				if (next != NULL) {
-					*next = '\0';
+			if (next != NULL) {
+				*next = '\0';
 
-					if (eq > next)
-						eq = NULL;
-				}
-
-				if (eq != NULL)
-					*eq++ = '\0';
-
-				if (*t != '\0') {
-					msgbuf_unescape_value(eq);
-					msgbuf_append_tag(msgbuf, t, eq, 0);
-				}
-
-				if (next != NULL) {
-					t = next + 1;
-				} else {
-					break;
-				}
+				if (eq > next)
+					eq = NULL;
 			}
-		} else {
-			return 1;
+
+			if (eq != NULL)
+				*eq++ = '\0';
+
+			if (*t != '\0') {
+				msgbuf_unescape_value(eq);
+				msgbuf_append_tag(msgbuf, t, eq, 0);
+			}
+
+			if (next != NULL) {
+				t = next + 1;
+			} else {
+				break;
+			}
 		}
 	}
 
