@@ -67,4 +67,4 @@ tag_typing_allow(void *data_)
 	}
 }
 
-DECLARE_MODULE_AV2(tag_message_id, modinit, moddeinit, NULL, NULL, tag_typing_hfnlist, NULL, NULL, tag_typing_desc);
+DECLARE_MODULE_AV2(tag_typing, modinit, moddeinit, NULL, NULL, tag_typing_hfnlist, NULL, NULL, tag_typing_desc);
