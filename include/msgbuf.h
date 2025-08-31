@@ -25,6 +25,15 @@
 #define MAXPARA		(15)
 #define MAXTAGS (30)
 
+enum parse_result
+{
+	PARSE_SUCCESS = 0,
+	PARSE_UNTERMINATED_TAGS = 1,
+	PARSE_NO_COMMAND = 2,
+	PARSE_NO_PARAMS = 3,
+	PARSE_UNTERMINATED_ORIGIN = 4,
+};
+
 /* a key-value structure for each message tag. */
 struct MsgTag {
 	const char *key;		/* the key of the tag (must be set) */

@@ -95,7 +95,7 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 
 		ch = strchr(ch, ' ');
 		if (ch == NULL)
-			return 1;
+			return PARSE_UNTERMINATED_TAGS;
 
 		msgbuf->tagslen = ch - line + 1;
 
@@ -154,25 +154,25 @@ msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line)
 
 		char *end = strchr(ch, ' ');
 		if (end == NULL)
-			return 4;
+			return PARSE_UNTERMINATED_ORIGIN;
 
 		*end = '\0';
 		ch = end + 1;
 	}
 
 	if (*ch == '\0')
-		return 2;
+		return PARSE_NO_COMMAND;
 
 	msgbuf->endp = &ch[strlen(ch)];
 	msgbuf->n_para = rb_string_to_array(ch, (char **)msgbuf->para, MAXPARA);
 	if (msgbuf->n_para == 0)
-		return 3;
+		return PARSE_NO_PARAMS;
 
 	const char *potential_colon = msgbuf->para[msgbuf->n_para - 1] - 1;
 	if (potential_colon >= start && *potential_colon == ':')
 		msgbuf->preserve_trailing = true;
 	msgbuf->cmd = msgbuf->para[0];
-	return 0;
+	return PARSE_SUCCESS;
 }
 
 /*
