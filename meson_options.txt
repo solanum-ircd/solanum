@@ -25,6 +25,8 @@ option('sctp', type: 'feature', value: 'auto',
   description: 'Enable SCTP support')
 option('hyperscan', type: 'feature', value: 'auto',
   description: 'Enable hyperscan regex support')
+option('icu', type: 'feature', value: 'auto',
+  description: 'Enable ICU unicode support')
 option('oper_chghost', type: 'boolean', value: false,
   description: 'Enable CHGHOST command for operators')
 
