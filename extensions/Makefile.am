@@ -80,3 +80,7 @@ extension_LTLIBRARIES =		\
 if HAVE_HYPERSCAN
     extension_LTLIBRARIES += filter.la
 endif
+
+if HAVE_ICU
+    extension_LTLIBRARIES += tag_react.la
+endif
