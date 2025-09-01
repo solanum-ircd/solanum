@@ -88,6 +88,7 @@ unsigned int CAP_EOPMOD;
 unsigned int CAP_BAN;
 unsigned int CAP_MLOCK;
 unsigned int CAP_EBMASK;
+unsigned int CAP_STAG;
 
 unsigned int CLICAP_MULTI_PREFIX;
 unsigned int CLICAP_ACCOUNT_NOTIFY;
@@ -97,6 +98,7 @@ unsigned int CLICAP_USERHOST_IN_NAMES;
 unsigned int CLICAP_CAP_NOTIFY;
 unsigned int CLICAP_CHGHOST;
 unsigned int CLICAP_ECHO_MESSAGE;
+unsigned int CLICAP_MESSAGE_TAGS;
 
 /*
  * initialize our builtin capability table. --nenolod
@@ -130,6 +132,7 @@ init_builtin_capabs(void)
 	CAP_BAN = capability_put(serv_capindex, "BAN", NULL);
 	CAP_MLOCK = capability_put(serv_capindex, "MLOCK", NULL);
 	CAP_EBMASK = capability_put(serv_capindex, "EBMASK", NULL);
+	CAP_STAG = capability_put(serv_capindex, "STAG", NULL);
 
 	capability_require(serv_capindex, "QS");
 	capability_require(serv_capindex, "EX");
@@ -146,6 +149,7 @@ init_builtin_capabs(void)
 	CLICAP_CAP_NOTIFY = capability_put(cli_capindex, "cap-notify", NULL);
 	CLICAP_CHGHOST = capability_put(cli_capindex, "chghost", &high_priority);
 	CLICAP_ECHO_MESSAGE = capability_put(cli_capindex, "echo-message", NULL);
+	CLICAP_MESSAGE_TAGS = capability_put(cli_capindex, "message-tags", NULL);
 }
 
 static CNCB serv_connect_callback;

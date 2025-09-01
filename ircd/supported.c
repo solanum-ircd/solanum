@@ -79,6 +79,7 @@
 #include "supported.h"
 #include "chmode.h"
 #include "send.h"
+#include "client_tags.h"
 
 static char allowed_chantypes[BUFSIZE];
 rb_dlink_list isupportlist;
@@ -300,6 +301,21 @@ isupport_nicklen(const void *ptr)
 	return result;
 }
 
+static const char *
+isupport_client_tag_deny(const void *ptr)
+{
+	static char result[200];
+	static char exceptions[198];
+
+	format_client_tags(exceptions, sizeof exceptions, "-%s", ",");
+
+	if (EmptyString(exceptions))
+		snprintf(result, sizeof result, "%s", "*");
+	else
+		snprintf(result, sizeof result, "%s,%s", "*", exceptions);
+	return result;
+}
+
 void
 init_isupport(void)
 {
@@ -326,6 +342,7 @@ init_isupport(void)
 	add_isupport("DEAF", isupport_umode, "D");
 	add_isupport("TARGMAX", isupport_targmax, NULL);
 	add_isupport("EXTBAN", isupport_extban, NULL);
+	add_isupport("CLIENTTAGDENY", isupport_client_tag_deny, NULL);
 }
 
 void

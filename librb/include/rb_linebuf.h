@@ -38,10 +38,10 @@
 struct _buf_line;
 struct _buf_head;
 
-/* IRCv3 tags (512 bytes) + RFC1459 message (510 bytes) */
-#define LINEBUF_TAGSLEN         512     /* IRCv3 message tags */
+/* IRCv3 tags (8191 bytes) + RFC1459 message (510 bytes) */
+#define LINEBUF_TAGSLEN         8191     /* IRCv3 message tags */
 #define LINEBUF_DATALEN         510     /* RFC1459 message data */
-#define LINEBUF_SIZE            (512 + 510)
+#define LINEBUF_SIZE            (8191 + 510)
 #define CRLF_LEN                2
 
 typedef struct _buf_line

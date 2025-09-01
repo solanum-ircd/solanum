@@ -72,6 +72,7 @@ static const char *cmdname[MESSAGE_TYPE_COUNT] = {
 	[MESSAGE_TYPE_PRIVMSG] = "PRIVMSG",
 	[MESSAGE_TYPE_NOTICE] = "NOTICE",
 	[MESSAGE_TYPE_PART] = "PART",
+	[MESSAGE_TYPE_TAGMSG] = "TAGMSG",
 };
 
 enum filter_state {
