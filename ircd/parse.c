@@ -168,7 +168,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
 	/* The tags array may be mutated via hooks; this holds the updated array */
 	struct MsgBuf updated_msg;
-	size_t ntags = msgbuf.n_tags;
+	int ntags = msgbuf.n_tags;
 	hook_data_message_tag tagdata;
 
 	/* Filter out tags that we don't allow or recognize */
@@ -178,7 +178,7 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 	tagdata.client = client_p;
 	tagdata.message = &msgbuf;
 
-	for (int i = 0; i < ntags; i++)
+	for (int i = ntags - 1; i >= 0; i--)
 	{
 		/* a hook can adjust key/value/capmask according to its needs;
 		 * value can be set to NULL in order to strip a value
@@ -193,6 +193,11 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
 		size_t keylen = strlen(tagdata.key);
 		if (keylen == 0 || (keylen == 1 && *tagdata.key == '+'))
+			continue;
+
+		/* If a tag is specified more than once, discard all but the final occurrence per spec;
+		 * we iterate backwards so that we process later tags before earlier ones for this reason */
+		if (msgbuf_get_tag(&updated_msg, tagdata.key) != NULL)
 			continue;
 
 		call_hook(h_message_tag, &tagdata);

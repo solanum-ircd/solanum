@@ -61,6 +61,9 @@ static void
 tag_typing_allow(void *data_)
 {
 	hook_data_message_tag *data = data_;
+	if (IsClient(data->client) && !IsCapable(data->client, CLICAP_MESSAGE_TAGS))
+		return;
+
 	if (!strcmp("+typing", data->key) && data->value != NULL && (!strcmp("active", data->value) || !strcmp("paused", data->value) || !strcmp("done", data->value))) {
 		data->capmask = CLICAP_MESSAGE_TAGS;
 		data->approved = MESSAGE_TAG_ALLOW;
