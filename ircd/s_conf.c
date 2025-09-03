@@ -1561,6 +1561,8 @@ clear_out_old_conf(void)
 	ConfigFileEntry.illegal_name_long_client_message = NULL;
 	rb_free(ConfigFileEntry.illegal_name_short_client_message);
 	ConfigFileEntry.illegal_name_short_client_message = NULL;
+	rb_free(ConfigFileEntry.filter_exit_message);
+	ConfigFileEntry.filter_exit_message = NULL;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{

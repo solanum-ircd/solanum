@@ -243,6 +243,8 @@ struct config_file_entry
 	int away_interval;
 	int tls_ciphers_oper_only;
 	int oper_secure_only;
+	int filter_sees_user_info;
+	int filter_bypass_all;
 
 	char **hidden_caps;
 
@@ -268,6 +270,7 @@ struct config_file_entry
 	char *server_full_client_message;
 	char *illegal_name_long_client_message;
 	char *illegal_name_short_client_message;
+	char *filter_exit_message;
 };
 
 struct config_channel_entry

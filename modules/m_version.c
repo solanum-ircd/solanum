@@ -122,6 +122,9 @@ confopts(void)
 	if(ConfigChannel.use_except)
 		*p++ = 'e';
 
+	if (ConfigFileEntry.filter_sees_user_info || ConfigFileEntry.filter_bypass_all)
+		*p++ = 'F';
+
 	if(ConfigChannel.use_invex)
 		*p++ = 'I';
 
