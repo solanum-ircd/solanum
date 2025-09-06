@@ -2942,6 +2942,25 @@ static void para_no_origin_no_cmd_no_target(void)
 	}
 }
 
+static void para_trailing_with_colon_no_cmd_no_target(void)
+{
+	const struct MsgBuf msgbuf = {
+		.n_tags = 0,
+
+		.cmd = NULL,
+		.origin = NULL,
+		.target = NULL,
+
+		.n_para = 3,
+		.para = { "test1", "test2", ":test3" },
+	};
+	char output[OUTPUT_BUFSIZE];
+
+	if (is_int(0, msgbuf_unparse(output, sizeof(output), &msgbuf, 1), MSG)) {
+		is_string(":me.name. test1 test2 ::test3", output, MSG);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	memset(&me, 0, sizeof(me));
@@ -3086,6 +3105,7 @@ int main(int argc, char *argv[])
 	para_no_origin_no_target();
 	para_no_cmd_no_target();
 	para_no_origin_no_cmd_no_target();
+	para_trailing_with_colon_no_cmd_no_target();
 
 	// TODO msgbuf_vunparse_fmt
 

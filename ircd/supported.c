@@ -305,7 +305,7 @@ static const char *
 isupport_client_tag_deny(const void *ptr)
 {
 	static char result[200];
-	static char exceptions[198];
+	char exceptions[198];
 
 	format_client_tags(exceptions, sizeof exceptions, "-%s", ",");
 
