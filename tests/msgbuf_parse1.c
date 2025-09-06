@@ -3938,6 +3938,23 @@ static void reconstruct_tail(void)
 	is_string(" :", mb->para[2], MSG);
 }
 
+static void basic_trailing_with_colon(void)
+{
+	struct MsgBuf msgbuf;
+
+	memset(&msgbuf, 0, sizeof(msgbuf));
+	strcpy(tmp, "PRIVMSG #test ::test test");
+
+	if (is_int(0, msgbuf_parse(&msgbuf, tmp), MSG)) {
+		is_string("PRIVMSG", msgbuf.cmd, MSG);
+		if (is_int(3, msgbuf.n_para, MSG)) {
+			is_string("PRIVMSG", msgbuf.para[0], MSG);
+			is_string("#test", msgbuf.para[1], MSG);
+			is_string(":test test", msgbuf.para[2], MSG);
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	memset(&me, 0, sizeof(me));
@@ -4011,6 +4028,7 @@ int main(int argc, char *argv[])
 	basic_para17b();
 	basic_para17c();
 	basic_para17d();
+	basic_trailing_with_colon();
 
 	long_para1();
 	long_para2();
