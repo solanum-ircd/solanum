@@ -119,7 +119,6 @@ struct Message echo_msgtab = {
 mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, &tagmsg_msgtab, NULL };
 
 mapi_cap_list_av2 message_cap_list[] = {
-	{ MAPI_CAP_CLIENT, "message-tags", NULL, &CLICAP_MESSAGE_TAGS },
 	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
 	{ 0, NULL, NULL, NULL }
 };
