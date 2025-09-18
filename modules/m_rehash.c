@@ -67,6 +67,13 @@ struct hash_commands
 static void
 rehash_bans_loc(struct Client *source_p)
 {
+	if(!IsOperRemoteBan(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			me.name, source_p->name, "remoteban");
+		return;
+	}
+
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s is rehashing bans",
 				get_oper_name(source_p));
 	if (!MyConnect(source_p))
@@ -130,6 +137,13 @@ rehash_omotd(struct Client *source_p)
 static void
 rehash_tklines(struct Client *source_p)
 {
+	if(!IsOperRemoteBan(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			me.name, source_p->name, "remoteban");
+		return;
+	}
+
 	struct ConfItem *aconf;
 	rb_dlink_node *ptr, *next_ptr;
 	int i;
@@ -154,6 +168,13 @@ rehash_tklines(struct Client *source_p)
 static void
 rehash_tdlines(struct Client *source_p)
 {
+	if(!IsOperRemoteBan(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			me.name, source_p->name, "remoteban");
+		return;
+	}
+
 	struct ConfItem *aconf;
 	rb_dlink_node *ptr, *next_ptr;
 	int i;
@@ -178,6 +199,13 @@ rehash_tdlines(struct Client *source_p)
 static void
 rehash_txlines(struct Client *source_p)
 {
+	if(!IsOperRemoteBan(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			me.name, source_p->name, "remoteban");
+		return;
+	}
+
 	struct ConfItem *aconf;
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
@@ -202,6 +230,13 @@ rehash_txlines(struct Client *source_p)
 static void
 rehash_tresvs(struct Client *source_p)
 {
+	if(!IsOperRemoteBan(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			me.name, source_p->name, "remoteban");
+		return;
+	}
+
 	struct ConfItem *aconf;
 	rb_radixtree_iteration_state iter;
 	rb_dlink_node *ptr;
@@ -384,12 +419,6 @@ mo_rehash(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	if (target_server != NULL)
 	{
-		if(!IsOperRemoteBan(source_p))
-		{
-			sendto_one(source_p, form_str(ERR_NOPRIVS),
-				me.name, source_p->name, "remoteban");
-			return;
-		}
 		sendto_match_servs(source_p, target_server,
 				CAP_ENCAP, NOCAPS,
 				"ENCAP %s REHASH %s",
