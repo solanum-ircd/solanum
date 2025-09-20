@@ -42,4 +42,7 @@ extern char *reconstruct_parv(int parc, const char *parv[]);
 extern rb_dictionary *alias_dict;
 extern rb_dictionary *cmd_dict;
 
+extern const struct MsgBuf *incoming_message;
+extern const struct Client *incoming_client;
+
 #endif /* INCLUDED_parse_h_h */

@@ -68,6 +68,7 @@ extern unsigned int CLICAP_USERHOST_IN_NAMES;
 extern unsigned int CLICAP_CAP_NOTIFY;
 extern unsigned int CLICAP_CHGHOST;
 extern unsigned int CLICAP_ECHO_MESSAGE;
+extern unsigned int CLICAP_MESSAGE_TAGS;
 
 /*
  * XXX: this is kind of ugly, but this allows us to have backwards
@@ -93,6 +94,7 @@ extern unsigned int CAP_EOPMOD;			/* supports EOPMOD (ext +z + ext topic) */
 extern unsigned int CAP_BAN;			/* supports propagated bans */
 extern unsigned int CAP_MLOCK;			/* supports MLOCK messages */
 extern unsigned int CAP_EBMASK;			/* supports sending BMASK set by/at metadata */
+extern unsigned int CAP_STAG;			/* supports s2s tags and TAGMSG */
 
 /* XXX: added for backwards compatibility. --nenolod */
 #define CAP_MASK	(capability_index_mask(serv_capindex) & ~(CAP_TS6 | CAP_CAP))

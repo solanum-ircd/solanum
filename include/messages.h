@@ -154,6 +154,7 @@
 #define NUMERIC_STR_414      "%s :Wildcard in toplevel Domain"
 #define NUMERIC_STR_415      "%s :Cannot send message to channel (+R) - you need to be logged into your NickServ account"
 #define NUMERIC_STR_416      ":%s 416 %s %s :output too large, truncated"
+#define NUMERIC_STR_417      ":%s 417 %s :Input line was too long"
 #define NUMERIC_STR_421      ":%s 421 %s %s :Unknown command"
 #define NUMERIC_STR_422      ":%s 422 %s :MOTD File is missing"
 #define NUMERIC_STR_431      ":%s 431 %s :No nickname given"
