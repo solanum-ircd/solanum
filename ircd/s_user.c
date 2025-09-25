@@ -1672,6 +1672,10 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 		sendto_common_channels_local_butone(target_p, CLICAP_CHGHOST, NOCAPS,
 						    ":%s!%s@%s CHGHOST %s %s",
 						    target_p->name, target_p->username, target_p->host, user, host);
+		struct monitor *monptr = find_monitor(target_p->name, 0);
+		if(monptr)
+			sendto_monitor_with_capability_butserial(target_p, monptr, CLICAP_EXTENDED_MONITOR | CLICAP_CHGHOST, NOCAPS, true, ":%s!%s@%s CHGHOST %s %s",
+						    target_p->name, target_p->username, target_p->host, user, host);
 
 		if(MyClient(target_p) && changed_case)
 			sendto_one(target_p, ":%s!%s@%s NICK %s",
