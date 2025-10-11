@@ -268,7 +268,7 @@ linebuf_put_msgf(buf_head_t *linebuf, const rb_strf_t *message, const char *form
  * side effects - a msgbuf object is populated with the full command and relevant tags
  */
 static void
-build_msgbuf(struct MsgBuf *msgbuf, struct Client *from, const char *line, size_t n_tags, const struct MsgTag tags[])
+build_msgbuf(struct MsgBuf *msgbuf, struct Client *from, char *line, size_t n_tags, const struct MsgTag tags[])
 {
 	hook_data hdata;
 

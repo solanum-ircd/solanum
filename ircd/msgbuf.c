@@ -138,9 +138,9 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 }
 
 int
-msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line)
+msgbuf_partial_parse(struct MsgBuf *msgbuf, char *line)
 {
-	char *ch = strdup(line);
+	char *ch = line;
 	const char *start = ch;
 
 	/* truncate message if it's too long */
