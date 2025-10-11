@@ -67,6 +67,7 @@ format_client_tags(char *dst, size_t dst_sz, const char *individual_fmt, const c
 {
 	size_t start = 0;
 	size_t join_len = strlen(join_sep);
+	*dst = 0;
 	for (size_t index = 0; index < num_client_tags; index++) {
 		if (start >= dst_sz)
 			break;
