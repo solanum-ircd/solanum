@@ -80,4 +80,5 @@ format_client_tags(char *dst, size_t dst_sz, const char *individual_fmt, const c
 		}
 		start += snprintf((dst + start), dst_sz - start, individual_fmt, supported_client_tags[index].name);
 	}
+    dst[start] = 0;
 }
