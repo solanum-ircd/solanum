@@ -359,7 +359,6 @@ static struct mode_table auth_table[] = {
 
 static struct mode_table connect_table[] = {
 	{ "autoconn",	SERVER_AUTOCONN		},
-	{ "compressed",	0			},
 	{ "encrypted",	SERVER_ENCRYPTED	},
 	{ "topicburst",	SERVER_TB		},
 	{ "sctp",	SERVER_SCTP		},
