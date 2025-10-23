@@ -1238,6 +1238,8 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
 			send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), true));
 		}
 	}
+
+	msgbuf_cache_free(&msgbuf_cache);
 }
 
 /* sendto_local_clients_with_capability()
