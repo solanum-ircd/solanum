@@ -310,7 +310,7 @@ read_packet(rb_fde_t * F, void *data)
 
 		/* Check to make sure we're not flooding */
 		if(!IsAnyServer(client_p) &&
-		   (rb_linebuf_alloclen(&client_p->localClient->buf_recvq) > ConfigFileEntry.client_flood_max_lines))
+		   (rb_linebuf_alloclen(&client_p->localClient->buf_recvq) + client_p->localClient->pending_batch_lines > ConfigFileEntry.client_flood_max_lines))
 		{
 			if(!(ConfigFileEntry.no_oper_flood && IsOperGeneral(client_p)))
 			{

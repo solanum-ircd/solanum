@@ -41,12 +41,18 @@
 #include "ratelimit.h"
 #include "s_assert.h"
 #include "hook.h"
+#include "batch.h"
 
 static const char join_desc[] = "Provides the JOIN and TS6 SJOIN commands to facilitate joining and creating channels";
 
 static void m_join(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void ms_join(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void ms_sjoin(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+
+static void moddeinit(void);
+static void begin_netjoin_batch(void *);
+static void complete_netjoin_batch(void *);
+static void abort_netjoin_batch(void *);
 
 static int h_can_create_channel;
 static int h_channel_join;
@@ -71,7 +77,14 @@ mapi_hlist_av1 join_hlist[] = {
 	{ NULL, NULL },
 };
 
-DECLARE_MODULE_AV2(join, NULL, NULL, join_clist, join_hlist, NULL, NULL, NULL, join_desc);
+mapi_hfn_list_av1 join_hfn_list[] = {
+	{ "server_introduced", begin_netjoin_batch },
+	{ "server_eob", complete_netjoin_batch },
+	{ "client_exit", abort_netjoin_batch },
+	{ NULL, NULL },
+};
+
+DECLARE_MODULE_AV2(join, NULL, moddeinit, join_clist, join_hlist, join_hfn_list, NULL, NULL, join_desc);
 
 static void do_join_0(struct Client *client_p, struct Client *source_p);
 static bool check_channel_name_loc(struct Client *source_p, const char *name);
@@ -82,6 +95,14 @@ static void remove_our_modes(struct Channel *chptr, struct Client *source_p);
 
 static void remove_ban_list(struct Channel *chptr, struct Client *source_p,
 			    rb_dlink_list * list, char c, int mems);
+
+static rb_dlink_list netjoin_batches = {0};
+
+struct NetjoinBatch
+{
+	char id[BATCH_ID_LEN]; /* Batch reference ID */
+	struct Client *target; /* The server being introduced */
+};
 
 /* Check what we will forward to, without sending any notices to the user
  * -- jilles
@@ -543,6 +564,8 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	char *mbuf;
 	int pargs;
 	const char *para[MAXMODEPARAMS];
+	struct NetjoinBatch *batch = NULL;
+	const char *batch_id = NULL;
 
 	if(parc < 5)
 		return;
@@ -565,6 +588,16 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	mbuf = modebuf;
 	newts = atol(parv[1]);
+
+	RB_DLINK_FOREACH(ptr, netjoin_batches.head)
+	{
+		batch = ptr->data;
+		if (batch->target == source_p)
+		{
+			batch_id = batch->id;
+			break;
+		}
+	}
 
 	s = parv[3];
 	while (*s)
@@ -843,7 +876,7 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		if(!IsMember(target_p, chptr))
 		{
 			add_user_to_channel(chptr, target_p, fl);
-			send_channel_join(chptr, target_p);
+			send_batched_channel_join(chptr, target_p, batch_id);
 			joins++;
 		}
 
@@ -1339,4 +1372,88 @@ remove_ban_list(struct Channel *chptr, struct Client *source_p,
 
 	list->head = list->tail = NULL;
 	list->length = 0;
+}
+
+static void
+begin_netjoin_batch(void *arg)
+{
+	/* data->target is the server being introduced */
+	hook_data_client *data = arg;
+	char comment[(HOSTLEN*2)+2];
+	struct NetjoinBatch *batch = rb_malloc(sizeof(struct NetjoinBatch));
+
+	generate_batch_id(batch->id, sizeof(batch->id));
+	batch->target = data->target;
+	rb_dlinkAddAlloc(batch, &netjoin_batches);
+
+	if (ConfigServerHide.flatten_links)
+		strcpy(comment, "*.net *.join");
+	else
+	{
+		strcpy(comment, data->target->servptr->name);
+		strcat(comment, " ");
+		strcat(comment, data->target->name);
+	}
+
+	sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH +%s netjoin %s", me.name, batch->id, comment);
+}
+
+static void
+moddeinit(void)
+{
+	rb_dlink_node *ptr, *next_ptr;
+	struct NetjoinBatch *batch = NULL;
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, netjoin_batches.head)
+	{
+		batch = ptr->data;
+		sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH -%s", me.name, batch->id);
+		rb_free(batch);
+		rb_dlinkDestroy(ptr, &netjoin_batches);
+	}
+}
+
+static void
+complete_netjoin_batch(void *arg)
+{
+	/* source_p is the server that completed the burst */
+	struct Client *source_p = arg;
+	rb_dlink_node *ptr, *next_ptr;
+	struct NetjoinBatch *batch = NULL;
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, netjoin_batches.head)
+	{
+		batch = ptr->data;
+		if (batch->target == source_p)
+		{
+			sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH -%s", me.name, batch->id);
+			rb_free(batch);
+			rb_dlinkDestroy(ptr, &netjoin_batches);
+			return;
+		}
+	}
+}
+
+static void
+abort_netjoin_batch(void *arg)
+{
+	/* data->target is the client that is exiting */
+	hook_data_client_exit *data = arg;
+	rb_dlink_node *ptr, *next_ptr;
+	struct NetjoinBatch *batch = NULL;
+
+	if (!IsServer(data->target) || HasSentEob(data->target))
+		return;
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, netjoin_batches.head)
+	{
+		batch = ptr->data;
+		if (batch->target == data->target)
+		{
+			sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH -%s", me.name, batch->id);
+			rb_free(batch);
+			rb_dlinkDestroy(ptr, &netjoin_batches);
+			return;
+		}
+	}
 }

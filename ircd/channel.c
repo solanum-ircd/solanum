@@ -123,22 +123,40 @@ free_ban(struct Ban *bptr)
 void
 send_channel_join(struct Channel *chptr, struct Client *client_p)
 {
+	send_batched_channel_join(chptr, client_p, NULL);
+}
+
+/*
+ * send_batched_channel_join()
+ *
+ * input        - channel to join, client joining, batch reference id.
+ * output       - none
+ * side effects - none
+ */
+void
+send_batched_channel_join(struct Channel *chptr, struct Client *client_p, const char *batch)
+{
+	struct MsgTag tag = { "batch", batch, CLICAP_BATCH };
+	size_t n_tags = (batch == NULL) ? 0 : 1;
+
 	if (!IsClient(client_p))
 		return;
 
-	sendto_channel_local_with_capability(client_p, ALL_MEMBERS, NOCAPS, CLICAP_EXTENDED_JOIN, chptr, ":%s!%s@%s JOIN %s",
-					     client_p->name, client_p->username, client_p->host, chptr->chname);
+	sendto_channel_local_with_capability_tags(client_p, ALL_MEMBERS, NOCAPS, CLICAP_EXTENDED_JOIN, chptr,
+		n_tags, &tag, ":%s!%s@%s JOIN %s",
+		client_p->name, client_p->username, client_p->host, chptr->chname);
 
-	sendto_channel_local_with_capability(client_p, ALL_MEMBERS, CLICAP_EXTENDED_JOIN, NOCAPS, chptr, ":%s!%s@%s JOIN %s %s :%s",
-					     client_p->name, client_p->username, client_p->host, chptr->chname,
-					     EmptyString(client_p->user->suser) ? "*" : client_p->user->suser,
-					     client_p->info);
+	sendto_channel_local_with_capability_tags(client_p, ALL_MEMBERS, CLICAP_EXTENDED_JOIN, NOCAPS, chptr,
+		n_tags, &tag, ":%s!%s@%s JOIN %s %s :%s",
+		client_p->name, client_p->username, client_p->host, chptr->chname,
+		EmptyString(client_p->user->suser) ? "*" : client_p->user->suser,
+		client_p->info);
 
 	/* Send away message to away-notify enabled clients. */
 	if (client_p->user->away)
 		sendto_channel_local_with_capability_butone(client_p, ALL_MEMBERS, CLICAP_AWAY_NOTIFY, NOCAPS, chptr,
-							    ":%s!%s@%s AWAY :%s", client_p->name, client_p->username,
-							    client_p->host, client_p->user->away);
+								":%s!%s@%s AWAY :%s", client_p->name, client_p->username,
+								client_p->host, client_p->user->away);
 }
 
 /* find_channel_membership()

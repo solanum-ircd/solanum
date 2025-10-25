@@ -275,6 +275,11 @@ handle_command(struct Message *mptr, struct MsgBuf *msgbuf_p, struct Client *cli
 	mptr->count++;
 
 	ehandler = mptr->handlers[from->handler];
+
+	/* let hooks adjust which handler is ultimately called here */
+	hook_data hdata = { from, msgbuf_p, &ehandler };
+	call_hook(h_message_handler, &hdata);
+
 	handler = ehandler.handler;
 
 	/* check right amount of params is passed... --is */

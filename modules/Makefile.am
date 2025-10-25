@@ -18,6 +18,7 @@ auto_load_mod_LTLIBRARIES = \
   m_admin.la \
   m_alias.la \
   m_away.la \
+  m_batch.la \
   m_cap.la \
   m_capab.la \
   m_certfp.la \

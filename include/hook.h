@@ -67,6 +67,7 @@ extern int h_rehash;
 extern int h_priv_change;
 extern int h_cap_change;
 extern int h_message_tag;
+extern int h_message_handler;
 
 void init_hook(void);
 int register_hook(const char *name);
