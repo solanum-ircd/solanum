@@ -25,6 +25,7 @@
 #include "stdinc.h"
 #include "defaults.h"
 
+#include "batch.h"
 #include "client.h"
 #include "class.h"
 #include "hash.h"
@@ -60,9 +61,9 @@ static void check_unknowns_list(rb_dlink_list * list);
 static void free_exited_clients(void *unused);
 static void exit_aborted_clients(void *unused);
 
-static int exit_remote_client(struct Client *, struct Client *, struct Client *,const char *);
+static int exit_remote_client(struct Client *, struct Client *, struct Client *, const char *, const char *);
 static int exit_remote_server(struct Client *, struct Client *, struct Client *,const char *);
-static int exit_local_client(struct Client *, struct Client *, struct Client *,const char *);
+static int exit_local_client(struct Client *, struct Client *, struct Client *, const char *, const char *);
 static int exit_unknown_client(struct Client *, struct Client *, struct Client *,const char *);
 static int exit_local_server(struct Client *, struct Client *, struct Client *,const char *);
 static int qs_server(struct Client *, struct Client *, struct Client *, const char *comment);
@@ -92,7 +93,6 @@ struct abort_client
 };
 
 static rb_dlink_list abort_list;
-
 
 /*
  * init_client
@@ -1215,7 +1215,7 @@ free_exited_clients(void *unused)
  * added sanity test code.... source_p->serv might be NULL...
  */
 static void
-recurse_remove_clients(struct Client *source_p, const char *comment)
+recurse_remove_clients(struct Client *source_p, const char *comment, const char *batch)
 {
 	struct Client *target_p;
 	rb_dlink_node *ptr, *ptr_next;
@@ -1236,7 +1236,7 @@ recurse_remove_clients(struct Client *source_p, const char *comment)
 			add_nd_entry(target_p->name);
 
 			if(!IsDead(target_p) && !IsClosing(target_p))
-				exit_remote_client(NULL, target_p, &me, comment);
+				exit_remote_client(NULL, target_p, &me, comment, batch);
 		}
 	}
 	else
@@ -1247,14 +1247,14 @@ recurse_remove_clients(struct Client *source_p, const char *comment)
 			target_p->flags |= FLAGS_KILLED;
 
 			if(!IsDead(target_p) && !IsClosing(target_p))
-				exit_remote_client(NULL, target_p, &me, comment);
+				exit_remote_client(NULL, target_p, &me, comment, batch);
 		}
 	}
 
 	RB_DLINK_FOREACH_SAFE(ptr, ptr_next, source_p->serv->servers.head)
 	{
 		target_p = ptr->data;
-		recurse_remove_clients(target_p, comment);
+		recurse_remove_clients(target_p, comment, batch);
 		qs_server(NULL, target_p, &me, comment);
 	}
 }
@@ -1267,7 +1267,7 @@ recurse_remove_clients(struct Client *source_p, const char *comment)
 static void
 remove_dependents(struct Client *client_p,
 		  struct Client *source_p,
-		  struct Client *from, const char *comment, const char *comment1)
+		  struct Client *from, const char *comment, const char *comment1, const char *batch)
 {
 	struct Client *to;
 	rb_dlink_node *ptr, *next;
@@ -1282,7 +1282,7 @@ remove_dependents(struct Client *client_p,
 		sendto_one(to, "SQUIT %s :%s", get_id(source_p, to), comment);
 	}
 
-	recurse_remove_clients(source_p, comment1);
+	recurse_remove_clients(source_p, comment1, batch);
 }
 
 void
@@ -1354,20 +1354,28 @@ dead_link(struct Client *client_p, int sendqex)
 	rb_dlinkAdd(abt, &abt->node, &abort_list);
 }
 
-
 /* This does the remove of the user from channels..local or remote */
 static inline void
 exit_generic_client(struct Client *client_p, struct Client *source_p, struct Client *from,
-		   const char *comment)
+		   const char *comment, const char *batch)
 {
 	rb_dlink_node *ptr, *next_ptr;
+	size_t n_tags = 0;
+	struct MsgTag batch_tag = {0};
 
 	if(IsOper(source_p))
 		rb_dlinkFindDestroy(source_p, &oper_list);
 
-	sendto_common_channels_local(source_p, NOCAPS, NOCAPS, ":%s!%s@%s QUIT :%s",
-				     source_p->name,
-				     source_p->username, source_p->host, comment);
+	if (batch != NULL)
+	{
+		n_tags = 1;
+		batch_tag.key = "batch";
+		batch_tag.value = batch;
+		batch_tag.capmask = CLICAP_BATCH;
+	}
+
+	sendto_common_channels_local_tags(source_p, NOCAPS, NOCAPS, n_tags, &batch_tag,
+		":%s!%s@%s QUIT :%s", source_p->name, source_p->username, source_p->host, comment);
 
 	remove_user_from_channels(source_p);
 
@@ -1402,9 +1410,9 @@ exit_generic_client(struct Client *client_p, struct Client *source_p, struct Cli
 
 static int
 exit_remote_client(struct Client *client_p, struct Client *source_p, struct Client *from,
-		   const char *comment)
+		   const char *comment, const char *batch)
 {
-	exit_generic_client(client_p, source_p, from, comment);
+	exit_generic_client(client_p, source_p, from, comment, batch);
 
 	if(source_p->servptr && source_p->servptr->serv)
 	{
@@ -1473,6 +1481,7 @@ exit_remote_server(struct Client *client_p, struct Client *source_p, struct Clie
 	static char comment1[(HOSTLEN*2)+2];
 	static char newcomment[BUFSIZE];
 	struct Client *target_p;
+	char batch_id[BATCH_ID_LEN];
 
 	if(ConfigServerHide.flatten_links)
 		strcpy(comment1, "*.net *.split");
@@ -1486,7 +1495,10 @@ exit_remote_server(struct Client *client_p, struct Client *source_p, struct Clie
 		snprintf(newcomment, sizeof(newcomment), "by %s: %s",
 				from->name, comment);
 
-	remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
+	generate_batch_id(batch_id, sizeof(batch_id));
+	sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH +%s netsplit %s", me.name, batch_id, comment1);
+	remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1, batch_id);
+	sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH -%s", me.name, batch_id);
 
 	rb_dlinkDelete(&source_p->lnode, &source_p->servptr->serv->servers);
 
@@ -1548,6 +1560,7 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 	static char comment1[(HOSTLEN*2)+2];
 	static char newcomment[BUFSIZE];
 	unsigned int sendk, recvk;
+	char batch_id[BATCH_ID_LEN];
 
 	rb_dlinkDelete(&source_p->localClient->tnode, &serv_list);
 	rb_dlinkFindDestroy(source_p, &global_serv_list);
@@ -1587,7 +1600,12 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 	}
 
 	if(source_p->serv != NULL)
-		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1);
+	{
+		generate_batch_id(batch_id, sizeof(batch_id));
+		sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH +%s netsplit %s", me.name, batch_id, comment1);
+		remove_dependents(client_p, source_p, from, IsPerson(from) ? newcomment : comment, comment1, batch_id);
+		sendto_local_clients_with_capability(CLICAP_BATCH, ":%s BATCH -%s", me.name, batch_id);
+	}
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s was connected"
 			     " for %lld seconds.  %d/%d sendK/recvK.",
@@ -1615,12 +1633,12 @@ exit_local_server(struct Client *client_p, struct Client *source_p, struct Clien
 
 static int
 exit_local_client(struct Client *client_p, struct Client *source_p, struct Client *from,
-		  const char *comment)
+		  const char *comment, const char *batch)
 {
 	unsigned long on_for;
 	char tbuf[26];
 
-	exit_generic_client(client_p, source_p, from, comment);
+	exit_generic_client(client_p, source_p, from, comment, batch);
 	clear_monitor(source_p);
 
 	s_assert(IsPerson(source_p));
@@ -1721,7 +1739,7 @@ exit_client(struct Client *client_p,	/* The local client originating the
 	{
 		/* Local clients of various types */
 		if(IsPerson(source_p))
-			ret = exit_local_client(client_p, source_p, from, comment);
+			ret = exit_local_client(client_p, source_p, from, comment, NULL);
 		else if(IsServer(source_p))
 			ret = exit_local_server(client_p, source_p, from, comment);
 		/* IsUnknown || IsConnecting || IsHandShake */
@@ -1732,7 +1750,7 @@ exit_client(struct Client *client_p,	/* The local client originating the
 	{
 		/* Remotes */
 		if(IsPerson(source_p))
-			ret = exit_remote_client(client_p, source_p, from, comment);
+			ret = exit_remote_client(client_p, source_p, from, comment, NULL);
 		else if(IsServer(source_p))
 			ret = exit_remote_server(client_p, source_p, from, comment);
 	}

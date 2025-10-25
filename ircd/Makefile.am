@@ -17,6 +17,7 @@ version.c: version.c.SH ../CREDITS ../include/patchlevel.h ../include/serno.h
 libircd_la_SOURCES =                  \
   authproc.c			\
   bandbi.c                      \
+  batch.c               \
   cache.c                       \
   capability.c			\
   channel.c                     \

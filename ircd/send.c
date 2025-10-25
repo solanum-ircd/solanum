@@ -893,6 +893,22 @@ sendto_channel_local_with_capability(struct Client *source_p, int type, int caps
 	va_end(args);
 }
 
+/* sendto_channel_local_with_capability_tags()
+ *
+ * inputs	- source, flags to send to, caps, negate caps, channel to send to, tags, va_args
+ * outputs	- message to local channel members
+ * side effects -
+ */
+void
+sendto_channel_local_with_capability_tags(struct Client *source_p, int type, int caps, int negcaps,
+	struct Channel *chptr, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+{
+	va_list args;
+
+	va_start(args, pattern);
+	sendto_channel_local_internal(NULL, type, source_p, chptr, caps, negcaps, NULL, pattern, &args, n_tags, tags);
+	va_end(args);
+}
 
 /* sendto_channel_local_with_capability_butone()
  *
@@ -947,22 +963,16 @@ sendto_channel_local_butone(struct Client *one, int type, struct Channel *chptr,
 	va_end(args);
 }
 
-/*
- * sendto_common_channels_local()
+/* sendto_common_channels_local_internal()
  *
- * inputs	- pointer to client
- *		- capability mask
- *		- negated capability mask
- *		- pattern to send
- * output	- NONE
- * side effects	- Sends a message to all people on local server who are
- * 		  in same channel with user.
- *		  used by m_nick.c and exit_one_client.
+ * inputs	- client to exclude, user to check, caps, message, tags
+ * outputs	- NONE
+ * side effects - Sends a message to all people on local server who are in the same channel with user
  */
-void
-sendto_common_channels_local(struct Client *user, int cap, int negcap, const char *pattern, ...)
+static void
+sendto_common_channels_local_internal(struct Client *one, struct Client *user, int caps, int negcaps,
+	const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
-	va_list args;
 	rb_dlink_node *ptr;
 	rb_dlink_node *next_ptr;
 	rb_dlink_node *uptr;
@@ -974,17 +984,18 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
 	char buf[DATALEN + 1];
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
-
-	va_start(args, pattern);
+	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 	rb_fsnprint(buf, sizeof(buf), &strings);
-	va_end(args);
 
-	build_msgbuf(&msgbuf, user, buf, 0, NULL);
+	build_msgbuf(&msgbuf, user, buf, n_tags, tags);
 	/* source is already provided as part of pattern; don't overwrite it with anything else */
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	++current_serial;
+
+	/* skip the excluded user, if specified */
+	if (one != NULL)
+		one->serial = current_serial;
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, user->user->channel.head)
 	{
@@ -998,8 +1009,8 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 
 			if(IsIOError(target_p) ||
 			   target_p->serial == current_serial ||
-			   !IsCapable(target_p, cap) ||
-			   !NotCapable(target_p, negcap))
+			   !IsCapable(target_p, caps) ||
+			   !NotCapable(target_p, negcaps))
 				continue;
 
 			target_p->serial = current_serial;
@@ -1010,12 +1021,58 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
 	/* this can happen when the user isn't in any channels, but we still
 	 * need to send them the data, ie a nick change
 	 */
-	if (MyConnect(user) && (user->serial != current_serial)
-			&& IsCapable(user, cap) && NotCapable(user, negcap)) {
+	if (MyConnect(user) && (user->serial != current_serial) && IsCapable(user, caps) && NotCapable(user, negcaps))
+	{
 		send_linebuf(user, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(user), false));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
+}
+
+/*
+ * sendto_common_channels_local()
+ *
+ * inputs	- pointer to client
+ *		- capability mask
+ *		- negated capability mask
+ *		- pattern to send
+ * output	- NONE
+ * side effects	- Sends a message to all people on local server who are
+ * 		  in same channel with user.
+ *		  used by m_nick.c and exit_one_client.
+ */
+void
+sendto_common_channels_local(struct Client *user, int caps, int negcaps, const char *pattern, ...)
+{
+	va_list args;
+
+	va_start(args, pattern);
+	sendto_common_channels_local_internal(NULL, user, caps, negcaps, pattern, &args, 0, NULL);
+	va_end(args);
+}
+
+/*
+ * sendto_common_channels_local_tags()
+ *
+ * inputs	- pointer to client
+ *		- capability mask
+ *		- negated capability mask
+ *		- message tags
+ *		- pattern to send
+ * output	- NONE
+ * side effects	- Sends a message to all people on local server who are
+ * 		  in same channel with user.
+ *		  used by m_nick.c and exit_one_client.
+ */
+void
+sendto_common_channels_local_tags(struct Client *user, int caps, int negcaps,
+	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+{
+	va_list args;
+
+	va_start(args, pattern);
+	sendto_common_channels_local_internal(NULL, user, caps, negcaps, pattern, &args, n_tags, tags);
+	va_end(args);
 }
 
 /*
@@ -1030,56 +1087,36 @@ sendto_common_channels_local(struct Client *user, int cap, int negcap, const cha
  * 		  in same channel with user, except for user itself.
  */
 void
-sendto_common_channels_local_butone(struct Client *user, int cap, int negcap, const char *pattern, ...)
+sendto_common_channels_local_butone(struct Client *user, int caps, int negcaps, const char *pattern, ...)
 {
 	va_list args;
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
-	rb_dlink_node *uptr;
-	rb_dlink_node *next_uptr;
-	struct Channel *chptr;
-	struct Client *target_p;
-	struct membership *msptr;
-	struct membership *mscptr;
-	struct MsgBuf msgbuf;
-	struct MsgBuf_cache msgbuf_cache;
-	char buf[DATALEN + 1];
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
 
 	va_start(args, pattern);
-	rb_fsnprint(buf, sizeof(buf), &strings);
+	sendto_common_channels_local_internal(user, user, caps, negcaps, pattern, &args, 0, NULL);
 	va_end(args);
+}
 
-	build_msgbuf(&msgbuf, user, buf, 0, NULL);
-	/* source is already provided as part of pattern; don't overwrite it with anything else */
-	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
+/*
+ * sendto_common_channels_local_butone_tags()
+ *
+ * inputs	- pointer to client
+ *		- capability mask
+ *		- negated capability mask
+ *		- message tags
+ *		- pattern to send
+ * output	- NONE
+ * side effects	- Sends a message to all people on local server who are
+ * 		  in same channel with user, except for user itself.
+ */
+void
+sendto_common_channels_local_butone_tags(struct Client *user, int caps, int negcaps,
+	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+{
+	va_list args;
 
-	++current_serial;
-	/* Skip them -- jilles */
-	user->serial = current_serial;
-
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, user->user->channel.head)
-	{
-		mscptr = ptr->data;
-		chptr = mscptr->chptr;
-
-		RB_DLINK_FOREACH_SAFE(uptr, next_uptr, chptr->locmembers.head)
-		{
-			msptr = uptr->data;
-			target_p = msptr->client_p;
-
-			if(IsIOError(target_p) ||
-			   target_p->serial == current_serial ||
-			   !IsCapable(target_p, cap) ||
-			   !NotCapable(target_p, negcap))
-				continue;
-
-			target_p->serial = current_serial;
-			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
-		}
-	}
-
-	msgbuf_cache_free(&msgbuf_cache);
+	va_start(args, pattern);
+	sendto_common_channels_local_internal(user, user, caps, negcaps, pattern, &args, n_tags, tags);
+	va_end(args);
 }
 
 /* sendto_match_internal()
@@ -1182,31 +1219,28 @@ sendto_match_butone_tags(struct Client *one, struct Client *source_p,
 
 /* sendto_match_servs()
  *
- * inputs       - source, mask to send to, caps needed, va_args
+ * inputs       - source, mask to send to, caps needed, va_args, tags
  * outputs      -
  * side effects - message is sent to matching servers with caps.
  */
-void
-sendto_match_servs(struct Client *source_p, const char *mask, int cap,
-			int nocap, const char *pattern, ...)
+static void
+sendto_match_servs_internal(struct Client *source_p, const char *mask, int cap, int negcap,
+	const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
-	va_list args;
 	rb_dlink_node *ptr;
 	struct Client *target_p;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
 	char buf[DATALEN + 1];
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
+	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 
 	if (EmptyString(mask))
 		return;
 
-	va_start(args, pattern);
 	int used = snprintf(buf, sizeof(buf), ":%s ", use_id(source_p));
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
-	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, buf, 0, NULL);
+	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	current_serial++;
@@ -1232,7 +1266,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
 			if (cap && !IsCapable(target_p->from, cap))
 				continue;
 
-			if (nocap && !NotCapable(target_p->from, nocap))
+			if (negcap && !NotCapable(target_p->from, negcap))
 				continue;
 
 			send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), true));
@@ -1240,6 +1274,37 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap,
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
+}
+
+/* sendto_match_servs()
+ *
+ * inputs       - source, mask to send to, caps needed, va_args
+ * outputs      -
+ * side effects - message is sent to matching servers with caps.
+ */
+void
+sendto_match_servs(struct Client *source_p, const char *mask, int cap, int negcap, const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_match_servs_internal(source_p, mask, cap, negcap, pattern, &args, 0, NULL);
+	va_end(args);
+}
+
+/* sendto_match_servs_tags()
+ *
+ * inputs       - source, mask to send to, caps needed, tags, va_args
+ * outputs      -
+ * side effects - message is sent to matching servers with caps.
+ */
+void
+sendto_match_servs_tags(struct Client *source_p, const char *mask, int cap, int negcap,
+	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_match_servs_internal(source_p, mask, cap, negcap, pattern, &args, n_tags, tags);
+	va_end(args);
 }
 
 /* sendto_local_clients_with_capability()

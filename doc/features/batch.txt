@@ -1,0 +1,229 @@
+BATCH support documentation
+========================================
+
+Portions of BATCH are supported in solanum core, whereas other portions are
+implemented via the m_batch module. The portions in core are sufficient for
+server-initiated batches sent to locally-connected clients. The module
+implements client-initiated batches as well as batches that are propagated
+between servers.
+
+Contents:
+1. Specification
+2. Core support
+3. Server-initiated batches
+4. Client-initiated batches
+5. Propagated batches
+6. Other notes
+
+========================================
+1. Specification
+========================================
+
+Batches are specified as part of the IRCv3 effort. At the time of this
+writing, client-initiated batches are still in draft status.
+
+- Core spec: https://ircv3.net/specs/extensions/batch
+- Client-initiated batches: https://ircv3.net/specs/extensions/client-batch
+- Netsplit/netjoin batch types: https://ircv3.net/specs/batches/netsplit
+
+Individual batch types have their own specifications.
+
+========================================
+2. Core support
+========================================
+
+To support server-initiated batches, the "batch" client capability is defined
+directly in core via CLICAP_BATCH. If a client has this capability, they are
+able to receive arbitrary batch types. Portions of core use this to implement
+the netsplit (in ircd/client.c) and netjoin (in modules/core/m_join.c) batch
+types.
+
+The netjoin batch type additionally depends on support added to ircd/channel.c
+to send a JOIN message to a client with an included batch tag. This ensures
+that only JOINs that are actually part of a netjoin are tagged with the batch,
+and other normal JOIN messages lack the tag. The netjoin batch is triggered by
+receiving an SJOIN command from a remote server that has not yet sent an EOB.
+
+Some support for client-initiated and propagated batches are also in core.
+The LocalUser struct in includes/client.h received two additional fields to
+support queueing messages for future processing. A new hook named
+"message_handler" was added as well to override which handler is used when
+parsing a command, to be used for the queueing support as well. Finally,
+functions for registering and unregistering recognized client-initiated and
+propagated batch types along with their handler is present in core.
+
+The two additional fields of LocalUser are `unsigned int pending_batch_lines`
+and `rb_dlink_list pending_batches`. pending_batch_lines keeps track of the
+number of messages currently queued for future processing. These messages are
+counted against the client's receive queue, so a client with too many combined
+lines between queued messages from incomplete batches and lines that simply
+haven't been parsed yet (perhaps due to fakelag) will be disconnected with
+"Excess Flood". In this way, we cap the overall memory that the ircd will be
+allocating for a client and ensure that batches cannot be used as a way to
+cheat flood protection controls. pending_batches keeps track of each batch
+that the client initiated but has not yet completed. The struct used for the
+list nodes is defined in includes/batch.h (explained in a couple paragraphs).
+
+The message_handler hook is called each time a command is parsed, before it is
+dispatched to the module that handles that command. The hook can be used to
+override the handler with a different one, allowing a different module to
+handle the command instead. This is used by m_batch for client-initiated
+batches and that usage is explained more in that section.
+
+Finally, a new header includes/batch.h contains helpful methods for both
+server-initiated and client-initiated/propagated batches. For the former, a
+method generates a randomized 15-character batch ID into a buffer for use with
+BATCH commands and the batch message tag on outgoing messages. For the latter,
+two functions are provided for modules to register/unregister recognized batch
+types along with the handlers that should be called when a batch of that type
+is received from a client or remote server. Attempting to register a type that
+has already been registered is an error. The header finally defines a struct
+that contains relevant metadata about an incoming batch as well as functions
+to allocate and free that structure and attach messages to an incoming batch.
+
+========================================
+3. Server-initiated batches
+========================================
+
+Beyond CLICAP_BATCH, no special support exists in the server for batches
+initiated by the server to be sent to local clients. It is expected that users
+can generate their own batch reference tags (whether randomly or using some
+sort of static or data-dependent value) and make use of appropriate existing
+sendto_* functions to send the BATCH commands to relevant clients as well as
+the messages within the batch. The vast majority of sendto_* functions support
+variants that take message tags with their parameters so a module can
+explicitly add the batch tag to the outgoing message without needing to rely
+on the "outbound_msgbuf" hook.
+
+Core support exists ONLY for server-initiated batches being sent to local
+clients; the m_batch module is required if BATCH commands need to be sent
+between servers.
+
+========================================
+4. Client-initiated batches
+========================================
+
+This section concerns batches that are initiated by locally-connected clients.
+Batches made by remote clients are described in the next section.
+
+While not mandated by the current draft specification for client-initiated
+batches, the m_batch module supports having multiple interleaved batches in
+flight by a single client, nested batches, and the ability for clients to send
+messages not associated with a batch while a batch is in flight. Messages sent
+by a client with a valid batch tag are queued into that respective batch, and
+will not be processed by the server until the client closes that batch.
+
+When the client initiates a new batch, m_batch checks if any module has
+registered a handler for that batch type. If there is no registered handler,
+the BATCH command is rejected. Any messages the client sends tagged with that
+batch and the closing BATCH command (if any is sent) are rejected as well. If
+the incoming batch has a registered handler, a deep copy of the BATCH command
+is made and attached to the client's pending_batches along with other metadata
+needed to track the batch (such as when the batch expires). The client's
+pending_batch_lines are incremented by 1 due to this new allocation. Deep
+copies (that is, copies that include copying all pointed-to values) are made
+because the BATCH command needs to be long-lived beyond the current message
+handler invocation and the pointer lifetimes of message parameters do not
+extend beyond the current handler invocation.
+
+When a message is received from a local client with a batch tag, and the tag
+references a valid batch, the "message_handler" hook function replaces the
+default handler for that command with a handler that appends a deep copy of
+that message to the relevant node in the client's pending_batches list as well
+as incrementing their pending_batch_lines by 1. If the tag does not reference
+a valid batch, the "message_handler" hook function replaces the default
+handler with m_ignore to discard the message. The specification requires this
+behavior when a batch has timed out, and the module does not keep track of
+expired batch reference tags, so any invalid reference tag receives this same
+treatment.
+
+When the closing BATCH message is received with a valid reference tag, the
+m_batch module once again looks up the handler for that batch type. We do not
+save the batch handler from the initial message due to the risk of the module
+handling that batch type being unloaded between the time the client begins a
+batch and ends that batch. In the event that the batch is no longer valid, the
+messages are dropped (as if they were originally received with a batch message
+tag containing an invalid reference). Otherwise, the handler is called. In
+either case, the batch is removed from the client's pending_batches list and
+the client's pending_batch_lines are reduced by the number of messages
+associated with the batch.
+
+No fake lag is applied to processing the messages inside of a batch when the
+client completes a batch, as fake lag was already applied to the client
+adding the messages to the batch and the client's receive queue was still
+counting those messages against the total.
+
+Client-initiated batches cannot remain open indefinitely. Approximately every
+30 seconds, a timer executes which forcibly closes batches that have been open
+for longer than 15 seconds. This cleanup is non-essential as it is expected
+most clients will complete batches long before this timeout period. Because we
+need to iterate over every local client and then every batch pending by those
+clients, the timer does not run with high frequency. This means that clients
+have anywhere between 15-45 seconds (approximately) to finish a batch. If a
+batch is timed out, it is removed from the client's list of pending_batches,
+the number of lines in the batch are deducted from the client's
+pending_batch_lines, the messages in the batch are discarded without being
+processed, and the client is given a notification that the batch timed out.
+
+If a client is nesting batches and completes the outer batch before the nested
+inner batch, the inner batch will be discarded without being processed and the
+client will be given a notification that they did not properly close the inner
+batch.
+
+Empty client-initiated batches do not trigger any handlers and are treated as
+no-ops. No response is given to the client in such events (unless the client
+has negotiated labeled-response, in which case it is given an ACK).
+
+Exiting clients will cause all pending batches associated with that client to
+be silently aborted, with no output being sent to the client (since they're
+gone anyway).
+
+========================================
+5. Propagated batches
+========================================
+
+The server protocol BATCH command is equivalent in syntax to the client
+protocol BATCH command. Like client batches, propagated batches are deferred
+for processing until the batch is complete. Once complete, the batch handler
+will be called on the full batch if the batch type is recognized. If the batch
+type is not recognized, it will send a FAIL message to the source if the source
+is a client, otherwise it will silently drop the message.
+
+Batch types should only be sent to other servers if the sending server is
+assured that the batch type is available, such as via a server capability sent
+via the CAPAB command for that batch type. The m_batch module does not define
+any propagated batch types or server capabilities.
+
+========================================
+6. Other notes
+========================================
+
+If the m_batch module is unloaded, all pending client-initiated and propagated
+batches are aborted without their messages being processed. This will result
+in the pending_batches list becoming empty and pending_batch_lines being 0 for
+all locally-connected clients and servers. Local clients will be notified that
+their batches have timed out.
+
+Errors with client-initiated batches are sent to clients using the
+standard-replies framework specified in IRCv3. The codes used by m_batch are
+as follows:
+
+- FAIL BATCH TIMEOUT <reference-tag>: Indicates a client-initiated batch timed
+  out or the m_batch module was unloaded.
+- FAIL BATCH INVALID_NESTING <reference-tag> <parent-type> <type>: Indicates
+  that the specified batch type is not allowed to be nested under the parent's
+  batch type (via the allowed_children field or BATCH_FLAG_ALLOW_ALL).
+- FAIL BATCH INVALID_REFTAG <reference-tag>: Indicates the batch contains an
+  invalid reference tag (either creating a new batch with an already-existing
+  tag, not beginning the tag with '+' or '-', the tag consists solely of "+"
+  or "-", or closing a batch with a tag not associated with an open batch).
+- FAIL BATCH UNKNOWN_TYPE <reference-tag> <type>: Indicates the batch type is
+  not recognized by a module on the ircd.
+- FAIL BATCH INCOMPLETE <reference-tag>: Indicates the client is using nested
+  batches and closed an outer batch before closing the inner nested batch.
+
+Each batch is given a server-generated reference tag in addition to the tag
+specified by the client or remote server. When the batch is propagated, the
+locally-generated reference tag is used rather than the client-specified one.
+Doing this solves any moderation considerations regarding the contents of a
+client-specified batch reference tag being shared with other clients.
