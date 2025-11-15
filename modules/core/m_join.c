@@ -99,9 +99,32 @@ check_forward(struct Client *source_p, struct Channel *chptr,
 	if ((*err = can_join(source_p, chptr, key, &next)) == 0)
 		return chptr;
 
-	/* User is +Q, or forwarding disabled */
-	if (IsNoForward(source_p) || !ConfigChannel.use_forward)
+	/* Forwarding disabled */
+	if (!ConfigChannel.use_forward)
 		return NULL;
+
+	/* User is +Q - check if a forward would have been attempted and notify */
+	if (IsNoForward(source_p))
+	{
+		const char *next_test = NULL;
+		struct Channel *test_chptr;
+		int test_err;
+		
+		/* Check if there would have been a forward available */
+		test_err = can_join(source_p, chptr, key, &next_test);
+		if (test_err != 0 && next_test != NULL)
+		{
+			test_chptr = find_channel(next_test);
+			if (test_chptr != NULL && !IsMember(source_p, test_chptr) &&
+			    !hash_find_resv(test_chptr->chname) &&
+			    !(test_chptr->mode.mode & MODE_DISFORWARD))
+			{
+				/* A forward would have been attempted, notify the user */
+				sendto_one_notice(source_p, ":*** Forward to %s was blocked due to +Q mode", test_chptr->chname);
+			}
+		}
+		return NULL;
+	}
 
 	while (depth < 16)
 	{
