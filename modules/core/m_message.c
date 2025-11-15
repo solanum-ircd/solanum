@@ -621,7 +621,39 @@ msg_channel(enum message_type msgtype,
 	}
 
 	/* chanops and voiced can flood their own channel with impunity */
-	if((result = can_send(chptr, source_p, NULL)))
+	result = can_send(chptr, source_p, NULL);
+	
+	/* Check if hook provided a numeric error response */
+	/* Error numerics are typically > 400 and < 1000 */
+	if(result > CAN_SEND_OPV && result < 1000)
+	{
+		if(msgtype != MESSAGE_TYPE_NOTICE)
+		{
+			/* Hook provided an error numeric - need to get the error message */
+			hook_data_channel_approval moduledata;
+			struct membership *msptr = find_channel_membership(chptr, source_p);
+			
+			moduledata.approved = CAN_SEND_NONOP;
+			moduledata.dir = MODE_QUERY;
+			moduledata.client = source_p;
+			moduledata.chptr = chptr;
+			moduledata.msptr = msptr;
+			moduledata.target = NULL;
+			moduledata.error = NULL;
+			
+			call_hook(h_can_send, &moduledata);
+			
+			/* If hook set error message, use it; otherwise format standard error */
+			if(moduledata.error != NULL)
+				sendto_one(source_p, "%s", moduledata.error);
+			else
+				sendto_one_numeric(source_p, (unsigned int)result,
+					   form_str((unsigned int)result), chptr->chname);
+		}
+		return;
+	}
+	
+	if(result)
 	{
 		if(result != CAN_SEND_OPV && MyClient(source_p) &&
 		   !IsOperGeneral(source_p) &&

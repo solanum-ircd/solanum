@@ -672,8 +672,8 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	call_hook(h_local_nick_change, &hook_info);
 
 	sendto_realops_snomask(SNO_NCHANGE, L_ALL,
-			     "Nick change: From %s to %s [%s@%s]",
-			     source_p->name, nick, source_p->username, source_p->host);
+			     "Nick change: From %s to %s [%s@%s] (%s)",
+			     source_p->name, nick, source_p->username, source_p->host, source_p->id);
 
 	/* send the nick change to the users channels */
 	sendto_common_channels_local(source_p, NOCAPS, NOCAPS, ":%s!%s@%s NICK :%s",

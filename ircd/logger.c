@@ -131,6 +131,12 @@ open_logfiles(void)
 	close_logfiles();
 
 	log_main = fopen(logFileName, "a");
+	if(log_main == NULL && !server_state_foreground)
+	{
+		fprintf(stderr, "ERROR: Unable to open main logfile %s: %s\n", logFileName, strerror(errno));
+		fflush(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	/* log_main is handled above, so just do the rest */
 	for(i = 1; i < LAST_LOGFILE; i++)
@@ -140,6 +146,12 @@ open_logfiles(void)
 		{
 			verify_logfile_access(*log_table[i].name);
 			*log_table[i].logfile = fopen(*log_table[i].name, "a");
+			if(*log_table[i].logfile == NULL && !server_state_foreground)
+			{
+				fprintf(stderr, "ERROR: Unable to open logfile %s: %s\n", *log_table[i].name, strerror(errno));
+				fflush(stderr);
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
 }
