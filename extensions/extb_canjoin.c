@@ -10,6 +10,7 @@
 #include "channel.h"
 #include "hash.h"
 #include "ircd.h"
+#include "match.h"
 
 static const char extb_desc[] = "Can join ($j) extban type - matches users who are or are not banned from a specified channel";
 
@@ -63,7 +64,51 @@ static int eb_canjoin(const char *data, struct Client *client_p,
 		return EXTBAN_INVALID;
 #endif
 	recurse = 1;
-	ret = is_banned(chptr2, client_p, NULL, NULL, NULL) != 0 ? EXTBAN_MATCH : EXTBAN_NOMATCH;
+	/* Check both bans and quiets in the target channel for $j extban */
+	const char *forward = NULL;
+	struct matchset ms;
+	matchset_for_client(client_p, &ms);
+	int banned_result = is_banned(chptr2, client_p, NULL, &ms, &forward);
+	if (banned_result != 0)
+	{
+		/* If the ban has a forward, check if user would be banned in the forward channel */
+		if (forward != NULL)
+		{
+			struct Channel *forward_chptr = find_channel(forward);
+			if (forward_chptr != NULL && forward_chptr != chptr && forward_chptr != chptr2)
+			{
+				/* Check if user is banned in forward channel (but don't recurse $j checks) */
+				recurse = 0;
+				int forward_banned = is_banned(forward_chptr, client_p, NULL, &ms, NULL) != 0 ||
+				                     is_quieted(forward_chptr, client_p, NULL, &ms) == CHFL_BAN;
+				recurse = 1;
+				ret = forward_banned ? EXTBAN_MATCH : EXTBAN_NOMATCH;
+			}
+			else
+			{
+				ret = EXTBAN_MATCH;
+			}
+		}
+		else
+		{
+			ret = EXTBAN_MATCH;
+		}
+	}
+	else
+	{
+		/* Check quiets separately to also check for forward */
+		const char *qforward = NULL;
+		int quieted_result = is_quieted(chptr2, client_p, NULL, &ms);
+		if (quieted_result == CHFL_BAN)
+		{
+			/* Quiets don't have forwards, so just match */
+			ret = EXTBAN_MATCH;
+		}
+		else
+		{
+			ret = EXTBAN_NOMATCH;
+		}
+	}
 	recurse = 0;
 	return ret;
 }
