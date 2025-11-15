@@ -1637,10 +1637,11 @@ exit_local_client(struct Client *client_p, struct Client *source_p, struct Clien
                              show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255");
 
 	sendto_realops_snomask(SNO_CCONNEXT, L_ALL,
-			"CLIEXIT %s %s %s %s 0 %s",
+			"CLIEXIT %s %s %s %s 0 %s %s",
 			source_p->name, source_p->username, source_p->host,
                         show_ip(NULL, source_p) ? source_p->sockhost : "255.255.255.255",
-			comment);
+			comment,
+			source_p->id);
 
 	on_for = rb_current_time() - source_p->localClient->firsttime;
 

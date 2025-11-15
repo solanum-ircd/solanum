@@ -42,6 +42,6 @@ h_gnc_nick_change(void *data_)
 	const char *newnick = data->arg2;
 
 	sendto_realops_snomask_from(SNO_NCHANGE, L_ALL, source_p->servptr,
-				"Nick change: From %s to %s [%s@%s]",
-				oldnick, newnick, source_p->username, source_p->host);
+				"Nick change: From %s to %s [%s@%s] (%s)",
+				oldnick, newnick, source_p->username, source_p->host, source_p->id);
 }

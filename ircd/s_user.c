@@ -659,14 +659,15 @@ register_local_user(struct Client *client_p, struct Client *source_p)
 			     source_p->info);
 
 	sendto_realops_snomask(SNO_CCONNEXT, L_ALL,
-			"CLICONN %s %s %s %s %s %s 0 %s %s",
+			"CLICONN %s %s %s %s %s %s 0 %s %s %s",
 			source_p->name, source_p->username, source_p->orighost,
 			show_ip(NULL, source_p) ? ipaddr : "255.255.255.255",
 			get_client_class(source_p),
 			/* mirc can sometimes send ips here */
 			show_ip(NULL, source_p) ? source_p->localClient->fullcaps : "<hidden> <hidden>",
 			*source_p->user->suser ? source_p->user->suser : "*",
-			source_p->info);
+			source_p->info,
+			source_p->id);
 
 	add_to_hostname_hash(source_p->orighost, source_p);
 
@@ -1686,9 +1687,9 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 
 		if(MyConnect(target_p))
 			sendto_realops_snomask(SNO_NCHANGE, L_ALL,
-					"Nick change: From %s to %s [%s@%s]",
+					"Nick change: From %s to %s [%s@%s] (%s)",
 					target_p->name, nick,
-					target_p->username, target_p->host);
+					target_p->username, target_p->host, target_p->id);
 	}
 
 	if (user != target_p->username)
