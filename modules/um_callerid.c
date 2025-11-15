@@ -43,6 +43,7 @@
 #include "hook.h"
 #include "supported.h"
 #include "logger.h"
+#include "snomask.h"
 
 #define IsSetStrictCallerID(c)	((c->umodes & user_modes['g']) == user_modes['g'])
 #define IsSetRelaxedCallerID(c)	((c->umodes & user_modes['G']) == user_modes['G'])
@@ -248,8 +249,32 @@ h_hdl_privmsg_user(void *vdata)
 		return;
 	}
 
+	/* Check if +M is being used to override +g */
+	bool would_block = false;
+	if (MyClient(target_p) && IsSetAnyCallerID(target_p) && IsPerson(source_p))
+	{
+		if (!(IsSetRelaxedCallerID(target_p) &&
+				!IsSetStrictCallerID(target_p) &&
+				has_common_channel(source_p, target_p)) &&
+			!accept_message(source_p, target_p) &&
+			!MayHavePrivilege(source_p, "oper:always_message"))
+		{
+			would_block = true;
+		}
+	}
+
 	if (allow_message(source_p, target_p))
+	{
+		/* If +M was the reason the message was allowed, send snotice */
+		if (would_block && IsSetTalkThroughCallerID(source_p) && MyClient(source_p))
+		{
+			sendto_realops_snomask(SNO_GENERAL, L_ALL,
+					"%s (%s@%s) used umode +M to override %s's +%s",
+					source_p->name, source_p->username, source_p->host,
+					target_p->name, IsSetStrictCallerID(target_p) ? "g" : "G");
+		}
 		return;
+	}
 
 	send_callerid_notice(msgtype, source_p, target_p);
 
@@ -281,6 +306,9 @@ check_umode_change(void *vdata)
 		}
 
 		update_session_deadline(source_p);
+		sendto_realops_snomask_from(SNO_GENERAL, L_ALL, &me,
+				"%s (%s@%s) set umode +M (override callerid)",
+				source_p->name, source_p->username, source_p->host);
 	}
 	else if (changed)
 	{

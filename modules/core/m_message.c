@@ -832,7 +832,10 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 
 	if (MyClient(target_p))
 	{
-		if (!IsCapable(target_p, CLICAP_ECHO_MESSAGE))
+		/* Always echo messages to services, regardless of capability */
+		bool is_service = IsService(target_p);
+		
+		if (!IsCapable(target_p, CLICAP_ECHO_MESSAGE) && !is_service)
 			return;
 
 		sendto_one_tags(target_p, msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : 0,
