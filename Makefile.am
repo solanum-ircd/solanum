@@ -34,10 +34,10 @@ include/serno.h:
 		echo '#define DATECODE 0UL' >>include/serno.h; \
 	fi
 
-install-data-hook:
+install-data-hook: install-data
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
 
-install-exec-hook:
+install-exec-hook: install-exec
 	rm -f ${DESTDIR}${libdir}/*.la
 	rm -f ${DESTDIR}${moduledir}/*.la
 	rm -f ${DESTDIR}${moduledir}/autoload/*.la
