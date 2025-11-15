@@ -34,18 +34,26 @@ include/serno.h:
 		echo '#define DATECODE 0UL' >>include/serno.h; \
 	fi
 
-install-data-hook:
+install-data-hook: install-data
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
 
-install-exec-hook:
-	rm -f ${DESTDIR}${libdir}/*.la
-	rm -f ${DESTDIR}${moduledir}/*.la
-	rm -f ${DESTDIR}${moduledir}/autoload/*.la
-	rm -f ${DESTDIR}${moduledir}/extensions/*.la
-	rm -f ${DESTDIR}${libdir}/*.dll.a
-	rm -f ${DESTDIR}${moduledir}/*.dll.a
-	rm -f ${DESTDIR}${moduledir}/autoload/*.dll.a
-	rm -f ${DESTDIR}${moduledir}/extensions/*.dll.a
+install-exec-hook: install-exec
+	@if test -d ${DESTDIR}${libdir}; then \
+		rm -f ${DESTDIR}${libdir}/*.la; \
+		rm -f ${DESTDIR}${libdir}/*.dll.a; \
+	fi
+	@if test -d ${DESTDIR}${moduledir}; then \
+		rm -f ${DESTDIR}${moduledir}/*.la; \
+		rm -f ${DESTDIR}${moduledir}/*.dll.a; \
+	fi
+	@if test -d ${DESTDIR}${moduledir}/autoload; then \
+		rm -f ${DESTDIR}${moduledir}/autoload/*.la; \
+		rm -f ${DESTDIR}${moduledir}/autoload/*.dll.a; \
+	fi
+	@if test -d ${DESTDIR}${moduledir}/extensions; then \
+		rm -f ${DESTDIR}${moduledir}/extensions/*.la; \
+		rm -f ${DESTDIR}${moduledir}/extensions/*.dll.a; \
+	fi
 
 distclean-local:
 	rm -f librb/include/librb-config.h
