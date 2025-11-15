@@ -290,9 +290,31 @@ static void
 cap_ls(struct Client *source_p, const char *arg)
 {
 	int caps_version = 301;
+	struct ConfItem *aconf = NULL;
 
 	if(!IsRegistered(source_p))
 		source_p->flags |= FLAGS_CLICAP;
+
+	/* Check if this client's class requires SASL before sending CAP LS */
+	/* We only check if the config is already attached, as it may not be yet at this point */
+	if (source_p->localClient != NULL && source_p->localClient->att_sconf != NULL)
+	{
+		aconf = source_p->localClient->att_sconf;
+
+		/* Send pre-CAP numeric if SASL is required */
+		if (IsNeedSasl(aconf) && (source_p->user == NULL || !*source_p->user->suser))
+		{
+			const char *sasl_only_client_message = ConfigFileEntry.sasl_only_client_message;
+
+			if (sasl_only_client_message == NULL)
+				sasl_only_client_message = "You need to identify via SASL to use this server.";
+
+			/* Use numeric 710 for pre-CAP SASL requirement notice */
+			sendto_one(source_p, ":%s 710 %s :%s", me.name,
+					EmptyString(source_p->name) ? "*" : source_p->name,
+					sasl_only_client_message);
+		}
+	}
 
 	if (!EmptyString(arg)) {
 		caps_version = atoi(arg);
