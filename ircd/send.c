@@ -1273,6 +1273,10 @@ sendto_local_clients_with_capability(int cap, const char *pattern, ...)
 		if (IsIOError(target_p) || !IsCapable(target_p, cap))
 			continue;
 
+		/* Only send CAP NEW/DEL to clients that have completed CAP negotiation */
+		if (target_p->flags & FLAGS_CLICAP)
+			continue;
+
 		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 	}
 
