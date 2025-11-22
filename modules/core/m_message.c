@@ -249,10 +249,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 		}
 
 		if (!found_client_tag)
-		{
-			sendto_one(source_p, form_str(ERR_NOTEXTTOSEND), me.name, source_p->name);
 			return;
-		}
 	}
 
 	/* Finish the flood grace period if they're not messaging themselves
