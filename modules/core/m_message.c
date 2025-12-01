@@ -71,7 +71,7 @@ static void m_notice(struct MsgBuf *, struct Client *, struct Client *, int, con
 static void m_tagmsg(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
-static void echo_msg(struct Client *, struct Client *, enum message_type, const char *, size_t, struct MsgTag[]);
+static void echo_msg(struct Client *, struct Client *, enum message_type, const char *text, struct MsgBuf *msgbuf_p);
 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
@@ -128,7 +128,7 @@ DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, messa
 static int build_target_list(enum message_type msgtype,
 			     struct Client *client_p,
 			     struct Client *source_p, const char *nicks_channels, const char *text,
-			     size_t n_tags, const struct MsgTag tags[]);
+			     struct MsgBuf *msgbuf_p);
 
 static bool flood_attack_client(enum message_type msgtype, struct Client *source_p, struct Client *target_p);
 
@@ -149,26 +149,26 @@ static bool duplicate_ptr(void *);
 static void msg_channel(enum message_type msgtype,
 			struct Client *client_p,
 			struct Client *source_p, struct Channel *chptr, const char *text,
-			size_t n_tags, struct MsgTag tags[]);
+			struct MsgBuf *msgbuf_p);
 
 static void msg_channel_opmod(enum message_type msgtype,
 			      struct Client *client_p,
-			      struct Client *source_p, struct Channel *chptr,
-			      const char *text, size_t n_tags, struct MsgTag tags[]);
+			      struct Client *source_p, struct Channel *chptr, const char *text,
+			      struct MsgBuf *msgbuf_p);
 
 static void msg_channel_flags(enum message_type msgtype,
 			      struct Client *client_p,
 			      struct Client *source_p,
 			      struct Channel *chptr, int flags, const char *text,
-			      size_t n_tags, struct MsgTag tags[]);
+			      struct MsgBuf *msgbuf_p);
 
 static void msg_client(enum message_type msgtype,
 		       struct Client *source_p, struct Client *target_p, const char *text,
-		       size_t n_tags, struct MsgTag tags[]);
+		       struct MsgBuf *msgbuf_p);
 
 static void handle_special(enum message_type msgtype,
 			   struct Client *client_p, struct Client *source_p, const char *nick,
-			   const char *text, size_t n_tags, const struct MsgTag tags[]);
+			   const char *text, struct MsgBuf *msgbuf_p);
 
 /*
 ** m_privmsg
@@ -221,6 +221,10 @@ static void
 m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	  struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	/* let hooks work on a copy of msgbuf_p so they don't mutate the tags in incoming_message */
+	struct MsgBuf msgbuf;
+	memcpy(&msgbuf, msgbuf_p, sizeof(struct MsgBuf));
+
 	if (parc < 2 || EmptyString(parv[1]))
 	{
 		if (msgtype != MESSAGE_TYPE_NOTICE)
@@ -264,7 +268,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	if (text == NULL)
 		text = "";
 
-	build_target_list(msgtype, client_p, source_p, parv[1], text, msgbuf_p->n_tags, msgbuf_p->tags);
+	build_target_list(msgtype, client_p, source_p, parv[1], text, &msgbuf);
 	if (ntargets <= 0)
 		return;
 
@@ -274,27 +278,23 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 		{
 		case ENTITY_CHANNEL:
 			msg_channel(msgtype, client_p, source_p,
-				    (struct Channel *) targets[i].ptr, text,
-				    msgbuf_p->n_tags, msgbuf_p->tags);
+				    (struct Channel *) targets[i].ptr, text, &msgbuf);
 			break;
 
 		case ENTITY_CHANNEL_OPMOD:
 			msg_channel_opmod(msgtype, client_p, source_p,
-				   (struct Channel *) targets[i].ptr, text,
-				   msgbuf_p->n_tags, msgbuf_p->tags);
+				   (struct Channel *) targets[i].ptr, text, &msgbuf);
 			break;
 
 		case ENTITY_CHANOPS_ON_CHANNEL:
 			msg_channel_flags(msgtype, client_p, source_p,
 					  (struct Channel *) targets[i].ptr,
-					  targets[i].flags, text,
-					  msgbuf_p->n_tags, msgbuf_p->tags);
+					  targets[i].flags, text, &msgbuf);
 			break;
 
 		case ENTITY_CLIENT:
 			msg_client(msgtype, source_p,
-				   (struct Client *) targets[i].ptr, text,
-				   msgbuf_p->n_tags, msgbuf_p->tags);
+				   (struct Client *) targets[i].ptr, text, &msgbuf);
 			break;
 		}
 	}
@@ -322,7 +322,7 @@ m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if (text == NULL)
 		text = "";
 
-	echo_msg(source_p, target_p, msgtype, parv[3], msgbuf_p->n_tags, msgbuf_p->tags);
+	echo_msg(source_p, target_p, msgtype, parv[3], msgbuf_p);
 }
 
 /*
@@ -345,8 +345,7 @@ m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 static int
 build_target_list(enum message_type msgtype, struct Client *client_p,
-		  struct Client *source_p, const char *nicks_channels, const char *text,
-		  size_t n_tags, const struct MsgTag tags[])
+		  struct Client *source_p, const char *nicks_channels, const char *text, struct MsgBuf *msgbuf_p)
 {
 	int type;
 	char *p, *nick, *target_list;
@@ -512,7 +511,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 
 		if(strchr(nick, '@') || (IsOper(source_p) && (*nick == '$')))
 		{
-			handle_special(msgtype, client_p, source_p, nick, text, n_tags, tags);
+			handle_special(msgtype, client_p, source_p, nick, text, msgbuf_p);
 			continue;
 		}
 
@@ -571,7 +570,7 @@ duplicate_ptr(void *ptr)
 static void
 msg_channel(enum message_type msgtype,
 	    struct Client *client_p, struct Client *source_p, struct Channel *chptr,
-	    const char *text, size_t n_tags, struct MsgTag tags[])
+	    const char *text, struct MsgBuf *msgbuf_p)
 {
 	int result;
 	hook_data_privmsg_channel hdata;
@@ -598,6 +597,7 @@ msg_channel(enum message_type msgtype,
 	hdata.chptr = chptr;
 	hdata.text = text;
 	hdata.approved = 0;
+	hdata.msgbuf = msgbuf_p;
 
 	call_hook(h_privmsg_channel, &hdata);
 
@@ -631,8 +631,9 @@ msg_channel(enum message_type msgtype,
 		if(result == CAN_SEND_OPV ||
 		   !flood_attack_channel(msgtype, source_p, chptr, chptr->chname))
 		{
-			sendto_channel_flags_tags(client_p, ALL_MEMBERS, source_p, chptr, cli_cap, 0,
-				serv_cap, 0, n_tags, tags, fmt, cmdname[msgtype], chptr->chname, text);
+			sendto_channel_flags_tags(client_p, ALL_MEMBERS, source_p, chptr,
+				cli_cap, NOCAPS, serv_cap, NOCAPS,
+				msgbuf_p->n_tags, msgbuf_p->tags, fmt, cmdname[msgtype], chptr->chname, text);
 		}
 	}
 	else if(chptr->mode.mode & MODE_OPMODERATE &&
@@ -648,8 +649,9 @@ msg_channel(enum message_type msgtype,
 		}
 		if(!flood_attack_channel(msgtype, source_p, chptr, chptr->chname))
 		{
-			sendto_channel_opmod_tags(client_p, source_p, chptr, cli_cap, 0,
-				serv_cap, 0, cmdname[msgtype], text, n_tags, tags);
+			sendto_channel_opmod_tags(client_p, source_p, chptr,
+				cli_cap, NOCAPS, serv_cap, NOCAPS,
+				cmdname[msgtype], text, msgbuf_p->n_tags, msgbuf_p->tags);
 		}
 	}
 	else
@@ -674,8 +676,7 @@ msg_channel(enum message_type msgtype,
 static void
 msg_channel_opmod(enum message_type msgtype,
 		  struct Client *client_p, struct Client *source_p,
-		  struct Channel *chptr, const char *text,
-		  size_t n_tags, struct MsgTag tags[])
+		  struct Channel *chptr, const char *text, struct MsgBuf *msgbuf_p)
 {
 	hook_data_privmsg_channel hdata;
 	int cli_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CLICAP_MESSAGE_TAGS : 0;
@@ -686,6 +687,7 @@ msg_channel_opmod(enum message_type msgtype,
 	hdata.chptr = chptr;
 	hdata.text = text;
 	hdata.approved = 0;
+	hdata.msgbuf = msgbuf_p;
 
 	call_hook(h_privmsg_channel, &hdata);
 
@@ -711,8 +713,9 @@ msg_channel_opmod(enum message_type msgtype,
 	{
 		if(!flood_attack_channel(msgtype, source_p, chptr, chptr->chname))
 		{
-			sendto_channel_opmod_tags(client_p, source_p, chptr, cli_cap, 0, serv_cap, 0,
-				cmdname[msgtype], text, n_tags, tags);
+			sendto_channel_opmod_tags(client_p, source_p, chptr,
+				cli_cap, NOCAPS, serv_cap, NOCAPS,
+				cmdname[msgtype], text, msgbuf_p->n_tags, msgbuf_p->tags);
 		}
 	}
 	else
@@ -738,8 +741,7 @@ msg_channel_opmod(enum message_type msgtype,
  */
 static void
 msg_channel_flags(enum message_type msgtype, struct Client *client_p,
-		  struct Client *source_p, struct Channel *chptr, int flags, const char *text,
-		  size_t n_tags, struct MsgTag tags[])
+		  struct Client *source_p, struct Channel *chptr, int flags, const char *text, struct MsgBuf *msgbuf_p)
 {
 	int type;
 	char c;
@@ -778,6 +780,7 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 	hdata.chptr = chptr;
 	hdata.text = text;
 	hdata.approved = 0;
+	hdata.msgbuf = msgbuf_p;
 
 	call_hook(h_privmsg_channel, &hdata);
 
@@ -796,8 +799,9 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 		return;
 	}
 
-	sendto_channel_flags_tags(client_p, type, source_p, chptr, cli_cap, 0, serv_cap, 0,
-		n_tags, tags, fmt, cmdname[msgtype], c, chptr->chname, text);
+	sendto_channel_flags_tags(client_p, type, source_p, chptr,
+		cli_cap, NOCAPS, serv_cap, NOCAPS,
+		msgbuf_p->n_tags, msgbuf_p->tags, fmt, cmdname[msgtype], c, chptr->chname, text);
 }
 
 static void
@@ -822,8 +826,7 @@ expire_tgchange(void *unused)
 
 static void
 echo_msg(struct Client *source_p, struct Client *target_p,
-		enum message_type msgtype, const char *text,
-		size_t n_tags, struct MsgTag tags[])
+		enum message_type msgtype, const char *text, struct MsgBuf *msgbuf_p)
 {
 	const char *fmt = msgtype == MESSAGE_TYPE_TAGMSG ? ":%s!%s@%s %s %s" : ":%s!%s@%s %s %s :%s";
 
@@ -832,8 +835,8 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 		if (!IsCapable(target_p, CLICAP_ECHO_MESSAGE))
 			return;
 
-		sendto_one_tags(target_p, msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : 0,
-			0, n_tags, tags, fmt,
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf_p->n_tags, msgbuf_p->tags, fmt,
 			target_p->name, target_p->username, target_p->host,
 			cmdname[msgtype],
 			source_p->name,
@@ -844,7 +847,8 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 	if (!(target_p->from->serv->caps & CAP_ECHO))
 		return;
 
-	sendto_one_tags(target_p, 0, 0, n_tags, tags, ":%s ECHO %c %s :%s",
+	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+		msgbuf_p->n_tags, msgbuf_p->tags, ":%s ECHO %c %s :%s",
 		use_id(source_p),
 		shortname[msgtype],
 		use_id(target_p),
@@ -864,8 +868,7 @@ echo_msg(struct Client *source_p, struct Client *target_p,
  */
 static void
 msg_client(enum message_type msgtype,
-	   struct Client *source_p, struct Client *target_p, const char *text,
-	   size_t n_tags, struct MsgTag tags[])
+	   struct Client *source_p, struct Client *target_p, const char *text, struct MsgBuf *msgbuf_p)
 {
 	int do_floodcount = 0;
 	hook_data_privmsg_user hdata;
@@ -920,6 +923,7 @@ msg_client(enum message_type msgtype,
 	hdata.target_p = target_p;
 	hdata.text = text;
 	hdata.approved = 0;
+	hdata.msgbuf = msgbuf_p;
 
 	call_hook(h_privmsg_user, &hdata);
 
@@ -943,27 +947,29 @@ msg_client(enum message_type msgtype,
 		if (msgtype == MESSAGE_TYPE_TAGMSG && IsCapable(target_p, CLICAP_MESSAGE_TAGS))
 		{
 			add_reply_target(target_p, source_p);
-			sendto_anywhere_tags(target_p, source_p, cmdname[msgtype], 0, 0, n_tags, tags, "");
+			sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
+				NOCAPS, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags, "");
 		}
 		else if (msgtype != MESSAGE_TYPE_TAGMSG)
 		{
 			add_reply_target(target_p, source_p);
-			sendto_anywhere_tags(target_p, source_p, cmdname[msgtype], 0, 0, n_tags, tags, ":%s", text);
+			sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
+				NOCAPS, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags, ":%s", text);
 		}
 
-		echo_msg(target_p, source_p, msgtype, text, n_tags, tags);
+		echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 	else
 	{
 		sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
-			msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : 0,
-			0, n_tags, tags,
+			msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
+			NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
 			msgtype == MESSAGE_TYPE_TAGMSG ? "" : ":%s",
 			text);
 
 		/* if the remote doesn't support ECHO, generate a local echo-message instead */
 		if (!(target_p->from->serv->caps & CAP_ECHO))
-			echo_msg(target_p, source_p, msgtype, text, n_tags, tags);
+			echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 }
 
@@ -1046,8 +1052,7 @@ flood_attack_client(enum message_type msgtype, struct Client *source_p, struct C
  */
 static void
 handle_special(enum message_type msgtype, struct Client *client_p,
-	       struct Client *source_p, const char *nick, const char *text,
-	       size_t n_tags, const struct MsgTag tags[])
+	       struct Client *source_p, const char *nick, const char *text, struct MsgBuf *msgbuf_p)
 {
 	struct Client *target_p;
 	char *server;
@@ -1080,7 +1085,7 @@ handle_special(enum message_type msgtype, struct Client *client_p,
 		/* somewhere else.. */
 		if (!IsMe(target_p))
 		{
-			sendto_one_tags(target_p, serv_cap, 0, n_tags, tags,
+			sendto_one_tags(target_p, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
 				msgtype == MESSAGE_TYPE_TAGMSG ? ":%s %s %s" : ":%s %s %s :%s",
 				get_id(source_p, target_p), cmdname[msgtype], nick, text);
 			return;
@@ -1146,7 +1151,7 @@ handle_special(enum message_type msgtype, struct Client *client_p,
 		sendto_match_butone_tags(IsServer(client_p) ? client_p : NULL, source_p,
 				    nick + 1,
 				    (*nick == '#') ? MATCH_HOST : MATCH_SERVER,
-				    cli_cap, 0, serv_cap, 0, n_tags, tags,
+				    cli_cap, 0, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
 				    msgtype == MESSAGE_TYPE_TAGMSG ? "%s $%s" : "%s $%s :%s",
 					cmdname[msgtype], nick, text);
 		if (msgtype != MESSAGE_TYPE_NOTICE && *text == '\001')
