@@ -209,6 +209,7 @@ typedef struct
 	struct Channel *chptr;
 	const char *text;
 	int approved;
+	struct MsgBuf *msgbuf;
 } hook_data_privmsg_channel;
 
 typedef struct
@@ -218,6 +219,7 @@ typedef struct
 	struct Client *target_p;
 	const char *text;
 	int approved;
+	struct MsgBuf *msgbuf;
 } hook_data_privmsg_user;
 
 typedef struct
