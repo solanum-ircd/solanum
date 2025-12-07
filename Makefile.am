@@ -22,8 +22,8 @@ BUILT_SOURCES = include/serno.h
 
 include/serno.h:
 	@if [ -d .git ]; then \
-		revh=`git log -1 --date=format:%Y%m%d --pretty=format:%cd-%h`; \
-		datecode=`git log -1 --pretty=format:%ct`; \
+		revh=`git -c log.showsignature=false log -1 --date=format:%Y%m%d --pretty=format:%cd-%h`; \
+		datecode=`git -c log.showsignature=false log -1 --pretty=format:%ct`; \
 		if [ -n "$$revh" ]; then \
 			echo '#define SERNO "'$$revh'"' >include/serno.h ; \
 			echo "#define DATECODE $${datecode}UL" >>include/serno.h; \

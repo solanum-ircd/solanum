@@ -26,7 +26,7 @@ else
 	RELEASENAME="$1"
 fi
 
-TIP=`git log -1 --pretty=oneline | cut -d" " -f1`
+TIP=`git -c log.showsignature=false log -1 --pretty=oneline | cut -d" " -f1`
 
 WRKDIR=`pwd`
 
