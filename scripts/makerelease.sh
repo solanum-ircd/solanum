@@ -26,7 +26,7 @@ else
 	RELEASENAME="$1"
 fi
 
-TIP=`git -c log.showsignature=false log -1 --pretty=oneline | cut -d" " -f1`
+TIP=`git rev-list -1 --no-commit-header --format=%h HEAD`
 
 WRKDIR=`pwd`
 
