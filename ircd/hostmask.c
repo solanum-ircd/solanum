@@ -32,9 +32,6 @@
 #include "send.h"
 #include "match.h"
 
-static unsigned long hash_ipv6(struct sockaddr *, int);
-static unsigned long hash_ipv4(struct sockaddr *, int);
-
 
 static int
 _parse_netmask(const char *text, struct rb_sockaddr_storage *naddr, int *nb, bool strict)
@@ -140,7 +137,7 @@ init_host_hash(void)
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-static unsigned long
+unsigned long
 hash_ipv4(struct sockaddr *saddr, int bits)
 {
 	struct sockaddr_in *addr = (struct sockaddr_in *)(void *)saddr;
@@ -159,7 +156,7 @@ hash_ipv4(struct sockaddr *saddr, int bits)
  * Output: A hash value of the IP address.
  * Side effects: None
  */
-static unsigned long
+unsigned long
 hash_ipv6(struct sockaddr *saddr, int bits)
 {
 	struct sockaddr_in6 *addr = (struct sockaddr_in6 *)(void *)saddr;
