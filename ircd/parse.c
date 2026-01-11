@@ -50,7 +50,7 @@ const struct Client *incoming_client = NULL;
 static void cancel_clients(struct Client *, struct Client *);
 static void remove_unknown(struct Client *, const char *, char *);
 
-static void do_numeric(int, struct Client *, struct Client *, int, const char **);
+static void do_numeric(int, struct Client *, struct Client *, struct MsgBuf *);
 
 static int handle_command(struct Message *, struct MsgBuf *, struct Client *, struct Client *);
 
@@ -160,12 +160,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		}
 	}
 
-	if(mptr == NULL)
-	{
-		do_numeric(numeric, client_p, from, msgbuf.n_para, msgbuf.para);
-		return;
-	}
-
 	/* The tags array may be mutated via hooks; this holds the updated array */
 	struct MsgBuf updated_msg;
 	int ntags = msgbuf.n_tags;
@@ -220,6 +214,12 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 
 	incoming_message = &updated_msg;
 	incoming_client = client_p;
+
+	if (mptr == NULL)
+	{
+		do_numeric(numeric, client_p, from, &updated_msg);
+		return;
+	}
 
 	if(handle_command(mptr, &updated_msg, client_p, from) < -1)
 	{
@@ -479,12 +479,6 @@ remove_unknown(struct Client *client_p, const char *lsender, char *lbuffer)
 
 
 /*
- *
- *      parc    number of arguments ('sender' counted as one!)
- *      parv[1]..parv[parc-1]
- *              pointers to additional parameters, this is a NULL
- *              terminated list (parv[parc] == NULL).
- *
  * *WARNING*
  *      Numerics are mostly error reports. If there is something
  *      wrong with the message, just *DROP* it! Don't even think of
@@ -492,10 +486,12 @@ remove_unknown(struct Client *client_p, const char *lsender, char *lbuffer)
  *      a ping pong error message...
  */
 static void
-do_numeric(int numeric, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
+do_numeric(int numeric, struct Client *client_p, struct Client *source_p, struct MsgBuf *msg)
 {
 	struct Client *target_p;
 	struct Channel *chptr;
+	size_t parc = msg->n_para;
+	const char **parv = msg->para;
 
 	if(parc < 2 || !IsServer(source_p))
 		return;
@@ -570,15 +566,17 @@ do_numeric(int numeric, struct Client *client_p, struct Client *source_p, int pa
 			return;
 
 		/* Fake it for server hiding, if its our client */
-		sendto_one(target_p, ":%s %03d %s%s",
-			   get_id(source_p, target_p), numeric,
-			   get_id(target_p, target_p), buffer);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS, msg->n_tags, msg->tags,
+			":%s %03d %s%s",
+			get_id(source_p, target_p), numeric,
+			get_id(target_p, target_p), buffer);
 		return;
 	}
 	else if((chptr = find_channel(parv[1])) != NULL)
-		sendto_channel_flags(client_p, ALL_MEMBERS, source_p, chptr,
-				     "%03d %s%s",
-				     numeric, chptr->chname, buffer);
+		sendto_channel_flags_tags(client_p, ALL_MEMBERS, source_p, chptr,
+			NOCAPS, NOCAPS, NOCAPS, NOCAPS,
+			msg->n_tags, msg->tags, "%03d %s%s",
+			numeric, chptr->chname, buffer);
 }
 
 void
