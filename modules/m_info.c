@@ -245,6 +245,11 @@ static struct InfoStruct info_table[] = {
 		INFO_STRING(&ConfigFileEntry.illegal_name_short_client_message),
 	},
 	{
+		"filter_exit_message",
+		"Message to quit users with if they hit a filter KILL action.",
+		INFO_STRING(&ConfigFileEntry.filter_exit_message),
+	},
+	{
 		"disable_auth",
 		"Controls whether auth checking is disabled or not",
 		INFO_INTBOOL_YN(&ConfigFileEntry.disable_auth),
@@ -674,6 +679,16 @@ static struct InfoStruct info_table[] = {
 		"oper_secure_only",
 		"Require TLS to become an oper",
 		INFO_INTBOOL_YN(&ConfigFileEntry.oper_secure_only),
+	},
+	{
+		"filter_sees_user_info",
+		"Let the spamfilter engine see the hostmasks of senders",
+		INFO_INTBOOL_YN(&ConfigFileEntry.filter_sees_user_info),
+	},
+	{
+		"filter_bypass_all",
+		"Let the spamfilter BYPASS action work on KILL/ALARM in addition to DROP",
+		INFO_INTBOOL_YN(&ConfigFileEntry.filter_bypass_all),
 	},
 
 	{ NULL, NULL, 0, { NULL } },

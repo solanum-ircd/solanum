@@ -2780,6 +2780,9 @@ static struct ConfEntry conf_general_table[] =
 	{ "illegal_name_short_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_short_client_message	},
 	{ "tls_ciphers_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.tls_ciphers_oper_only	},
 	{ "oper_secure_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.oper_secure_only	},
+	{ "filter_sees_user_info",	CF_YESNO, NULL, 0, &ConfigFileEntry.filter_sees_user_info },
+	{ "filter_bypass_all",	CF_YESNO, NULL, 0, &ConfigFileEntry.filter_bypass_all },
+	{ "filter_exit_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.filter_exit_message },
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 

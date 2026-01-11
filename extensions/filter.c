@@ -33,6 +33,7 @@
 #include "numeric.h"
 #include "send.h"
 #include "s_newconf.h"
+#include "s_conf.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "msg.h"
@@ -45,11 +46,7 @@
 #include <hs_common.h>
 #include <hs_runtime.h>
 
-#define FILTER_NICK     0
-#define FILTER_USER     0
-#define FILTER_HOST     0
-
-#define FILTER_EXIT_MSG "Connection closed"
+#define FILTER_DEFAULT_EXIT_MSG "Connection closed"
 
 static const char filter_desc[] = "Filter messages using a precompiled Hyperscan database";
 
@@ -81,9 +78,15 @@ enum filter_state {
 	FILTER_LOADED
 };
 
+struct match_context {
+	unsigned int actions;
+	bool require_bypass;
+};
+
 #define ACT_DROP  (1 << 0)
 #define ACT_KILL  (1 << 1)
 #define ACT_ALARM (1 << 2)
+#define ACT_BYPASS (1 << 3)
 
 static enum filter_state state = FILTER_EMPTY;
 static char check_str[21] = "";
@@ -328,8 +331,17 @@ int match_callback(unsigned id,
                    unsigned flags,
                    void *context_)
 {
-	unsigned *context = context_;
-	*context |= id;
+	struct match_context *context = context_;
+
+	if (context->require_bypass)
+	{
+		unsigned int bypass_mask = ConfigFileEntry.filter_bypass_all ? UINT_MAX : ACT_DROP;
+		if (id & ACT_BYPASS)
+			context->actions |= id & bypass_mask;
+	}
+	else
+		context->actions |= id;
+
 	return 0;
 }
 
@@ -338,43 +350,34 @@ static char clean_buffer[BUFSIZE];
 
 unsigned match_message(const char *prefix,
                        struct Client *source,
+                       bool require_bypass,
                        const char *command,
                        const char *target,
                        const char *msg)
 {
-	unsigned state = 0;
+	struct match_context ctx = { 0, require_bypass };
+
 	if (!filter_enable)
 		return 0;
 	if (!filter_db)
 		return 0;
 	if (!command)
 		return 0;
+
 	snprintf(check_buffer, sizeof check_buffer, "%s:%s!%s@%s#%c %s%s%s :%s",
 	         prefix,
-#if FILTER_NICK
-	         source->name,
-#else
-	         "*",
-#endif
-#if FILTER_USER
-	         source->username,
-#else
-	         "*",
-#endif
-#if FILTER_HOST
-	         source->host,
-#else
-	         "*",
-#endif
+	         ConfigFileEntry.filter_sees_user_info ? source->name : "*",
+	         ConfigFileEntry.filter_sees_user_info ? source->username : "*",
+	         ConfigFileEntry.filter_sees_user_info ? source->host : "*",
 	         source->user && source->user->suser[0] != '\0' ? '1' : '0',
 	         command,
 	         target ? " " : "",
 	         target ? target : "",
 	         msg);
-	hs_error_t r = hs_scan(filter_db, check_buffer, strlen(check_buffer), 0, filter_scratch, match_callback, &state);
+	hs_error_t r = hs_scan(filter_db, check_buffer, strlen(check_buffer), 0, filter_scratch, match_callback, &ctx);
 	if (r != HS_SUCCESS && r != HS_SCAN_TERMINATED)
 		return 0;
-	return state;
+	return ctx.actions;
 }
 
 void
@@ -382,6 +385,7 @@ filter_msg_user(void *data_)
 {
 	hook_data_privmsg_user *data = data_;
 	struct Client *s = data->source_p;
+
 	/* we only need to filter once */
 	if (!MyClient(s)) {
 		return;
@@ -392,14 +396,14 @@ filter_msg_user(void *data_)
 	if (IsOper(s) || IsOper(data->target_p)) {
 		return;
 	}
-	if (data->target_p->umodes & filter_umode) {
-		return;
-	}
+
+	bool require_bypass = (data->target_p->umodes & filter_umode) == filter_umode;
 	char *text = strcpy(clean_buffer, data->text);
 	strip_colour(text);
 	strip_unprintable(text);
-	unsigned r = match_message("0", s, cmdname[data->msgtype], "0", data->text) |
-	             match_message("1", s, cmdname[data->msgtype], "0", text);
+	unsigned r = match_message("0", s, require_bypass, cmdname[data->msgtype], "0", data->text) |
+	             match_message("1", s, require_bypass, cmdname[data->msgtype], "0", text);
+
 	if (r & ACT_DROP) {
 		if (data->msgtype == MESSAGE_TYPE_PRIVMSG) {
 			sendto_one_numeric(s, ERR_CANNOTSENDTOCHAN,
@@ -414,8 +418,11 @@ filter_msg_user(void *data_)
 			s->name, s->username, s->host, s->sockhost);
 	}
 	if (r & ACT_KILL) {
+		const char *msg = ConfigFileEntry.filter_exit_message;
+		if (msg == NULL)
+			msg = FILTER_DEFAULT_EXIT_MSG;
 		data->approved = 1;
-		exit_client(NULL, s, s, FILTER_EXIT_MSG);
+		exit_client(NULL, s, s, msg);
 	}
 }
 
@@ -424,6 +431,7 @@ filter_msg_channel(void *data_)
 {
 	hook_data_privmsg_channel *data = data_;
 	struct Client *s = data->source_p;
+
 	/* we only need to filter once */
 	if (!MyClient(s)) {
 		return;
@@ -433,14 +441,14 @@ filter_msg_channel(void *data_)
 	if (IsOper(s)) {
 		return;
 	}
-	if (data->chptr->mode.mode & filter_chmode) {
-		return;
-	}
+
+	bool require_bypass = (data->chptr->mode.mode & filter_chmode) == filter_chmode;
 	char *text = strcpy(clean_buffer, data->text);
 	strip_colour(text);
 	strip_unprintable(text);
-	unsigned r = match_message("0", s, cmdname[data->msgtype], data->chptr->chname, data->text) |
-	             match_message("1", s, cmdname[data->msgtype], data->chptr->chname, text);
+	unsigned r = match_message("0", s, require_bypass, cmdname[data->msgtype], data->chptr->chname, data->text) |
+	             match_message("1", s, require_bypass, cmdname[data->msgtype], data->chptr->chname, text);
+
 	if (r & ACT_DROP) {
 		if (data->msgtype == MESSAGE_TYPE_PRIVMSG) {
 			sendto_one_numeric(s, ERR_CANNOTSENDTOCHAN,
@@ -455,8 +463,11 @@ filter_msg_channel(void *data_)
 			s->name, s->username, s->host, s->sockhost);
 	}
 	if (r & ACT_KILL) {
+		const char *msg = ConfigFileEntry.filter_exit_message;
+		if (msg == NULL)
+			msg = FILTER_DEFAULT_EXIT_MSG;
 		data->approved = 1;
-		exit_client(NULL, s, s, FILTER_EXIT_MSG);
+		exit_client(NULL, s, s, msg);
 	}
 }
 
@@ -471,8 +482,8 @@ filter_client_quit(void *data_)
 	char *text = strcpy(clean_buffer, data->orig_reason);
 	strip_colour(text);
 	strip_unprintable(text);
-	unsigned r = match_message("0", s, "QUIT", NULL, data->orig_reason) |
-	             match_message("1", s, "QUIT", NULL, text);
+	unsigned r = match_message("0", s, false, "QUIT", NULL, data->orig_reason) |
+	             match_message("1", s, false, "QUIT", NULL, text);
 	if (r & ACT_DROP) {
 		data->reason = NULL;
 	}
