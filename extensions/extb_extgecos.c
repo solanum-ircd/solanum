@@ -36,6 +36,10 @@ static int eb_extended(const char *data, struct Client *client_p,
 {
 	(void)chptr;
 
+	/* This type is not safe for exceptions */
+	if (mode_type == CHFL_EXCEPTION || mode_type == CHFL_INVEX)
+		return EXTBAN_INVALID;
+
 	if (data == NULL)
 		return EXTBAN_INVALID;
 
