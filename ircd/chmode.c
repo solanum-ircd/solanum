@@ -857,13 +857,14 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 	/* if we're adding a NEW id */
 	if (dir == MODE_ADD)
 	{
-		if (*mask == '$' && MyClient(source_p))
+		if (*mask == '$')
 		{
 			if (!valid_extban(mask, source_p, chptr, mode_type))
 			{
-				sendto_one_numeric(source_p, ERR_INVALIDBAN,
-						form_str(ERR_INVALIDBAN),
-						chptr->chname, c, arg);
+				if (MyClient(source_p))
+					sendto_one_numeric(source_p, ERR_INVALIDBAN,
+							form_str(ERR_INVALIDBAN),
+							chptr->chname, c, arg);
 				return;
 			}
 		}
