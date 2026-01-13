@@ -54,11 +54,11 @@ struct Message info_msgtab = {
 	{mg_unreg, {m_info, 0}, {mo_info, 0}, mg_ignore, mg_ignore, {mo_info, 0}}
 };
 
-int doing_info_hook;
+int doing_info_conf_hook;
 
 mapi_clist_av1 info_clist[] = { &info_msgtab, NULL };
 mapi_hlist_av1 info_hlist[] = {
-	{ "doing_info",		&doing_info_hook },
+	{ "doing_info_conf", &doing_info_conf_hook },
 	{ NULL, NULL }
 };
 
@@ -889,6 +889,9 @@ send_conf_options(struct Client *source_p)
 				info_table[i].desc ? info_table[i].desc : "<none>");
 	}
 
+	/* Let hooks send any conf options they dynamically defined */
+	hook_data hdata = { source_p, NULL, NULL };
+	call_hook(doing_info_conf_hook, &hdata);
 
 	/* Don't send oper_only_umodes...it's a bit mask, we will have to decode it
 	 ** in order for it to show up properly to opers who issue INFO

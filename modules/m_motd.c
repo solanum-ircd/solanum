@@ -46,15 +46,9 @@ struct Message motd_msgtab = {
 	{mg_unreg, {m_motd, 0}, {mo_motd, 0}, mg_ignore, mg_ignore, {mo_motd, 0}}
 };
 
-int doing_motd_hook;
-
 mapi_clist_av1 motd_clist[] = { &motd_msgtab, NULL };
-mapi_hlist_av1 motd_hlist[] = {
-	{ "doing_motd",	&doing_motd_hook },
-	{ NULL, NULL }
-};
 
-DECLARE_MODULE_AV2(motd, NULL, NULL, motd_clist, motd_hlist, NULL, NULL, NULL, motd_desc);
+DECLARE_MODULE_AV2(motd, NULL, NULL, motd_clist, NULL, NULL, NULL, NULL, motd_desc);
 
 /*
 ** m_motd
