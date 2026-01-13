@@ -565,7 +565,7 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	int pargs;
 	const char *para[MAXMODEPARAMS];
 	struct NetjoinBatch *batch = NULL;
-	const char *batch_id = NULL;
+	struct MsgTag batch_tag = { "batch", NULL, CLICAP_BATCH };
 
 	if(parc < 5)
 		return;
@@ -594,7 +594,7 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		batch = ptr->data;
 		if (batch->target == source_p)
 		{
-			batch_id = batch->id;
+			batch_tag.value = batch->id;
 			break;
 		}
 	}
@@ -876,7 +876,7 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		if(!IsMember(target_p, chptr))
 		{
 			add_user_to_channel(chptr, target_p, fl);
-			send_batched_channel_join(chptr, target_p, batch_id);
+			send_batched_channel_join(chptr, target_p, batch_tag.value);
 			joins++;
 		}
 
@@ -894,11 +894,10 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 				if(pargs >= MAXMODEPARAMS)
 				{
 					*mbuf = '\0';
-					sendto_channel_local(fakesource_p, ALL_MEMBERS, chptr,
-							     ":%s MODE %s %s %s %s %s %s",
-							     fakesource_p->name, chptr->chname,
-							     modebuf,
-							     para[0], para[1], para[2], para[3]);
+					sendto_channel_local_tags(fakesource_p, ALL_MEMBERS, NULL, chptr,
+						batch_tag.value == NULL ? 0 : 1, &batch_tag, ":%s MODE %s %s %s %s %s %s",
+						fakesource_p->name, chptr->chname, modebuf,
+						para[0], para[1], para[2], para[3]);
 					mbuf = modebuf;
 					*mbuf++ = '+';
 					para[0] = para[1] = para[2] = para[3] = NULL;
@@ -918,11 +917,10 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		if(pargs >= MAXMODEPARAMS)
 		{
 			*mbuf = '\0';
-			sendto_channel_local(fakesource_p, ALL_MEMBERS, chptr,
-					     ":%s MODE %s %s %s %s %s %s",
-					     fakesource_p->name,
-					     chptr->chname,
-					     modebuf, para[0], para[1], para[2], para[3]);
+			sendto_channel_local_tags(fakesource_p, ALL_MEMBERS, NULL, chptr,
+				batch_tag.value == NULL ? 0 : 1, &batch_tag, ":%s MODE %s %s %s %s %s %s",
+				fakesource_p->name, chptr->chname, modebuf,
+				para[0], para[1], para[2], para[3]);
 			mbuf = modebuf;
 			*mbuf++ = '+';
 			para[0] = para[1] = para[2] = para[3] = NULL;
@@ -953,11 +951,11 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	*mbuf = '\0';
 	if(pargs)
 	{
-		sendto_channel_local(fakesource_p, ALL_MEMBERS, chptr,
-				     ":%s MODE %s %s %s %s %s %s",
-				     fakesource_p->name, chptr->chname, modebuf,
-				     para[0], CheckEmpty(para[1]),
-				     CheckEmpty(para[2]), CheckEmpty(para[3]));
+		sendto_channel_local_tags(fakesource_p, ALL_MEMBERS, NULL, chptr,
+			batch_tag.value == NULL ? 0 : 1, &batch_tag, ":%s MODE %s %s %s %s %s %s",
+			fakesource_p->name, chptr->chname, modebuf,
+			para[0], CheckEmpty(para[1]),
+			CheckEmpty(para[2]), CheckEmpty(para[3]));
 	}
 
 	if(!joins && !(chptr->mode.mode & MODE_PERMANENT) && isnew)
