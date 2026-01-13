@@ -1377,6 +1377,12 @@ begin_netjoin_batch(void *arg)
 {
 	/* data->target is the server being introduced */
 	hook_data_client *data = arg;
+
+	/* a server that is currently bursting has introduced additional downstream servers.
+	 * these will never have bursts of their own, so don't make batches for them */
+	if (!IsMe(data->client) && !HasSentEob(data->client))
+		return;
+
 	char comment[(HOSTLEN*2)+2];
 	struct NetjoinBatch *batch = rb_malloc(sizeof(struct NetjoinBatch));
 
