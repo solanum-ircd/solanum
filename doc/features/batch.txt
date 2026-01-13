@@ -79,7 +79,7 @@ types along with the handlers that should be called when a batch of that type
 is received from a client or remote server. Attempting to register a type that
 has already been registered is an error. The header finally defines a struct
 that contains relevant metadata about an incoming batch as well as functions
-to allocate and free that structure and attach messages to an incoming batch.
+to allocate and free that structure and deep copy messages to add to a batch.
 
 ========================================
 3. Server-initiated batches
@@ -170,9 +170,9 @@ inner batch, the inner batch will be discarded without being processed and the
 client will be given a notification that they did not properly close the inner
 batch.
 
-Empty client-initiated batches do not trigger any handlers and are treated as
-no-ops. No response is given to the client in such events (unless the client
-has negotiated labeled-response, in which case it is given an ACK).
+Empty client-initiated batches will still trigger relevant handlers. Handlers
+should check batch->len to verify if the batch was empty or not; it will be 0
+for empty batches.
 
 Exiting clients will cause all pending batches associated with that client to
 be silently aborted, with no output being sent to the client (since they're
@@ -212,7 +212,7 @@ as follows:
   out or the m_batch module was unloaded.
 - FAIL BATCH INVALID_NESTING <reference-tag> <parent-type> <type>: Indicates
   that the specified batch type is not allowed to be nested under the parent's
-  batch type (via the allowed_children field or BATCH_FLAG_ALLOW_ALL).
+  batch type (via the child_allowed callback or BATCH_FLAG_ALLOW_ALL).
 - FAIL BATCH INVALID_REFTAG <reference-tag>: Indicates the batch contains an
   invalid reference tag (either creating a new batch with an already-existing
   tag, not beginning the tag with '+' or '-', the tag consists solely of "+"
