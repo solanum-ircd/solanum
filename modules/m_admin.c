@@ -47,15 +47,9 @@ struct Message admin_msgtab = {
 	{{mr_admin, 0}, {m_admin, 0}, {ms_admin, 0}, mg_ignore, mg_ignore, {ms_admin, 0}}
 };
 
-int doing_admin_hook;
-
 mapi_clist_av1 admin_clist[] = { &admin_msgtab, NULL };
-mapi_hlist_av1 admin_hlist[] = {
-	{ "doing_admin",	&doing_admin_hook },
-	{ NULL, NULL }
-};
 
-DECLARE_MODULE_AV2(admin, NULL, NULL, admin_clist, admin_hlist, NULL, NULL, NULL, admin_desc);
+DECLARE_MODULE_AV2(admin, NULL, NULL, admin_clist, NULL, NULL, NULL, NULL, admin_desc);
 
 /*
  * mr_admin - ADMIN command handler
