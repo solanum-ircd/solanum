@@ -42,10 +42,6 @@ enum message_tag_approval
 
 typedef void (*hookfn) (void *data);
 
-extern int h_iosend_id;
-extern int h_iorecv_id;
-extern int h_iorecvctrl_id;
-
 extern int h_burst_client;
 extern int h_burst_channel;
 extern int h_burst_finished;
