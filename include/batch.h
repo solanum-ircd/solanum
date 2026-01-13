@@ -33,7 +33,7 @@
  */
 #define BATCH_FLAG_SKIP_CHILDREN 0x01
 /* If set, allows all batch types to be nested under this batch.
- * The allowed_children field is ignored and may be set to NULL. */
+ * The child_allowed field is ignored and never called if this is set. */
 #define BATCH_FLAG_ALLOW_ALL 0x02
 
 struct Batch
@@ -41,7 +41,7 @@ struct Batch
 	/* server-generated batch ID (15 random characters + trailing null byte) */
 	char id[BATCH_ID_LEN];
 	/* BATCH command that started this batch */
-	const struct MsgBuf *start;
+	struct BatchMessage *start;
 	/* client-generated batch reference tag */
 	const char *tag;
 	/* batch type */
@@ -54,9 +54,9 @@ struct Batch
 	struct Batch *parent;
 	/* All finished batches nested under this one (linked list of struct Batch *) */
 	rb_dlink_list children;
-	/* Number of messages in this batch (including the start message) */
+	/* Number of messages inside of this batch */
 	unsigned int len;
-	/* A linked list of struct BatchMessage * for each message in the batch */
+	/* A linked list of struct BatchMessage * for each message inside of the batch */
 	rb_dlink_list messages;
 };
 
@@ -72,6 +72,7 @@ struct BatchMessage
 
 struct Client;
 typedef void (*batch_cb)(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *userdata);
+typedef bool (*child_allowed_cb)(struct Client *client_p, struct Client *source_p, struct Batch *parent, struct MsgBuf *child, void *userdata, const char **error);
 
 struct BatchHandler
 {
@@ -81,10 +82,10 @@ struct BatchHandler
 	void *userdata;
 	/* bitfield of flags for this handler from the BATCH_FLAG_* constants */
 	unsigned int flags;
-	/* batch type names that are allowed to be nested under this one (array of strings)
-	 * terminate the array with a NULL entry, e.g. { "foo", "bar", "baz", NULL }
-	 */
-	const char **allowed_children;
+	/* function called to determine if some other batch is allowed to be nested under this one;
+	 * If false is returned and *error is not NULL, *error will be used as the error code/message
+	 * instead of INVALID_NESTING */
+	child_allowed_cb child_allowed;
 };
 
 bool register_batch_handler(const char *type, const struct BatchHandler *handler);
@@ -92,7 +93,7 @@ const struct BatchHandler *get_batch_handler(const char *type);
 void remove_batch_handler(const char *type);
 void generate_batch_id(char *buf, size_t size);
 struct Batch *batch_init(struct MsgBuf *start);
-void batch_add_msgbuf(struct Batch *batch, struct MsgBuf *msg);
+struct BatchMessage *allocate_batch_message(struct MsgBuf *msg);
 void batch_free(struct Batch *batch);
 
 #endif /* INCLUDED_batch_h */

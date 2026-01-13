@@ -81,7 +81,7 @@ batch_timeout(void *arg)
 			{
 				sendto_one(client, ":%s FAIL BATCH TIMEOUT %s :Batch timed out",
 					me.name, batch->tag);
-				client->localClient->pending_batch_lines -= batch->len;
+				client->localClient->pending_batch_lines -= batch->len + 1;
 				batch_free(batch);
 				rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
 			}
@@ -140,13 +140,13 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 				sendto_one(source_p, ":%s FAIL BATCH INCOMPLETE %s :Nested batch not finished before enclosing batch",
 					me.name, other->tag);
 
-			client_p->localClient->pending_batch_lines -= other->len;
+			client_p->localClient->pending_batch_lines -= other->len + 1;
 			batch_free(other);
 			rb_dlinkDestroy(ptr, &client_p->localClient->pending_batches);
 		}
 	}
 
-	client_p->localClient->pending_batch_lines -= batch->len;
+	client_p->localClient->pending_batch_lines -= batch->len + 1;
 
 	if (handler == NULL)
 	{
@@ -161,16 +161,10 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		return;
 	}
 
-	bool skip_children = (handler->flags & BATCH_FLAG_SKIP_CHILDREN) == BATCH_FLAG_SKIP_CHILDREN;
-
-	/* don't trigger handlers for empty batches; treat as no-ops instead */
-	if (batch->len > 1 || (skip_children && batch->children.length > 0))
-	{
-		handler->handler(client_p, source_p, batch, handler->userdata);
-	}
+	handler->handler(client_p, source_p, batch, handler->userdata);
 
 	/* handle child batches */
-	if (!skip_children)
+	if (!(handler->flags & BATCH_FLAG_SKIP_CHILDREN))
 	{
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, batch->children.head)
 		{
@@ -198,6 +192,7 @@ static void
 m_queue(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	rb_dlink_node *ptr;
+	struct BatchMessage *msg;
 	const char *tag = msgbuf_get_tag(msgbuf, "batch");
 
 	if (EmptyString(tag))
@@ -208,7 +203,9 @@ m_queue(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		struct Batch *batch = ptr->data;
 		if (!strcmp(batch->tag, tag))
 		{
-			batch_add_msgbuf(batch, msgbuf);
+			msg = allocate_batch_message(msgbuf);
+			rb_dlinkAddTailAlloc(msg, &batch->messages);
+			batch->len++;
 			client_p->localClient->pending_batch_lines++;
 			return;
 		}
@@ -304,23 +301,20 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 			}
 
 			bool allowed = (parent_handler->flags & BATCH_FLAG_ALLOW_ALL) == BATCH_FLAG_ALLOW_ALL;
-			if (!allowed && parent_handler->allowed_children != NULL)
-			{
-				for (int i = 0; parent_handler->allowed_children[i] != NULL; ++i)
-				{
-					if (!strcmp(parv[2], parent_handler->allowed_children[i]))
-					{
-						allowed = true;
-						break;
-					}
-				}
-			}
+			const char *error = NULL;
+			if (!allowed && parent_handler->child_allowed != NULL)
+				allowed = parent_handler->child_allowed(client_p, source_p, parent, msgbuf, parent_handler->userdata, &error);
 
 			if (!allowed)
 			{
 				if (IsClient(source_p))
-					sendto_one(source_p, ":%s FAIL BATCH INVALID_NESTING %s %s %s :The parent batch type does not allow this type to be nested under it",
-						me.name, parv[1], parent->type, parv[2]);
+				{
+					if (error != NULL)
+						sendto_one(source_p, ":%s FAIL BATCH %s", me.name, error);
+					else
+						sendto_one(source_p, ":%s FAIL BATCH INVALID_NESTING %s %s %s :The parent batch type does not allow this type to be nested under it",
+							me.name, parv[1], parent->type, parv[2]);
+				}
 				return;
 			}
 		}
@@ -349,7 +343,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 			 */
 			rb_dlinkAddTailAlloc(batch, &batch->parent->children);
 			/* we deducted this earlier but the batch is still pending, so re-add the consumed lines */
-			client_p->localClient->pending_batch_lines += batch->len;
+			client_p->localClient->pending_batch_lines += batch->len + 1;
 		}
 		else
 		{

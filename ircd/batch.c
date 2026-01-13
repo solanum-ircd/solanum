@@ -78,12 +78,12 @@ struct Batch *
 batch_init(struct MsgBuf *start)
 {
 	struct Batch *batch = rb_malloc(sizeof(struct Batch));
-	batch_add_msgbuf(batch, start);
+	struct BatchMessage *msg = allocate_batch_message(start);
 
 	generate_batch_id(batch->id, sizeof(batch->id));
-	batch->start = &((struct BatchMessage *)batch->messages.head->data)->msg;
-	batch->tag = batch->start->para[1] + 1;
-	batch->type = batch->start->para[2];
+	batch->start = msg;
+	batch->tag = batch->start->msg.para[1] + 1;
+	batch->type = batch->start->msg.para[2];
 	batch->expires = rb_current_time() + BATCH_EXPIRY;
 
 	return batch;
@@ -109,11 +109,13 @@ batch_free(struct Batch *batch)
 		batch_free(child);
 	}
 
+	rb_free(batch->start->data);
+	rb_free(batch->start);
 	rb_free(batch);
 }
 
-void
-batch_add_msgbuf(struct Batch *batch, struct MsgBuf *msg)
+struct BatchMessage *
+allocate_batch_message(struct MsgBuf *msg)
 {
 	unsigned int len = 0;
 	char *c;
@@ -193,6 +195,5 @@ batch_add_msgbuf(struct Batch *batch, struct MsgBuf *msg)
 	}
 
 	copy->msg.preserve_trailing = msg->preserve_trailing;
-	batch->len++;
-	rb_dlinkAddTailAlloc(copy, &batch->messages);
+	return copy;
 }
