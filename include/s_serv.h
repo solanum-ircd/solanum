@@ -69,6 +69,7 @@ extern unsigned int CLICAP_CAP_NOTIFY;
 extern unsigned int CLICAP_CHGHOST;
 extern unsigned int CLICAP_ECHO_MESSAGE;
 extern unsigned int CLICAP_MESSAGE_TAGS;
+extern unsigned int CLICAP_BATCH;
 
 /*
  * XXX: this is kind of ugly, but this allows us to have backwards

@@ -317,5 +317,6 @@ const char * get_extban_string(void);
 extern int get_channel_access(struct Client *source_p, struct Channel *chptr, struct membership *msptr, int dir, const char *modestr);
 
 extern void send_channel_join(struct Channel *chptr, struct Client *client_p);
+extern void send_batched_channel_join(struct Channel *chptr, struct Client *client_p, const char *batch);
 
 #endif /* INCLUDED_channel_h */

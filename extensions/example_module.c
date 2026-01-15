@@ -24,6 +24,7 @@
 #include "client.h"
 #include "ircd.h"
 #include "send.h"
+#include "batch.h"
 
 /* This string describes the module. Always declare it a static const char[].
  * It is preferred for stylistic reasons to put it first.
@@ -130,14 +131,36 @@ mapi_cap_list_av2 test_cap_list[] = {
 	{ 0, NULL, NULL, NULL }
 };
 
+/* If the module adds client-initiated batches,
+ * add them here in a struct BatchHandler (one for each batch).
+ */
+static void test_batch_cb(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *userdata);
+static bool test_batch_child(struct Client *client_p, struct Client *source_p, struct Batch *parent, struct MsgBuf *child, void *userdata, const char **error);
+struct BatchHandler test_batch_handler = {
+	&test_batch_cb,	/* The callback invoked to process this batch */
+	NULL,			/* A pointer to pass as the userdata parameter to the callback function */
+	0,					/* Flags for the batch handler (see include/batch.h) */
+	/* The types of batches that can be nested under this one.
+	 * This should either be NULL (if no nesting is allowed or flags has BATCH_FLAG_ALLOW_ALL),
+	 * or a callback function that returns true if the nesting is allowed.
+	 */
+	&test_batch_child
+};
+
 /* Here we tell it what to do when the module is loaded */
 static int
 modinit(void)
 {
-	/* Nothing to do for the example module. */
 	/* The init function should return -1 on failure,
 	   which will cause the module to be unloaded,
 	   otherwise 0 to indicate success. */
+	if (!register_batch_handler("test", &test_batch_handler))
+	{
+		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
+			"A batch type named test was already registered.");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -145,7 +168,7 @@ modinit(void)
 static void
 moddeinit(void)
 {
-	/* Again, nothing to do. */
+	remove_batch_handler("test");
 }
 
 /* DECLARE_MODULE_AV2() actually declare the MAPI header. */
@@ -270,6 +293,22 @@ static void
 show_example_hook(void *unused)
 {
 	sendto_realops_snomask(SNO_GENERAL, L_ALL, "Called example hook!");
+}
+
+static void
+test_batch_cb(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *userdata)
+{
+	/* batches with no inner messages are no-op and will not call this handler */
+	sendto_one_notice(source_p, ":You have sent a %s batch with %d message%s",
+		batch->parent == NULL ? "top-level" : "nested",
+		batch->len, batch->len == 1 ? "" : "s");
+}
+
+static bool
+test_batch_child(struct Client *client_p, struct Client *source_p, struct Batch *parent, struct MsgBuf *child, void *userdata, const char **error)
+{
+	/* Allow test batches to be nested into each other */
+	return !strcmp(child->para[2], "test");
 }
 
 /* END OF EXAMPLE MODULE */

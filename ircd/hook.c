@@ -74,6 +74,7 @@ int h_rehash;
 int h_priv_change;
 int h_cap_change;
 int h_message_tag;
+int h_message_handler;
 
 void
 init_hook(void)
@@ -101,6 +102,7 @@ init_hook(void)
 	h_priv_change = register_hook("priv_change");
 	h_cap_change = register_hook("cap_change");
 	h_message_tag = register_hook("message_tag");
+	h_message_handler = register_hook("message_handler");
 }
 
 /* grow_hooktable()

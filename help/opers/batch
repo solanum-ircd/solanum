@@ -1,0 +1,36 @@
+BATCH +<reference-tag> <type> [params ...]
+BATCH -<reference-tag>
+
+BATCH is used to send a batch of commands to the server.
+Which types of batches are valid to send depends on which
+capabilities the client has requested via the CAP REQ
+command and have been confirmed via CAP ACK. Individual
+batch types have further restrictions on which commands
+are valid within that batch.
+
+A batch must be opened via the first syntax, and closed
+via the second syntax. Server-side processing of the batch
+is postponed until the batch is closed. Commands that are
+part of the batch must include the batch message-tag
+referencing the reference-tag value which began the batch.
+If the batch is kept open for 15 seconds, it will time out
+and be ignored.
+
+Errors with batches use the standard-replies framework via
+FAIL commands. The following error codes are used across
+all batch types, and individual batch types may have their
+own error codes. Each response additionally has a human-
+readable error message as the trailing parameter which
+varies to give a more detailed message of what is wrong.
+
+- FAIL BATCH TIMEOUT <reference-tag>
+  The batch was kept open for too long and has timed out.
+- FAIL BATCH INVALID_NESTING <reference-tag> <parent-type> <type>
+  The parent batch type does not allow batches of this type to be nested under it.
+- FAIL BATCH INVALID_REFTAG <reference-tag>
+  The reference-tag supplied with the batch is not valid.
+- FAIL BATCH UNKNOWN_TYPE <reference-tag> <type>
+  The type of batch specified is not valid.
+- FAIL BATCH INCOMPLETE <reference-tag>
+  An outer batch was closed before a nested inner batch.
+  The reference-tag refers to the inner batch.

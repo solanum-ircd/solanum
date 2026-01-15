@@ -275,6 +275,9 @@ struct LocalUser
 	unsigned int sasl_messages;
 	unsigned int sasl_failures;
 	time_t sasl_next_retry;
+
+	uint32_t pending_batch_lines;	/* number of lines held in pending client-initiated batches */
+	rb_dlink_list pending_batches;	/* batches this client started but did not finish */
 };
 
 #define AUTHC_F_DEFERRED 0x01
