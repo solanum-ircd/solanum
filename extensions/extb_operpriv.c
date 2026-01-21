@@ -1,5 +1,5 @@
 /*
- * Oper extban type: matches opers
+ * Oper priv extban type: matches oper privs and privsets
  * -- jilles
  */
 
@@ -10,18 +10,18 @@
 #include "s_newconf.h"
 #include "ircd.h"
 
-static const char extb_desc[] = "Oper ($o) extban type";
+static const char extb_desc[] = "Oper privilege ($O) extban type";
 
 static int _modinit(void);
 static void _moddeinit(void);
-static int eb_oper(const char *data, struct Client *client_p, struct Channel *chptr, long mode_type);
+static int eb_operpriv(const char *data, struct Client *client_p, struct Channel *chptr, long mode_type);
 
-DECLARE_MODULE_AV2(extb_oper, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, extb_desc);
+DECLARE_MODULE_AV2(extb_operpriv, _modinit, _moddeinit, NULL, NULL, NULL, NULL, NULL, extb_desc);
 
 static int
 _modinit(void)
 {
-	extban_table['o'] = eb_oper;
+	extban_table['O'] = eb_operpriv;
 
 	return 0;
 }
@@ -29,10 +29,10 @@ _modinit(void)
 static void
 _moddeinit(void)
 {
-	extban_table['o'] = NULL;
+	extban_table['O'] = NULL;
 }
 
-static int eb_oper(const char *data, struct Client *client_p,
+static int eb_operpriv(const char *data, struct Client *client_p,
 		struct Channel *chptr, long mode_type)
 {
 
@@ -51,3 +51,4 @@ static int eb_oper(const char *data, struct Client *client_p,
 
 	return IsOper(client_p) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
 }
+
