@@ -463,6 +463,66 @@ sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negcap,
 }
 
 /*
+ * sendto_server_internal
+ *
+ * inputs       - pointer to client to NOT send to
+ *              - caps or'd together which must ALL be present
+ *              - caps or'd together which must ALL NOT be present
+ *              - printf style format string
+ *              - args to format string
+ *              - message tags
+ * output       - NONE
+ * side effects - Send a message to all connected servers, except the
+ *                client 'one' (if non-NULL), as long as the servers
+ *                support ALL capabs in 'caps', and NO capabs in 'nocaps'.
+ */
+static void
+sendto_server_internal(struct Client *one, struct Channel *chptr, unsigned long caps, unsigned long nocaps,
+	const char *format, va_list *args, size_t n_tags, const struct MsgTag tags[])
+{
+	struct Client *target_p;
+	rb_dlink_node *ptr;
+	rb_dlink_node *next_ptr;
+	struct MsgBuf msgbuf;
+	struct MsgBuf_cache msgbuf_cache;
+	char buf[DATALEN + 1];
+	rb_strf_t strings = { .format = format, .format_args = args, .next = NULL };
+
+	/* noone to send to... */
+	if(rb_dlink_list_length(&serv_list) == 0)
+		return;
+
+	if(chptr != NULL && *chptr->chname != '#')
+		return;
+
+	rb_fsnprint(buf, sizeof(buf), &strings);
+	build_msgbuf(&msgbuf, &me, buf, n_tags, tags);
+	/* source is already provided as part of format; don't overwrite it with anything else */
+	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, serv_list.head)
+	{
+		target_p = ptr->data;
+
+		/* check against 'one' */
+		if (one != NULL && (target_p == one->from))
+			continue;
+
+		/* check we have required capabs */
+		if (!IsCapable(target_p, caps))
+			continue;
+
+		/* check we don't have any forbidden capabs */
+		if (!NotCapable(target_p, nocaps))
+			continue;
+
+		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, IsCapable(target_p, CAP_STAG) ? (unsigned)-1 : 0, false));
+	}
+
+	msgbuf_cache_free(&msgbuf_cache);
+}
+
+/*
  * sendto_server
  *
  * inputs       - pointer to client to NOT send to
@@ -484,44 +544,33 @@ sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
 	      unsigned long nocaps, const char *format, ...)
 {
 	va_list args;
-	struct Client *target_p;
-	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
-	buf_head_t linebuf;
-	rb_strf_t strings = { .format = format, .format_args = &args, .next = NULL };
-
-	/* noone to send to... */
-	if(rb_dlink_list_length(&serv_list) == 0)
-		return;
-
-	if(chptr != NULL && *chptr->chname != '#')
-		return;
-
-	rb_linebuf_newbuf(&linebuf);
 	va_start(args, format);
-	linebuf_put_msg(&linebuf, &strings);
+	sendto_server_internal(one, chptr, caps, nocaps, format, &args, 0, NULL);
 	va_end(args);
+}
 
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, serv_list.head)
-	{
-		target_p = ptr->data;
-
-		/* check against 'one' */
-		if (one != NULL && (target_p == one->from))
-			continue;
-
-		/* check we have required capabs */
-		if (!IsCapable(target_p, caps))
-			continue;
-
-		/* check we don't have any forbidden capabs */
-		if (!NotCapable(target_p, nocaps))
-			continue;
-
-		send_linebuf(target_p, &linebuf);
-	}
-
-	rb_linebuf_donebuf(&linebuf);
+/*
+ * sendto_server_tags
+ *
+ * inputs       - pointer to client to NOT send to
+ *              - caps or'd together which must ALL be present
+ *              - caps or'd together which must ALL NOT be present
+ *              - message tags
+ *              - printf style format string
+ *              - args to format string
+ * output       - NONE
+ * side effects - Send a message to all connected servers, except the
+ *                client 'one' (if non-NULL), as long as the servers
+ *                support ALL capabs in 'caps', and NO capabs in 'nocaps'.
+ */
+void
+sendto_server_tags(struct Client *one, struct Channel *chptr, unsigned long caps,
+		  unsigned long nocaps, size_t n_tags, const struct MsgTag tags[], const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	sendto_server_internal(one, chptr, caps, nocaps, format, &args, n_tags, tags);
+	va_end(args);
 }
 
 /* sendto_channel_flags_internal()
