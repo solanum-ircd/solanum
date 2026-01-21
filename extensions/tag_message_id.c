@@ -84,6 +84,10 @@ add_message_id_channel(void *data_)
 	static char buf[BUFSIZE];
 	hook_data_privmsg_channel *data = data_;
 
+	/* don't give msgid to PARTs */
+	if (data->msgtype == MESSAGE_TYPE_PART)
+		return;
+
 	if (msgbuf_get_tag(data->msgbuf, "msgid"))
 		return;
 

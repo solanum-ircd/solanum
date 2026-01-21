@@ -1051,7 +1051,6 @@ or parameter array is not recommended and may not function as expected.
 
 The following send functions currently do not call this hook:
 
-- sendto_server
 - kill_client
 - kill_client_serv_butone
 

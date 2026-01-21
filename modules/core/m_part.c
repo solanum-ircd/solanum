@@ -53,11 +53,9 @@ mapi_clist_av1 part_clist[] = { &part_msgtab, NULL };
 
 DECLARE_MODULE_AV2(part, NULL, NULL, part_clist, NULL, NULL, NULL, NULL, part_desc);
 
-static void part_one_client(struct Client *client_p,
-			    struct Client *source_p, char *name,
-			    const char *reason);
+static void part_one_client(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, char *name, const char *reason);
 static bool can_send_part(struct Client *source_p, struct Channel *chptr, struct membership *msptr);
-static bool do_message_hook(struct Client *source_p, struct Channel *chptr, const char **reason);
+static bool do_message_hook(struct MsgBuf *msgbuf_p, struct Client *source_p, struct Channel *chptr, const char **reason);
 
 
 /*
@@ -85,7 +83,7 @@ m_part(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	while(name)
 	{
-		part_one_client(client_p, source_p, name, reason);
+		part_one_client(msgbuf_p, client_p, source_p, name, reason);
 		name = rb_strtok_r(NULL, ",", &p);
 	}
 }
@@ -100,7 +98,7 @@ m_part(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
  * side effects	- remove ONE client given the channel name
  */
 static void
-part_one_client(struct Client *client_p, struct Client *source_p, char *name, const char *reason)
+part_one_client(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, char *name, const char *reason)
 {
 	struct Channel *chptr;
 	struct membership *msptr;
@@ -127,24 +125,25 @@ part_one_client(struct Client *client_p, struct Client *source_p, char *name, co
 	 */
 	if(!EmptyString(reason) &&
 		(!MyConnect(source_p) ||
-		 (can_send_part(source_p, chptr, msptr) && do_message_hook(source_p, chptr, &reason))
+		 (can_send_part(source_p, chptr, msptr) && do_message_hook(msgbuf_p, source_p, chptr, &reason))
 		)
 	  )
 	{
-
-		sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
-			      ":%s PART %s :%s", use_id(source_p), chptr->chname, reason);
-		sendto_channel_local(source_p, ALL_MEMBERS, chptr, ":%s!%s@%s PART %s :%s",
-				     source_p->name, source_p->username,
-				     source_p->host, chptr->chname, reason);
+		sendto_server_tags(client_p, chptr, CAP_TS6, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
+			":%s PART %s :%s", use_id(source_p), chptr->chname, reason);
+		sendto_channel_local_tags(source_p, ALL_MEMBERS, NULL, chptr, msgbuf_p->n_tags, msgbuf_p->tags,
+			":%s!%s@%s PART %s :%s",
+		     source_p->name, source_p->username,
+		     source_p->host, chptr->chname, reason);
 	}
 	else
 	{
-		sendto_server(client_p, chptr, CAP_TS6, NOCAPS,
-			      ":%s PART %s", use_id(source_p), chptr->chname);
-		sendto_channel_local(source_p, ALL_MEMBERS, chptr, ":%s!%s@%s PART %s",
-				     source_p->name, source_p->username,
-				     source_p->host, chptr->chname);
+		sendto_server_tags(client_p, chptr, CAP_TS6, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
+			":%s PART %s", use_id(source_p), chptr->chname);
+		sendto_channel_local_tags(source_p, ALL_MEMBERS, NULL, chptr, msgbuf_p->n_tags, msgbuf_p->tags,
+			":%s!%s@%s PART %s",
+			 source_p->name, source_p->username,
+			 source_p->host, chptr->chname);
 	}
 	remove_user_from_channel(msptr);
 }
@@ -187,7 +186,7 @@ can_send_part(struct Client *source_p, struct Channel *chptr, struct membership 
  *    - reason may be modified.
  */
 static bool
-do_message_hook(struct Client *source_p, struct Channel *chptr, const char **reason)
+do_message_hook(struct MsgBuf *msgbuf_p, struct Client *source_p, struct Channel *chptr, const char **reason)
 {
 	hook_data_privmsg_channel hdata;
 
@@ -196,6 +195,7 @@ do_message_hook(struct Client *source_p, struct Channel *chptr, const char **rea
 	hdata.chptr = chptr;
 	hdata.text = *reason;
 	hdata.approved = 0;
+	hdata.msgbuf = msgbuf_p;
 
 	call_hook(h_privmsg_channel, &hdata);
 

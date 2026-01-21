@@ -54,6 +54,10 @@ extern void sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negc
 extern void sendto_server(struct Client *one, struct Channel *chptr,
 			  unsigned long caps, unsigned long nocaps,
 			  const char *format, ...) AFP(5, 6);
+extern void sendto_server_tags(struct Client *one, struct Channel *chptr,
+			  unsigned long caps, unsigned long nocaps,
+			  size_t n_tags, const struct MsgTag tags[],
+			  const char *format, ...) AFP(7, 8);
 
 extern void sendto_channel_flags(struct Client *one, int type, struct Client *source_p,
 				 struct Channel *chptr, const char *, ...) AFP(5, 6);
