@@ -556,11 +556,6 @@ static struct InfoStruct info_table[] = {
 		INFO_DECIMAL(&ConfigChannel.knock_delay_channel),
 	},
 	{
-		"kick_on_split_riding",
-		"Kick users riding splits to join +i or +k channels",
-		INFO_INTBOOL_YN(&ConfigChannel.kick_on_split_riding),
-	},
-	{
 		"disable_local_channels",
 		"Disable local channels (&channels)",
 		INFO_INTBOOL_YN(&ConfigChannel.disable_local_channels),
