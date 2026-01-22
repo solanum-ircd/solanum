@@ -38,6 +38,7 @@ static const char version_desc[] =
 	"Provides the VERSION command to display server version information";
 
 static char *confopts(void);
+static int h_doing_version_confopts;
 
 static void m_version(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mo_version(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -49,7 +50,12 @@ struct Message version_msgtab = {
 
 mapi_clist_av1 version_clist[] = { &version_msgtab, NULL };
 
-DECLARE_MODULE_AV2(version, NULL, NULL, version_clist, NULL, NULL, NULL, NULL, version_desc);
+mapi_hlist_av1 version_hlist[] = {
+	{ "doing_version_confopts", &h_doing_version_confopts },
+	{ NULL, NULL },
+};
+
+DECLARE_MODULE_AV2(version, NULL, NULL, version_clist, version_hlist, NULL, NULL, NULL, version_desc);
 
 /*
  * m_version - VERSION command handler
@@ -113,34 +119,49 @@ mo_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 static char *
 confopts(void)
 {
-	static char result[15];
-	char *p;
-
-	result[0] = '\0';
-	p = result;
+	static char result[64];
+	char *p = result;
+	int c;
+	char opts[256] = { 0 };
 
 	if(ConfigChannel.use_except)
-		*p++ = 'e';
+		opts['e'] = 1;
 
 	if(ConfigChannel.use_invex)
-		*p++ = 'I';
+		opts['I'] = 1;
 
 	if(ConfigChannel.use_knock)
-		*p++ = 'K';
+		opts['K'] = 1;
 
-	*p++ = 'M';
-	*p++ = 'p';
+	opts['M'] = 1;
+	opts['p'] = 1;
 
-	if(opers_see_all_users || ConfigFileEntry.operspy_dont_care_user_info)
-		*p++ = 'S';
+	if (opers_see_all_users || ConfigFileEntry.operspy_dont_care_user_info)
+		opts['S'] = 1;
 
 #ifdef HAVE_LIBZ
-	*p++ = 'Z';
+	opts['Z'] = 1;
 #endif
 
-	*p++ = '6';
+	opts['6'] = 1;
+
+	call_hook(h_doing_version_confopts, opts);
+
+	for (c = 'A'; c <= 'Z'; c++)
+	{
+		if (opts[c])
+			*p++ = (char)c;
+
+		if (opts[tolower(c)])
+			*p++ = tolower(c);
+	}
+
+	for (c = '0'; c <= '9'; c++)
+	{
+		if (opts[c])
+			*p++ = (char)c;
+	}
 
 	*p = '\0';
-
 	return result;
 }
