@@ -1705,24 +1705,28 @@ conf_set_general_oper_snomask(void *data)
 static void
 conf_set_general_hidden_caps(void *data)
 {
-	size_t n = 0;
-
-	for (conf_parm_t *arg = data; arg; arg = arg->next)
-		n += 1;
+	size_t n;
 
 	if (ConfigFileEntry.hidden_caps != NULL)
 	{
 		for (n = 0; ConfigFileEntry.hidden_caps[n] != NULL; n++)
 			rb_free(ConfigFileEntry.hidden_caps[n]);
+
 		rb_free(ConfigFileEntry.hidden_caps);
 	}
+
+	n = 0;
+
+	for (conf_parm_t *arg = data; arg != NULL; arg = arg->next)
+		n += 1;
+
 	ConfigFileEntry.hidden_caps = rb_malloc(sizeof *ConfigFileEntry.hidden_caps * (n + 1));
 
 	n = 0;
+
 	for (conf_parm_t *arg = data; arg; arg = arg->next)
-	{
 		ConfigFileEntry.hidden_caps[n++] = rb_strdup(arg->v.string);
-	}
+
 	ConfigFileEntry.hidden_caps[n] = NULL;
 }
 
