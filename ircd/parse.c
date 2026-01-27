@@ -212,16 +212,16 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		}
 	}
 
+	s_assert(incoming_client == NULL);
+	s_assert(incoming_message == NULL);
 	incoming_message = &updated_msg;
 	incoming_client = client_p;
 
 	if (mptr == NULL)
 	{
 		do_numeric(numeric, client_p, from, &updated_msg);
-		return;
 	}
-
-	if(handle_command(mptr, &updated_msg, client_p, from) < -1)
+	else if (handle_command(mptr, &updated_msg, client_p, from) < -1)
 	{
 		char *p;
 		for (p = pbuffer; p <= end; p += 8)
