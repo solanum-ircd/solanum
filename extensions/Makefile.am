@@ -53,6 +53,7 @@ extension_LTLIBRARIES =		\
   m_okick.la			\
   m_omode.la			\
   m_opme.la			\
+  m_quarantine.la       \
   m_remove.la			\
   m_sendbans.la			\
   m_shedding.la			\

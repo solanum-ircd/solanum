@@ -48,6 +48,7 @@
 #include "match.h"
 #include "s_user.h"
 
+static int h_account_change;
 static const char signon_desc[] = "Provides account login/logout support for services";
 
 static void me_svslogin(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -64,11 +65,16 @@ struct Message signon_msgtab = {
 	{mg_ignore, mg_ignore, {ms_signon, 6}, mg_ignore, mg_ignore, mg_ignore}
 };
 
+mapi_hlist_av1 signon_hlist[] = {
+	{ "account_change", &h_account_change },
+	{ NULL, NULL }
+};
+
 mapi_clist_av1 signon_clist[] = {
 	&svslogin_msgtab, &signon_msgtab, NULL
 };
 
-DECLARE_MODULE_AV2(signon, NULL, NULL, signon_clist, NULL, NULL, NULL, NULL, signon_desc);
+DECLARE_MODULE_AV2(signon, NULL, NULL, signon_clist, signon_hlist, NULL, NULL, NULL, signon_desc);
 
 #define NICK_VALID	1
 #define USER_VALID	2
@@ -406,10 +412,12 @@ send_signon(struct Client *client_p, struct Client *target_p,
 		const char *nick, const char *user, const char *host,
 		unsigned int newts, const char *login)
 {
+	char old_suser[NICKLEN + 1] = { 0 };
 	sendto_server(client_p, NULL, CAP_TS6, NOCAPS, ":%s SIGNON %s %s %s %ld %s",
 			use_id(target_p), nick, user, host,
 			(long) target_p->tsinfo, *login ? login : "0");
 
+	strncpy(old_suser, target_p->user->suser, sizeof(old_suser) - 1);
 	rb_strlcpy(target_p->user->suser, login, sizeof(target_p->user->suser));
 
 	if (irccmp(target_p->orighost, host))
@@ -418,4 +426,6 @@ send_signon(struct Client *client_p, struct Client *target_p,
 		ClearDynSpoof(target_p);
 
 	change_nick_user_host(target_p, nick, user, host, newts, "Signing %s (%s)", *login ?  "in" : "out", nick);
+	hook_cdata hdata = { target_p, old_suser, NULL };
+	call_hook(h_account_change, &hdata);
 }

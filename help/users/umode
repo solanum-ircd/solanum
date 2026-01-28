@@ -8,12 +8,14 @@ User modes: (? designates that the umode is provided by an extension
          +o     - Designates this client is an IRC Operator.
                   Use the /oper command to attain this.
          +i     - Designates this client 'invisible'.
-       ? +h     - Has a cloaked host. May be +x depending on cloaking module
          +g     - Deny users not on your /ACCEPT list from messaging you and
                   inviting you to channels.
+       ? +q     - Prevents you from joining channels or sending private messages
+                  until you identify to services (cannot be set or unset).
        ? +u     - Receive messages that would otherwise be filtered server side
                   based on content.
          +w     - Can see oper wallops.
+       ? +x     - Has a cloaked host. May be +h depending on cloaking module
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
          +G     - Deny users not on your /ACCEPT list and not in a channel
