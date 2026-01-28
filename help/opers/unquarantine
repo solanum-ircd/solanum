@@ -1,0 +1,7 @@
+UNQUARANTINE <nick>
+
+Removes the quarantine user mode (-q) from nick,
+allowing them to join channels and speak as a
+regular user would.
+
+- Requires oper priv: oper:quarantine
