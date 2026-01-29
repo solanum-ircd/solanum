@@ -36,6 +36,8 @@ include/serno.h:
 
 install-data-hook:
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
+	@# needed for FHS paths:
+	test -d ${DESTDIR}${pkglocalstatedir} || mkdir -p ${DESTDIR}${pkglocalstatedir}
 
 install-exec-hook:
 	rm -f ${DESTDIR}${libdir}/*.la
