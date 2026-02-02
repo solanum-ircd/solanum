@@ -417,7 +417,7 @@ send_signon(struct Client *client_p, struct Client *target_p,
 			use_id(target_p), nick, user, host,
 			(long) target_p->tsinfo, *login ? login : "0");
 
-	strncpy(old_suser, target_p->user->suser, sizeof(old_suser) - 1);
+	rb_strlcpy(old_suser, target_p->user->suser, sizeof(old_suser));
 	rb_strlcpy(target_p->user->suser, login, sizeof(target_p->user->suser));
 
 	if (irccmp(target_p->orighost, host))

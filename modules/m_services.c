@@ -139,7 +139,7 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	if(!target_p->user)
 		return;
 
-	strncpy(old_suser, target_p->user->suser, sizeof(old_suser) - 1);
+	rb_strlcpy(old_suser, target_p->user->suser, sizeof(old_suser));
 
 	if(EmptyString(parv[2]))
 		target_p->user->suser[0] = '\0';
@@ -173,7 +173,7 @@ me_login(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(!IsPerson(source_p))
 		return;
 
-	strncpy(old_suser, source_p->user->suser, sizeof(old_suser) - 1);
+	rb_strlcpy(old_suser, source_p->user->suser, sizeof(old_suser));
 	rb_strlcpy(source_p->user->suser, parv[1], sizeof(source_p->user->suser));
 	hook_cdata hdata = { source_p, old_suser, NULL };
 	call_hook(h_account_change, &hdata);

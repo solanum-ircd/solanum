@@ -36,8 +36,8 @@
 
 #define IsOperQuarantine(x) (HasPrivilege((x), "oper:quarantine"))
 #define IsQuarantined(x) ((x)->umodes & user_modes['q'])
-#define DEFAULT_JOIN_REASON "Cannot join channel (+q) - you need to be logged into your NickServ account"
-#define DEFAULT_MSG_REASON "Cannot send to nick/channel (+q) - you need to be logged into your NickServ account"
+#define DEFAULT_JOIN_REASON "Cannot join channel (usermode +q) - you need to be logged into your NickServ account"
+#define DEFAULT_MSG_REASON "Cannot send to nick/channel (usermode +q) - you need to be logged into your NickServ account"
 #define DEFAULT_OTHER_MSG_REASON "they are quarantined and will be unable to respond to you"
 #define DEFAULT_APPLY_MSG "You have been quarantined and must log into your NickServ account before you can join channels. Please see /STATS p for assistance."
 #define DEFAULT_REMOVE_MSG "You are no longer quarantined and can freely join channels."
@@ -74,12 +74,12 @@ static void quarantine_set_allow_channels(void *);
 
 struct Message quarantine_msgtab = {
 	"QUARANTINE", 0, 0, 0, 0,
-	{ mg_unreg, mg_not_oper, mg_not_oper, mg_ignore, { me_quarantine, 2 }, { mo_quarantine, 2 } }
+	{ mg_unreg, mg_not_oper, mg_not_oper, mg_ignore, { me_quarantine, 3 }, { mo_quarantine, 3 } }
 };
 
 struct Message unquarantine_msgtab = {
 	"UNQUARANTINE", 0, 0, 0, 0,
-	{ mg_unreg, mg_not_oper, mg_not_oper, mg_ignore, { me_unquarantine, 1 }, { mo_unquarantine, 1 } }
+	{ mg_unreg, mg_not_oper, mg_not_oper, mg_ignore, { me_unquarantine, 2 }, { mo_unquarantine, 2 } }
 };
 
 struct ConfEntry conf_quarantine_table[] = {
@@ -149,12 +149,6 @@ mo_quarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 		return;
 	}
 
-	if (parc < 3 || EmptyString(parv[1]) || EmptyString(parv[2]))
-	{
-		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, "QUARANTINE");
-		return;
-	}
-
 	struct Client *target_p = find_named_person(parv[1]);
 	if (target_p == NULL)
 	{
@@ -172,12 +166,6 @@ mo_quarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 static void
 me_quarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if (parc < 3 || EmptyString(parv[1]) || EmptyString(parv[2]))
-	{
-		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, "QUARANTINE");
-		return;
-	}
-
 	struct Client *target_p = find_named_person(parv[1]);
 	if (target_p == NULL)
 	{
@@ -200,12 +188,6 @@ mo_unquarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client 
 		return;
 	}
 
-	if (parc < 2 || EmptyString(parv[1]))
-	{
-		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, "UNQUARANTINE");
-		return;
-	}
-
 	struct Client *target_p = find_named_person(parv[1]);
 	if (target_p == NULL)
 	{
@@ -223,12 +205,6 @@ mo_unquarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client 
 static void
 me_unquarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if (parc < 2 || EmptyString(parv[1]))
-	{
-		sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, "UNQUARANTINE");
-		return;
-	}
-
 	struct Client *target_p = find_named_person(parv[1]);
 	if (target_p == NULL)
 	{
@@ -514,8 +490,8 @@ quarantine_privmsg_channel(void *data_)
 
 	data->approved = ERR_CANNOTSENDTOCHAN;
 
-	/* Don't give error messages for TAGMSG since many clients autogenerate these (e.g. +typing) */
-	if (data->msgtype != MESSAGE_TYPE_TAGMSG)
+	/* Don't give error messages for non-PRIVMSG since many clients autogenerate these (e.g. +typing) */
+	if (data->msgtype == MESSAGE_TYPE_PRIVMSG)
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, "%s :%s",
 			data->chptr->chname,
 			EmptyString(msg_reason) ? DEFAULT_MSG_REASON : msg_reason);
@@ -536,7 +512,7 @@ quarantine_privmsg_user(void *data_)
 	{
 		if (IsQuarantined(data->target_p) && !IsOper(data->source_p) && !IsService(data->source_p))
 		{
-			if (data->msgtype != MESSAGE_TYPE_TAGMSG)
+			if (data->msgtype == MESSAGE_TYPE_PRIVMSG)
 				sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOUSER, form_str(ERR_CANNOTSENDTOUSER),
 					data->target_p->name,
 					EmptyString(other_msg_reason) ? DEFAULT_OTHER_MSG_REASON : other_msg_reason);
@@ -551,8 +527,8 @@ quarantine_privmsg_user(void *data_)
 
 	data->approved = ERR_CANNOTSENDTOCHAN;
 
-	/* Don't give error messages for TAGMSG since many clients autogenerate these (e.g. +typing) */
-	if (data->msgtype != MESSAGE_TYPE_TAGMSG)
+	/* Don't give error messages for non-PRIVMSG since many clients autogenerate these (e.g. +typing) */
+	if (data->msgtype == MESSAGE_TYPE_PRIVMSG)
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOCHAN, "%s :%s",
 			data->target_p->name,
 			EmptyString(msg_reason) ? DEFAULT_MSG_REASON : msg_reason);
