@@ -103,7 +103,7 @@ AS_IF([test "x$enable_fhs_paths" = "xyes"],
 	pkglibexecdir='${libexecdir}/${PACKAGE_TARNAME}'
 	rundir=${rundir-'${prefix}/run'}
 	pkgrundir='${rundir}/${PACKAGE_TARNAME}'
-	pkglocalstatedir='${localstatedir}/${PACKAGE_TARNAME}'
+	pkglocalstatedir='${localstatedir}/lib/${PACKAGE_TARNAME}'
 	AC_DEFINE([ENABLE_FHS_PATHS], [1], [Uncomment if FHS pathnames are enabled])],
 	[libexecdir='${bindir}'
 	pkglibexecdir='${libexecdir}'
