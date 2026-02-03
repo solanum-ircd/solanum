@@ -34,10 +34,12 @@
 #include "packet.h"
 #include "logger.h"
 
+#define SEES_ADDRESS(source_p, mod) IsOperAdmin(source_p) ? (unsigned long)(uintptr_t)(mod)->address : 0
+
 static const char modules_desc[] = "Provides module management commands";
 
 static void mo_modload(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static void mo_modlist(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void m_modlist(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mo_modreload(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mo_modunload(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void mo_modrestart(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -74,7 +76,7 @@ struct Message modreload_msgtab = {
 
 struct Message modlist_msgtab = {
 	"MODLIST", 0, 0, 0, 0,
-	{mg_unreg, mg_not_oper, mg_ignore, mg_ignore, {me_modlist, 0}, {mo_modlist, 0}}
+	{mg_unreg, {m_modlist, 0}, mg_ignore, mg_ignore, {me_modlist, 0}, {m_modlist, 0}}
 };
 
 struct Message modrestart_msgtab = {
@@ -173,20 +175,28 @@ me_modreload(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 
 /* list modules .. */
 static void
-mo_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
+m_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char **parv)
 {
-	if(!IsOperAdmin(source_p))
+	static time_t last_used = 0L;
+	if (!IsOperGeneral(source_p))
 	{
-		sendto_one(source_p, form_str(ERR_NOPRIVS),
-			   me.name, source_p->name, "admin");
-		return;
+		if (last_used + ConfigFileEntry.pace_wait > rb_current_time())
+		{
+			/* safe enough to give this on a local connect only */
+			sendto_one(source_p, form_str(RPL_LOAD2HI),
+					me.name, source_p->name, "MODLIST");
+			sendto_one(source_p, form_str(RPL_ENDOFMODLIST), me.name, source_p->name);
+			return;
+		}
+		else
+			last_used = rb_current_time();
 	}
 
-	if(parc > 2)
+	if (IsOperAdmin(source_p) && parc > 2)
 	{
 		sendto_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS,
 				"ENCAP %s MODLIST %s", parv[2], parv[1]);
-		if(match(parv[2], me.name) == 0)
+		if (match(parv[2], me.name) == 0)
 			return;
 	}
 
@@ -336,7 +346,7 @@ do_modlist(struct Client *source_p, const char *pattern)
 				sendto_one(source_p, form_str(RPL_MODLIST),
 					   me.name, source_p->name,
 					   mod->name,
-					   (unsigned long)(uintptr_t)mod->address, origin,
+					   SEES_ADDRESS(source_p, mod), origin,
 					   mod->core ? " (core)" : "", mod->version, mod->description);
 			}
 		}
@@ -344,7 +354,7 @@ do_modlist(struct Client *source_p, const char *pattern)
 		{
 			sendto_one(source_p, form_str(RPL_MODLIST),
 				   me.name, source_p->name, mod->name,
-				   (unsigned long)(uintptr_t)mod->address, origin,
+				   SEES_ADDRESS(source_p, mod), origin,
 				   mod->core ? " (core)" : "", mod->version, mod->description);
 		}
 	}
