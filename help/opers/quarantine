@@ -1,0 +1,22 @@
+QUARANTINE <nick> :<reason>
+
+Applies user mode +q to nick, preventing them from
+taking the following actions:
+
+- Joining channels (except channels allowed in
+  quarantine::allow_channels)
+- Sending messages to channels (except channels
+  allowed in quarantine::allow_channels)
+- Sending messages to users (except services and
+  opers)
+
+Users who are not opers or marked as services will
+additionally be unable to send private messages to
+quarantined users.
+
+A quarantined user who identifies to services will
+automatically lose the +q user mode. Attempting to
+use this command on a user already identified to
+services will fail.
+
+- Requires oper priv: oper:quarantine
