@@ -676,47 +676,6 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		;
 	else if(newts < oldts)
 	{
-		/* If configured, kick people trying to join +i/+k
-		 * channels by recreating them on split servers.
-		 * If the source has sent EOB, assume this is some
-		 * sort of hack by services. If cmode +i is set,
-		 * services can send kicks if needed; if the key
-		 * differs, services cannot kick in a race-free
-		 * manner so do so here.
-		 * -- jilles */
-		if (ConfigChannel.kick_on_split_riding &&
-				((!HasSentEob(source_p) &&
-				mode.mode & MODE_INVITEONLY) ||
-		    (mode.key[0] != 0 && irccmp(mode.key, oldmode->key) != 0)))
-		{
-			struct membership *msptr;
-			struct Client *who;
-			int l = rb_dlink_list_length(&chptr->members);
-
-			RB_DLINK_FOREACH_SAFE(ptr, next_ptr, chptr->locmembers.head)
-			{
-				msptr = ptr->data;
-				who = msptr->client_p;
-				sendto_one(who, ":%s KICK %s %s :Net Rider",
-						     me.name, chptr->chname, who->name);
-
-				sendto_server(NULL, chptr, CAP_TS6, NOCAPS,
-					      ":%s KICK %s %s :Net Rider",
-					      me.id, chptr->chname,
-					      who->id);
-				remove_user_from_channel(msptr);
-				if (--l == 0)
-					break;
-			}
-			if (l == 0)
-			{
-				/* Channel was emptied, create a new one */
-				if((chptr = get_or_create_channel(source_p, parv[2], &isnew)) == NULL)
-					return;		/* oops! */
-
-				oldmode = &chptr->mode;
-			}
-		}
 		keep_our_modes = false;
 		chptr->channelts = newts;
 	}
