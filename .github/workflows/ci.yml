@@ -91,6 +91,7 @@ jobs:
   linux-meson:
     name: Linux
     runs-on: ${{ matrix.os }}
+    strategy: *strategy
     env:
       CC: ${{ matrix.compiler }}
       RUNNING_IN_CI: yes
