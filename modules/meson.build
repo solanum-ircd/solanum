@@ -2,10 +2,6 @@ module_inc = include_directories('../include', '../librb/include')
 module_link_args = []
 module_c_args = []
 
-if cc.has_link_argument('-export-symbols-regex')
-  module_link_args += ['-Wl,-export-symbols-regex,_mheader']
-endif
-
 autoload_modules = [
   'cap_account_tag',
   'cap_server_time',

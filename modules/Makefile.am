@@ -2,7 +2,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/librb/include $(LTDLINCL)
 AM_LDFLAGS  = -module -export-dynamic -avoid-version -no-undefined -shared
-AM_LDFLAGS += -export-symbols-regex _mheader
 LIBS += $(top_srcdir)/ircd/libircd.la
 
 auto_load_moddir=@moduledir@/autoload

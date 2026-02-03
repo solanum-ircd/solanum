@@ -2,10 +2,6 @@ extension_inc = include_directories('../include', '../librb/include')
 extension_link_args = []
 extension_c_args = []
 
-if cc.has_link_argument('-export-symbols-regex')
-  extension_link_args += ['-Wl,-export-symbols-regex,_mheader']
-endif
-
 extension_modules = [
   'cap_oper',
   'cap_realhost',
