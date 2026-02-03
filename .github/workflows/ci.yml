@@ -23,10 +23,10 @@ on:
       - 'README.md'
 
 jobs:
-  linux:
+  linux-autotools:
     name: Linux
     runs-on: ${{ matrix.os }}
-    strategy:
+    strategy: &strategy
       fail-fast: false
       matrix:
         include:
@@ -87,3 +87,33 @@ jobs:
       run: make check
     - name: make install
       run: make install
+
+  linux-meson:
+    name: Linux
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.compiler }}
+      RUNNING_IN_CI: yes
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          ${CC} \
+          meson \
+          ninja-build \
+          libltdl-dev \
+          libsqlite3-dev \
+          libhyperscan-dev \
+          # EOF
+    - uses: actions/checkout@main
+      with:
+        persist-credentials: false
+        submodules: recursive
+    - name: meson setup
+      run: meson setup build/
+    - name: meson compile
+      run: meson compile -C build/
+    - name: meson test
+      run: meson test -C build/

@@ -1,0 +1,76 @@
+/*
+ * librb-config.h: librb config file
+ * Generated from librb-config.h.in by meson
+ */
+
+#ifndef __LIBRB_CONFIG_H
+#define __LIBRB_CONFIG_H
+
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <errno.h>
+
+
+#mesondefine HAVE_SYS_POLL_H
+#mesondefine HAVE_SYS_EPOLL_H
+#mesondefine HAVE_SYS_DEVPOLL_H
+#mesondefine HAVE_SYS_EVENT_H
+#mesondefine HAVE_PORT_H
+#mesondefine HAVE_SYS_SIGNALFD_H
+#mesondefine HAVE_SYS_TIMERFD_H
+#mesondefine HAVE_GETEXECNAME
+#mesondefine HAVE_STRLCPY
+#mesondefine HAVE_STRLCAT
+#mesondefine HAVE_STRCASESTR
+#mesondefine HAVE_SIGNALFD
+#mesondefine HAVE_KEVENT
+#mesondefine HAVE_PORT_CREATE
+#mesondefine HAVE_EPOLL_CTL
+#mesondefine HAVE_ARC4RANDOM
+#mesondefine HAVE_TIMERFD_CREATE
+#mesondefine HAVE_DLINFO
+#mesondefine HAVE_NANOSLEEP
+#mesondefine HAVE_TIMER_CREATE
+#mesondefine HAVE_DEVPOLL
+#mesondefine SOCKADDR_IN_HAS_LEN
+
+#mesondefine HAVE_OPENSSL
+#mesondefine HAVE_MBEDTLS
+#mesondefine HAVE_GNUTLS
+
+#mesondefine HAVE_CRYPT_H
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
+#endif
+
+typedef socklen_t rb_socklen_t;
+
+/* Define RB_SOCKADDR_HAS_SA_LEN if sockaddr has sa_len member */
+#ifdef SOCKADDR_IN_HAS_LEN
+#define RB_SOCKADDR_HAS_SA_LEN 1
+#endif
+
+/* Indirect definition for consistency with librb/acinclude.m4, but we could make Meson define
+ * USE_TIMERFD_CREATE directly */
+#ifdef HAVE_SYS_TIMERFD_H
+#ifdef HAVE_TIMERFD_CREATE
+#define USE_TIMERFD_CREATE
+#endif
+#endif
+
+/* Use system sockaddr_storage */
+#define rb_sockaddr_storage sockaddr_storage
+
+#endif /* __LIBRB_CONFIG_H */
