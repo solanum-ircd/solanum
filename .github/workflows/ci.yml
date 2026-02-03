@@ -24,7 +24,7 @@ on:
 
 jobs:
   linux-autotools:
-    name: Linux
+    name: Linux (autotools)
     runs-on: ${{ matrix.os }}
     strategy: &strategy
       fail-fast: false
@@ -89,7 +89,7 @@ jobs:
       run: make install
 
   linux-meson:
-    name: Linux
+    name: Linux (meson)
     runs-on: ${{ matrix.os }}
     strategy: *strategy
     env:
