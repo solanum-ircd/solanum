@@ -114,7 +114,7 @@ if fhs_paths
 else
   pkglibexecdir = bindir
   pkgrundir = sysconfdir_base
-  pkglocalstatedir = sysconfdir_base
+  pkglocalstatedir = localstatedir
 
   default_logdir = prefix / 'logs'
   default_helpdir = prefix / 'help'
