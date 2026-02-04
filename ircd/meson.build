@@ -69,11 +69,11 @@ libircd_sources = files(
   'whowas.c',
 )
 
-libircd_inc = include_directories('../include', '../librb/include')
+libircd_inc = include_directories('../include')
 
 libircd = shared_library('ircd',
   [libircd_sources, ircd_parser, ircd_lexer, ircd_version, serno_h],
-  dependencies: [librb_dep, ltdl_dep, sqlite3_dep],
+  dependencies: [librb_dep, ltdl_dep],
   include_directories: libircd_inc,
   install: true,
   install_dir: get_option('libdir')
@@ -82,7 +82,7 @@ libircd = shared_library('ircd',
 libircd_dep = declare_dependency(
   link_with: libircd,
   include_directories: libircd_inc,
-  dependencies: [librb_dep, ltdl_dep, sqlite3_dep]
+  dependencies: [librb_dep, ltdl_dep]
 )
 
 solanum = executable('solanum',

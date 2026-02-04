@@ -1,7 +1,3 @@
-extension_inc = include_directories('../include', '../librb/include')
-extension_link_args = []
-extension_c_args = []
-
 extension_modules = [
   'cap_oper',
   'cap_realhost',
@@ -78,9 +74,6 @@ foreach mod : extension_modules
     name_prefix: '',
     name_suffix: 'so',
     dependencies: [libircd_dep, librb_dep],
-    include_directories: extension_inc,
-    link_args: extension_link_args,
-    c_args: extension_c_args,
     install: true,
     install_dir: moduledir / 'extensions'
   )
@@ -92,9 +85,6 @@ if have_hyperscan
     name_prefix: '',
     name_suffix: 'so',
     dependencies: [libircd_dep, librb_dep, hyperscan_dep],
-    include_directories: extension_inc,
-    link_args: extension_link_args,
-    c_args: extension_c_args,
     install: true,
     install_dir: moduledir / 'extensions'
   )

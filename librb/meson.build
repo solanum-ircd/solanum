@@ -128,7 +128,6 @@ librb = shared_library('rb',
   [librb_sources, librb_version_c, librb_dash_config_h, librb_underscore_config_h, librb_serno_h],
   dependencies: librb_deps,
   include_directories: [librb_inc, librb_build_inc],
-  c_args: ['-I' + meson.current_build_dir()],
   install: true,
   install_dir: get_option('libdir')
 )

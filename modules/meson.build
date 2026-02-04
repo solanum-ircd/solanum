@@ -1,7 +1,3 @@
-module_inc = include_directories('../include', '../librb/include')
-module_link_args = []
-module_c_args = []
-
 autoload_modules = [
   'cap_account_tag',
   'cap_server_time',
@@ -83,9 +79,6 @@ foreach mod : autoload_modules
     name_prefix: '',
     name_suffix: 'so',
     dependencies: [libircd_dep, librb_dep],
-    include_directories: module_inc,
-    link_args: module_link_args,
-    c_args: module_c_args,
     install: true,
     install_dir: moduledir / 'autoload'
   )
@@ -115,9 +108,6 @@ foreach mod : core_modules
     name_prefix: '',
     name_suffix: 'so',
     dependencies: [libircd_dep, librb_dep],
-    include_directories: module_inc,
-    link_args: module_link_args,
-    c_args: module_c_args,
     install: true,
     install_dir: moduledir
   )

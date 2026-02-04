@@ -16,7 +16,7 @@ test_util_sources = files(
 test_utils = static_library('test_utils',
   [test_util_sources, serno_h],
   dependencies: [libircd_dep, librb_dep],
-  include_directories: [include_directories('../include', '../librb/include'), include_directories('..')]
+  include_directories: [include_directories('..')]
 )
 
 test_programs = {
@@ -42,7 +42,7 @@ foreach test_name, test_source : test_programs
     test_source,
     dependencies: [libircd_dep, librb_dep, dl_dep],
     link_with: [test_utils, tap_lib],
-    include_directories: [include_directories('../include', '../librb/include'), include_directories('..')],
+    include_directories: [include_directories('..')],
     build_by_default: true
   )
 

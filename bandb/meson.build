@@ -6,7 +6,7 @@ bandb_common_sources = files(
 bandb = executable('bandb',
   ['bandb.c'] + bandb_common_sources,
   dependencies: [librb_dep, sqlite3_dep],
-  include_directories: include_directories('../include', '../librb/include'),
+  include_directories: include_directories('../include'),
   install: true,
   install_dir: pkglibexecdir
 )
@@ -14,7 +14,7 @@ bandb = executable('bandb',
 bantool = executable('solanum-bantool',
   ['bantool.c'] + bandb_common_sources,
   dependencies: [librb_dep, sqlite3_dep],
-  include_directories: include_directories('../include', '../librb/include'),
+  include_directories: include_directories('../include'),
   install: true,
   install_dir: get_option('bindir')
 )

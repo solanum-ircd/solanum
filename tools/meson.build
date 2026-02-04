@@ -1,4 +1,4 @@
-tools_inc = include_directories('../include', '../librb/include')
+tools_inc = include_directories('../include')
 
 tools = {
   'mkpasswd': [librb_dep, crypt_dep],
