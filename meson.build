@@ -1,9 +1,12 @@
 project('solanum', 'c',
   version: '1.0-dev',
   default_options: ['c_std=c99', 'warning_level=0'],
-  meson_version: '>=0.61.0', # for install_symlink()
+  meson_version: '>=0.61.0', # for fs.copyfile()
   license: 'GPLv2'
 )
+
+fs = import('fs')
+
 cc = meson.get_compiler('c')
 
 # Required dependencies
@@ -260,35 +263,6 @@ endif
 # We only support Linux, though
 conf_data.set_quoted('LT_MODULE_EXT', '.so')
 
-setup_h = configure_file(
-  output: 'setup.h',
-  configuration: conf_data,
-  install: false
-)
-
-serno_h = custom_target('serno.h',
-  output: 'serno.h',
-  capture: true,
-  command: [
-    'sh', '-c',
-    '''
-    if [ -d .git ]; then
-      revh=$(git rev-list -1 --no-commit-header --date=format:%Y%m%d --format=%cd-%h HEAD 2>/dev/null || true)
-      datecode=$(git rev-list -1 --no-commit-header --format=%ct HEAD 2>/dev/null || true)
-      if [ -n "$revh" ] && [ -n "$datecode" ]; then
-        echo "#define SERNO \\"$revh\\""
-        echo "#define DATECODE ${datecode}UL"
-        exit 0
-      fi
-    fi
-    echo '#define SERNO "unknown"'
-    echo '#define DATECODE 0UL'
-    '''
-  ],
-  install: false,
-  build_by_default: true,
-  build_always_stale: true
-)
 
 c_args = []
 link_args = []
@@ -332,8 +306,8 @@ link_args += [rpath_arg]
 add_project_arguments(c_args, language: 'c')
 add_project_link_arguments(link_args, language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
-add_project_arguments('-I' + meson.current_build_dir(), language: 'c')
 
+subdir('include')
 subdir('librb')
 subdir('ircd')
 subdir('ssld')
