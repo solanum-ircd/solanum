@@ -76,7 +76,8 @@ libircd = shared_library('ircd',
   dependencies: [librb_dep, ltdl_dep],
   include_directories: libircd_inc,
   install: true,
-  install_dir: get_option('libdir')
+  install_dir: get_option('libdir'),
+  install_rpath: rpath,
 )
 
 libircd_dep = declare_dependency(
@@ -90,5 +91,6 @@ solanum = executable('solanum',
   dependencies: [libircd_dep],
   export_dynamic: true,
   install: true,
-  install_dir: get_option('bindir')
+  install_dir: get_option('bindir'),
+  install_rpath: rpath,
 )

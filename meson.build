@@ -298,11 +298,9 @@ if get_option('profile')
   endif
 endif
 
-rpath_arg = '-Wl,-rpath,' + prefix / get_option('libdir')
-link_args += [rpath_arg]
+rpath = prefix / get_option('libdir')
 
 add_project_arguments(c_args, language: 'c')
-add_project_link_arguments(link_args, language: 'c')
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
 
 subdir('include')

@@ -10,6 +10,7 @@ foreach name, deps : tools
     dependencies: deps,
     include_directories: tools_inc,
     install: true,
-    install_dir: get_option('bindir')
+    install_dir: get_option('bindir'),
+    install_rpath: rpath,
   )
 endforeach

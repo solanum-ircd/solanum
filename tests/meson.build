@@ -57,5 +57,6 @@ runtests = executable('runtests',
   ],
   link_with: [tap_lib],
   include_directories: [include_directories('tap'), include_directories('..')],
-  build_by_default: true
+  build_by_default: true,
+  install_rpath: rpath,
 )
