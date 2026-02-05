@@ -1,11 +1,9 @@
 project('solanum', 'c',
   version: '1.0-dev',
   default_options: ['c_std=c99', 'warning_level=0'],
-  meson_version: '>=0.61.0', # for fs.copyfile()
+  meson_version: '>=0.61.0', # for install_symlink
   license: 'GPLv2'
 )
-
-fs = import('fs')
 
 cc = meson.get_compiler('c')
 
