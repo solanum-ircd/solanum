@@ -331,13 +331,6 @@ if get_option('profile')
   endif
 endif
 
-if get_option('asan')
-  if cc.has_argument('-fsanitize=address')
-    c_args += ['-fsanitize=address']
-    link_args += ['-fsanitize=address']
-  endif
-endif
-
 rpath_arg = '-Wl,-rpath,' + prefix / get_option('libdir')
 link_args += [rpath_arg]
 
@@ -383,7 +376,6 @@ summary({
   'Assertions': assert_level,
   'Profile': get_option('profile'),
   'Warnings': get_option('warnings'),
-  'AddressSanitizer': get_option('asan'),
 }, section: 'Debug Options')
 
 summary({

@@ -35,8 +35,6 @@ option('profile', type: 'boolean', value: false,
   description: 'Enable profiling support')
 option('warnings', type: 'boolean', value: false,
   description: 'Enable extra compiler warnings')
-option('asan', type: 'boolean', value: false,
-  description: 'Enable AddressSanitizer')
 
 # IRC protocol
 option('nicklen', type: 'integer', value: 31, min: 9, max: 50,
