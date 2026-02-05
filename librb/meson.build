@@ -137,10 +137,3 @@ librb_dep = declare_dependency(
   include_directories: librb_inc,
   dependencies: librb_deps
 )
-
-pkg = import('pkgconfig')
-pkg.generate(librb,
-  name: 'librb',
-  description: 'libratbox',
-  subdirs: 'librb',
-)
