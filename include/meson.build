@@ -14,5 +14,6 @@ serno_h = custom_target('serno.h',
 )
 
 global_include_dep = declare_dependency(
+  sources: [setup_h, serno_h],
   include_directories: include_directories('.'),
 )
