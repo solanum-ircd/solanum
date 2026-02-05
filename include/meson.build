@@ -28,3 +28,6 @@ serno_h = custom_target('serno.h',
   build_always_stale: true
 )
 
+global_include_dep = declare_dependency(
+  include_directories: include_directories('.'),
+)

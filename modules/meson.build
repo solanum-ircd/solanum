@@ -78,7 +78,7 @@ foreach mod : autoload_modules
     mod + '.c',
     name_prefix: '',
     name_suffix: 'so',
-    dependencies: [libircd_dep, librb_dep],
+    dependencies: [libircd_dep, librb_dep, global_include_dep],
     install: true,
     install_dir: moduledir / 'autoload'
   )
@@ -107,7 +107,7 @@ foreach mod : core_modules
     'core' / mod + '.c',
     name_prefix: '',
     name_suffix: 'so',
-    dependencies: [libircd_dep, librb_dep],
+    dependencies: [libircd_dep, librb_dep, global_include_dep],
     install: true,
     install_dir: moduledir
   )
