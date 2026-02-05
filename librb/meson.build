@@ -143,5 +143,4 @@ pkg.generate(librb,
   name: 'librb',
   description: 'libratbox',
   subdirs: 'librb',
-  extra_cflags: ['-I${includedir}/librb']
 )
