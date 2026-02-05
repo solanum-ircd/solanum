@@ -52,8 +52,8 @@ endforeach
 runtests = executable('runtests',
   'runtests.c',
   c_args: [
-    '-DC_TAP_SOURCE="' + meson.project_source_root() + '/tests"',
-    '-DC_TAP_BUILD="' + meson.project_build_root() + '/tests"',
+    '-DC_TAP_SOURCE="' + meson.current_source_dir() + '"',
+    '-DC_TAP_BUILD="' + meson.current_build_dir() + '"',
   ],
   link_with: [tap_lib],
   include_directories: [include_directories('tap'), include_directories('..')],
