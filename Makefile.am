@@ -21,7 +21,7 @@ SUBDIRS += ircd \
 BUILT_SOURCES = include/serno.h
 
 include/serno.h:
-	@sh serno.h.SH > $@
+	@sh include/serno.h.SH > $@
 
 install-data-hook:
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
