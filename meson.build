@@ -257,13 +257,8 @@ if cc.has_type('uintptr_t', prefix: '#include <stdint.h>')
 endif
 
 # For compat with autotools. See https://www.gnu.org/software/libtool/manual/html_node/Autoconf-macros.html#index-LT_005fSYS_005fMODULE_005fEXT
-if host_machine.system() == 'windows'
-  conf_data.set_quoted('LT_MODULE_EXT', '.dll')
-elif host_machine.system() == 'darwin'
-  conf_data.set_quoted('LT_MODULE_EXT', '.so')
-else
-  conf_data.set_quoted('LT_MODULE_EXT', '.so')
-endif
+# We only support Linux, though
+conf_data.set_quoted('LT_MODULE_EXT', '.so')
 
 setup_h = configure_file(
   output: 'setup.h',
