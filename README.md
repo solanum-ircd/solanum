@@ -50,7 +50,7 @@ See `meson configure build/` for build options.
 
  * For SSL/TLS client and server connections, one of:
 
-   * OpenSSL 1.0.0 or newer (`-Dopenssl=enabled`)
+   * OpenSSL 1.1.0 or newer (`-Dopenssl=enabled`)
    * LibreSSL (`-Dopenssl=enabled`)
    * mbedTLS (`-Dmbedtls=enabled`)
    * GnuTLS (`-Dgnutls=enabled`)
@@ -58,7 +58,7 @@ See `meson configure build/` for build options.
    If multiple TLS libraries are available, the build system will prefer mbedTLS > OpenSSL > GnuTLS.
    Use `=enabled` instead of `=auto` to force a specific library.
 
- * For certificate-based oper CHALLENGE, OpenSSL 0.9.7 or newer.
+ * For certificate-based oper CHALLENGE, OpenSSL 1.1.0 or newer.
    (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
     feel free.)
 

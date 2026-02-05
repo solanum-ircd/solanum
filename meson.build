@@ -62,7 +62,7 @@ endif
 
 # OpenSSL
 if tls_backend == 'none' and get_option('openssl').allowed()
-  openssl_dep = dependency('openssl', version: '>=0.9.7', required: false)
+  openssl_dep = dependency('openssl', version: '>=1.1.0', required: false)
   if openssl_dep.found()
     tls_backend = 'openssl'
     tls_deps = [openssl_dep]
