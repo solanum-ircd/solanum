@@ -44,7 +44,7 @@ librb_include_dir = meson.current_build_dir() / 'include'
 librb_serno_h = custom_target('librb_serno.h',
   input: serno_h,
   output: 'serno_librb.h',
-  command: ['sh', '-c', 'mkdir -p ' + librb_include_dir + ' && cp @INPUT@ ' + librb_include_dir + '/serno.h && cp @INPUT@ @OUTPUT@'],
+  command: ['sh', '-c', 'mkdir -p ' + librb_include_dir + ' && mkdir -p $(dirname "$1") && cp $0 ' + librb_include_dir + '/serno.h && cp $0 $1', '@INPUT@', '@OUTPUT@'],
   depends: serno_h
 )
 
