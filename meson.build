@@ -51,9 +51,10 @@ have_gnutls = false
 
 # mbedTLS
 if get_option('mbedtls').allowed()
-  mbedtls_lib = cc.find_library('mbedtls', required: false)
-  mbedx509_lib = cc.find_library('mbedx509', required: false)
-  mbedcrypto_lib = cc.find_library('mbedcrypto', required: false)
+  mbedtls_required = get_option('mbedtls').enabled()
+  mbedtls_lib = cc.find_library('mbedtls', required: mbedtls_required)
+  mbedx509_lib = cc.find_library('mbedx509', required: mbedtls_required)
+  mbedcrypto_lib = cc.find_library('mbedcrypto', required: mbedtls_required)
   if mbedtls_lib.found() and mbedx509_lib.found() and mbedcrypto_lib.found()
     tls_backend = 'mbedtls'
     tls_deps = [mbedtls_lib, mbedx509_lib, mbedcrypto_lib]
@@ -63,7 +64,8 @@ endif
 
 # OpenSSL
 if tls_backend == 'none' and get_option('openssl').allowed()
-  openssl_dep = dependency('openssl', version: '>=1.1.0', required: false)
+  openssl_required = get_option('openssl').enabled()
+  openssl_dep = dependency('openssl', version: '>=1.1.0', required: openssl_required)
   if openssl_dep.found()
     tls_backend = 'openssl'
     tls_deps = [openssl_dep]
@@ -73,22 +75,13 @@ endif
 
 # GnuTLS
 if tls_backend == 'none' and get_option('gnutls').allowed()
+  gnutls_required = get_option('gnutls').enabled()
   gnutls_dep = dependency('gnutls', required: false)
   if gnutls_dep.found()
     tls_backend = 'gnutls'
     tls_deps = [gnutls_dep]
     have_gnutls = true
   endif
-endif
-
-if get_option('openssl').enabled() and not have_openssl
-  error('OpenSSL requested but not found')
-endif
-if get_option('mbedtls').enabled() and not have_mbedtls
-  error('mbedTLS requested but not found')
-endif
-if get_option('gnutls').enabled() and not have_gnutls
-  error('GnuTLS requested but not found')
 endif
 
 message('TLS backend: ' + tls_backend)
