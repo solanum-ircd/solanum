@@ -4,12 +4,22 @@ setup_h = configure_file(
   install: false
 )
 
-serno_h = custom_target('serno.h',
+serno_h = vcs_tag(
+  command: ['git', 'rev-list', '-1', '--no-commit-header', '--date=format:%Y%m%d', '--format=%cd-%h', 'HEAD'],
+  input: 'serno.h.in',
   output: 'serno.h',
-  capture: true,
-  command: ['sh', '@CURRENT_SOURCE_DIR@/serno.h.SH'],
+  replace_string: '@SERNO@',
+  fallback: 'unknown',
   install: false,
-  build_always_stale: true
+)
+
+datecode_h = vcs_tag(
+  command: ['git', 'rev-list', '-1', '--no-commit-header', '--format=%ct', 'HEAD'],
+  input: 'datecode.h.in',
+  output: 'datecode.h',
+  replace_string: '@DATECODE@',
+  fallback: '0',
+  install: false,
 )
 
 global_include_dep = declare_dependency(
