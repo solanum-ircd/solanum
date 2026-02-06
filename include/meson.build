@@ -10,7 +10,6 @@ serno_h = vcs_tag(
   output: 'serno.h',
   replace_string: '@SERNO@',
   fallback: 'unknown',
-  install: false,
 )
 
 datecode_h = vcs_tag(
@@ -19,10 +18,9 @@ datecode_h = vcs_tag(
   output: 'datecode.h',
   replace_string: '@DATECODE@',
   fallback: '0',
-  install: false,
 )
 
 global_include_dep = declare_dependency(
-  sources: [setup_h, serno_h],
+  sources: [setup_h, serno_h, datecode_h],
   include_directories: include_directories('.'),
 )
