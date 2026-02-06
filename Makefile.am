@@ -18,10 +18,10 @@ SUBDIRS += ircd \
            help \
            doc
 
-BUILT_SOURCES = include/serno.h
+BUILT_SOURCES = include/serno.h include/datecode.h
 
-include/serno.h:
-	@sh include/serno.h.SH > $@
+include/serno.h include/datecode.h:
+	@cd include/ && sh ./serno.h.SH
 
 install-data-hook:
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
@@ -43,6 +43,7 @@ distclean-local:
 
 clean-local:
 	rm -f include/serno.h
+	rm -f include/datecode.h
 	rm -f ircd/ircd_lexer.c
 	rm -f ircd/ircd_parser.c
 	rm -f ircd/ircd_parser.h
