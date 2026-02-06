@@ -3,11 +3,11 @@
 SOURCE="$1"
 OUTPUT="$2"
 
-USERS_INDEX=help/users/index
-OPERS_INDEX=help/opers/index
+USERS_INDEX=$OUTPUT/users/index
+OPERS_INDEX=$OUTPUT/opers/index
 
 # Build users index
-mkdir -p help/users/
+mkdir -p users/
 rm -f $USERS_INDEX.tmp
 for help in users/*; do
   if [ -f "$help" ]; then
@@ -26,9 +26,9 @@ cat $USERS_INDEX.tmp | sed -e 's|^users/||' | sort -u | tr a-z A-Z | column -c 6
 rm -f $USERS_INDEX.tmp
 
 # Build opers index
-mkdir -p help/opers/
+mkdir -p $OUTPUT/opers/
 rm -f $OPERS_INDEX.tmp
-for help in $SOURCE/help/opers/*; do
+for help in $SOURCE/opers/*; do
   if [ -f "$help" ]; then
     echo "$(basename $help)" >> $OPERS_INDEX.tmp
   fi
@@ -38,7 +38,3 @@ echo 'Help topics available to opers:' > $OPERS_INDEX
 echo '' >> $OPERS_INDEX
 cat $OPERS_INDEX.tmp | sed -e 's|^opers/||' | sort -u | tr a-z A-Z | column -c 65 -s ' ' -x | expand >> $OPERS_INDEX
 rm -f $OPERS_INDEX.tmp
-
-if [ "$OUTPUT" != "" ]; then
-  touch $OUTPUT
-fi

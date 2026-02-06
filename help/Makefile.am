@@ -24,7 +24,7 @@ lint:
 
 index:
 	@echo building index files
-	@cd ../ && $(SHELL) help/make_index.SH ./ ""
+	@$(SHELL) ./make_index.SH ./ ./
 
 install: index
 	-@if test -d $(DESTDIR)$(helpdir)-old; then \

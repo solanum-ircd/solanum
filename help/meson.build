@@ -1,11 +1,9 @@
 # Generate help index files
-help_index = custom_target('help_index',
-  output: ['help_index'],
-  command: [
-    'sh', '@SOURCE_ROOT@/help/make_index.SH', '@SOURCE_ROOT@', '@BUILD_ROOT@/@OUTPUT0@'
-  ],
-  build_by_default: true,
-  build_always_stale: true
+meson.add_install_script(
+  'sh',
+  '-c',
+  'helpdir=$0 && echo Installing help indexes to ${helpdir} && ${MESON_SOURCE_ROOT}/help/make_index.SH ${MESON_SOURCE_ROOT}/help ${helpdir}',
+  helpdir,
 )
 
 # Symlinks from users -> opers for shared help topics
