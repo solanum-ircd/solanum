@@ -9,7 +9,6 @@ serno_h = custom_target('serno.h',
   capture: true,
   command: ['sh', '@CURRENT_SOURCE_DIR@/serno.h.SH'],
   install: false,
-  build_by_default: true,
   build_always_stale: true
 )
 
