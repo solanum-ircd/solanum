@@ -386,7 +386,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 			}
 
 			/* non existant channel */
-			else if(msgtype != MESSAGE_TYPE_NOTICE)
+			else if(msgtype == MESSAGE_TYPE_PRIVMSG)
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
 						   form_str(ERR_NOSUCHNICK), nick);
 
@@ -474,7 +474,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 					targets[ntargets++].flags = type;
 				}
 			}
-			else if(msgtype != MESSAGE_TYPE_NOTICE)
+			else if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			{
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
 						   form_str(ERR_NOSUCHNICK), nick);
@@ -502,7 +502,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 			}
 
 			/* non existant channel */
-			else if(msgtype != MESSAGE_TYPE_NOTICE)
+			else if(msgtype == MESSAGE_TYPE_PRIVMSG)
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
 						   form_str(ERR_NOSUCHNICK), nick);
 
@@ -515,8 +515,8 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 			continue;
 		}
 
-		/* no matching anything found - error if not NOTICE */
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		/* no matching anything found - error if PRIVMSG */
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 		{
 			/* dont give this numeric when source is local,
 			 * because its misleading --anfl
@@ -587,8 +587,8 @@ msg_channel(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* idle time shouldn't be reset by notices --fl */
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		/* idle time shouldn't be reset by notices or tagmsg */
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			source_p->localClient->last = rb_current_time();
 	}
 
@@ -656,7 +656,7 @@ msg_channel(enum message_type msgtype,
 	}
 	else
 	{
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			sendto_one_numeric(source_p, ERR_CANNOTSENDTOCHAN,
 					   form_str(ERR_CANNOTSENDTOCHAN), chptr->chname);
 	}
@@ -720,7 +720,7 @@ msg_channel_opmod(enum message_type msgtype,
 	}
 	else
 	{
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			sendto_one_numeric(source_p, ERR_CANNOTSENDTOCHAN,
 					   form_str(ERR_CANNOTSENDTOCHAN), chptr->chname);
 	}
@@ -770,8 +770,8 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 
 	if(MyClient(source_p))
 	{
-		/* idle time shouldn't be reset by notices --fl */
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		/* idle time shouldn't be reset by notices or tagmsg */
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			source_p->localClient->last = rb_current_time();
 	}
 
@@ -875,8 +875,8 @@ msg_client(enum message_type msgtype,
 
 	if(MyClient(source_p))
 	{
-		/* idle time shouldn't be reset by notices --fl */
-		if(msgtype != MESSAGE_TYPE_NOTICE)
+		/* idle time shouldn't be reset by notices or tagmsg */
+		if(msgtype == MESSAGE_TYPE_PRIVMSG)
 			source_p->localClient->last = rb_current_time();
 
 		/* auto cprivmsg/cnotice */
@@ -887,7 +887,7 @@ msg_client(enum message_type msgtype,
 		 * would allow people to start filling up random users
 		 * targets just by ctcping them
 		 */
-		if((msgtype != MESSAGE_TYPE_NOTICE || *text != '\001') &&
+		if((msgtype == MESSAGE_TYPE_PRIVMSG || *text != '\001') &&
 		   ConfigFileEntry.target_change && do_floodcount)
 		{
 			if(!add_target(source_p, target_p))
@@ -914,7 +914,7 @@ msg_client(enum message_type msgtype,
 		return;
 	}
 
-	if(MyConnect(source_p) && (msgtype != MESSAGE_TYPE_NOTICE) && target_p->user && target_p->user->away)
+	if(MyConnect(source_p) && (msgtype == MESSAGE_TYPE_PRIVMSG) && target_p->user && target_p->user->away)
 		sendto_one_numeric(source_p, RPL_AWAY, form_str(RPL_AWAY),
 				   target_p->name, target_p->user->away);
 
@@ -1020,7 +1020,7 @@ flood_attack_client(enum message_type msgtype, struct Client *source_p, struct C
 				/* add a bit of penalty */
 				target_p->received_number_of_privmsgs += 2;
 			}
-			if(MyClient(source_p) && (msgtype != MESSAGE_TYPE_NOTICE))
+			if(MyClient(source_p) && (msgtype == MESSAGE_TYPE_PRIVMSG))
 				sendto_one(source_p,
 					   ":%s NOTICE %s :*** Message to %s throttled due to flooding",
 					   me.name, source_p->name, target_p->name);
@@ -1154,7 +1154,7 @@ handle_special(enum message_type msgtype, struct Client *client_p,
 				    cli_cap, 0, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
 				    msgtype == MESSAGE_TYPE_TAGMSG ? "%s $%s" : "%s $%s :%s",
 					cmdname[msgtype], nick, text);
-		if (msgtype != MESSAGE_TYPE_NOTICE && *text == '\001')
+		if (msgtype == MESSAGE_TYPE_PRIVMSG && *text == '\001')
 			source_p->large_ctcp_sent = rb_current_time();
 	}
 }
