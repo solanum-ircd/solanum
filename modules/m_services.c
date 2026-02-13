@@ -46,6 +46,7 @@
 #include "monitor.h"
 #include "supported.h"
 
+static int h_account_change;
 static const char services_desc[] = "Provides support for running a services daemon";
 
 static int _modinit(void);
@@ -85,6 +86,12 @@ struct Message nickdelay_msgtab = {
 mapi_clist_av1 services_clist[] = {
 	&su_msgtab, &login_msgtab, &rsfnc_msgtab, &nickdelay_msgtab, NULL
 };
+
+mapi_hlist_av1 services_hlist[] = {
+	{ "account_change", &h_account_change },
+	{ NULL, NULL }
+};
+
 mapi_hfn_list_av1 services_hfnlist[] = {
 	{ "doing_stats",	h_svc_stats },
 	{ "doing_whois",	h_svc_whois },
@@ -95,7 +102,7 @@ mapi_hfn_list_av1 services_hfnlist[] = {
 	{ NULL, NULL }
 };
 
-DECLARE_MODULE_AV2(services, _modinit, _moddeinit, services_clist, NULL, services_hfnlist, NULL, NULL, services_desc);
+DECLARE_MODULE_AV2(services, _modinit, _moddeinit, services_clist, services_hlist, services_hfnlist, NULL, NULL, services_desc);
 
 static int
 _modinit(void)
@@ -117,6 +124,7 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
 {
 	struct Client *target_p;
+	char old_suser[NICKLEN + 1] = { 0 };
 
 	if(!(source_p->flags & FLAGS_SERVICE))
 	{
@@ -130,6 +138,8 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 
 	if(!target_p->user)
 		return;
+
+	rb_strlcpy(old_suser, target_p->user->suser, sizeof(old_suser));
 
 	if(EmptyString(parv[2]))
 		target_p->user->suser[0] = '\0';
@@ -151,16 +161,22 @@ me_su(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	}
 
 	invalidate_bancache_user(target_p);
+	hook_cdata hdata = { target_p, old_suser, NULL };
+	call_hook(h_account_change, &hdata);
 }
 
 static void
 me_login(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	int parc, const char *parv[])
 {
+	char old_suser[NICKLEN + 1] = { 0 };
 	if(!IsPerson(source_p))
 		return;
 
+	rb_strlcpy(old_suser, source_p->user->suser, sizeof(old_suser));
 	rb_strlcpy(source_p->user->suser, parv[1], sizeof(source_p->user->suser));
+	hook_cdata hdata = { source_p, old_suser, NULL };
+	call_hook(h_account_change, &hdata);
 }
 
 /* me_rsfnc()
