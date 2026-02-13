@@ -38,7 +38,7 @@ These are known issues and workarounds for various platforms.
 
 ```bash
 sudo apt install build-essential pkg-config meson ninja-build libsqlite3-dev flex bison # or equivalent for your distribution
-meson setup build --prefix=/path/to/installation
+meson setup build --optimization 2 --prefix=/path/to/installation
 meson compile -C build/
 meson test -C build/
 meson install -C build/
