@@ -18,21 +18,10 @@ SUBDIRS += ircd \
            help \
            doc
 
-BUILT_SOURCES = include/serno.h
+BUILT_SOURCES = include/serno.h include/datecode.h
 
-include/serno.h:
-	@if [ -d .git ]; then \
-		revh=`git rev-list -1 --no-commit-header --date=format:%Y%m%d --format=%cd-%h HEAD`; \
-		datecode=`git rev-list -1 --no-commit-header --format=%ct HEAD`; \
-		if [ -n "$$revh" ]; then \
-			echo '#define SERNO "'$$revh'"' >include/serno.h ; \
-			echo "#define DATECODE $${datecode}UL" >>include/serno.h; \
-		fi \
-	fi
-	@if [ ! -f include/serno.h ]; then \
-		echo '#define SERNO "unknown"' >include/serno.h; \
-		echo '#define DATECODE 0UL' >>include/serno.h; \
-	fi
+include/serno.h include/datecode.h:
+	@cd include/ && sh ./serno.h.SH
 
 install-data-hook:
 	test -d ${DESTDIR}${logdir} || mkdir -p ${DESTDIR}${logdir}
@@ -54,6 +43,7 @@ distclean-local:
 
 clean-local:
 	rm -f include/serno.h
+	rm -f include/datecode.h
 	rm -f ircd/ircd_lexer.c
 	rm -f ircd/ircd_parser.c
 	rm -f ircd/ircd_parser.h

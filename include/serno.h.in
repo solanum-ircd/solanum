@@ -1,0 +1,3 @@
+#include "datecode.h"
+
+#define SERNO "@SERNO@"

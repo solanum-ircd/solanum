@@ -106,7 +106,6 @@ dnl check for various functions...
 AC_CHECK_FUNCS([getexecname strlcpy strlcat strcasestr signalfd kevent port_create epoll_ctl arc4random timerfd_create])	
 
 AC_SEARCH_LIBS(dlinfo, dl, AC_DEFINE(HAVE_DLINFO, 1, [Define if you have dlinfo]))
-AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP, 1, [Define if you have nanosleep]))
 AC_SEARCH_LIBS(timer_create, rt, AC_DEFINE(HAVE_TIMER_CREATE, 1, [Define if you have timer_create]))
 RB_CHECK_TIMER_CREATE
 RB_CHECK_TIMERFD_CREATE
@@ -356,7 +355,6 @@ if test "$profile" = yes; then
 	if test "$ac_cv_c_compiler_gnu" = yes; then
 		CFLAGS="$CFLAGS -pg -static"
 		AC_MSG_RESULT([yes, adding -pg -static])
-		AC_DEFINE(RB_PROFILE, 1, [Defined to mark profiling is enabled])
 	else
 		AC_MSG_RESULT([no, profile builds only work with gcc])
 	fi

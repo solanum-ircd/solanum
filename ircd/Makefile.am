@@ -9,7 +9,7 @@ AM_YFLAGS = -d
 
 BUILT_SOURCES = ircd_parser.h version.c
 
-version.c: version.c.SH ../CREDITS ../include/patchlevel.h ../include/serno.h
+version.c: version.c.SH ../CREDITS ../include/patchlevel.h ../include/serno.h ../include/datecode.h
 	$(SHELL) version.c.SH
 	$(CP) version.c version.c.last
 	touch version.c.SH
