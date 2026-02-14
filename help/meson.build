@@ -2,7 +2,7 @@
 meson.add_install_script(
   'sh',
   '-c',
-  'helpdir=$0 && echo Installing help indexes to ${helpdir} && ${MESON_SOURCE_ROOT}/help/make_index.SH ${MESON_SOURCE_ROOT}/help ${helpdir}',
+  'helpdir=${DESTDIR}/$0 && echo Installing help indexes to ${helpdir} && ${MESON_SOURCE_ROOT}/help/make_index.SH ${MESON_SOURCE_ROOT}/help ${helpdir}',
   helpdir,
 )
 
