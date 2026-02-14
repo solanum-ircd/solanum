@@ -73,7 +73,7 @@ foreach mod : extension_modules
     mod + '.c',
     name_prefix: '',
     name_suffix: 'so',
-    dependencies: [libircd_dep, librb_dep],
+    dependencies: [libircd_dep, librb_dep, global_include_dep],
     install: true,
     install_dir: moduledir / 'extensions'
   )
@@ -84,7 +84,7 @@ if have_hyperscan
     'filter.c',
     name_prefix: '',
     name_suffix: 'so',
-    dependencies: [libircd_dep, librb_dep, hyperscan_dep],
+    dependencies: [libircd_dep, librb_dep, global_include_dep, hyperscan_dep],
     install: true,
     install_dir: moduledir / 'extensions'
   )
