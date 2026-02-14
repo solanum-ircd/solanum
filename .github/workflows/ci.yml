@@ -23,8 +23,8 @@ on:
       - 'README.md'
 
 jobs:
-  linux:
-    name: Linux
+  build:
+    name: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -87,3 +87,116 @@ jobs:
       run: make check
     - name: make install
       run: make install
+    - name: Make artifact tarball
+      run: |-
+        cd ~
+        tar -czf artifacts-solanum.tar.gz ircd/
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v6
+      if: matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc-13'
+      with:
+        name: installed-solanum-${{matrix.os}}-${{matrix.compiler}}
+        path: ~/artifacts-solanum.tar.gz
+        retention-days: 1
+
+  test:
+    if: "!contains(github.event.head_commit.message, '[skip irctest ci]')"
+    runs-on: ubuntu-24.04
+    env:
+      IRCTEST_DEBUG_LOGS: "1"
+    needs:
+    - build
+
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v7
+      with:
+        name: installed-solanum-ubuntu-24.04-gcc-13
+        path: "~"
+
+    - name: Unpack artifacts
+      run: |-
+        cd ~
+        find -name 'artifacts-solanum.tar.gz' -exec tar -xzf '{}' \;
+
+    - name: Checkout irctest
+      uses: actions/checkout@v6
+      with:
+        path: irctest
+        ref: 959114063189eac3aaad82a229acbcaeb78fb184
+        repository: progval/irctest
+
+    - name: Install irctest dependencies
+      run: sudo apt-get install --assume-yes faketime python3-pytest
+
+    - name: Run irctest (no services)
+      if: matrix.services == 'no services'
+      run: PATH=$HOME/ircd/bin:$PATH make -C irctest solanum
+      timeout-minutes: 10
+
+    - name: Checkout Anope
+      if: matrix.services == 'anope-2.1'
+      uses: actions/checkout@v6
+      with:
+        path: anope
+        ref: 2.1.17
+        repository: anope/anope
+
+    - name: Checkout Anope
+      if: matrix.services == 'anope-2.0'
+      uses: actions/checkout@v6
+      with:
+        path: anope
+        ref: 2.0.19
+        repository: anope/anope
+
+    - name: Build and install Anope
+      if: matrix.services == 'anope-2.1' || matrix.services == 'anope-2.0'
+      run: |
+        cd $GITHUB_WORKSPACE/anope
+        sudo apt-get install ninja-build --no-install-recommends
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=$HOME/anope -DPROGRAM_NAME=anope -GNinja ..
+        ninja install
+
+    - name: Run irctest (Anope services 2.1.x)
+      if: matrix.services == 'anope-2.1'
+      run: PATH=$HOME/anope/bin:$HOME/ircd/bin:$PATH make -C irctest solanum-anope
+      timeout-minutes: 10
+
+    - name: Run irctest (Anope services 2.0.x)
+      if: matrix.services == 'anope-2.0'
+      run: PATH=$HOME/anope/bin:$HOME/ircd/bin:$PATH make -C irctest solanum-anope
+      timeout-minutes: 10
+
+    - name: Checkout Atheme
+      if: matrix.services == 'atheme'
+      uses: actions/checkout@v6
+      with:
+        path: atheme
+        ref: master
+        repository: atheme/atheme
+        submodules: recursive
+
+    - name: Build and install Atheme
+      if: matrix.services == 'atheme'
+      run: |-
+        cd $GITHUB_WORKSPACE/atheme
+        sudo apt install gettext --assume-yes
+        ./configure --prefix=$HOME/atheme
+        make
+        make install
+
+    - name: Run irctest (Atheme services)
+      if: matrix.services == 'atheme'
+      run: PATH=$HOME/atheme/bin:$HOME/ircd/bin:$PATH make -C irctest solanum-atheme
+      timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        services:
+          - no services
+          - anope-2.1
+          - anope-2.0
+          - atheme
