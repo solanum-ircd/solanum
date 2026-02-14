@@ -7,7 +7,7 @@ USERS_INDEX=$OUTPUT/users/index
 OPERS_INDEX=$OUTPUT/opers/index
 
 # Build users index
-mkdir -p users/
+mkdir -p $OUTPUT/users/
 rm -f $USERS_INDEX.tmp
 for help in users/*; do
   if [ -f "$help" ]; then
