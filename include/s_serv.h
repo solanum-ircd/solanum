@@ -103,9 +103,12 @@ extern unsigned int CAP_STAG;			/* supports s2s tags and TAGMSG */
 /*
  * Capability macros.
  */
-#define IsCapable(x, cap)       (((x)->localClient->caps & (cap)) == cap)
-#define NotCapable(x, cap)	(((x)->localClient->caps & (cap)) == 0)
-#define ClearCap(x, cap)        ((x)->localClient->caps &= ~(cap))
+#define IsClientCapable(x, cap)       (((x)->localClient->client_caps & (cap)) == cap)
+#define NotClientCapable(x, cap)	(((x)->localClient->client_caps & (cap)) == 0)
+#define ClearClientCap(x, cap)        ((x)->localClient->client_caps &= ~(cap))
+#define IsServerCapable(x, cap)       (((x)->localClient->server_caps & (cap)) == cap)
+#define NotServerCapable(x, cap)	(((x)->localClient->server_caps & (cap)) == 0)
+#define ClearServerCap(x, cap)        ((x)->localClient->server_caps &= ~(cap))
 
 /*
  * Globals

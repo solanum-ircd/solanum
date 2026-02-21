@@ -58,13 +58,13 @@ struct MsgBuf {
 
 struct MsgBuf_str_data {
 	const struct MsgBuf *msgbuf;
-	unsigned int caps;
+	uint64_t caps;
 };
 
 #define MSGBUF_CACHE_SIZE 32
 
 struct MsgBuf_cache_entry {
-	unsigned int caps;
+	uint64_t caps;
 	bool is_remote;
 	buf_head_t linebuf;
 	struct MsgBuf_cache_entry *next;
@@ -74,7 +74,7 @@ struct MsgBuf_cache {
 	const struct MsgBuf *msgbuf;
 	char remote[DATALEN + 1];
 	char local[DATALEN + 1];
-	unsigned int overall_capmask;
+	uint64_t overall_capmask;
 
 	/* Fixed maximum size linked list, new entries are allocated at the end
 	 * of the array but are accessed through the "next" pointers.
@@ -109,7 +109,7 @@ void msgbuf_reconstruct_tail(struct MsgBuf *msgbuf, size_t n);
  * cmd may not be NULL.
  * returns 0 on success, 1 on error.
  */
-int msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
+int msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, uint64_t capmask);
 
 /*
  * unparse a MsgBuf header plus payload into a buffer.
@@ -117,18 +117,18 @@ int msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsign
  * cmd may not be NULL.
  * returns 0 on success, 1 on error.
  */
-int msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, ...) AFP(5, 6);
-int msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, va_list va);
+int msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uint64_t capmask, const char *fmt, ...) AFP(5, 6);
+int msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uint64_t capmask, const char *fmt, va_list va);
 
 int msgbuf_unparse_linebuf(char *buf, size_t buflen, void *data);
 int msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data);
-int msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
+int msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, uint64_t capmask);
 int msgbuf_unparse_para(char *buf, size_t buflen, const struct MsgBuf *msgbuf);
 
 const char *msgbuf_get_tag(const struct MsgBuf *buf, const char *name);
 
 void msgbuf_cache_init(struct MsgBuf_cache *cache, struct MsgBuf *msgbuf, const char *local_source, const char *remote_source);
-buf_head_t *msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps, bool is_remote);
+buf_head_t *msgbuf_cache_get(struct MsgBuf_cache *cache, uint64_t caps, bool is_remote);
 void msgbuf_cache_free(struct MsgBuf_cache *cache);
 
 static inline void
@@ -138,7 +138,7 @@ msgbuf_init(struct MsgBuf *msgbuf)
 }
 
 static inline void
-msgbuf_append_tag(struct MsgBuf *msgbuf, const char *key, const char *value, unsigned int capmask)
+msgbuf_append_tag(struct MsgBuf *msgbuf, const char *key, const char *value, uint64_t capmask)
 {
 	if (msgbuf->n_tags < MAXTAGS) {
 		msgbuf->tags[msgbuf->n_tags].key = key;

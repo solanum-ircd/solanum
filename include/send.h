@@ -48,26 +48,26 @@ extern void sendto_one_prefix(struct Client *target_p, struct Client *source_p,
 			      const char *command, const char *, ...) AFP(4, 5);
 extern void sendto_one_numeric(struct Client *target_p,
 			       int numeric, const char *, ...) AFP(3, 4);
-extern void sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negcap,
+extern void sendto_one_tags(struct Client *target_p, uint64_t serv_cap, uint64_t serv_negcap,
 	size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(6, 7);
 
 extern void sendto_server(struct Client *one, struct Channel *chptr,
-			  unsigned long caps, unsigned long nocaps,
+			  uint64_t caps, uint64_t nocaps,
 			  const char *format, ...) AFP(5, 6);
 extern void sendto_server_tags(struct Client *one, struct Channel *chptr,
-			  unsigned long caps, unsigned long nocaps,
+			  uint64_t caps, uint64_t nocaps,
 			  size_t n_tags, const struct MsgTag tags[],
 			  const char *format, ...) AFP(7, 8);
 
 extern void sendto_channel_flags(struct Client *one, int type, struct Client *source_p,
 				 struct Channel *chptr, const char *, ...) AFP(5, 6);
 extern void sendto_channel_flags_tags(struct Client *one, int type, struct Client *source_p,
-				 struct Channel *chptr, int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+				 struct Channel *chptr, uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 				 size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(11, 12);
 extern void sendto_channel_opmod(struct Client *one, struct Client *source_p,
 				 struct Channel *chptr, const char *command, const char *text);
 extern void sendto_channel_opmod_tags(struct Client *one, struct Client *source_p,
-				 struct Channel *chptr, int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+				 struct Channel *chptr, uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 				 const char *command, const char *text, size_t n_tags, const struct MsgTag tags[]);
 
 extern void sendto_channel_local(struct Client *, int type, struct Channel *, const char *, ...) AFP(4, 5);
@@ -76,32 +76,32 @@ extern void sendto_channel_local_tags(struct Client *source_p, int type, const c
 	size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP (7, 8);
 extern void sendto_channel_local_butone(struct Client *, int type, struct Channel *, const char *, ...) AFP(4, 5);
 
-extern void sendto_channel_local_with_capability(struct Client *, int type, int caps, int negcaps,
+extern void sendto_channel_local_with_capability(struct Client *, int type, uint64_t caps, uint64_t negcaps,
 	struct Channel *, const char *, ...) AFP(6, 7);
-extern void sendto_channel_local_with_capability_tags(struct Client *, int type, int caps, int negcaps,
+extern void sendto_channel_local_with_capability_tags(struct Client *, int type, uint64_t caps, uint64_t negcaps,
 	struct Channel *, size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(8, 9);
-extern void sendto_channel_local_with_capability_butone(struct Client *, int type, int caps, int negcaps,
+extern void sendto_channel_local_with_capability_butone(struct Client *, int type, uint64_t caps, uint64_t negcaps,
 	struct Channel *, const char *, ...) AFP(6, 7);
-extern void sendto_channel_local_with_capability_butone_tags(struct Client *, int type, int caps, int negcaps,
+extern void sendto_channel_local_with_capability_butone_tags(struct Client *, int type, uint64_t caps, uint64_t negcaps,
 	struct Channel *, size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(8, 9);
 
-extern void sendto_common_channels_local(struct Client *, int caps, int negcaps, const char *, ...) AFP(4, 5);
-extern void sendto_common_channels_local_tags(struct Client *, int caps, int negcaps,
+extern void sendto_common_channels_local(struct Client *, uint64_t caps, uint64_t negcaps, const char *, ...) AFP(4, 5);
+extern void sendto_common_channels_local_tags(struct Client *, uint64_t caps, uint64_t negcaps,
 	size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(6, 7);
-extern void sendto_common_channels_local_butone(struct Client *, int caps, int negcaps, const char *, ...) AFP(4, 5);
-extern void sendto_common_channels_local_butone_tags(struct Client *, int caps, int negcaps,
+extern void sendto_common_channels_local_butone(struct Client *, uint64_t caps, uint64_t negcaps, const char *, ...) AFP(4, 5);
+extern void sendto_common_channels_local_butone_tags(struct Client *, uint64_t caps, uint64_t negcaps,
 	size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(6, 7);
 
 
 extern void sendto_match_butone(struct Client *one, struct Client *source_p,
 				const char *mask, int what, const char *, ...) AFP(5, 6);
 extern void sendto_match_butone_tags(struct Client *one, struct Client *source_p,
-				const char *mask, int what, int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+				const char *mask, int what, uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 				size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(11, 12);
 extern void sendto_match_servs(struct Client *source_p, const char *mask,
-				int cap, int negcap, const char *, ...) AFP(5, 6);
+				uint64_t cap, uint64_t negcap, const char *, ...) AFP(5, 6);
 extern void sendto_match_servs_tags(struct Client *source_p, const char *mask,
-				int cap, int negcap, size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(7, 8);
+				uint64_t cap, uint64_t negcap, size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(7, 8);
 
 extern void sendto_monitor(struct Client *, struct monitor *monptr, const char *, ...) AFP(3, 4);
 
@@ -110,8 +110,8 @@ extern void sendto_anywhere(struct Client *, struct Client *, const char *,
 extern void sendto_anywhere_echo(struct Client *, struct Client *, const char *,
 			    const char *, ...) AFP(4, 5);
 extern void sendto_anywhere_tags(struct Client *target_p, struct Client *source_p, const char *command,
-	int serv_cap, int serv_negcap, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...) AFP(8, 9);
-extern void sendto_local_clients_with_capability(int cap, const char *pattern, ...) AFP(2, 3);
+	uint64_t serv_cap, uint64_t serv_negcap, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...) AFP(8, 9);
+extern void sendto_local_clients_with_capability(uint64_t cap, const char *pattern, ...) AFP(2, 3);
 
 extern void sendto_realops_snomask(int, int, const char *, ...) AFP(3, 4);
 extern void sendto_realops_snomask_from(int, int, struct Client *, const char *, ...) AFP(4, 5);

@@ -52,7 +52,7 @@ static void common_sasl_test(bool aborted)
 	strcpy(server->id, TEST_SERVER_ID);
 	strcpy(remote->id, TEST_REMOTE_ID);
 	add_to_id_hash(remote->id, remote);
-	server->localClient->caps = CAP_ENCAP | CAP_TS6;
+	server->localClient->server_caps = CAP_ENCAP | CAP_TS6;
 	remote->umodes |= UMODE_SERVICE;
 
 	client_util_parse(user, "CAP LS 302" CRLF);

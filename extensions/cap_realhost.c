@@ -80,10 +80,10 @@ cap_realhost_outbound_msgbuf(void *data_)
 static inline void
 update_clicap_oper_realhost(struct Client *client)
 {
-	client->localClient->caps &= ~CLICAP_OPER_REALHOST;
-	if (client->localClient->caps & CLICAP_REALHOST && HasPrivilege(client, "auspex:hostname"))
+	ClearClientCap(client, CLICAP_OPER_REALHOST);
+	if (IsClientCapable(client, CLICAP_REALHOST) && HasPrivilege(client, "auspex:hostname"))
 	{
-		client->localClient->caps |= CLICAP_OPER_REALHOST;
+		client->localClient->client_caps |= CLICAP_OPER_REALHOST;
 	}
 }
 

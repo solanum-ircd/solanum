@@ -68,13 +68,13 @@ mr_capab(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		return;
 
 	/* CAP_TS6 is set in PASS, so is valid.. */
-	if((client_p->localClient->caps & ~CAP_TS6) != 0)
+	if((client_p->localClient->server_caps & ~CAP_TS6) != 0)
 	{
 		exit_client(client_p, client_p, client_p, "CAPAB received twice");
 		return;
 	}
 	else
-		client_p->localClient->caps |= CAP_CAP;
+		client_p->localClient->server_caps |= CAP_CAP;
 
 	rb_free(client_p->localClient->fullcaps);
 	client_p->localClient->fullcaps = rb_strdup(parv[1]);
@@ -83,7 +83,7 @@ mr_capab(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	{
 		char *t = LOCAL_COPY(parv[i]);
 		for (s = rb_strtok_r(t, " ", &p); s; s = rb_strtok_r(NULL, " ", &p))
-			client_p->localClient->caps |= capability_get(serv_capindex, s, NULL);
+			client_p->localClient->server_caps |= capability_get(serv_capindex, s, NULL);
 	}
 }
 
@@ -101,12 +101,12 @@ me_gcap(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	/* already had GCAPAB?! */
 	if(!EmptyString(source_p->serv->fullcaps))
 	{
-		source_p->serv->caps = 0;
+		source_p->serv->server_caps = 0;
 		rb_free(source_p->serv->fullcaps);
 	}
 
 	source_p->serv->fullcaps = rb_strdup(parv[1]);
 
 	for (s = rb_strtok_r(t, " ", &p); s; s = rb_strtok_r(NULL, " ", &p))
-		source_p->serv->caps |= capability_get(serv_capindex, s, NULL);
+		source_p->serv->server_caps |= capability_get(serv_capindex, s, NULL);
 }

@@ -59,7 +59,7 @@ mapi_clist_av1 cap_clist[] = { &cap_msgtab, NULL };
 
 DECLARE_MODULE_AV2(cap, NULL, NULL, cap_clist, NULL, NULL, NULL, NULL, cap_desc);
 
-#define IsCapableEntry(c, e)		IsCapable(c, 1 << (e)->value)
+#define IsCapableEntry(c, e)		IsClientCapable(c, 1ull << (e)->value)
 #define HasCapabilityFlag(c, f)		(c->ownerdata != NULL && (((struct ClientCapability *)c->ownerdata)->flags & (f)) == f)
 
 static inline int
@@ -235,7 +235,7 @@ static void
 cap_ack(struct Client *source_p, const char *arg)
 {
 	struct CapabilityEntry *cap;
-	int capadd = 0, capdel = 0;
+	uint64_t capadd = 0, capdel = 0;
 	int finished = 0, negate;
 
 	if(EmptyString(arg))
@@ -260,8 +260,8 @@ cap_ack(struct Client *source_p, const char *arg)
 			capadd |= (1 << cap->value);
 	}
 
-	source_p->localClient->caps |= capadd;
-	source_p->localClient->caps &= ~capdel;
+	source_p->localClient->client_caps |= capadd;
+	source_p->localClient->client_caps &= ~capdel;
 }
 
 static void
@@ -283,7 +283,7 @@ cap_list(struct Client *source_p, const char *arg)
 {
 	/* list of what theyre currently using */
 	clicap_generate(source_p, "LIST",
-			source_p->localClient->caps ? source_p->localClient->caps : -1);
+			source_p->localClient->client_caps ? source_p->localClient->client_caps : -1);
 }
 
 static void
@@ -300,7 +300,7 @@ cap_ls(struct Client *source_p, const char *arg)
 
 	if (caps_version >= 302) {
 		source_p->flags |= FLAGS_CLICAP_DATA;
-		source_p->localClient->caps |= CLICAP_CAP_NOTIFY;
+		source_p->localClient->client_caps |= CLICAP_CAP_NOTIFY;
 	}
 
 	/* list of what we support */
@@ -312,7 +312,7 @@ cap_req(struct Client *source_p, const char *arg)
 {
 	char ack_buf[DATALEN+1];
 	struct CapabilityEntry *cap;
-	int capadd = 0, capdel = 0;
+	uint64_t capadd = 0, capdel = 0;
 	int finished = 0, negate;
 	int ret;
 	hook_data_cap_change hdata;
@@ -344,7 +344,7 @@ cap_req(struct Client *source_p, const char *arg)
 				break;
 			}
 
-			capdel |= (1 << cap->value);
+			capdel |= (1ull << cap->value);
 		}
 		else
 		{
@@ -354,7 +354,7 @@ cap_req(struct Client *source_p, const char *arg)
 				break;
 			}
 
-			capadd |= (1 << cap->value);
+			capadd |= (1ull << cap->value);
 		}
 
 	}
@@ -369,12 +369,12 @@ cap_req(struct Client *source_p, const char *arg)
 	sendto_one(source_p, "%s", ack_buf);
 
 	hdata.client = source_p;
-	hdata.oldcaps = source_p->localClient->caps;
+	hdata.oldcaps = source_p->localClient->client_caps;
 	hdata.add = capadd;
 	hdata.del = capdel;
 
-	source_p->localClient->caps |= capadd;
-	source_p->localClient->caps &= ~capdel;
+	source_p->localClient->client_caps |= capadd;
+	source_p->localClient->client_caps &= ~capdel;
 
 	call_hook(h_cap_change, &hdata);
 }
@@ -402,6 +402,12 @@ static void
 m_cap(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	struct clicap_cmd *cmd;
+
+	if (strlen(client_p->id) == 3 || (source_p->preClient && !EmptyString(source_p->preClient->id)))
+	{
+		exit_client(client_p, client_p, client_p, "Mixing client and server protocol");
+		return;
+	}
 
 	if(!(cmd = bsearch(parv[1], clicap_cmdlist,
 				sizeof(clicap_cmdlist) / sizeof(struct clicap_cmd),

@@ -109,7 +109,7 @@ m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 	struct Client *saslserv_p = NULL;
 
 	/* They really should use CAP for their own sake. */
-	if(!IsCapable(source_p, CLICAP_SASL))
+	if (!IsClientCapable(source_p, CLICAP_SASL))
 		return;
 
 	if(source_p->localClient->sasl_next_retry > rb_current_time())

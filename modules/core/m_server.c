@@ -231,7 +231,7 @@ mr_server(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	}
 
 	/* require TS6 for direct links */
-	if(!IsCapable(client_p, CAP_TS6))
+	if (!IsServerCapable(client_p, CAP_TS6))
 	{
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					"Link %s dropped, TS6 protocol is required", name);
@@ -241,10 +241,10 @@ mr_server(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 	/* check to ensure any "required" caps are set. --nenolod */
 	required_mask = capability_index_get_required(serv_capindex);
-	if (!IsCapable(client_p, required_mask))
+	if (!IsServerCapable(client_p, required_mask))
 	{
 		missing = capability_index_list(serv_capindex, required_mask &
-				~client_p->localClient->caps);
+				~client_p->localClient->server_caps);
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
 					"Link %s dropped, required CAPABs [%s] are missing",
 					name, missing);
