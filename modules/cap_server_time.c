@@ -82,6 +82,12 @@ cap_server_time_process(void *data_)
 
 	if (data->client != NULL && !IsMe(data->client) && !MyClient(data->client))
 		return;
+    // Quick-Fix to resolve #498 -- This does not resolve the actual issue; just
+    // the user-facing symptom
+    if (IsUnknown(data->client)) {
+        // User has not finished negotiation
+        return;
+    }
 
 	if (!rb_gettimeofday(&tv, NULL)) {
 		if (strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S.", gmtime(&tv.tv_sec)) == 0)
