@@ -506,7 +506,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 	struct Client *target_p;
 	rb_dlink_node *ptr;
 	int is_member;
-	int stack = IsCapable(client_p, CLICAP_MULTI_PREFIX);
+	int stack = IsClientCapable(client_p, CLICAP_MULTI_PREFIX);
 
 	if(ShowChannel(client_p, chptr))
 	{
@@ -526,7 +526,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 			if(IsInvisible(target_p) && !is_member)
 				continue;
 
-			if (IsCapable(client_p, CLICAP_USERHOST_IN_NAMES))
+			if (IsClientCapable(client_p, CLICAP_USERHOST_IN_NAMES))
 			{
 				send_multiline_item(client_p, "%s%s!%s@%s",
 						find_channel_status(msptr, stack),

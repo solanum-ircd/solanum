@@ -88,25 +88,25 @@ static inline void
 update_clicap_oper(struct Client *client)
 {
 	/* clear out old caps */
-	client->localClient->caps &= ~CLICAP_OPER_AUSPEX;
-	client->localClient->caps &= ~CLICAP_OPER_JUSTOPER;
-	client->localClient->caps &= ~CLICAP_OPER_NORMAL;
+	ClearClientCap(client, CLICAP_OPER_AUSPEX);
+	ClearClientCap(client, CLICAP_OPER_JUSTOPER);
+	ClearClientCap(client, CLICAP_OPER_NORMAL);
 
-	if (client->localClient->caps & CLICAP_OPER && HasPrivilege(client, "auspex:oper"))
+	if (IsClientCapable(client, CLICAP_OPER) && HasPrivilege(client, "auspex:oper"))
 	{
 		/* if the client is an oper with auspex, let them see everything */
-		client->localClient->caps |= CLICAP_OPER_AUSPEX;
+		client->localClient->client_caps |= CLICAP_OPER_AUSPEX;
 	}
-	else if (client->localClient->caps & CLICAP_OPER && IsOper(client))
+	else if (IsClientCapable(client, CLICAP_OPER) && IsOper(client))
 	{
 		/* if the client is an oper, let them see other opers */
-		client->localClient->caps |= CLICAP_OPER_JUSTOPER;
+		client->localClient->client_caps |= CLICAP_OPER_JUSTOPER;
 	}
-	else if (client->localClient->caps & CLICAP_OPER)
+	else if (IsClientCapable(client, CLICAP_OPER))
 	{
 		/* if the client is a normal user, let them see opers
 		   provided that server wide oper hiding is not enabled */
-		client->localClient->caps |= CLICAP_OPER_NORMAL;
+		client->localClient->client_caps |= CLICAP_OPER_NORMAL;
 	}
 }
 

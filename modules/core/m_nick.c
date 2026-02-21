@@ -1152,7 +1152,7 @@ can_save(struct Client *target_p)
 	serv_p = IsServer(target_p) ? target_p : target_p->servptr;
 	while (serv_p != NULL && serv_p != &me)
 	{
-		if (!(serv_p->serv->caps & CAP_SAVE))
+		if (!(serv_p->serv->server_caps & CAP_SAVE))
 			return false;
 		serv_p = serv_p->servptr;
 	}
@@ -1163,7 +1163,7 @@ static void
 save_user(struct Client *client_p, struct Client *source_p,
 		struct Client *target_p)
 {
-	if (!MyConnect(target_p) && (!has_id(target_p) || !IsCapable(target_p->from, CAP_SAVE)))
+	if (!MyConnect(target_p) && (!has_id(target_p) || !IsServerCapable(target_p->from, CAP_SAVE)))
 	{
 		/* This shouldn't happen */
 		/* Note we only need SAVE support in this direction */
