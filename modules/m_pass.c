@@ -103,7 +103,7 @@ mr_pass(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			   IsIdChar(parv[4][2]) && parv[4][3] == '\0' &&
 			   EmptyString(client_p->preClient->id))
 			{
-				client_p->localClient->server_caps |= CAP_TS6;
+				SetServerCap(client_p, CAP_TS6);
 				rb_strlcpy(client_p->preClient->id, parv[4], sizeof(client_p->preClient->id));
 			}
 		}
