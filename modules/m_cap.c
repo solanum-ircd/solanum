@@ -260,8 +260,8 @@ cap_ack(struct Client *source_p, const char *arg)
 			capadd |= (1 << cap->value);
 	}
 
-	source_p->localClient->client_caps |= capadd;
-	source_p->localClient->client_caps &= ~capdel;
+	SetClientCap(source_p, capadd);
+	ClearClientCap(source_p, capdel);
 }
 
 static void
@@ -300,7 +300,7 @@ cap_ls(struct Client *source_p, const char *arg)
 
 	if (caps_version >= 302) {
 		source_p->flags |= FLAGS_CLICAP_DATA;
-		source_p->localClient->client_caps |= CLICAP_CAP_NOTIFY;
+		SetClientCap(source_p, CLICAP_CAP_NOTIFY);
 	}
 
 	/* list of what we support */
@@ -373,8 +373,8 @@ cap_req(struct Client *source_p, const char *arg)
 	hdata.add = capadd;
 	hdata.del = capdel;
 
-	source_p->localClient->client_caps |= capadd;
-	source_p->localClient->client_caps &= ~capdel;
+	SetClientCap(source_p, capadd);
+	ClearClientCap(source_p, capdel);
 
 	call_hook(h_cap_change, &hdata);
 }

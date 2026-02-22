@@ -83,7 +83,7 @@ update_clicap_oper_realhost(struct Client *client)
 	ClearClientCap(client, CLICAP_OPER_REALHOST);
 	if (IsClientCapable(client, CLICAP_REALHOST) && HasPrivilege(client, "auspex:hostname"))
 	{
-		client->localClient->client_caps |= CLICAP_OPER_REALHOST;
+		SetClientCap(client, CLICAP_OPER_REALHOST);
 	}
 }
 
