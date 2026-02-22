@@ -63,6 +63,7 @@ extension_modules = [
   'sno_globaloper',
   'tag_channel_context',
   'tag_message_id',
+  'tag_reply',
   'tag_typing',
   'umode_hide_idle_time',
   'umode_noctcp',

@@ -70,6 +70,7 @@ extension_LTLIBRARIES =		\
   sno_globaloper.la		\
   tag_channel_context.la    \
   tag_message_id.la		\
+  tag_reply.la      \
   tag_typing.la		\
   umode_hide_idle_time.la	\
   umode_noctcp.la		\
