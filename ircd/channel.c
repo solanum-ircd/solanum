@@ -233,17 +233,24 @@ find_channel_status(struct membership *msptr, int combine)
  *
  * input	- channel to add client to, client to add, channel flags
  * output	-
- * side effects - user is added to channel
+ * side effects - user is added to channel; if this is the first member
+ *                joining a newly created channel and autotopic is configured,
+ *                the autotopic is set.
  */
 void
 add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 {
 	struct membership *msptr;
 	rb_dlink_node *p;
+	int is_new_channel;
 
 	s_assert(client_p->user != NULL);
 	if(client_p->user == NULL)
 		return;
+
+	/* Determine if this is a brand-new channel (no members yet) before
+	 * we add the first one, so we can set the autotopic afterwards. */
+	is_new_channel = (rb_dlink_list_length(&chptr->members) == 0);
 
 	msptr = rb_bh_alloc(member_heap);
 
@@ -266,6 +273,14 @@ add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 
 	if(MyClient(client_p))
 		rb_dlinkAdd(msptr, &msptr->locchannode, &chptr->locmembers);
+
+	/* If this is the first user joining a new channel and autotopic is
+	 * configured, set the channel topic now.  We use me.name as the
+	 * topic setter so it is clearly server-generated. */
+	if(is_new_channel && !EmptyString(ConfigChannel.autotopic))
+	{
+		set_channel_topic(chptr, ConfigChannel.autotopic, me.name, rb_current_time());
+	}
 }
 
 /* remove_user_from_channel()

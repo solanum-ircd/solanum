@@ -1863,6 +1863,22 @@ conf_set_channel_autochanmodes(void *data)
 	}
 }
 
+/* NEW: conf_set_channel_autotopic()
+ *
+ * Sets ConfigChannel.autotopic from the config file value.
+ * An empty string clears the autotopic (no topic will be set on new channels).
+ */
+static void
+conf_set_channel_autotopic(void *data)
+{
+	rb_free(ConfigChannel.autotopic);
+	if (!EmptyString((char *) data))
+		ConfigChannel.autotopic = rb_strdup((char *) data);
+	else
+		ConfigChannel.autotopic = NULL;
+}
+
+
 /* XXX for below */
 static void conf_set_dnsbl_entry_reason(void *data);
 
@@ -2815,6 +2831,7 @@ static struct ConfEntry conf_channel_table[] =
 	{ "opmod_send_statusmsg", CF_YESNO, NULL, 0, &ConfigChannel.opmod_send_statusmsg	},
 	{ "ip_bans_through_vhost", CF_YESNO, NULL, 0, &ConfigChannel.ip_bans_through_vhost	},
 	{ "invite_notify_notice", CF_YESNO, NULL, 0, &ConfigChannel.invite_notify_notice	},
+	{ "autotopic",		CF_QSTRING, conf_set_channel_autotopic, 0, NULL		},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 
