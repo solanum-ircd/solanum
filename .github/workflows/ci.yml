@@ -23,8 +23,8 @@ on:
       - 'README.md'
 
 jobs:
-  linux:
-    name: Linux
+  linux-autotools:
+    name: Linux (autotools)
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
