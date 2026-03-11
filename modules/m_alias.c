@@ -35,17 +35,16 @@
 
 static const char alias_desc[] = "Provides the system for services aliases";
 
-static int _modinit(void);
 static void _moddeinit(void);
 static void reload_aliases(void *);
 static void m_alias(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 mapi_hfn_list_av1 alias_hfnlist[] = {
-	{ "rehash", reload_aliases },
+	{ "conf_read_end", reload_aliases },
 	{ NULL, NULL },
 };
 
-DECLARE_MODULE_AV2(alias, _modinit, _moddeinit, NULL, NULL, alias_hfnlist, NULL, NULL, alias_desc);
+DECLARE_MODULE_AV2(alias, NULL, _moddeinit, NULL, NULL, alias_hfnlist, NULL, NULL, alias_desc);
 
 static rb_dlink_list alias_messages;
 static const struct MessageEntry alias_msgtab[] =
@@ -85,13 +84,6 @@ destroy_aliases(void)
 		rb_free(ptr->data);
 		rb_dlinkDestroy(ptr, &alias_messages);
 	}
-}
-
-static int
-_modinit(void)
-{
-	create_aliases();
-	return 0;
 }
 
 static void
