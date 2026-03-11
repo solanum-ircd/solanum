@@ -104,7 +104,7 @@ extern const char *ircd_paths[IRCD_PATH_COUNT];
 #define DPATH		IRCD_PREFIX
 #define BINPATH		IRCD_PREFIX "/bin/"
 #define MODPATH		MODULE_DIR
-#define AUTOMODPATH	MODULE_DIR "/autoload/"
+#define AUTOMODPATH	MODULE_DIR "/autoload"
 #define ETCPATH		ETC_DIR
 #define LOGPATH		LOG_DIR
 #define UHPATH		HELP_DIR "/users"

@@ -137,7 +137,7 @@ const char *ircd_paths[IRCD_PATH_COUNT] = {
 
 const char *ircd_pathnames[IRCD_PATH_COUNT] = {
 	[IRCD_PATH_PREFIX] = "prefix",
-	[IRCD_PATH_MODULES] = "modules",
+	[IRCD_PATH_MODULES] = "core modules",
 	[IRCD_PATH_AUTOLOAD_MODULES] = "autoload modules",
 	[IRCD_PATH_ETC] = "config",
 	[IRCD_PATH_LOG] = "log",
@@ -658,10 +658,9 @@ solanum_main(int argc, char * const argv[])
 
 	if (testing_conf)
 		fprintf(stderr, "\nBeginning config test\n");
-	read_conf_files(true);	/* cold start init conf files */
 
 	load_all_modules(1);
-	load_core_modules(1);
+	read_conf_files(true);	/* cold start init conf files */
 
 	init_isupport();
 
