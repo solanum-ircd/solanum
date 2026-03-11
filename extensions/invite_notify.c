@@ -76,4 +76,4 @@ m_invited(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_
 	invite_notify(inviter, target, chptr);
 }
 
-DECLARE_MODULE_AV2("invite_notify", NULL, NULL, inv_notify_clist, NULL, inv_notify_hfnlist, inv_notify_caplist, NULL, inv_notify_desc);
+DECLARE_MODULE_AV2(invite_notify, NULL, NULL, inv_notify_clist, NULL, inv_notify_hfnlist, inv_notify_caplist, NULL, inv_notify_desc);
