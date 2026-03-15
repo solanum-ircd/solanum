@@ -47,9 +47,9 @@ int rb_gettimeofday(struct timeval *tv, void *tz)
 	return 0;
 }
 
-unsigned int CAP_ACCOUNT_TAG;
-unsigned int CAP_SERVER_TIME;
-unsigned int CAP_MULTI_PREFIX;
+uint64_t CAP_ACCOUNT_TAG;
+uint64_t CAP_SERVER_TIME;
+uint64_t CAP_MULTI_PREFIX;
 
 static struct Client *user;
 static struct Client *server;

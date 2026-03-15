@@ -38,7 +38,7 @@ enum parse_result
 struct MsgTag {
 	const char *key;		/* the key of the tag (must be set) */
 	const char *value;		/* the value of the tag or NULL */
-	unsigned int capmask;		/* the capability mask this tag belongs to (used only when sending) */
+	uint64_t capmask;		/* the capability mask this tag belongs to (used only when sending) */
 };
 
 struct MsgBuf {

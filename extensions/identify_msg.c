@@ -5,7 +5,7 @@
 static const char identify_msg_desc[] = "Provides the solanum.chat/identify-msg client capability";
 
 static void identmsg_outbound(void *);
-unsigned int CLICAP_IDENTIFY_MSG = 0;
+uint64_t CLICAP_IDENTIFY_MSG = 0;
 
 mapi_cap_list_av2 identmsg_cap_list[] = {
 	{ MAPI_CAP_CLIENT, "solanum.chat/identify-msg", NULL, &CLICAP_IDENTIFY_MSG },

@@ -1206,9 +1206,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p)
 	return final;
 }
 
-/* void send_cap_mode_changes(struct Client *client_p,
- *                        struct Client *source_p,
- *                        struct Channel *chptr, int cap, int nocap)
+/* void send_cap_mode_changes
  * Input: The client sending(client_p), the source client(source_p),
  *        the channel to send mode changes for(chptr)
  * Output: None.

@@ -52,7 +52,7 @@ static void me_mechlist(struct MsgBuf *, struct Client *, struct Client *, int, 
 static void abort_sasl(void *);
 static void abort_sasl_exit(void *);
 
-static unsigned int CLICAP_SASL = 0;
+static uint64_t CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
 
 struct Message authenticate_msgtab = {

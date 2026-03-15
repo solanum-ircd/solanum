@@ -33,10 +33,10 @@ static void cap_oper_outbound_msgbuf(void *);
 static void cap_oper_umode_changed(void *);
 static void cap_oper_cap_change(void *);
 
-static unsigned CLICAP_OPER;
-static unsigned CLICAP_OPER_AUSPEX;
-static unsigned CLICAP_OPER_JUSTOPER;
-static unsigned CLICAP_OPER_NORMAL;
+static uint64_t CLICAP_OPER;
+static uint64_t CLICAP_OPER_AUSPEX;
+static uint64_t CLICAP_OPER_JUSTOPER;
+static uint64_t CLICAP_OPER_NORMAL;
 
 static struct ClientCapability capdata_oper_oper = {
 	.visible = cap_oper_oper_visible,

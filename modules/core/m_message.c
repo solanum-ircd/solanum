@@ -76,7 +76,7 @@ static void echo_msg(struct Client *, struct Client *, enum message_type, const 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
-static unsigned int CAP_ECHO;
+static uint64_t CAP_ECHO;
 
 struct entity
 {
