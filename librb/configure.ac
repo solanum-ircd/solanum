@@ -483,8 +483,7 @@ fi
 
 AC_CONFIG_FILES(		\
 	src/Makefile		\
-	Makefile		\
-	librb.pc
+	Makefile
 )
 
 AC_OUTPUT
