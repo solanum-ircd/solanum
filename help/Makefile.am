@@ -17,58 +17,15 @@ SYMLINKS=	topic accept cmode admin names links away whowas \
 		user help pass error challenge knock ping pong \
 		map trace chantrace extban monitor batch
 
-all: index
+all:
 build:
 depend:
 lint:
 
 index:
-	@echo building index files
-	@rm -f users/index.tmp
-	@for help in users/*; do \
-		if [ -f $$help ]; then \
-			echo $$help >> users/index.tmp; \
-		fi \
-	done
-	@for help in $(SYMLINKS); do \
-		echo $$help >> users/index.tmp; \
-	done
-	@echo 'Help topics available to users:' > users/index
-	@echo '' >> users/index
-	@cat users/index.tmp \
-		| sed -e 's|^users/||' \
-		| sort -u \
-		| tr a-z A-Z \
-		| column -c 65 -x \
-		| expand \
-		>> users/index
-	@rm -f users/index.tmp
-	@rm -f opers/index.tmp
-	@for help in opers/*; do \
-		if [ -f $$help ]; then \
-			echo $$help >> opers/index.tmp; \
-		fi \
-	done
-	@echo 'Help topics available to opers:' > opers/index
-	@echo '' >> opers/index
-	@cat opers/index.tmp \
-		| sed -e 's|^opers/||' \
-		| sort -u \
-		| tr a-z A-Z \
-		| column -c 65 -s ' ' -x \
-		| expand \
-		>> opers/index
-	@rm -f opers/index.tmp
+	@$(SHELL) ./make_index.SH ./ $(helpdir)
 
 install: index
-	-@if test -d $(DESTDIR)$(helpdir)-old; then \
-		rm -rf $(DESTDIR)$(helpdir)-old; \
-	fi
-	-@if test -d $(DESTDIR)$(helpdir); then \
-		echo "ircd: backing up old help files"; \
-		mv $(DESTDIR)$(helpdir) $(DESTDIR)$(helpdir)-old; \
-	fi
-
 	@echo "ircd: setting up help directory structure"
 	@mkdir -p -m 755 $(DESTDIR)$(helpdir)
 	@mkdir -p -m 755 $(DESTDIR)$(helpdir)/opers
