@@ -37,24 +37,26 @@ These are known issues and workarounds for various platforms.
 # building
 
 ```bash
-sudo apt install build-essential pkg-config automake libtool libsqlite3-dev # or equivalent for your distribution
-./autogen.sh
-./configure --prefix=/path/to/installation
-make
-make check # run tests
-make install
+sudo apt install build-essential pkg-config meson ninja-build libsqlite3-dev flex bison # or equivalent for your distribution
+meson setup build --optimization 2 --prefix=/path/to/installation
+meson compile -C build/
+meson test -C build/
+meson install -C build/
 ```
 
-See `./configure --help` for build options.
+See `meson configure build/` for build options.
 
 # feature specific requirements
 
  * For SSL/TLS client and server connections, one of:
 
-   * OpenSSL 1.1.0 or newer (`--enable-openssl`)
-   * LibreSSL (`--enable-openssl`)
-   * mbedTLS (`--enable-mbedtls`)
-   * GnuTLS (`--enable-gnutls`)
+   * OpenSSL 1.1.0 or newer (`-Dopenssl=enabled`)
+   * LibreSSL (`-Dopenssl=enabled`)
+   * mbedTLS (`-Dmbedtls=enabled`)
+   * GnuTLS (`-Dgnutls=enabled`)
+
+   If multiple TLS libraries are available, the build system will prefer mbedTLS > OpenSSL > GnuTLS.
+   Use `=enabled` instead of `=auto` to force a specific library.
 
  * For certificate-based oper CHALLENGE, OpenSSL 1.1.0 or newer.
    (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
