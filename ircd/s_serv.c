@@ -67,39 +67,39 @@ static char buf[BUFSIZE];
 struct CapabilityIndex *serv_capindex = NULL;
 struct CapabilityIndex *cli_capindex = NULL;
 
-unsigned int CAP_CAP;
-unsigned int CAP_QS;
-unsigned int CAP_EX;
-unsigned int CAP_CHW;
-unsigned int CAP_IE;
-unsigned int CAP_KLN;
-unsigned int CAP_KNOCK;
-unsigned int CAP_TB;
-unsigned int CAP_UNKLN;
-unsigned int CAP_CLUSTER;
-unsigned int CAP_ENCAP;
-unsigned int CAP_TS6;
-unsigned int CAP_SERVICE;
-unsigned int CAP_RSFNC;
-unsigned int CAP_RSFNCF;
-unsigned int CAP_SAVE;
-unsigned int CAP_EUID;
-unsigned int CAP_EOPMOD;
-unsigned int CAP_BAN;
-unsigned int CAP_MLOCK;
-unsigned int CAP_EBMASK;
-unsigned int CAP_STAG;
+uint64_t CAP_CAP;
+uint64_t CAP_QS;
+uint64_t CAP_EX;
+uint64_t CAP_CHW;
+uint64_t CAP_IE;
+uint64_t CAP_KLN;
+uint64_t CAP_KNOCK;
+uint64_t CAP_TB;
+uint64_t CAP_UNKLN;
+uint64_t CAP_CLUSTER;
+uint64_t CAP_ENCAP;
+uint64_t CAP_TS6;
+uint64_t CAP_SERVICE;
+uint64_t CAP_RSFNC;
+uint64_t CAP_RSFNCF;
+uint64_t CAP_SAVE;
+uint64_t CAP_EUID;
+uint64_t CAP_EOPMOD;
+uint64_t CAP_BAN;
+uint64_t CAP_MLOCK;
+uint64_t CAP_EBMASK;
+uint64_t CAP_STAG;
 
-unsigned int CLICAP_MULTI_PREFIX;
-unsigned int CLICAP_ACCOUNT_NOTIFY;
-unsigned int CLICAP_EXTENDED_JOIN;
-unsigned int CLICAP_AWAY_NOTIFY;
-unsigned int CLICAP_USERHOST_IN_NAMES;
-unsigned int CLICAP_CAP_NOTIFY;
-unsigned int CLICAP_CHGHOST;
-unsigned int CLICAP_ECHO_MESSAGE;
-unsigned int CLICAP_MESSAGE_TAGS;
-unsigned int CLICAP_BATCH;
+uint64_t CLICAP_MULTI_PREFIX;
+uint64_t CLICAP_ACCOUNT_NOTIFY;
+uint64_t CLICAP_EXTENDED_JOIN;
+uint64_t CLICAP_AWAY_NOTIFY;
+uint64_t CLICAP_USERHOST_IN_NAMES;
+uint64_t CLICAP_CAP_NOTIFY;
+uint64_t CLICAP_CHGHOST;
+uint64_t CLICAP_ECHO_MESSAGE;
+uint64_t CLICAP_MESSAGE_TAGS;
+uint64_t CLICAP_BATCH;
 
 /*
  * initialize our builtin capability table. --nenolod
@@ -467,7 +467,7 @@ check_server(const char *name, struct Client *client_p)
  * side effects	- send the CAPAB line to a server  -orabidoo
  */
 void
-send_capabilities(struct Client *client_p, unsigned int cap_can_send)
+send_capabilities(struct Client *client_p, uint64_t cap_can_send)
 {
 	sendto_one(client_p, "CAPAB :%s", capability_index_list(serv_capindex, cap_can_send));
 }

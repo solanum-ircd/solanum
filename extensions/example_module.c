@@ -124,7 +124,7 @@ mapi_hfn_list_av1 test_hfnlist[] = {
  * to the cap (typically NULL). The last parameter is a pointer to an integer
  * for the CAP index (recommended).
  */
-unsigned int CAP_TESTCAP_SERVER, CAP_TESTCAP_CLIENT;
+uint64_t CAP_TESTCAP_SERVER, CAP_TESTCAP_CLIENT;
 mapi_cap_list_av2 test_cap_list[] = {
 	{ MAPI_CAP_SERVER, "TESTCAP", NULL, &CAP_TESTCAP_SERVER },
 	{ MAPI_CAP_CLIENT, "testcap", NULL, &CAP_TESTCAP_CLIENT },
