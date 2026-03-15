@@ -244,13 +244,13 @@ CPPFLAGS="$CPPFLAGS $SSL_INCLUDES"
 save_LIBS="$LIBS"
 LIBS="$LIBS $SSL_LIBS"
 if test "$cf_enable_openssl" != no; then
-	dnl Check OpenSSL version (must be 0.9.6 or above!)
-	AC_MSG_CHECKING(for OpenSSL 0.9.6 or above)
+	dnl Check OpenSSL version (must be 1.1.0 or above!)
+	AC_MSG_CHECKING(for OpenSSL 1.1.0 or above)
 	AC_RUN_IFELSE(
 		[AC_LANG_PROGRAM(
 	    	[#include <openssl/opensslv.h>
 		#include <stdlib.h>],
-		[[if ( OPENSSL_VERSION_NUMBER >= 0x00906000)
+		[[if ( OPENSSL_VERSION_NUMBER >= 0x10100000)
 		exit(0); else exit(1);]])],
 	cf_openssl_version_ok=yes,
 	cf_openssl_version_ok=no,
