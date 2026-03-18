@@ -77,28 +77,14 @@ char *alloca();
 #endif
 
 
-#ifdef __GNUC__
 #define slrb_assert(expr)	(							\
 			rb_likely((expr)) || (						\
 				rb_lib_log( 						\
 				"file: %s line: %d (%s): Assertion failed: (%s)",	\
-				__FILE__, __LINE__, __PRETTY_FUNCTION__, #expr), 0) 	\
+				__FILE__, __LINE__, __func__, #expr), 0) 	\
 			)
-#else
-#define slrb_assert(expr)	(							\
-			rb_likely((expr)) || (						\
-				rb_lib_log( 						\
-				"file: %s line: %d: Assertion failed: (%s)",		\
-				__FILE__, __LINE__, #expr), 0) 				\
-			)
-#endif
 
-/* evaluates to true if assertion fails */
-#ifdef SOFT_ASSERT
-#define lrb_assert(expr) 	(!slrb_assert(expr))
-#else
-#define lrb_assert(expr)	(assert(slrb_assert(expr)), 0)
-#endif
+#define lrb_assert(expr)	assert(slrb_assert(expr))
 
 #ifdef RB_SOCKADDR_HAS_SA_LEN
 #define ss_len sa_len

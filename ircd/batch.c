@@ -121,13 +121,13 @@ allocate_batch_message(struct MsgBuf *msg)
 	char *c;
 	struct BatchMessage *copy = rb_malloc(sizeof(struct BatchMessage));
 
-	for (int i = 0; i < msg->n_tags; i++)
+	for (size_t i = 0; i < msg->n_tags; i++)
 	{
 		len += strlen(msg->tags[i].key) + 1;
 		len += strlen(msg->tags[i].value) + 1;
 	}
 
-	for (int i = 0; i < msg->n_para; i++)
+	for (size_t i = 0; i < msg->n_para; i++)
 	{
 		len += strlen(msg->para[i]) + 1;
 	}
@@ -147,7 +147,7 @@ allocate_batch_message(struct MsgBuf *msg)
 
 	copy->msg.n_tags = msg->n_tags;
 	copy->msg.tagslen = msg->tagslen;
-	for (int i = 0; i < msg->n_tags; i++)
+	for (size_t i = 0; i < msg->n_tags; i++)
 	{
 		strcpy(c, msg->tags[i].key);
 		copy->msg.tags[i].key = c;
@@ -159,7 +159,7 @@ allocate_batch_message(struct MsgBuf *msg)
 	}
 
 	copy->msg.n_para = msg->n_para;
-	for (int i = 0; i < msg->n_para; i++)
+	for (size_t i = 0; i < msg->n_para; i++)
 	{
 		strcpy(c, msg->para[i]);
 		copy->msg.para[i] = c;

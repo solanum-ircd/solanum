@@ -58,7 +58,7 @@ void user_welcome(struct Client *source_p);
 char umodebuf[128];
 
 static int orphaned_umodes = 0;
-int user_modes[256] = {
+unsigned int user_modes[256] = {
 	/* 0x00 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x0F */
 	/* 0x10 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x1F */
 	/* 0x20 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0x2F */
@@ -1567,7 +1567,7 @@ construct_umodebuf(void)
 {
 	int i;
 	char *ptr = umodebuf;
-	static int prev_user_modes[128];
+	static unsigned int prev_user_modes[128];
 
 	*ptr = '\0';
 

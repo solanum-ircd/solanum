@@ -103,7 +103,6 @@ bool kline_queued = false;
 bool server_state_foreground = false;
 bool opers_see_all_users = false;
 bool ircd_ssl_ok = false;
-bool ircd_zlib_ok = true;
 
 int testing_conf = 0;
 time_t startup_time;

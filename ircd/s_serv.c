@@ -1008,7 +1008,7 @@ serv_connect(struct server_conf *server_p, struct Client *by)
 	if(server_p == NULL)
 		return 0;
 
-	for (int i = 0; i < ARRAY_SIZE(sa_connect); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(sa_connect); i++) {
 		SET_SS_FAMILY(&sa_connect[i], AF_UNSPEC);
 		SET_SS_FAMILY(&sa_bind[i], AF_UNSPEC);
 	}
@@ -1158,7 +1158,7 @@ serv_connect(struct server_conf *server_p, struct Client *by)
 	SetConnecting(client_p);
 	rb_dlinkAddTail(client_p, &client_p->node, &global_client_list);
 
-	for (int i = 0; i < ARRAY_SIZE(sa_connect); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(sa_connect); i++) {
 		if (GET_SS_FAMILY(&sa_bind[i]) == AF_UNSPEC) {
 			if (GET_SS_FAMILY(&sa_connect[i]) == GET_SS_FAMILY(&ServerInfo.bind4))
 				sa_bind[i] = ServerInfo.bind4;

@@ -6,7 +6,7 @@
 
 #include "s_newconf.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 #define MINUTE (60)
 #define HOUR (MINUTE * 60)
