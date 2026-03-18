@@ -399,7 +399,8 @@ m_join(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 				   (long long)chptr->topic_time);
 		}
 
-		channel_member_names(chptr, source_p, 1);
+		if (NotClientCapable(source_p, CLICAP_NO_IMPLICIT_NAMES))
+			channel_member_names(chptr, source_p, 1);
 
 		hook_info.client = source_p;
 		hook_info.chptr = chptr;

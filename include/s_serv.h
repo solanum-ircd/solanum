@@ -70,6 +70,7 @@ extern uint64_t CLICAP_CHGHOST;
 extern uint64_t CLICAP_ECHO_MESSAGE;
 extern uint64_t CLICAP_MESSAGE_TAGS;
 extern uint64_t CLICAP_BATCH;
+extern uint64_t CLICAP_NO_IMPLICIT_NAMES;
 
 /*
  * XXX: this is kind of ugly, but this allows us to have backwards

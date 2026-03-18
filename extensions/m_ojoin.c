@@ -138,5 +138,6 @@ mo_ojoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	}
 
 	source_p->localClient->last_join_time = rb_current_time();
-	channel_member_names(chptr, source_p, 1);
+	if (NotClientCapable(source_p, CLICAP_NO_IMPLICIT_NAMES))
+		channel_member_names(chptr, source_p, 1);
 }
