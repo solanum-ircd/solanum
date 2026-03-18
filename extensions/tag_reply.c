@@ -125,7 +125,9 @@ tag_reply_allow(void *data_)
 		{
 			/* the target must match the channel name in the reply tag */
 			int chlen;
-			char *chname = rb_base64_decode(data->value + MSGID_LEN_MIN, idlen - MSGID_LEN_MIN, &chlen);
+			unsigned char *chname = rb_base64_decode(
+				(const unsigned char *)data->value + MSGID_LEN_MIN,
+				idlen - MSGID_LEN_MIN, &chlen);
 			if (chname == NULL)
 				return;
 

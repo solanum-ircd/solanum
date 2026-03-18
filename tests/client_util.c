@@ -30,7 +30,7 @@
 #include "parse.h"
 #include "listener.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 static struct Listener fake_listener = {
 	.name = "fake",
