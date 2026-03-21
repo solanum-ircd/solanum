@@ -42,6 +42,7 @@
 #include "s_stats.h"
 #include "tgchange.h"
 #include "client_tags.h"
+#include "response.h"
 #include "inline/stringops.h"
 
 static const char message_desc[] =
@@ -932,6 +933,14 @@ msg_client(enum message_type msgtype,
 
 	if (MyClient(target_p))
 	{
+		/* suppress labeled-response on the primary message if they're messaging themselves */
+		bool saved_sent = false;
+		if (outgoing_response_info != NULL && source_p == target_p)
+		{
+			saved_sent = outgoing_response_info->sent;
+			outgoing_response_info->sent = true;
+		}
+
 		if (EmptyString(text) && msgtype != MESSAGE_TYPE_TAGMSG)
 		{
 			/* could be empty after colour stripping and
@@ -954,10 +963,17 @@ msg_client(enum message_type msgtype,
 				NOCAPS, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags, ":%s", text);
 		}
 
+		if (outgoing_response_info != NULL && source_p == target_p)
+			outgoing_response_info->sent = saved_sent;
+
 		echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 	else
 	{
+		/* if we have both labeled-response and echo-message, let the labeled response be the remote server's ECHO */
+		if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE) && IsServerCapable(target_p->from, CAP_ECHO))
+			begin_remote_response_batch(1);
+
 		sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
 			msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
 			NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,

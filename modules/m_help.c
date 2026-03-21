@@ -35,6 +35,7 @@
 #include "hash.h"
 #include "cache.h"
 #include "rb_dictionary.h"
+#include "response.h"
 
 static const char help_desc[] =
 	"Provides the help facility for commands, modes, and server concepts";
@@ -108,6 +109,8 @@ dohelp(struct Client *source_p, int flags, const char *topic)
 
 	fptr = hptr->contents.head;
 	lineptr = fptr->data;
+
+	begin_local_response_batch();
 
 	/* first line cant be empty */
 	sendto_one(source_p, form_str(RPL_HELPSTART),

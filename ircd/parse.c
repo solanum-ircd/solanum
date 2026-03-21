@@ -245,6 +245,8 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		}
 	}
 
+	call_hook(h_parse_end, NULL);
+
 	incoming_message = NULL;
 	incoming_client = NULL;
 }

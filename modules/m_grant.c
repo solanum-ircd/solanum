@@ -14,6 +14,7 @@
 #include "s_conf.h"
 #include "s_newconf.h"
 #include "msgbuf.h"
+#include "response.h"
 
 static void mo_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
 static void me_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]);
@@ -52,10 +53,12 @@ mo_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if (MyClient(target_p))
 	{
+		begin_local_response_batch();
 		do_grant(source_p, target_p, parv[2]);
 	}
 	else
 	{
+		begin_remote_response_batch(1);
 		sendto_one(target_p, ":%s ENCAP %s GRANT %s %s",
 				get_id(source_p, target_p), target_p->servptr->name,
 				get_id(target_p, target_p), parv[2]);

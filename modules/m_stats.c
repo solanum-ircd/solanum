@@ -45,6 +45,7 @@
 #include "reject.h"
 #include "whowas.h"
 #include "rb_radixtree.h"
+#include "response.h"
 #include "sslproc.h"
 #include "s_assert.h"
 
@@ -209,6 +210,7 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		/* Check the user is actually allowed to do /stats, and isnt flooding */
 		if((last_used + ConfigFileEntry.pace_wait) > rb_current_time())
 		{
+			begin_local_response_batch();
 			/* safe enough to give this on a local connect only */
 			sendto_one(source_p, form_str(RPL_LOAD2HI),
 				   me.name, source_p->name, "STATS");
@@ -220,8 +222,10 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			last_used = rb_current_time();
 	}
 
-	if(hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
 		return;
+
+	begin_local_response_batch();
 
 	hook_data_int data = {
 		.client = source_p,
@@ -1000,6 +1004,9 @@ stats_tstats (struct Client *source_p)
 		sp.is_cbr += target_p->localClient->receiveB;
 		sp.is_cti += (unsigned long long)(rb_current_time() - target_p->localClient->firsttime);
 		sp.is_cl++;
+		sp.is_cib += rb_dlink_list_length(&target_p->localClient->pending_batches);
+		sp.is_cibl += target_p->localClient->pending_batch_lines;
+		sp.is_rrb += rb_dlink_list_length(&target_p->localClient->pending_remote_responses);
 	}
 
 	RB_DLINK_FOREACH(ptr, unknown_list.head)
@@ -1053,6 +1060,11 @@ stats_tstats (struct Client *source_p)
 	sendto_one_numeric(source_p, RPL_STATSDEBUG,
 				"T :time connected %llu %llu",
 				sp.is_cti, sp.is_sti);
+	sendto_one_numeric(source_p, RPL_STATSDEBUG,
+				"T :open client batches %u lines %u",
+				sp.is_cib, sp.is_cibl);
+	sendto_one_numeric(source_p, RPL_STATSDEBUG,
+				"T :remote response batches %u", sp.is_rrb);
 }
 
 static void
