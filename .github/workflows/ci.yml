@@ -133,16 +133,20 @@ jobs:
         persist-credentials: false
         submodules: recursive
     - name: meson setup
-      run: meson setup --buildtype debugoptimized --warnlevel 2 build/
+      run: meson setup --buildtype debugoptimized --warnlevel 2 build/ --prefix $HOME/ircd/
     - name: meson compile
       run: meson compile -C build/
     - name: meson test
       run: meson test -C build/
 
+    - name: meson install
+      run: meson install -C build/
+      if: matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc-13'
     - name: Make artifact tarball
       run: |-
         cd ~
         tar -czf artifacts-solanum.tar.gz ircd/
+      if: matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc-13'
     - name: Upload build artifacts
       uses: actions/upload-artifact@v6
       if: matrix.os == 'ubuntu-24.04' && matrix.compiler == 'gcc-13'
