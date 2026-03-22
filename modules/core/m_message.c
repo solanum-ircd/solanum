@@ -76,7 +76,7 @@ static void echo_msg(struct Client *, struct Client *, enum message_type, const 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
-static unsigned int CAP_ECHO;
+static uint64_t CAP_ECHO;
 
 struct entity
 {
@@ -204,7 +204,7 @@ m_notice(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 static void
 m_tagmsg(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]) {
-	if (MyClient(source_p) && !IsCapable(source_p, CLICAP_MESSAGE_TAGS))
+	if (MyClient(source_p) && !IsClientCapable(source_p, CLICAP_MESSAGE_TAGS))
 		return;
 
 	m_message(MESSAGE_TYPE_TAGMSG, msgbuf_p, client_p, source_p, parc, parv);
@@ -832,7 +832,7 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 
 	if (MyClient(target_p))
 	{
-		if (!IsCapable(target_p, CLICAP_ECHO_MESSAGE))
+		if (!IsClientCapable(target_p, CLICAP_ECHO_MESSAGE))
 			return;
 
 		sendto_one_tags(target_p, NOCAPS, NOCAPS,
@@ -844,10 +844,7 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 		return;
 	}
 
-	if (!(target_p->from->serv->caps & CAP_ECHO))
-		return;
-
-	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+	sendto_one_tags(target_p, CAP_ECHO, NOCAPS,
 		msgbuf_p->n_tags, msgbuf_p->tags, ":%s ECHO %c %s :%s",
 		use_id(source_p),
 		shortname[msgtype],
@@ -944,7 +941,7 @@ msg_client(enum message_type msgtype,
 			return;
 		}
 
-		if (msgtype == MESSAGE_TYPE_TAGMSG && IsCapable(target_p, CLICAP_MESSAGE_TAGS))
+		if (msgtype == MESSAGE_TYPE_TAGMSG && IsClientCapable(target_p, CLICAP_MESSAGE_TAGS))
 		{
 			add_reply_target(target_p, source_p);
 			sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
@@ -968,7 +965,7 @@ msg_client(enum message_type msgtype,
 			text);
 
 		/* if the remote doesn't support ECHO, generate a local echo-message instead */
-		if (!(target_p->from->serv->caps & CAP_ECHO))
+		if (!IsServerCapable(target_p->from, CAP_ECHO))
 			echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 }

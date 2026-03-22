@@ -83,7 +83,7 @@ typedef bool _Bool;
 #endif
 
 
-#include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
 #include <time.h>

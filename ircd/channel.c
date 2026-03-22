@@ -506,7 +506,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 	struct Client *target_p;
 	rb_dlink_node *ptr;
 	int is_member;
-	int stack = IsCapable(client_p, CLICAP_MULTI_PREFIX);
+	int stack = IsClientCapable(client_p, CLICAP_MULTI_PREFIX);
 
 	if(ShowChannel(client_p, chptr))
 	{
@@ -526,7 +526,7 @@ channel_member_names(struct Channel *chptr, struct Client *client_p, int show_eo
 			if(IsInvisible(target_p) && !is_member)
 				continue;
 
-			if (IsCapable(client_p, CLICAP_USERHOST_IN_NAMES))
+			if (IsClientCapable(client_p, CLICAP_USERHOST_IN_NAMES))
 			{
 				send_multiline_item(client_p, "%s%s!%s@%s",
 						find_channel_status(msptr, stack),
@@ -1206,9 +1206,7 @@ channel_modes(struct Channel *chptr, struct Client *client_p)
 	return final;
 }
 
-/* void send_cap_mode_changes(struct Client *client_p,
- *                        struct Client *source_p,
- *                        struct Channel *chptr, int cap, int nocap)
+/* void send_cap_mode_changes
  * Input: The client sending(client_p), the source client(source_p),
  *        the channel to send mode changes for(chptr)
  * Output: None.

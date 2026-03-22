@@ -44,27 +44,13 @@
 #	error "Solanum requires loadable module support."
 #endif
 
+struct module_dentry
+{
+	char name[PATH_MAX];
+};
+
 rb_dlink_list module_list;
 rb_dlink_list mod_paths;
-
-static const char *core_module_table[] = {
-	"m_ban",
-	"m_die",
-	"m_error",
-	"m_identified",
-	"m_join",
-	"m_kick",
-	"m_kill",
-	"m_message",
-	"m_mode",
-	"m_modules",
-	"m_nick",
-	"m_part",
-	"m_quit",
-	"m_server",
-	"m_squit",
-	NULL
-};
 
 #define MOD_WARN_DELTA (90 * 86400)	/* time in seconds, 86400 seconds in a day */
 
@@ -199,69 +185,138 @@ findmodule_byname(const char *name)
 	return NULL;
 }
 
+/* module_dentry_sort_cb()
+ *
+ * Helper function for load_all_modules_dir()
+ *
+ * input        - 2 module file names
+ * output       - file name sorting order
+ * side effects - the array of modules is sorted according to the return value
+ */
+static int
+module_dentry_sort_cb(const void *ptr1, const void *ptr2)
+{
+	const struct module_dentry *mod1 = ptr1;
+	const struct module_dentry *mod2 = ptr2;
+
+	return strcmp(mod1->name, mod2->name);
+}
+
+/* load_all_modules_dir()
+ *
+ * Helper function for load_all_modules()
+ *
+ * input        - Module directory, whether this directory is for core modules or not,
+ *                whether to warn about module loading
+ * output       - None
+ * side effects - Loads every module located in the directory. If it is a core module
+ *                and it fails to load, the process exits in failure.
+ */
+static void
+load_all_modules_dir(const char *path, bool core, bool warn)
+{
+	const size_t module_ext_len = strlen(LT_MODULE_EXT);
+	struct module_dentry *dentries = NULL;
+	size_t dentries_length = 0;
+	size_t dentries_used = 0;
+	char modpath[PATH_MAX + 1];
+	struct dirent *dirent;
+	struct stat statbuf;
+	DIR *moddir;
+	size_t len;
+
+	if ((moddir = opendir(path)) == NULL)
+	{
+		if (! core)
+		{
+			ilog(L_MAIN, "Could not load modules from %s (%s)", path, strerror(errno));
+			return;
+		}
+
+		ilog(L_MAIN, "Could not load core modules from %s (%s); terminating ircd", path, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	while ((dirent = readdir(moddir)) != NULL)
+	{
+		// File name length is not greater than the size of required extension (e.g. ".so")
+		if ((len = strlen(dirent->d_name)) <= module_ext_len)
+			continue;
+
+		// File name does not end with required extension
+		if (strncasecmp(dirent->d_name + (len - module_ext_len), LT_MODULE_EXT, module_ext_len) != 0)
+			continue;
+
+		// Unable to obtain dentry info or dentry is not actually a file?
+		snprintf(modpath, sizeof modpath, "%s/%s", path, dirent->d_name);
+		if (! (stat(modpath, &statbuf) == 0 && S_ISREG(statbuf.st_mode)))
+			continue;
+
+		// Extend the modules array if it is not long enough
+		if (dentries_used == dentries_length)
+		{
+			dentries_length += 32;
+			dentries = rb_realloc(dentries, dentries_length * sizeof *dentries);
+		}
+
+		// Add this module to the array of modules to load
+		rb_strlcpy(dentries[dentries_used].name, dirent->d_name, sizeof dentries[dentries_used].name);
+
+		// Advance
+		dentries_used++;
+	}
+
+	closedir(moddir);
+
+	if (! dentries_used)
+	{
+		if (core)
+		{
+			ilog(L_MAIN, "Could not load core modules from %s (empty); terminating ircd", path);
+			exit(EXIT_FAILURE);
+		}
+
+		return;
+	}
+
+	// Sort the array of modules to load based on their file name
+	qsort(dentries, dentries_used, sizeof(struct module_dentry), &module_dentry_sort_cb);
+
+	// Attempt to load each module
+	for (size_t i = 0; i < dentries_used; i++)
+	{
+		char modpath[PATH_MAX + 1];
+
+		snprintf(modpath, sizeof modpath, "%s/%s", path, dentries[i].name);
+
+		if (load_a_module(modpath, warn, MAPI_ORIGIN_CORE, core))
+			continue;
+
+		if (core)
+		{
+			ilog(L_MAIN, "Error while loading core module %s; terminating ircd", dentries[i].name);
+			exit(EXIT_FAILURE);
+		}
+
+		ilog(L_MAIN, "Error while loading module %s", dentries[i].name);
+	}
+
+	// Clean up
+	rb_free(dentries);
+}
+
 /* load_all_modules()
  *
  * input        -
  * output       -
- * side effects -
+ * side effects - Loads every core module, then every module in the autoload directory.
+ *                If a core module fails to load, the process exits in failure.
  */
 void
 load_all_modules(bool warn)
 {
-	DIR *system_module_dir = NULL;
-	struct dirent *ldirent = NULL;
-	char module_fq_name[PATH_MAX + 1];
-	size_t module_ext_len = strlen(LT_MODULE_EXT);
-
-	system_module_dir = opendir(ircd_paths[IRCD_PATH_AUTOLOAD_MODULES]);
-
-	if(system_module_dir == NULL)
-	{
-		ilog(L_MAIN, "Could not load modules from %s: %s", ircd_paths[IRCD_PATH_AUTOLOAD_MODULES], strerror(errno));
-		return;
-	}
-
-	while ((ldirent = readdir(system_module_dir)) != NULL)
-	{
-		size_t len = strlen(ldirent->d_name);
-
-		if(len > module_ext_len &&
-			rb_strncasecmp(ldirent->d_name + (len - module_ext_len), LT_MODULE_EXT, module_ext_len) == 0)
-		{
-			(void) snprintf(module_fq_name, sizeof(module_fq_name), "%s/%s",
-					ircd_paths[IRCD_PATH_AUTOLOAD_MODULES], ldirent->d_name);
-			(void) load_a_module(module_fq_name, warn, MAPI_ORIGIN_CORE, false);
-		}
-
-	}
-	(void) closedir(system_module_dir);
-}
-
-/* load_core_modules()
- *
- * input        -
- * output       -
- * side effects - core modules are loaded, if any fail, kill ircd
- */
-void
-load_core_modules(bool warn)
-{
-	char module_name[PATH_MAX];
-	int i;
-
-
-	for (i = 0; core_module_table[i]; i++)
-	{
-		snprintf(module_name, sizeof(module_name), "%s/%s", ircd_paths[IRCD_PATH_MODULES], core_module_table[i]);
-
-		if(load_a_module(module_name, warn, MAPI_ORIGIN_CORE, true) == false)
-		{
-			ilog(L_MAIN,
-			     "Error loading core module %s: terminating ircd",
-			     core_module_table[i]);
-			exit(EXIT_FAILURE);
-		}
-	}
+	load_all_modules_dir(ircd_paths[IRCD_PATH_MODULES], true, warn);
+	load_all_modules_dir(ircd_paths[IRCD_PATH_AUTOLOAD_MODULES], false, warn);
 }
 
 /* load_one_module()
@@ -276,10 +331,7 @@ load_one_module(const char *path, int origin, bool coremodule)
 	char modpath[PATH_MAX];
 	rb_dlink_node *pathst;
 
-	if (server_state_foreground)
-		inotice("loading module %s ...", path);
-
-	if(coremodule)
+	if (coremodule)
 		origin = MAPI_ORIGIN_CORE;
 
 	RB_DLINK_FOREACH(pathst, mod_paths.head)
@@ -452,12 +504,29 @@ unload_one_module(const char *name, bool warn)
 bool
 load_a_module(const char *path, bool warn, int origin, bool core)
 {
+	const char *modpath = path;
 	struct module *mod;
 	lt_dlhandle tmpptr;
 	char *mod_displayname, *c;
 	const char *ver, *description = NULL;
 
 	int *mapi_version;
+
+	if (server_state_foreground)
+	{
+		// Trim off the module installation prefix if the path matches it
+		if (strncmp(path, ircd_paths[IRCD_PATH_MODULES], strlen(ircd_paths[IRCD_PATH_MODULES])) == 0)
+		{
+			modpath += strlen(ircd_paths[IRCD_PATH_MODULES]);
+
+			if (*modpath == '/')
+				modpath++;
+			else
+				modpath = path;
+		}
+
+		inotice("loading module %s ...", modpath);
+	}
 
 	mod_displayname = rb_basename(path);
 
@@ -690,7 +759,7 @@ load_a_module(const char *path, bool warn, int origin, bool core)
 	mod->mapi_version = MAPI_VERSION(*mapi_version);
 	mod->origin = origin;
 	mod->path = rb_strdup(path);
-	rb_dlinkAdd(mod, &mod->node, &module_list);
+	rb_dlinkAddTail(mod, &mod->node, &module_list);
 
 	if(warn)
 	{
@@ -797,7 +866,6 @@ modules_do_restart(void *unused)
 	}
 
 	load_all_modules(false);
-	load_core_modules(false);
 	rehash(false);
 
 	mod_notify_clicaps();

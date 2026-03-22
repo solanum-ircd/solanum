@@ -60,42 +60,43 @@ struct ClientCapability {
 };
 
 /* builtin client capabilities */
-extern unsigned int CLICAP_MULTI_PREFIX;
-extern unsigned int CLICAP_ACCOUNT_NOTIFY;
-extern unsigned int CLICAP_EXTENDED_JOIN;
-extern unsigned int CLICAP_AWAY_NOTIFY;
-extern unsigned int CLICAP_USERHOST_IN_NAMES;
-extern unsigned int CLICAP_CAP_NOTIFY;
-extern unsigned int CLICAP_CHGHOST;
-extern unsigned int CLICAP_ECHO_MESSAGE;
-extern unsigned int CLICAP_MESSAGE_TAGS;
-extern unsigned int CLICAP_BATCH;
+extern uint64_t CLICAP_MULTI_PREFIX;
+extern uint64_t CLICAP_ACCOUNT_NOTIFY;
+extern uint64_t CLICAP_EXTENDED_JOIN;
+extern uint64_t CLICAP_AWAY_NOTIFY;
+extern uint64_t CLICAP_USERHOST_IN_NAMES;
+extern uint64_t CLICAP_CAP_NOTIFY;
+extern uint64_t CLICAP_CHGHOST;
+extern uint64_t CLICAP_ECHO_MESSAGE;
+extern uint64_t CLICAP_MESSAGE_TAGS;
+extern uint64_t CLICAP_BATCH;
+extern uint64_t CLICAP_NO_IMPLICIT_NAMES;
 
 /*
  * XXX: this is kind of ugly, but this allows us to have backwards
  * API-compatibility.
  */
-extern unsigned int CAP_CAP;			/* received a CAP to begin with */
-extern unsigned int CAP_QS;			/* Can handle quit storm removal */
-extern unsigned int CAP_EX;			/* Can do channel +e exemptions */
-extern unsigned int CAP_CHW;			/* Can do channel wall @# */
-extern unsigned int CAP_IE;			/* Can do invite exceptions */
-extern unsigned int CAP_KLN;			/* Can do KLINE message */
-extern unsigned int CAP_KNOCK;			/* supports KNOCK */
-extern unsigned int CAP_TB;			/* supports TBURST */
-extern unsigned int CAP_UNKLN;			/* supports remote unkline */
-extern unsigned int CAP_CLUSTER;		/* supports cluster stuff */
-extern unsigned int CAP_ENCAP;			/* supports ENCAP */
-extern unsigned int CAP_TS6;			/* supports TS6 or above */
-extern unsigned int CAP_SERVICE;		/* supports services */
-extern unsigned int CAP_RSFNC;			/* rserv FNC */
-extern unsigned int CAP_SAVE;			/* supports SAVE (nick collision FNC) */
-extern unsigned int CAP_EUID;			/* supports EUID (ext UID + nonencap CHGHOST) */
-extern unsigned int CAP_EOPMOD;			/* supports EOPMOD (ext +z + ext topic) */
-extern unsigned int CAP_BAN;			/* supports propagated bans */
-extern unsigned int CAP_MLOCK;			/* supports MLOCK messages */
-extern unsigned int CAP_EBMASK;			/* supports sending BMASK set by/at metadata */
-extern unsigned int CAP_STAG;			/* supports s2s tags and TAGMSG */
+extern uint64_t CAP_CAP;			/* received a CAP to begin with */
+extern uint64_t CAP_QS;			/* Can handle quit storm removal */
+extern uint64_t CAP_EX;			/* Can do channel +e exemptions */
+extern uint64_t CAP_CHW;			/* Can do channel wall @# */
+extern uint64_t CAP_IE;			/* Can do invite exceptions */
+extern uint64_t CAP_KLN;			/* Can do KLINE message */
+extern uint64_t CAP_KNOCK;			/* supports KNOCK */
+extern uint64_t CAP_TB;			/* supports TBURST */
+extern uint64_t CAP_UNKLN;			/* supports remote unkline */
+extern uint64_t CAP_CLUSTER;		/* supports cluster stuff */
+extern uint64_t CAP_ENCAP;			/* supports ENCAP */
+extern uint64_t CAP_TS6;			/* supports TS6 or above */
+extern uint64_t CAP_SERVICE;		/* supports services */
+extern uint64_t CAP_RSFNC;			/* rserv FNC */
+extern uint64_t CAP_SAVE;			/* supports SAVE (nick collision FNC) */
+extern uint64_t CAP_EUID;			/* supports EUID (ext UID + nonencap CHGHOST) */
+extern uint64_t CAP_EOPMOD;			/* supports EOPMOD (ext +z + ext topic) */
+extern uint64_t CAP_BAN;			/* supports propagated bans */
+extern uint64_t CAP_MLOCK;			/* supports MLOCK messages */
+extern uint64_t CAP_EBMASK;			/* supports sending BMASK set by/at metadata */
+extern uint64_t CAP_STAG;			/* supports s2s tags and TAGMSG */
 
 /* XXX: added for backwards compatibility. --nenolod */
 #define CAP_MASK	(capability_index_mask(serv_capindex) & ~(CAP_TS6 | CAP_CAP))
@@ -103,9 +104,14 @@ extern unsigned int CAP_STAG;			/* supports s2s tags and TAGMSG */
 /*
  * Capability macros.
  */
-#define IsCapable(x, cap)       (((x)->localClient->caps & (cap)) == cap)
-#define NotCapable(x, cap)	(((x)->localClient->caps & (cap)) == 0)
-#define ClearCap(x, cap)        ((x)->localClient->caps &= ~(cap))
+#define IsClientCapable(x, cap)         (((x)->localClient->client_caps & (cap)) == cap)
+#define NotClientCapable(x, cap)        (((x)->localClient->client_caps & (cap)) == 0)
+#define SetClientCap(x, cap)            ((x)->localClient->client_caps |= (cap))
+#define ClearClientCap(x, cap)          ((x)->localClient->client_caps &= ~(cap))
+#define IsServerCapable(x, cap)         (((x)->localClient->server_caps & (cap)) == cap)
+#define NotServerCapable(x, cap)        (((x)->localClient->server_caps & (cap)) == 0)
+#define SetServerCap(x, cap)            ((x)->localClient->server_caps |= (cap))
+#define ClearServerCap(x, cap)          ((x)->localClient->server_caps &= ~(cap))
 
 /*
  * Globals
@@ -132,7 +138,7 @@ extern void init_builtin_capabs(void);
 extern int hunt_server(struct Client *client_pt,
 		       struct Client *source_pt,
 		       const char *command, int server, int parc, const char **parv);
-extern void send_capabilities(struct Client *, unsigned int);
+extern void send_capabilities(struct Client *, uint64_t);
 extern const char *show_capabilities(struct Client *client);
 extern void try_connections(void *unused);
 

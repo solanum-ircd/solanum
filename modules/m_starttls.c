@@ -43,7 +43,7 @@ struct Message starttls_msgtab = {
 
 mapi_clist_av1 starttls_clist[] = { &starttls_msgtab, NULL };
 
-unsigned int CLICAP_TLS = 0;
+uint64_t CLICAP_TLS = 0;
 
 static bool
 tls_visible(struct Client *ignored)

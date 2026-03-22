@@ -67,39 +67,40 @@ static char buf[BUFSIZE];
 struct CapabilityIndex *serv_capindex = NULL;
 struct CapabilityIndex *cli_capindex = NULL;
 
-unsigned int CAP_CAP;
-unsigned int CAP_QS;
-unsigned int CAP_EX;
-unsigned int CAP_CHW;
-unsigned int CAP_IE;
-unsigned int CAP_KLN;
-unsigned int CAP_KNOCK;
-unsigned int CAP_TB;
-unsigned int CAP_UNKLN;
-unsigned int CAP_CLUSTER;
-unsigned int CAP_ENCAP;
-unsigned int CAP_TS6;
-unsigned int CAP_SERVICE;
-unsigned int CAP_RSFNC;
-unsigned int CAP_RSFNCF;
-unsigned int CAP_SAVE;
-unsigned int CAP_EUID;
-unsigned int CAP_EOPMOD;
-unsigned int CAP_BAN;
-unsigned int CAP_MLOCK;
-unsigned int CAP_EBMASK;
-unsigned int CAP_STAG;
+uint64_t CAP_CAP;
+uint64_t CAP_QS;
+uint64_t CAP_EX;
+uint64_t CAP_CHW;
+uint64_t CAP_IE;
+uint64_t CAP_KLN;
+uint64_t CAP_KNOCK;
+uint64_t CAP_TB;
+uint64_t CAP_UNKLN;
+uint64_t CAP_CLUSTER;
+uint64_t CAP_ENCAP;
+uint64_t CAP_TS6;
+uint64_t CAP_SERVICE;
+uint64_t CAP_RSFNC;
+uint64_t CAP_RSFNCF;
+uint64_t CAP_SAVE;
+uint64_t CAP_EUID;
+uint64_t CAP_EOPMOD;
+uint64_t CAP_BAN;
+uint64_t CAP_MLOCK;
+uint64_t CAP_EBMASK;
+uint64_t CAP_STAG;
 
-unsigned int CLICAP_MULTI_PREFIX;
-unsigned int CLICAP_ACCOUNT_NOTIFY;
-unsigned int CLICAP_EXTENDED_JOIN;
-unsigned int CLICAP_AWAY_NOTIFY;
-unsigned int CLICAP_USERHOST_IN_NAMES;
-unsigned int CLICAP_CAP_NOTIFY;
-unsigned int CLICAP_CHGHOST;
-unsigned int CLICAP_ECHO_MESSAGE;
-unsigned int CLICAP_MESSAGE_TAGS;
-unsigned int CLICAP_BATCH;
+uint64_t CLICAP_MULTI_PREFIX;
+uint64_t CLICAP_ACCOUNT_NOTIFY;
+uint64_t CLICAP_EXTENDED_JOIN;
+uint64_t CLICAP_AWAY_NOTIFY;
+uint64_t CLICAP_USERHOST_IN_NAMES;
+uint64_t CLICAP_CAP_NOTIFY;
+uint64_t CLICAP_CHGHOST;
+uint64_t CLICAP_ECHO_MESSAGE;
+uint64_t CLICAP_MESSAGE_TAGS;
+uint64_t CLICAP_BATCH;
+uint64_t CLICAP_NO_IMPLICIT_NAMES;
 
 /*
  * initialize our builtin capability table. --nenolod
@@ -152,6 +153,7 @@ init_builtin_capabs(void)
 	CLICAP_ECHO_MESSAGE = capability_put(cli_capindex, "echo-message", NULL);
 	CLICAP_MESSAGE_TAGS = capability_put(cli_capindex, "message-tags", NULL);
 	CLICAP_BATCH = capability_put(cli_capindex, "batch", &high_priority);
+	CLICAP_NO_IMPLICIT_NAMES = capability_put(cli_capindex, "no-implicit-names", NULL);
 }
 
 static CNCB serv_connect_callback;
@@ -453,7 +455,7 @@ check_server(const char *name, struct Client *client_p)
 
 	/* clear TB if they support but we dont want it */
 	if(!ServerConfTb(server_p))
-		ClearCap(client_p, CAP_TB);
+		ClearServerCap(client_p, CAP_TB);
 
 	return 0;
 }
@@ -467,7 +469,7 @@ check_server(const char *name, struct Client *client_p)
  * side effects	- send the CAPAB line to a server  -orabidoo
  */
 void
-send_capabilities(struct Client *client_p, unsigned int cap_can_send)
+send_capabilities(struct Client *client_p, uint64_t cap_can_send)
 {
 	sendto_one(client_p, "CAPAB :%s", capability_index_list(serv_capindex, cap_can_send));
 }
@@ -523,7 +525,7 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 
 	send_multiline_init(client_p, " ", ":%s %s %ld %s %c :",
 			me.id,
-			IsCapable(client_p, CAP_EBMASK) ? "EBMASK" : "BMASK",
+			IsServerCapable(client_p, CAP_EBMASK) ? "EBMASK" : "BMASK",
 			(long)chptr->channelts,
 			chptr->chname,
 			flag);
@@ -537,7 +539,7 @@ burst_modes_TS6(struct Client *client_p, struct Channel *chptr,
 		else
 			strcpy(buf, banptr->banstr);
 
-		if IsCapable(client_p, CAP_EBMASK)
+		if (IsServerCapable(client_p, CAP_EBMASK))
 			send_multiline_item(client_p, "%s %ld %s",
 				buf,
 				(long)banptr->when,
@@ -592,7 +594,7 @@ burst_TS6(struct Client *client_p)
 			ubuf[1] = '\0';
 		}
 
-		if(IsCapable(client_p, CAP_EUID))
+		if (IsServerCapable(client_p, CAP_EUID))
 			sendto_one(client_p, ":%s EUID %s %d %ld %s %s %s %s %s %s %s :%s",
 				   target_p->servptr->id, target_p->name,
 				   target_p->hopcount + 1,
@@ -616,7 +618,7 @@ burst_TS6(struct Client *client_p)
 			sendto_one(client_p, ":%s ENCAP * CERTFP :%s",
 					use_id(target_p), target_p->certfp);
 
-		if(!IsCapable(client_p, CAP_EUID))
+		if (!IsServerCapable(client_p, CAP_EUID))
 		{
 			if(IsDynSpoof(target_p))
 				sendto_one(client_p, ":%s ENCAP * REALHOST %s",
@@ -696,25 +698,25 @@ burst_TS6(struct Client *client_p)
 		if(rb_dlink_list_length(&chptr->banlist) > 0)
 			burst_modes_TS6(client_p, chptr, &chptr->banlist, 'b');
 
-		if(IsCapable(client_p, CAP_EX) &&
+		if (IsServerCapable(client_p, CAP_EX) &&
 		   rb_dlink_list_length(&chptr->exceptlist) > 0)
 			burst_modes_TS6(client_p, chptr, &chptr->exceptlist, 'e');
 
-		if(IsCapable(client_p, CAP_IE) &&
+		if (IsServerCapable(client_p, CAP_IE) &&
 		   rb_dlink_list_length(&chptr->invexlist) > 0)
 			burst_modes_TS6(client_p, chptr, &chptr->invexlist, 'I');
 
 		if(rb_dlink_list_length(&chptr->quietlist) > 0)
 			burst_modes_TS6(client_p, chptr, &chptr->quietlist, 'q');
 
-		if(IsCapable(client_p, CAP_TB) && chptr->topic != NULL)
+		if (IsServerCapable(client_p, CAP_TB) && chptr->topic != NULL)
 			sendto_one(client_p, ":%s TB %s %ld %s%s:%s",
 				   me.id, chptr->chname, (long) chptr->topic_time,
 				   ConfigChannel.burst_topicwho ? chptr->topic_info : "",
 				   ConfigChannel.burst_topicwho ? " " : "",
 				   chptr->topic);
 
-		if(IsCapable(client_p, CAP_MLOCK))
+		if (IsServerCapable(client_p, CAP_MLOCK))
 			sendto_one(client_p, ":%s MLOCK %ld %s :%s",
 				   me.id, (long) chptr->channelts, chptr->chname,
 				   EmptyString(chptr->mode_lock) ? "" : chptr->mode_lock);
@@ -747,11 +749,11 @@ show_capabilities(struct Client *target_p)
 	if(IsSSL(target_p))
 		rb_strlcat(msgbuf, " SSL", sizeof(msgbuf));
 
-	if(!IsServer(target_p) || !target_p->serv->caps)	/* short circuit if no caps */
+	if(!IsServer(target_p) || !target_p->serv->server_caps)	/* short circuit if no caps */
 		return msgbuf + 1;
 
 	rb_strlcat(msgbuf, " ", sizeof(msgbuf));
-	rb_strlcat(msgbuf, capability_index_list(serv_capindex, target_p->serv->caps), sizeof(msgbuf));
+	rb_strlcat(msgbuf, capability_index_list(serv_capindex, target_p->serv->server_caps), sizeof(msgbuf));
 
 	return msgbuf + 1;
 }
@@ -838,7 +840,7 @@ server_estab(struct Client *client_p)
 	make_server(client_p);
 	SetServer(client_p);
 
-	client_p->serv->caps = client_p->localClient->caps;
+	client_p->serv->server_caps = client_p->localClient->server_caps;
 
 	if(client_p->localClient->fullcaps)
 	{
@@ -957,7 +959,7 @@ server_estab(struct Client *client_p)
 					target_p->serv->fullcaps);
 	}
 
-	if(IsCapable(client_p, CAP_BAN))
+	if (IsServerCapable(client_p, CAP_BAN))
 		burst_ban(client_p);
 
 	burst_TS6(client_p);

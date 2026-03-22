@@ -32,8 +32,8 @@ static void cap_realhost_outbound_msgbuf(void *);
 static void cap_realhost_umode_changed(void *);
 static void cap_realhost_cap_change(void *);
 
-static unsigned CLICAP_REALHOST;
-static unsigned CLICAP_OPER_REALHOST;
+static uint64_t CLICAP_REALHOST;
+static uint64_t CLICAP_OPER_REALHOST;
 
 static struct ClientCapability capdata_oper_realhost = {
 	.visible = cap_oper_realhost_visible,
@@ -80,10 +80,10 @@ cap_realhost_outbound_msgbuf(void *data_)
 static inline void
 update_clicap_oper_realhost(struct Client *client)
 {
-	client->localClient->caps &= ~CLICAP_OPER_REALHOST;
-	if (client->localClient->caps & CLICAP_REALHOST && HasPrivilege(client, "auspex:hostname"))
+	ClearClientCap(client, CLICAP_OPER_REALHOST);
+	if (IsClientCapable(client, CLICAP_REALHOST) && HasPrivilege(client, "auspex:hostname"))
 	{
-		client->localClient->caps |= CLICAP_OPER_REALHOST;
+		SetClientCap(client, CLICAP_OPER_REALHOST);
 	}
 }
 

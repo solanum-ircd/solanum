@@ -170,7 +170,7 @@ names_global(struct Client *source_p)
 		if(dont_show)
 			continue;
 
-		if (IsCapable(source_p, CLICAP_USERHOST_IN_NAMES))
+		if (IsClientCapable(source_p, CLICAP_USERHOST_IN_NAMES))
 		{
 			send_multiline_item(source_p, "%s!%s@%s",
 					target_p->name,

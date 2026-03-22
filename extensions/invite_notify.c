@@ -11,7 +11,7 @@ static const char inv_notify_desc[] = "Notifies channel on /invite and provides 
 
 static void hook_invite(void *);
 static void m_invited(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
-static unsigned int CAP_INVITE_NOTIFY;
+static uint64_t CAP_INVITE_NOTIFY;
 
 mapi_hfn_list_av1 inv_notify_hfnlist[] = {
 	{ "invite", hook_invite, HOOK_MONITOR },
@@ -76,4 +76,4 @@ m_invited(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_
 	invite_notify(inviter, target, chptr);
 }
 
-DECLARE_MODULE_AV2("invite_notify", NULL, NULL, inv_notify_clist, NULL, inv_notify_hfnlist, inv_notify_caplist, NULL, inv_notify_desc);
+DECLARE_MODULE_AV2(invite_notify, NULL, NULL, inv_notify_clist, NULL, inv_notify_hfnlist, inv_notify_caplist, NULL, inv_notify_desc);

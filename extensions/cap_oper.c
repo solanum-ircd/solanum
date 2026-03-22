@@ -33,10 +33,10 @@ static void cap_oper_outbound_msgbuf(void *);
 static void cap_oper_umode_changed(void *);
 static void cap_oper_cap_change(void *);
 
-static unsigned CLICAP_OPER;
-static unsigned CLICAP_OPER_AUSPEX;
-static unsigned CLICAP_OPER_JUSTOPER;
-static unsigned CLICAP_OPER_NORMAL;
+static uint64_t CLICAP_OPER;
+static uint64_t CLICAP_OPER_AUSPEX;
+static uint64_t CLICAP_OPER_JUSTOPER;
+static uint64_t CLICAP_OPER_NORMAL;
 
 static struct ClientCapability capdata_oper_oper = {
 	.visible = cap_oper_oper_visible,
@@ -88,25 +88,25 @@ static inline void
 update_clicap_oper(struct Client *client)
 {
 	/* clear out old caps */
-	client->localClient->caps &= ~CLICAP_OPER_AUSPEX;
-	client->localClient->caps &= ~CLICAP_OPER_JUSTOPER;
-	client->localClient->caps &= ~CLICAP_OPER_NORMAL;
+	ClearClientCap(client, CLICAP_OPER_AUSPEX);
+	ClearClientCap(client, CLICAP_OPER_JUSTOPER);
+	ClearClientCap(client, CLICAP_OPER_NORMAL);
 
-	if (client->localClient->caps & CLICAP_OPER && HasPrivilege(client, "auspex:oper"))
+	if (IsClientCapable(client, CLICAP_OPER) && HasPrivilege(client, "auspex:oper"))
 	{
 		/* if the client is an oper with auspex, let them see everything */
-		client->localClient->caps |= CLICAP_OPER_AUSPEX;
+		SetClientCap(client, CLICAP_OPER_AUSPEX);
 	}
-	else if (client->localClient->caps & CLICAP_OPER && IsOper(client))
+	else if (IsClientCapable(client, CLICAP_OPER) && IsOper(client))
 	{
 		/* if the client is an oper, let them see other opers */
-		client->localClient->caps |= CLICAP_OPER_JUSTOPER;
+		SetClientCap(client, CLICAP_OPER_JUSTOPER);
 	}
-	else if (client->localClient->caps & CLICAP_OPER)
+	else if (IsClientCapable(client, CLICAP_OPER))
 	{
 		/* if the client is a normal user, let them see opers
 		   provided that server wide oper hiding is not enabled */
-		client->localClient->caps |= CLICAP_OPER_NORMAL;
+		SetClientCap(client, CLICAP_OPER_NORMAL);
 	}
 }
 

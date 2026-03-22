@@ -82,7 +82,7 @@ typedef struct
 	int cap_index;		/* Which cap index does this belong to? */
 	const char *cap_name;	/* Capability name */
 	void *cap_ownerdata;	/* Not used much but why not... */
-	unsigned int *cap_id;	/* May be set to non-NULL to store cap id */
+	uint64_t *cap_id;	/* May be set to non-NULL to store cap id */
 } mapi_cap_list_av2;
 
 struct mapi_mheader_av1
@@ -139,9 +139,6 @@ extern void load_module(char *path);
 
 /* load all modules */
 extern void load_all_modules(bool warn);
-
-/* load core modules */
-extern void load_core_modules(bool);
 
 extern bool unload_one_module(const char *, bool);
 extern bool load_one_module(const char *, int, bool);

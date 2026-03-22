@@ -42,17 +42,17 @@ struct CapabilityEntry {
 };
 
 extern struct CapabilityEntry *capability_find(struct CapabilityIndex *idx, const char *cap);
-extern unsigned int capability_get(struct CapabilityIndex *idx, const char *cap, void **ownerdata);
-extern unsigned int capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata);
-extern unsigned int capability_put_anonymous(struct CapabilityIndex *idx);
+extern uint64_t capability_get(struct CapabilityIndex *idx, const char *cap, void **ownerdata);
+extern uint64_t capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata);
+extern uint64_t capability_put_anonymous(struct CapabilityIndex *idx);
 extern void capability_orphan(struct CapabilityIndex *idx, const char *cap);
 extern void capability_require(struct CapabilityIndex *idx, const char *cap);
 
 extern struct CapabilityIndex *capability_index_create(const char *name);
 extern void capability_index_destroy(struct CapabilityIndex *);
-extern const char *capability_index_list(struct CapabilityIndex *, unsigned int capability_mask);
-extern unsigned int capability_index_mask(struct CapabilityIndex *);
-extern unsigned int capability_index_get_required(struct CapabilityIndex *);
+extern const char *capability_index_list(struct CapabilityIndex *, uint64_t capability_mask);
+extern uint64_t capability_index_mask(struct CapabilityIndex *);
+extern uint64_t capability_index_get_required(struct CapabilityIndex *);
 extern void capability_index_stats(void (*cb)(const char *line, void *privdata), void *privdata);
 
 #endif
