@@ -87,7 +87,7 @@ struct Server
 	char by[NICKLEN];
 	rb_dlink_list servers;
 	rb_dlink_list users;
-	int caps;		/* capabilities bit-field */
+	uint64_t server_caps;		/* capabilities bit-field */
 	char *fullcaps;
 	struct scache_entry *nameinfo;
 };
@@ -218,7 +218,8 @@ struct LocalUser
 	char *fullcaps;
 	char *cipher_string;
 
-	int caps;		/* capabilities bit-field */
+	uint64_t client_caps;		/* capabilities bit-field */
+	uint64_t server_caps;
 	rb_fde_t *F;		/* >= 0, for local clients */
 
 	/* time challenge response is valid for */

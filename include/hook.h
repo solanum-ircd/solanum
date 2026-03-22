@@ -175,9 +175,9 @@ typedef struct
 typedef struct
 {
 	struct Client *client;
-	int oldcaps;
-	int add;
-	int del;
+	uint64_t oldcaps;
+	uint64_t add;
+	uint64_t del;
 } hook_data_cap_change;
 
 typedef struct
@@ -186,7 +186,7 @@ typedef struct
 	struct Client *source;
 	const char *key;
 	const char *value;
-	unsigned int capmask;
+	uint64_t capmask;
 	const struct MsgBuf *message;
 	int approved;
 } hook_data_message_tag;

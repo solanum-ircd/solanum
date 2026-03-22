@@ -35,7 +35,7 @@ capability_find(struct CapabilityIndex *idx, const char *cap)
 	return rb_dictionary_retrieve(idx->cap_dict, cap);
 }
 
-unsigned int
+uint64_t
 capability_get(struct CapabilityIndex *idx, const char *cap, void **ownerdata)
 {
 	struct CapabilityEntry *entry;
@@ -49,20 +49,20 @@ capability_get(struct CapabilityIndex *idx, const char *cap, void **ownerdata)
 	{
 		if (ownerdata != NULL)
 			*ownerdata = entry->ownerdata;
-		return (1 << entry->value);
+		return (1ull << entry->value);
 	}
 
 	return 0;
 }
 
-unsigned int
+uint64_t
 capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata)
 {
 	struct CapabilityEntry *entry;
 
 	s_assert(idx != NULL);
 	if (!idx->highest_bit)
-		return 0xFFFFFFFF;
+		return 0xFFFFFFFFFFFFFFFFull;
 
 	if ((entry = rb_dictionary_retrieve(idx->cap_dict, cap)) != NULL)
 	{
@@ -72,7 +72,7 @@ capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata)
 			s_assert(entry->ownerdata == NULL);
 			entry->ownerdata = ownerdata;
 		}
-		return (1 << entry->value);
+		return (1ull << entry->value);
 	}
 
 	entry = rb_malloc(sizeof(struct CapabilityEntry));
@@ -84,23 +84,23 @@ capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata)
 	rb_dictionary_add(idx->cap_dict, entry->cap, entry);
 
 	idx->highest_bit++;
-	if (idx->highest_bit % (sizeof(unsigned int) * 8) == 0)
+	if (idx->highest_bit % (sizeof(uint64_t) * 8) == 0)
 		idx->highest_bit = 0;
 
-	return (1 << entry->value);
+	return (1ull << entry->value);
 }
 
-unsigned int
+uint64_t
 capability_put_anonymous(struct CapabilityIndex *idx)
 {
-	unsigned int value;
+	uint64_t value;
 
 	s_assert(idx != NULL);
 	if (!idx->highest_bit)
-		return 0xFFFFFFFF;
-	value = 1 << idx->highest_bit;
+		return 0xFFFFFFFFFFFFFFFFull;
+	value = 1ull << idx->highest_bit;
 	idx->highest_bit++;
-	if (idx->highest_bit % (sizeof(unsigned int) * 8) == 0)
+	if (idx->highest_bit % (sizeof(uint64_t) * 8) == 0)
 		idx->highest_bit = 0;
 	return value;
 }
@@ -170,7 +170,7 @@ capability_index_destroy(struct CapabilityIndex *idx)
 }
 
 const char *
-capability_index_list(struct CapabilityIndex *idx, unsigned int cap_mask)
+capability_index_list(struct CapabilityIndex *idx, uint64_t cap_mask)
 {
 	rb_dictionary_iter iter;
 	struct CapabilityEntry *entry;
@@ -184,7 +184,7 @@ capability_index_list(struct CapabilityIndex *idx, unsigned int cap_mask)
 
 	RB_DICTIONARY_FOREACH(entry, &iter, idx->cap_dict)
 	{
-		if ((1 << entry->value) & cap_mask)
+		if ((1ull << entry->value) & cap_mask)
 		{
 			tl = sprintf(t, "%s ", entry->cap);
 			t += tl;
@@ -197,37 +197,37 @@ capability_index_list(struct CapabilityIndex *idx, unsigned int cap_mask)
 	return buf;
 }
 
-unsigned int
+uint64_t
 capability_index_mask(struct CapabilityIndex *idx)
 {
 	rb_dictionary_iter iter;
 	struct CapabilityEntry *entry;
-	unsigned int mask = 0;
+	uint64_t mask = 0;
 
 	s_assert(idx != NULL);
 
 	RB_DICTIONARY_FOREACH(entry, &iter, idx->cap_dict)
 	{
 		if (!(entry->flags & CAP_ORPHANED))
-			mask |= (1 << entry->value);
+			mask |= (1ull << entry->value);
 	}
 
 	return mask;
 }
 
-unsigned int
+uint64_t
 capability_index_get_required(struct CapabilityIndex *idx)
 {
 	rb_dictionary_iter iter;
 	struct CapabilityEntry *entry;
-	unsigned int mask = 0;
+	uint64_t mask = 0;
 
 	s_assert(idx != NULL);
 
 	RB_DICTIONARY_FOREACH(entry, &iter, idx->cap_dict)
 	{
 		if (!(entry->flags & CAP_ORPHANED) && (entry->flags & CAP_REQUIRED))
-			mask |= (1 << entry->value);
+			mask |= (1ull << entry->value);
 	}
 
 	return mask;
@@ -255,7 +255,7 @@ capability_index_stats(void (*cb)(const char *line, void *privdata), void *privd
 		}
 
 		snprintf(buf, sizeof buf, "'%s': remaining bits - %u", idx->name,
-			    (unsigned int)((sizeof(unsigned int) * 8) - (idx->highest_bit - 1)));
+			    (unsigned int)((sizeof(uint64_t) * 8) - (idx->highest_bit - 1)));
 		cb(buf, privdata);
 	}
 

@@ -214,7 +214,7 @@ msgbuf_reconstruct_tail(struct MsgBuf *msgbuf, size_t n)
  * returns the length of the tags written
  */
 static size_t
-msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned int capmask)
+msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, uint64_t capmask)
 {
 	bool has_tags = false;
 	char *commit = buf;
@@ -346,7 +346,7 @@ msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data)
  * updates buflen to correctly allow remaining message data to be added
  */
 int
-msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, unsigned int capmask)
+msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, uint64_t capmask)
 {
 	size_t tags_buflen;
 	size_t used = 0;
@@ -423,7 +423,7 @@ msgbuf_unparse_para(char *buf, size_t buflen, const struct MsgBuf *msgbuf)
  * returns 0 on success, 1 on error.
  */
 int
-msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned int capmask)
+msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, uint64_t capmask)
 {
 	size_t buflen_copy = buflen;
 
@@ -440,7 +440,7 @@ msgbuf_unparse(char *buf, size_t buflen, const struct MsgBuf *msgbuf, unsigned i
  * returns 0 on success, 1 on error.
  */
 int
-msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, va_list va)
+msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uint64_t capmask, const char *fmt, va_list va)
 {
 	size_t buflen_copy = buflen;
 	char *ws;
@@ -462,7 +462,7 @@ msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigne
  * returns 0 on success, 1 on error.
  */
 int
-msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned int capmask, const char *fmt, ...)
+msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uint64_t capmask, const char *fmt, ...)
 {
 	va_list va;
 	int res;
@@ -511,7 +511,7 @@ msgbuf_cache_init(struct MsgBuf_cache *cache, struct MsgBuf *msgbuf, const char 
 }
 
 buf_head_t*
-msgbuf_cache_get(struct MsgBuf_cache *cache, unsigned int caps, bool is_remote)
+msgbuf_cache_get(struct MsgBuf_cache *cache, uint64_t caps, bool is_remote)
 {
 	struct MsgBuf_cache_entry *entry = cache->head;
 	struct MsgBuf_cache_entry *prev = NULL;

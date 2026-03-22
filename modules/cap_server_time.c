@@ -40,7 +40,7 @@ static const char cap_server_time_desc[] =
 
 static void cap_server_time_incoming(void *);
 static void cap_server_time_process(void *);
-unsigned int CLICAP_SERVER_TIME = 0;
+uint64_t CLICAP_SERVER_TIME = 0;
 
 mapi_hfn_list_av1 cap_server_time_hfnlist[] = {
 	{ "message_tag", cap_server_time_incoming },

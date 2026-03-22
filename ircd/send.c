@@ -40,8 +40,7 @@
 #include "monitor.h"
 #include "msgbuf.h"
 
-#define CLIENT_CAP_MASK(x)	(MyClient((x)) ? (x)->localClient->caps : \
-		((x)->from == &me || ((x)->from && (x)->from->localClient->caps & CAP_STAG)) ? (unsigned)-1 : 0)
+#define CLIENT_CAP_MASK(x)	((x)->from->localClient->client_caps | (IsServerCapable((x)->from, CAP_STAG) ? UINT64_MAX : 0))
 
 static void send_queued_write(rb_fde_t *F, void *data);
 
@@ -439,7 +438,7 @@ sendto_one_numeric(struct Client *target_p, int numeric, const char *pattern, ..
  * side effects -
  */
 void
-sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negcap,
+sendto_one_tags(struct Client *target_p, uint64_t serv_cap, uint64_t serv_negcap,
 	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -451,7 +450,7 @@ sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negcap,
 	if (IsIOError(dest_p))
 		return;
 
-	if (!IsCapable(dest_p, serv_cap) || !NotCapable(dest_p, serv_negcap))
+	if (!IsServerCapable(dest_p, serv_cap) || !NotServerCapable(dest_p, serv_negcap))
 		return;
 
 	va_start(args, pattern);
@@ -477,7 +476,7 @@ sendto_one_tags(struct Client *target_p, int serv_cap, int serv_negcap,
  *                support ALL capabs in 'caps', and NO capabs in 'nocaps'.
  */
 static void
-sendto_server_internal(struct Client *one, struct Channel *chptr, unsigned long caps, unsigned long nocaps,
+sendto_server_internal(struct Client *one, struct Channel *chptr, uint64_t caps, uint64_t nocaps,
 	const char *format, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
 	struct Client *target_p;
@@ -509,14 +508,14 @@ sendto_server_internal(struct Client *one, struct Channel *chptr, unsigned long 
 			continue;
 
 		/* check we have required capabs */
-		if (!IsCapable(target_p, caps))
+		if (!IsServerCapable(target_p, caps))
 			continue;
 
 		/* check we don't have any forbidden capabs */
-		if (!NotCapable(target_p, nocaps))
+		if (!NotServerCapable(target_p, nocaps))
 			continue;
 
-		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, IsCapable(target_p, CAP_STAG) ? (unsigned)-1 : 0, false));
+		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
@@ -540,8 +539,8 @@ sendto_server_internal(struct Client *one, struct Channel *chptr, unsigned long 
  * -davidt
  */
 void
-sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
-	      unsigned long nocaps, const char *format, ...)
+sendto_server(struct Client *one, struct Channel *chptr, uint64_t caps,
+	      uint64_t nocaps, const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -564,8 +563,8 @@ sendto_server(struct Client *one, struct Channel *chptr, unsigned long caps,
  *                support ALL capabs in 'caps', and NO capabs in 'nocaps'.
  */
 void
-sendto_server_tags(struct Client *one, struct Channel *chptr, unsigned long caps,
-		  unsigned long nocaps, size_t n_tags, const struct MsgTag tags[], const char *format, ...)
+sendto_server_tags(struct Client *one, struct Channel *chptr, uint64_t caps,
+		  uint64_t nocaps, size_t n_tags, const struct MsgTag tags[], const char *format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -589,7 +588,7 @@ sendto_server_tags(struct Client *one, struct Channel *chptr, unsigned long caps
  */
 static void
 sendto_channel_flags_internal(struct Client *one, int type, struct Client *source_p, struct Channel *chptr,
-		     int cli_cap, int cli_negcap, const char *priv, int serv_cap, int serv_negcap,
+		     uint64_t cli_cap, uint64_t cli_negcap, const char *priv, uint64_t serv_cap, uint64_t serv_negcap,
 		     const rb_strf_t *strings, size_t n_tags, const struct MsgTag tags[])
 {
 	char buf[DATALEN + 1];
@@ -633,10 +632,10 @@ sendto_channel_flags_internal(struct Client *one, int type, struct Client *sourc
 			/* if we've got a specific type, target must support
 			 * CHW.. --fl
 			 */
-			if(type && NotCapable(target_p->from, CAP_CHW))
+			if(type && NotServerCapable(target_p->from, CAP_CHW))
 				continue;
 
-			if (!IsCapable(target_p->from, serv_cap) || !NotCapable(target_p->from, serv_negcap))
+			if (!IsServerCapable(target_p->from, serv_cap) || !NotServerCapable(target_p->from, serv_negcap))
 				continue;
 
 			if (target_p->from->serial != current_serial)
@@ -645,14 +644,14 @@ sendto_channel_flags_internal(struct Client *one, int type, struct Client *sourc
 				target_p->from->serial = current_serial;
 			}
 		}
-		else if (IsCapable(target_p, cli_cap) && NotCapable(target_p, cli_negcap) && (priv == NULL || HasPrivilege(target_p, priv)))
+		else if (IsClientCapable(target_p, cli_cap) && NotClientCapable(target_p, cli_negcap) && (priv == NULL || HasPrivilege(target_p, priv)))
 		{
 			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 		}
 	}
 
 	/* source client may not be on the channel, send echo separately */
-	if (MyClient(source_p) && IsCapable(source_p, CLICAP_ECHO_MESSAGE))
+	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
 	{
 		target_p = one == NULL ? source_p : one;
 
@@ -688,7 +687,7 @@ sendto_channel_flags(struct Client *one, int type, struct Client *source_p,
  */
 void
 sendto_channel_flags_tags(struct Client *one, int type, struct Client *source_p,
-			 struct Channel *chptr, int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+			 struct Channel *chptr, uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 			 size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -707,7 +706,7 @@ sendto_channel_flags_tags(struct Client *one, int type, struct Client *source_p,
  */
 static void
 sendto_channel_opmod_internal(struct Client *one, struct Client *source_p, struct Channel *chptr,
-	int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+	uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 	const char *command, const char *text, size_t n_tags, const struct MsgTag tags[])
 {
 	char buf[DATALEN + 1];
@@ -768,12 +767,12 @@ sendto_channel_opmod_internal(struct Client *one, struct Client *source_p, struc
 
 		if (!MyClient(target_p))
 		{
-			if (!IsCapable(target_p->from, serv_cap) || !NotCapable(target_p->from, serv_negcap))
+			if (!IsServerCapable(target_p->from, serv_cap) || !NotServerCapable(target_p->from, serv_negcap))
 				continue;
 
 			if(target_p->from->serial != current_serial)
 			{
-				if (IsCapable(target_p->from, CAP_EOPMOD))
+				if (IsServerCapable(target_p->from, CAP_EOPMOD))
 					send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache_eopmod, CLIENT_CAP_MASK(target_p), true));
 				else if (chptr->mode.mode & MODE_MODERATED)
 					send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache_statusmsg, CLIENT_CAP_MASK(target_p), true));
@@ -781,13 +780,13 @@ sendto_channel_opmod_internal(struct Client *one, struct Client *source_p, struc
 					send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache_old, CLIENT_CAP_MASK(target_p), true));
 				target_p->from->serial = current_serial;
 			}
-		} else if (IsCapable(target_p, cli_cap) && NotCapable(target_p, cli_negcap)) {
+		} else if (IsClientCapable(target_p, cli_cap) && NotClientCapable(target_p, cli_negcap)) {
 			send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache_statusmsg, CLIENT_CAP_MASK(target_p), false));
 		}
 	}
 
 	/* source client may not be on the channel, send echo separately */
-	if (MyClient(source_p) && IsCapable(source_p, CLICAP_ECHO_MESSAGE))
+	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
 	{
 		target_p = one;
 
@@ -820,7 +819,7 @@ sendto_channel_opmod(struct Client *one, struct Client *source_p,
  */
 void
 sendto_channel_opmod_tags(struct Client *one, struct Client *source_p, struct Channel *chptr,
-	int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+	uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 	const char *command, const char *text, size_t n_tags, const struct MsgTag tags[])
 {
 	sendto_channel_opmod_internal(one, source_p, chptr, cli_cap, cli_negcap, serv_cap, serv_negcap, command, text, n_tags, tags);
@@ -834,7 +833,7 @@ sendto_channel_opmod_tags(struct Client *one, struct Client *source_p, struct Ch
  */
 static void
 sendto_channel_local_internal(struct Client *one, int type, struct Client *source_p, struct Channel *chptr,
-	int caps, int negcaps, const char *priv, const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
+	uint64_t caps, uint64_t negcaps, const char *priv, const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
 	char buf[DATALEN + 1];
 	struct membership *msptr;
@@ -865,7 +864,7 @@ sendto_channel_local_internal(struct Client *one, int type, struct Client *sourc
 		if (type && (msptr->flags & type) == 0)
 			continue;
 
-		if (!IsCapable(target_p, caps) || !NotCapable(target_p, negcaps))
+		if (!IsClientCapable(target_p, caps) || !NotClientCapable(target_p, negcaps))
 			continue;
 
 		if (priv != NULL && !HasPrivilege(target_p, priv))
@@ -933,7 +932,7 @@ sendto_channel_local_tags(struct Client *source_p, int type, const char *priv, s
  * side effects -
  */
 void
-sendto_channel_local_with_capability(struct Client *source_p, int type, int caps, int negcaps, struct Channel *chptr, const char *pattern, ...)
+sendto_channel_local_with_capability(struct Client *source_p, int type, uint64_t caps, uint64_t negcaps, struct Channel *chptr, const char *pattern, ...)
 {
 	va_list args;
 
@@ -949,7 +948,7 @@ sendto_channel_local_with_capability(struct Client *source_p, int type, int caps
  * side effects -
  */
 void
-sendto_channel_local_with_capability_tags(struct Client *source_p, int type, int caps, int negcaps,
+sendto_channel_local_with_capability_tags(struct Client *source_p, int type, uint64_t caps, uint64_t negcaps,
 	struct Channel *chptr, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -967,7 +966,7 @@ sendto_channel_local_with_capability_tags(struct Client *source_p, int type, int
  */
 void
 sendto_channel_local_with_capability_butone(struct Client *one, int type,
-	int caps, int negcaps, struct Channel *chptr, const char *pattern, ...)
+	uint64_t caps, uint64_t negcaps, struct Channel *chptr, const char *pattern, ...)
 {
 	va_list args;
 
@@ -985,7 +984,7 @@ sendto_channel_local_with_capability_butone(struct Client *one, int type,
  */
 void
 sendto_channel_local_with_capability_butone_tags(struct Client *one, int type,
-	int caps, int negcaps, struct Channel *chptr, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+	uint64_t caps, uint64_t negcaps, struct Channel *chptr, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
 
@@ -1019,7 +1018,7 @@ sendto_channel_local_butone(struct Client *one, int type, struct Channel *chptr,
  * side effects - Sends a message to all people on local server who are in the same channel with user
  */
 static void
-sendto_common_channels_local_internal(struct Client *one, struct Client *user, int caps, int negcaps,
+sendto_common_channels_local_internal(struct Client *one, struct Client *user, uint64_t caps, uint64_t negcaps,
 	const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
 	rb_dlink_node *ptr;
@@ -1058,8 +1057,8 @@ sendto_common_channels_local_internal(struct Client *one, struct Client *user, i
 
 			if(IsIOError(target_p) ||
 			   target_p->serial == current_serial ||
-			   !IsCapable(target_p, caps) ||
-			   !NotCapable(target_p, negcaps))
+			   !IsClientCapable(target_p, caps) ||
+			   !NotClientCapable(target_p, negcaps))
 				continue;
 
 			target_p->serial = current_serial;
@@ -1070,7 +1069,7 @@ sendto_common_channels_local_internal(struct Client *one, struct Client *user, i
 	/* this can happen when the user isn't in any channels, but we still
 	 * need to send them the data, ie a nick change
 	 */
-	if (MyConnect(user) && (user->serial != current_serial) && IsCapable(user, caps) && NotCapable(user, negcaps))
+	if (MyConnect(user) && (user->serial != current_serial) && IsClientCapable(user, caps) && NotClientCapable(user, negcaps))
 	{
 		send_linebuf(user, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(user), false));
 	}
@@ -1091,7 +1090,7 @@ sendto_common_channels_local_internal(struct Client *one, struct Client *user, i
  *		  used by m_nick.c and exit_one_client.
  */
 void
-sendto_common_channels_local(struct Client *user, int caps, int negcaps, const char *pattern, ...)
+sendto_common_channels_local(struct Client *user, uint64_t caps, uint64_t negcaps, const char *pattern, ...)
 {
 	va_list args;
 
@@ -1114,7 +1113,7 @@ sendto_common_channels_local(struct Client *user, int caps, int negcaps, const c
  *		  used by m_nick.c and exit_one_client.
  */
 void
-sendto_common_channels_local_tags(struct Client *user, int caps, int negcaps,
+sendto_common_channels_local_tags(struct Client *user, uint64_t caps, uint64_t negcaps,
 	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -1136,7 +1135,7 @@ sendto_common_channels_local_tags(struct Client *user, int caps, int negcaps,
  * 		  in same channel with user, except for user itself.
  */
 void
-sendto_common_channels_local_butone(struct Client *user, int caps, int negcaps, const char *pattern, ...)
+sendto_common_channels_local_butone(struct Client *user, uint64_t caps, uint64_t negcaps, const char *pattern, ...)
 {
 	va_list args;
 
@@ -1158,7 +1157,7 @@ sendto_common_channels_local_butone(struct Client *user, int caps, int negcaps, 
  * 		  in same channel with user, except for user itself.
  */
 void
-sendto_common_channels_local_butone_tags(struct Client *user, int caps, int negcaps,
+sendto_common_channels_local_butone_tags(struct Client *user, uint64_t caps, uint64_t negcaps,
 	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -1176,7 +1175,7 @@ sendto_common_channels_local_butone_tags(struct Client *user, int caps, int negc
  */
 static void
 sendto_match_internal(struct Client *one, struct Client *source_p, const char *mask, int what,
-	int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+	uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 	const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
 	struct Client *target_p;
@@ -1201,7 +1200,7 @@ sendto_match_internal(struct Client *one, struct Client *source_p, const char *m
 		{
 			target_p = ptr->data;
 
-			if (match(mask, target_p->host) && IsCapable(target_p, cli_cap) && NotCapable(target_p, cli_negcap))
+			if (match(mask, target_p->host) && IsClientCapable(target_p, cli_cap) && NotClientCapable(target_p, cli_negcap))
 				send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 		}
 	}
@@ -1212,7 +1211,7 @@ sendto_match_internal(struct Client *one, struct Client *source_p, const char *m
 		{
 			target_p = ptr->data;
 
-			if (IsCapable(target_p, cli_cap) && NotCapable(target_p, cli_negcap))
+			if (IsClientCapable(target_p, cli_cap) && NotClientCapable(target_p, cli_negcap))
 				send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 		}
 	}
@@ -1224,7 +1223,7 @@ sendto_match_internal(struct Client *one, struct Client *source_p, const char *m
 		if (target_p == one)
 			continue;
 
-		if (!IsCapable(target_p->from, serv_cap) || !NotCapable(target_p->from, serv_negcap))
+		if (!IsServerCapable(target_p->from, serv_cap) || !NotServerCapable(target_p->from, serv_negcap))
 			continue;
 
 		send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), true));
@@ -1257,7 +1256,7 @@ sendto_match_butone(struct Client *one, struct Client *source_p,
  */
 void
 sendto_match_butone_tags(struct Client *one, struct Client *source_p,
-			const char *mask, int what, int cli_cap, int cli_negcap, int serv_cap, int serv_negcap,
+			const char *mask, int what, uint64_t cli_cap, uint64_t cli_negcap, uint64_t serv_cap, uint64_t serv_negcap,
 			size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -1273,7 +1272,7 @@ sendto_match_butone_tags(struct Client *one, struct Client *source_p,
  * side effects - message is sent to matching servers with caps.
  */
 static void
-sendto_match_servs_internal(struct Client *source_p, const char *mask, int cap, int negcap,
+sendto_match_servs_internal(struct Client *source_p, const char *mask, uint64_t cap, uint64_t negcap,
 	const char *pattern, va_list *args, size_t n_tags, const struct MsgTag tags[])
 {
 	rb_dlink_node *ptr;
@@ -1312,10 +1311,10 @@ sendto_match_servs_internal(struct Client *source_p, const char *mask, int cap, 
 			 */
 			target_p->from->serial = current_serial;
 
-			if (cap && !IsCapable(target_p->from, cap))
+			if (cap && !IsServerCapable(target_p->from, cap))
 				continue;
 
-			if (negcap && !NotCapable(target_p->from, negcap))
+			if (negcap && !NotServerCapable(target_p->from, negcap))
 				continue;
 
 			send_linebuf(target_p->from, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), true));
@@ -1332,7 +1331,7 @@ sendto_match_servs_internal(struct Client *source_p, const char *mask, int cap, 
  * side effects - message is sent to matching servers with caps.
  */
 void
-sendto_match_servs(struct Client *source_p, const char *mask, int cap, int negcap, const char *pattern, ...)
+sendto_match_servs(struct Client *source_p, const char *mask, uint64_t cap, uint64_t negcap, const char *pattern, ...)
 {
 	va_list args;
 	va_start(args, pattern);
@@ -1347,7 +1346,7 @@ sendto_match_servs(struct Client *source_p, const char *mask, int cap, int negca
  * side effects - message is sent to matching servers with caps.
  */
 void
-sendto_match_servs_tags(struct Client *source_p, const char *mask, int cap, int negcap,
+sendto_match_servs_tags(struct Client *source_p, const char *mask, uint64_t cap, uint64_t negcap,
 	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
@@ -1363,7 +1362,7 @@ sendto_match_servs_tags(struct Client *source_p, const char *mask, int cap, int 
  * side effects - message is sent to matching local clients with caps.
  */
 void
-sendto_local_clients_with_capability(int cap, const char *pattern, ...)
+sendto_local_clients_with_capability(uint64_t cap, const char *pattern, ...)
 {
 	va_list args;
 	rb_dlink_node *ptr;
@@ -1384,7 +1383,7 @@ sendto_local_clients_with_capability(int cap, const char *pattern, ...)
 	{
 		target_p = ptr->data;
 
-		if (IsIOError(target_p) || !IsCapable(target_p, cap))
+		if (IsIOError(target_p) || !IsClientCapable(target_p, cap))
 			continue;
 
 		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
@@ -1440,7 +1439,7 @@ sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *patt
 static void
 sendto_anywhere_internal(struct Client *dest_p, struct Client *target_p,
 		struct Client *source_p, const char *command,
-		int serv_cap, int serv_negcap,
+		uint64_t serv_cap, uint64_t serv_negcap,
 		const char *pattern, va_list *args,
 		size_t n_tags, const struct MsgTag tags[])
 {
@@ -1449,7 +1448,7 @@ sendto_anywhere_internal(struct Client *dest_p, struct Client *target_p,
 	int used;
 	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 
-	if (!MyClient(dest_p) && (!IsCapable(target_p->from, serv_cap) || !NotCapable(target_p->from, serv_negcap)))
+	if (!MyClient(dest_p) && (!IsServerCapable(target_p->from, serv_cap) || !NotServerCapable(target_p->from, serv_negcap)))
 		return;
 
 	if (MyClient(dest_p))
@@ -1509,7 +1508,7 @@ sendto_anywhere_echo(struct Client *target_p, struct Client *source_p,
  */
 void
 sendto_anywhere_tags(struct Client *target_p, struct Client *source_p, const char *command,
-	int serv_cap, int serv_negcap, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
+	uint64_t serv_cap, uint64_t serv_negcap, size_t n_tags, const struct MsgTag tags[], const char *pattern, ...)
 {
 	va_list args;
 
