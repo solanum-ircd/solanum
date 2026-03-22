@@ -36,7 +36,7 @@
 #include "setup.h"
 #include "privilege.h"
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 #include <openssl/rsa.h>
 #endif
 
@@ -119,7 +119,7 @@ struct oper_conf
 
 	struct PrivilegeSet *privset;
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 	char *rsa_pubkey_file;
 #if (OPENSSL_VERSION_NUMBER >= 0x30000000L)
 	EVP_PKEY *rsa_pubkey;

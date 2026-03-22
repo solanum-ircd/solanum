@@ -32,7 +32,7 @@
 
 #include "stdinc.h"
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 #endif
@@ -237,7 +237,7 @@ free_oper_conf(struct oper_conf *oper_p)
 		rb_free(oper_p->passwd);
 	}
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 	rb_free(oper_p->rsa_pubkey_file);
 
 	if(oper_p->rsa_pubkey)

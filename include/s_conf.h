@@ -26,7 +26,7 @@
 #define INCLUDED_s_conf_h
 #include "setup.h"
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 #include <openssl/rsa.h>
 #endif
 
