@@ -110,11 +110,11 @@ Info MyInformation[] = {
 	{"OPER_SPAM_COUNTDOWN", "", OPER_SPAM_COUNTDOWN,
 	 "Anti SpamBot Parameter"},
 
-#ifdef HAVE_LIBCRYPTO
-	{"HAVE_LIBCRYPTO", "ON", 0, "Enable OpenSSL CHALLENGE Support"},
+#ifdef HAVE_OPENSSL
+	{"HAVE_OPENSSL", "ON", 0, "Enable OpenSSL CHALLENGE Support"},
 #else
-	{"HAVE_LIBCRYPTO", "OFF", 0, "Enable OpenSSL CHALLENGE Support"},
-#endif /* HAVE_LIBCRYPTO */
+	{"HAVE_OPENSSL", "OFF", 0, "Enable OpenSSL CHALLENGE Support"},
+#endif /* HAVE_OPENSSL */
 
 #ifdef HAVE_LIBZ
 	{"HAVE_LIBZ", "YES", 0, "zlib (ziplinks) support"},

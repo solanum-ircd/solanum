@@ -24,7 +24,7 @@
 
 #include "stdinc.h"
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/evp.h>
 #  include <openssl/pem.h>
@@ -50,7 +50,7 @@
 #define CHALLENGE_EXPIRES	180	/* 180 seconds should be more than long enough */
 #define CHALLENGE_SECRET_LENGTH	128	/* how long our challenge secret should be */
 
-#ifndef HAVE_LIBCRYPTO
+#ifndef HAVE_OPENSSL
 
 static const char challenge_desc[] = "Does nothing as OpenSSL was not enabled.";
 
@@ -386,4 +386,4 @@ done:
 	return retval;
 }
 
-#endif /* HAVE_LIBCRYPTO */
+#endif /* HAVE_OPENSSL */

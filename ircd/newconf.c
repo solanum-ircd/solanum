@@ -3,7 +3,7 @@
 
 #include "stdinc.h"
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
@@ -586,7 +586,7 @@ conf_end_oper(struct TopConf *tc)
 		return 0;
 	}
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 	if(EmptyString(yy_oper->passwd) && EmptyString(yy_oper->rsa_pubkey_file))
 #else
 	if(EmptyString(yy_oper->passwd))
@@ -620,7 +620,7 @@ conf_end_oper(struct TopConf *tc)
 		yy_tmpoper->snomask = yy_oper->snomask;
 		yy_tmpoper->privset = yy_oper->privset;
 
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 		if(yy_oper->rsa_pubkey_file)
 		{
 			BIO *file;
@@ -750,7 +750,7 @@ conf_set_oper_password(void *data)
 static void
 conf_set_oper_rsa_public_key_file(void *data)
 {
-#ifdef HAVE_LIBCRYPTO
+#ifdef HAVE_OPENSSL
 	rb_free(yy_oper->rsa_pubkey_file);
 	yy_oper->rsa_pubkey_file = rb_strdup((char *) data);
 #else

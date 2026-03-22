@@ -262,9 +262,11 @@ if test "$cf_enable_openssl" != no; then
 		dnl Work around pmake/gmake conditional incompatibilities
 		AC_SUBST(ENCSPEED, encspeed)
 
-		dnl Do all the HAVE_LIBCRYPTO magic -- and check for ciphers
+		dnl Check the library is linkable
 		CPPFLAGS="$CPPFLAGS $SSL_LIBS"
-		AC_CHECK_LIB(crypto, RSA_free)
+		AC_CHECK_LIB([crypto], [RSA_free], [
+			AC_DEFINE([HAVE_OPENSSL], [1], [Define if OpenSSL appears usable])
+		])
 		SSL_LIBS="$SSL_LIBS -lcrypto"
 		SSL_SRCS_ENABLE='$(SSL_SRCS)'
 	else
