@@ -23,21 +23,12 @@ person, please let us know on IRC.
 
 These are known issues and workarounds for various platforms.
 
- * **macOS**: you must set the `LIBTOOLIZE` environment variable to point to glibtoolize before running autogen.sh:
-
-   ```bash
-   brew install libtool
-   export LIBTOOLIZE="/usr/local/bin/glibtoolize"
-   ./autogen.sh
-   ```
-
  * **FreeBSD**: if you are compiling with ipv6 you may experience
    problems with ipv4 due to the way the socket code is written.  To
    fix this you must: `sysctl net.inet6.ip6.v6only=0`
 
  * **Solaris**: you may have to set your `PATH` to include `/usr/gnu/bin` and `/usr/gnu/sbin` before `/usr/bin`
-   and `/usr/sbin`. Solaris's default tools don't seem to play nicely with the configure script. When running
-   as a 32-bit binary, it should be started as:
+   and `/usr/sbin`. When running as a 32-bit binary, it should be started as:
 
    ```bash
    ulimit -n 4095 ; LD_PRELOAD_32=/usr/lib/extendedFILE.so.1 ./solanum
@@ -46,26 +37,28 @@ These are known issues and workarounds for various platforms.
 # building
 
 ```bash
-sudo apt install build-essential pkg-config automake libtool libsqlite3-dev # or equivalent for your distribution
-./autogen.sh
-./configure --prefix=/path/to/installation
-make
-make check # run tests
-make install
+sudo apt install build-essential pkg-config meson ninja-build libsqlite3-dev flex bison # or equivalent for your distribution
+meson setup build --optimization 2 --prefix=/path/to/installation
+meson compile -C build/
+meson test -C build/
+meson install -C build/
 ```
 
-See `./configure --help` for build options.
+See `meson configure build/` for build options.
 
 # feature specific requirements
 
  * For SSL/TLS client and server connections, one of:
 
-   * OpenSSL 1.0.0 or newer (`--enable-openssl`)
-   * LibreSSL (`--enable-openssl`)
-   * mbedTLS (`--enable-mbedtls`)
-   * GnuTLS (`--enable-gnutls`)
+   * OpenSSL 1.1.0 or newer (`-Dopenssl=enabled`)
+   * LibreSSL (`-Dopenssl=enabled`)
+   * mbedTLS (`-Dmbedtls=enabled`)
+   * GnuTLS (`-Dgnutls=enabled`)
 
- * For certificate-based oper CHALLENGE, OpenSSL 1.0.0 or newer.
+   If multiple TLS libraries are available, the build system will prefer mbedTLS > OpenSSL > GnuTLS.
+   Use `=enabled` instead of `=auto` to force a specific library.
+
+ * For certificate-based oper CHALLENGE, OpenSSL 1.1.0 or newer.
    (Using CHALLENGE is not recommended for new deployments, so if you want to use a different TLS library,
     feel free.)
 

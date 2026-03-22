@@ -44,7 +44,7 @@ static const char description[] = "Provides the REMOVE command, an alternative t
 static void m_remove(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void remove_quote_part(void *);
 
-unsigned int CAP_REMOVE;
+uint64_t CAP_REMOVE;
 static char part_buf[REASONLEN + 1];
 
 struct Message remove_msgtab = {

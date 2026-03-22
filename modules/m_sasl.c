@@ -52,7 +52,7 @@ static void me_mechlist(struct MsgBuf *, struct Client *, struct Client *, int, 
 static void abort_sasl(void *);
 static void abort_sasl_exit(void *);
 
-static unsigned int CLICAP_SASL = 0;
+static uint64_t CLICAP_SASL = 0;
 static char mechlist_buf[BUFSIZE];
 
 struct Message authenticate_msgtab = {
@@ -109,7 +109,7 @@ m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 	struct Client *saslserv_p = NULL;
 
 	/* They really should use CAP for their own sake. */
-	if(!IsCapable(source_p, CLICAP_SASL))
+	if (!IsClientCapable(source_p, CLICAP_SASL))
 		return;
 
 	if(source_p->localClient->sasl_next_retry > rb_current_time())

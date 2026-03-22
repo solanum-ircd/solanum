@@ -133,9 +133,9 @@ extern struct remote_conf *make_remote_conf(void);
 extern void free_remote_conf(struct remote_conf *);
 
 extern void propagate_generic(struct Client *source_p, const char *command,
-		const char *target, int cap, const char *format, ...);
+		const char *target, uint64_t cap, const char *format, ...);
 extern void cluster_generic(struct Client *, const char *, int cltype,
-			int cap, const char *format, ...);
+			uint64_t cap, const char *format, ...);
 
 #define OPER_ENCRYPTED	0x00001
 #define OPER_NEEDSSL    0x80000

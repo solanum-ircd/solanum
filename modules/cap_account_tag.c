@@ -38,7 +38,7 @@ static const char cap_account_tag_desc[] =
 	"Provides the account-tag client capability";
 
 static void cap_account_tag_process(void *);
-unsigned int CLICAP_ACCOUNT_TAG = 0;
+uint64_t CLICAP_ACCOUNT_TAG = 0;
 
 mapi_hfn_list_av1 cap_account_tag_hfnlist[] = {
 	{ "outbound_msgbuf", cap_account_tag_process },
