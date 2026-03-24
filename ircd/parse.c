@@ -137,29 +137,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		return;
 	}
 
-	if(IsDigit(*msgbuf.cmd) && IsDigit(*(msgbuf.cmd + 1)) && IsDigit(*(msgbuf.cmd + 2)))
-	{
-		mptr = NULL;
-		numeric = atoi(msgbuf.cmd);
-		ServerStats.is_num++;
-	}
-	else
-	{
-		mptr = rb_dictionary_retrieve(cmd_dict, msgbuf.cmd);
-
-		/* no command or its encap only, error */
-		if(!mptr || !mptr->cmd)
-		{
-			if(IsPerson(from))
-			{
-				sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
-					   me.name, from->name, msgbuf.cmd);
-			}
-			ServerStats.is_unco++;
-			return;
-		}
-	}
-
 	/* The tags array may be mutated via hooks; this holds the updated array */
 	struct MsgBuf updated_msg;
 	int ntags = msgbuf.n_tags;
@@ -216,6 +193,29 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 	s_assert(incoming_message == NULL);
 	incoming_message = &updated_msg;
 	incoming_client = client_p;
+
+	if (IsDigit(*msgbuf.cmd) && IsDigit(*(msgbuf.cmd + 1)) && IsDigit(*(msgbuf.cmd + 2)))
+	{
+		mptr = NULL;
+		numeric = atoi(msgbuf.cmd);
+		ServerStats.is_num++;
+	}
+	else
+	{
+		mptr = rb_dictionary_retrieve(cmd_dict, msgbuf.cmd);
+
+		/* no command or its encap only, error */
+		if(!mptr || !mptr->cmd)
+		{
+			if(IsPerson(from))
+			{
+				sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
+					   me.name, from->name, msgbuf.cmd);
+			}
+			ServerStats.is_unco++;
+			return;
+		}
+	}
 
 	if (mptr == NULL)
 	{

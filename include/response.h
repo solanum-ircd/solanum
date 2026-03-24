@@ -40,6 +40,8 @@ struct ResponseInfo
 	time_t expires;
 	/* whether a response has already been sent to the local client */
 	bool sent;
+	/* while this is >0, outgoing messages will not be tagged with label/batch even if they otherwise would */
+	int skip_tags;
 };
 
 /* state of an outgoing labeled-response */
@@ -48,11 +50,14 @@ extern struct ResponseInfo *outgoing_response_info;
 /* initialize labeled-response memory */
 void init_response(void);
 
-/* send a labeled-response BATCH to the incoming client for replies that will be generated entirely locally */
+/* send a labeled-response BATCH to the incoming client for replies that will be generated entirely locally.
+ * No-op if a batch is already opened.
+ */
 void begin_local_response_batch(void);
 
 /* send a labeled-response BATCH to the incoming client for replies that will be generated at least partially
- * by remote servers. server_count must be the number of servers expected to send responses back
+ * by remote servers. server_count must be the number of servers expected to send responses back.
+ * If a batch is already opened, adds server_count to the number of servers we're expecting responses from.
  */
 void begin_remote_response_batch(int server_count);
 

@@ -98,7 +98,18 @@ begin_remote_response_batch(int server_count)
 		return;
 
 	if (!EmptyString(outgoing_response_info->batch))
-		return;
+	{
+		/* increase the number of servers we're expecting responses from */
+		outgoing_response_info->remote_response += server_count;
+
+		/* if we're upgrading a local batch to a remote batch, add it to tracking places */
+		if (outgoing_response_info->expires == 0)
+		{
+			outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
+			rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
+			rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
+		}
+	}
 
 	generate_batch_id(outgoing_response_info->batch, sizeof(outgoing_response_info->batch));
 	outgoing_response_info->remote_response = server_count;

@@ -26,6 +26,8 @@
 #include "send.h"
 #include "s_serv.h"
 
+#define IsMeOrServer(x) (IsMe(x) || IsServer(x))
+
 static const char cap_labeled_response_desc[] =
 	"Provides the labeled-response client capability";
 
@@ -144,13 +146,19 @@ cap_labeled_response_process(void *data_)
 
 	if (outgoing_response_info != NULL && MyConnect(outgoing_response_info->source_p))
 	{
-		if (!outgoing_response_info->sent && (data->source_sees_message || outgoing_response_info->source_p == data->target))
+		/* this assumes messages with a server as a source sent to a channel go to all members */
+		bool attach_tags = data->source_sees_message
+			|| outgoing_response_info->source_p == data->target
+			|| (data->chptr != NULL && IsMeOrServer(data->source) && find_channel_membership(data->chptr, outgoing_response_info->source_p) != NULL);
+
+		if (!outgoing_response_info->sent && attach_tags && !outgoing_response_info->skip_tags)
 		{
 			outgoing_response_info->sent = true;
 			msgbuf_append_tag(msgbuf, "label", outgoing_response_info->label, CLICAP_RECEIVE_LABEL);
 		}
 
-		if ((data->source_sees_message || outgoing_response_info->source_p == data->target)
+		if (attach_tags
+			&& !outgoing_response_info->skip_tags
 			&& !EmptyString(outgoing_response_info->batch)
 			&& msgbuf_get_tag(msgbuf, "batch") == NULL
 			&& strcmp(msgbuf->cmd, "BATCH") != 0)
