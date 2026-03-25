@@ -1,6 +1,6 @@
 install_data(
   'ircd.conf.example',
+  'ircd.motd.example',
   'reference.conf',
-  'ircd.motd',
   install_dir: confdir
 )
