@@ -8,7 +8,7 @@ localstatedir	= @localstatedir@
 
 # Local to the etc Makefile
 
-CONFS		= ircd.conf.example reference.conf
+CONFS		= ircd.conf.example ircd.motd.example reference.conf
 
 install-mkdirs:
 	-@if test ! -d $(DESTDIR)$(sysconfdir); then \
@@ -24,11 +24,6 @@ install: install-mkdirs
 		fi; \
 		$(INSTALL_DATA) $$i $(DESTDIR)$(sysconfdir); \
 	done
-
-	-@if test ! -f $(DESTDIR)$(sysconfdir)/ircd.motd; then \
-		echo "ircd: installing motd file (ircd.motd)"; \
-		$(INSTALL_DATA) ircd.motd $(DESTDIR)$(sysconfdir); \
-	fi
 
 	-@if test -f $(DESTDIR)$(sysconfdir)/links.txt; then \
 		$(RM) $(DESTDIR)$(sysconfdir)/links.txt; \
