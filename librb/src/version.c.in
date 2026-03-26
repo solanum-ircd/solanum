@@ -22,7 +22,6 @@
 
 #include "../include/serno.h"
 
-const char *librb_generation = "@GENERATION@";
 const char *librb_serno = SERNO;
 const unsigned long int librb_datecode = DATECODE;
 

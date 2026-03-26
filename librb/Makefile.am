@@ -23,4 +23,3 @@ clean-local:
 	rm -f include/serno.h
 	rm -f include/datecode.h
 	rm -f src/version.c
-	rm -f src/version.c.last
