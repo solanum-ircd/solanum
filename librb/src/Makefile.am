@@ -7,7 +7,6 @@ BUILT_SOURCES = version.c
 
 version.c: version.c.SH ../CREDITS
 	$(SHELL) ./version.c.SH
-	$(CP) version.c version.c.last
 
 version.lo: version.c ../include/serno.h ../include/datecode.h
 	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

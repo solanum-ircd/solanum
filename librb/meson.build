@@ -31,7 +31,6 @@ librb_sources = files(
 
 librb_credits_result = run_command('sed', 's/^$/ /;s/.*/  "&",/', meson.current_source_dir() / 'CREDITS', check: true)
 librb_version_conf = configuration_data()
-librb_version_conf.set('GENERATION', '0')
 librb_version_conf.set('CREDITS', librb_credits_result.stdout())
 librb_version_c = configure_file(
   input: 'src/version.c.in',

@@ -1,31 +1,38 @@
 AUTOMAKE_OPTIONS = foreign
 
-prefix		= @prefix@
-libircddir	= @libdir@
+prefix           = @prefix@
+libircddir       = @libdir@
 
-AM_CPPFLAGS = @LTDLINCL@ -I$(top_srcdir)/include -I$(top_srcdir)/librb/include
-AM_LDFLAGS  = -L$(top_srcdir)/librb/src -export-dynamic -avoid-version -no-undefined
-AM_YFLAGS = -d
+AM_CPPFLAGS      = @LTDLINCL@ -I$(top_srcdir)/include -I$(top_srcdir)/librb/include
+AM_LDFLAGS       = -L$(top_srcdir)/librb/src -export-dynamic -avoid-version -no-undefined
+AM_YFLAGS        = -d
 
-BUILT_SOURCES = ircd_parser.h version.c
+BUILT_SOURCES    = ircd_parser.h
 
-version.c: version.c.SH ../CREDITS ../include/patchlevel.h ../include/serno.h ../include/datecode.h
-	$(SHELL) version.c.SH
-	$(CP) version.c version.c.last
-	touch version.c.SH
+# Force creation.c and version.c to be rebuilt every time make is
+# invoked by declaring one of their prerequisites a phony target
+#
+.PHONY: creation.c.in version.c.in
 
-libircd_la_SOURCES =                  \
-  authproc.c			\
+creation.c: creation.c.SH creation.c.in
+	$(SHELL) $(<) creation.c.in creation.c generation.last
+
+version.c: version.c.SH version.c.in ../CREDITS ../include/datecode.h ../include/patchlevel.h ../include/serno.h
+	$(SHELL) $(<)
+
+libircd_la_SOURCES =            \
+  authproc.c                    \
   bandbi.c                      \
-  batch.c               \
+  batch.c                       \
   cache.c                       \
-  capability.c			\
+  capability.c                  \
   channel.c                     \
   chmode.c                      \
   class.c                       \
   client.c                      \
-	client_tags.c                 \
-  dns.c				\
+  client_tags.c                 \
+  creation.c                    \
+  dns.c                         \
   extban.c                      \
   getopt.c                      \
   hash.c                        \
@@ -40,13 +47,13 @@ libircd_la_SOURCES =                  \
   match.c                       \
   modules.c                     \
   monitor.c                     \
-  msgbuf.c			\
+  msgbuf.c                      \
   newconf.c                     \
   operhash.c                    \
   packet.c                      \
   parse.c                       \
   privilege.c                   \
-  ratelimit.c			\
+  ratelimit.c                   \
   reject.c                      \
   restart.c                     \
   s_conf.c                      \
@@ -63,14 +70,14 @@ libircd_la_SOURCES =                  \
   version.c                     \
   whowas.c
 
-libircd_la_LDFLAGS = $(EXTRA_FLAGS) -avoid-version -no-undefined
-libircd_la_LIBADD = @LIBLTDL@ -L$(top_srcdir)/librb/src -lrb
+libircd_la_LDFLAGS  = $(EXTRA_FLAGS) -avoid-version -no-undefined
+libircd_la_LIBADD   = @LIBLTDL@ -L$(top_srcdir)/librb/src -lrb
 libircd_LTLIBRARIES = libircd.la
 
-bin_PROGRAMS = solanum
+bin_PROGRAMS    = solanum
 solanum_SOURCES = main.c
 solanum_LDFLAGS = $(EXTRA_FLAGS) -dlopen self
-solanum_LDADD = libircd.la -L$(top_srcdir)/librb/src -lrb
+solanum_LDADD   = libircd.la -L$(top_srcdir)/librb/src -lrb
 
 install-exec-hook: install-libircdLTLIBRARIES
 	$(RM) -f version.c

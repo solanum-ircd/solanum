@@ -1,7 +1,9 @@
-ircd_parser = custom_target('ircd_parser',
-  input: 'ircd_parser.y',
-  output: ['ircd_parser.c', 'ircd_parser.h'],
-  command: [bison, '-d', '@INPUT@', '--output=@OUTPUT0@', '--defines=@OUTPUT1@']
+ircd_creation = custom_target('ircd_creation',
+  input: ['creation.c.SH', 'creation.c.in'],
+  output: ['creation.c', 'generation.last'],
+  command: ['sh', '@INPUT@', '@OUTPUT@'],
+  build_always_stale: true,
+  build_by_default: true,
 )
 
 ircd_lexer = custom_target('ircd_lexer',
@@ -10,10 +12,14 @@ ircd_lexer = custom_target('ircd_lexer',
   command: [flex, '-o', '@OUTPUT@', '@INPUT@']
 )
 
+ircd_parser = custom_target('ircd_parser',
+  input: 'ircd_parser.y',
+  output: ['ircd_parser.c', 'ircd_parser.h'],
+  command: [bison, '-d', '@INPUT@', '--output=@OUTPUT0@', '--defines=@OUTPUT1@']
+)
+
 credits_result = run_command('sed', 's/^$/ /;s/.*/  "&",/', meson.project_source_root() / 'CREDITS', check: true)
 ircd_version_conf = configuration_data()
-ircd_version_conf.set('GENERATION', '0')
-ircd_version_conf.set('CREATION', '__DATE__ at __TIME__')
 ircd_version_conf.set('CREDITS', credits_result.stdout())
 ircd_version_conf.set('PACKAGE', meson.project_name())
 ircd_version = configure_file(
@@ -72,7 +78,7 @@ libircd_sources = files(
 libircd_inc = include_directories('../include')
 
 libircd = shared_library('ircd',
-  [libircd_sources, ircd_parser, ircd_lexer, ircd_version, serno_h],
+  [libircd_sources, ircd_creation, ircd_lexer, ircd_parser, ircd_version, serno_h],
   dependencies: [librb_dep, ltdl_dep],
   include_directories: libircd_inc,
   install: true,
