@@ -125,7 +125,7 @@ usage(const char *name)
 
 	for (i = 0; myopts[i].opt; i++)
 	{
-		fprintf(stderr, "\t%c%-10s %-20s%s\n", OPTCHAR,
+		fprintf(stderr, "\t%c%-12s %-20s%s\n", OPTCHAR,
 			myopts[i].opt, (myopts[i].argtype == YESNO
 					|| myopts[i].argtype ==
 					USAGE) ? "" : myopts[i].argtype ==
