@@ -41,6 +41,7 @@
 #include "hook.h"
 #include "s_newconf.h"
 #include "ratelimit.h"
+#include "response.h"
 #include "s_assert.h"
 
 static const char whois_desc[] =
@@ -96,6 +97,7 @@ m_whois(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			/* seeing as this is going across servers, we should limit it */
 			if((last_used + ConfigFileEntry.pace_wait_simple) > rb_current_time() || !ratelimit_client(source_p, 2))
 			{
+				begin_local_response_batch();
 				sendto_one(source_p, form_str(RPL_LOAD2HI),
 					   me.name, source_p->name, "WHOIS");
 				sendto_one_numeric(source_p, RPL_ENDOFWHOIS,
@@ -106,13 +108,14 @@ m_whois(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				last_used = rb_current_time();
 		}
 
-		if(hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1, parc, parv) !=
-		   HUNTED_ISME)
+		if (hunt_server(client_p, source_p, ":%s WHOIS %s :%s", 1, parc, parv) != HUNTED_ISME)
 			return;
 
 		parv[1] = parv[2];
 
 	}
+
+	begin_local_response_batch();
 	do_whois(client_p, source_p, parc, parv);
 }
 

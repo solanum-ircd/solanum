@@ -22,6 +22,7 @@
 #include "capability.h"
 #include "rb_dictionary.h"
 #include "s_assert.h"
+#include "s_serv.h"
 
 static rb_dlink_list capability_indexes = { NULL, NULL, 0 };
 
@@ -72,6 +73,14 @@ capability_put(struct CapabilityIndex *idx, const char *cap, void *ownerdata)
 			s_assert(entry->ownerdata == NULL);
 			entry->ownerdata = ownerdata;
 		}
+
+		if (idx == cli_capindex
+			&& entry->ownerdata != NULL
+			&& (((struct ClientCapability *)entry->ownerdata)->flags & CLICAP_FLAGS_NOPROP) == CLICAP_FLAGS_NOPROP)
+		{
+			serv_clicapmask &= ~(1ull << entry->value);
+		}
+
 		return (1ull << entry->value);
 	}
 
@@ -115,6 +124,13 @@ capability_orphan(struct CapabilityIndex *idx, const char *cap)
 	entry = rb_dictionary_retrieve(idx->cap_dict, cap);
 	if (entry != NULL)
 	{
+		if (idx == cli_capindex
+			&& entry->ownerdata != NULL
+			&& (((struct ClientCapability *)entry->ownerdata)->flags & CLICAP_FLAGS_NOPROP) == CLICAP_FLAGS_NOPROP)
+		{
+			serv_clicapmask |= 1ull << entry->value;
+		}
+
 		entry->flags &= ~CAP_REQUIRED;
 		entry->flags |= CAP_ORPHANED;
 		entry->ownerdata = NULL;

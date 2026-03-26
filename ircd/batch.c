@@ -22,6 +22,7 @@
 #include "stdinc.h"
 #include "batch.h"
 #include "rb_dictionary.h"
+#include "response.h"
 
 static rb_dictionary *handlers = NULL;
 
@@ -65,9 +66,6 @@ generate_batch_id(char *buf, size_t size)
 {
 	static const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-A";
 
-	if (size > BATCH_ID_LEN + 1)
-		size = BATCH_ID_LEN + 1;
-
 	for (size_t i = 0; i < size - 1; i++)
 		buf[i] = alphabet[rand() % 64];
 
@@ -109,6 +107,7 @@ batch_free(struct Batch *batch)
 		batch_free(child);
 	}
 
+	free_response_batch(batch->response_info);
 	rb_free(batch->start->data);
 	rb_free(batch->start);
 	rb_free(batch);
@@ -156,6 +155,8 @@ allocate_batch_message(struct MsgBuf *msg)
 		strcpy(c, msg->tags[i].value);
 		copy->msg.tags[i].value = c;
 		c += strlen(c) + 1;
+
+		copy->msg.tags[i].capmask = msg->tags[i].capmask;
 	}
 
 	copy->msg.n_para = msg->n_para;

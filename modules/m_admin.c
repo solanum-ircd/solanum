@@ -33,6 +33,7 @@
 #include "parse.h"
 #include "hook.h"
 #include "modules.h"
+#include "response.h"
 
 const char admin_desc[] =
 	"Provides the ADMIN command to show server administrator information";
@@ -71,6 +72,7 @@ mr_admin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	else
 		last_used = rb_current_time();
 
+	begin_local_response_batch();
 	do_admin(source_p);
 }
 
@@ -94,10 +96,11 @@ m_admin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		else
 			last_used = rb_current_time();
 
-		if(hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
+		if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
 			return;
 	}
 
+	begin_local_response_batch();
 	do_admin(source_p);
 }
 
@@ -109,9 +112,10 @@ m_admin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 static void
 ms_admin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if(hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s ADMIN :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
+	begin_local_response_batch();
 	do_admin(source_p);
 }
 
