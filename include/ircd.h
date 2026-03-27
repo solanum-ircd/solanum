@@ -100,7 +100,6 @@ extern int testing_conf;
 extern struct ev_entry *check_splitmode_ev;
 
 extern bool ircd_ssl_ok;
-extern bool ircd_zlib_ok;
 extern int maxconnections;
 
 void ircd_shutdown(const char *reason) __attribute__((noreturn));

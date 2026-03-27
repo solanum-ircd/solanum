@@ -515,11 +515,9 @@ do_numeric(int numeric, struct Client *client_p, struct Client *source_p, struct
 	if(parc > 1)
 	{
 		char *t = buffer;	/* Current position within the buffer */
-		int i;
-		int tl;		/* current length of presently being built string in t */
-		for (i = 2; i < (parc - 1); i++)
+		for (size_t i = 2; i < (parc - 1); i++)
 		{
-			tl = sprintf(t, " %s", parv[i]);
+			int tl = sprintf(t, " %s", parv[i]);
 			t += tl;
 		}
 		sprintf(t, " :%s", parv[parc - 1]);

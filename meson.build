@@ -1,6 +1,6 @@
 project('solanum', 'c',
   version: '1.0-dev',
-  default_options: ['c_std=c99', 'warning_level=0'],
+  default_options: ['c_std=gnu17', 'warning_level=0'],
   meson_version: '>=0.62.0', # dependency('dl')
   license: 'GPLv2'
 )
@@ -218,7 +218,12 @@ endif
 conf_data.set_quoted('LT_MODULE_EXT', '.so')
 
 
-c_args = []
+c_args = [
+  '-Wno-unused-parameter',
+  '-Wno-missing-field-initializers',
+  '-Wno-format-zero-length',
+  '-Wno-overlength-strings',
+]
 link_args = []
 
 if get_option('profile')
