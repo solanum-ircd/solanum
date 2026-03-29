@@ -631,6 +631,7 @@ solanum_main(int argc, char * const argv[])
 	init_builtin_capabs();
 	default_server_capabs = CAP_MASK;
 
+	init_hook();
 	init_main_logfile();
 	newconf_init();
 	init_s_conf();
@@ -640,7 +641,6 @@ solanum_main(int argc, char * const argv[])
 	init_host_hash();
 	clear_hash_parse();
 	init_client();
-	init_hook();
 	init_channels();
 	initclass();
 	whowas_init();
