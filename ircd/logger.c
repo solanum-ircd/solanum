@@ -101,36 +101,34 @@ verify_logfile_access(const char *filename)
 		}
 		return;
 	}
-
-	if(access(filename, W_OK) == -1)
-	{
-		snprintf(buf, sizeof(buf), "WARNING: Access denied for logfile %s: %s", filename, strerror(errno));
-		if(testing_conf || server_state_foreground)
-			fprintf(stderr, "%s\n", buf);
-		sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
-		return;
-	}
-	return;
 }
 
 void
 init_main_logfile(void)
 {
+	char buf[512];
 	verify_logfile_access(logFileName);
 	if(log_main == NULL)
 	{
 		log_main = fopen(logFileName, "a");
+		if(log_main == NULL)
+		{
+			snprintf(buf, sizeof(buf), "WARNING: Access denied for logfile %s: %s", logFileName, strerror(errno));
+			if(testing_conf || server_state_foreground)
+				fprintf(stderr, "%s\n", buf);
+			sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
+		}
 	}
 }
 
 void
 open_logfiles(void)
 {
+	char buf[512];
 	int i;
 
 	close_logfiles();
-
-	log_main = fopen(logFileName, "a");
+	init_main_logfile();
 
 	/* log_main is handled above, so just do the rest */
 	for(i = 1; i < LAST_LOGFILE; i++)
@@ -140,6 +138,13 @@ open_logfiles(void)
 		{
 			verify_logfile_access(*log_table[i].name);
 			*log_table[i].logfile = fopen(*log_table[i].name, "a");
+			if(*log_table[i].logfile == NULL)
+			{
+				snprintf(buf, sizeof(buf), "WARNING: Access denied for logfile %s: %s", *log_table[i].name, strerror(errno));
+				if(testing_conf || server_state_foreground)
+					fprintf(stderr, "%s\n", buf);
+				sendto_realops_snomask(SNO_GENERAL, L_ALL, "%s", buf);
+			}
 		}
 	}
 }
@@ -150,7 +155,10 @@ close_logfiles(void)
 	int i;
 
 	if(log_main != NULL)
+	{
 		fclose(log_main);
+		log_main = NULL;
+	}
 
 	/* log_main is handled above, so just do the rest */
 	for(i = 1; i < LAST_LOGFILE; i++)
