@@ -66,6 +66,7 @@ static char buf[BUFSIZE];
  */
 struct CapabilityIndex *serv_capindex = NULL;
 struct CapabilityIndex *cli_capindex = NULL;
+uint64_t serv_clicapmask = UINT64_MAX;
 
 uint64_t CAP_CAP;
 uint64_t CAP_QS;
@@ -90,6 +91,7 @@ uint64_t CAP_MLOCK;
 uint64_t CAP_EBMASK;
 uint64_t CAP_STAG;
 
+uint64_t CLICAP_SERVONLY;
 uint64_t CLICAP_MULTI_PREFIX;
 uint64_t CLICAP_ACCOUNT_NOTIFY;
 uint64_t CLICAP_EXTENDED_JOIN;
@@ -143,6 +145,7 @@ init_builtin_capabs(void)
 
 	cli_capindex = capability_index_create("client capabilities");
 
+	CLICAP_SERVONLY = capability_put_anonymous(cli_capindex);
 	CLICAP_MULTI_PREFIX = capability_put(cli_capindex, "multi-prefix", &high_priority);
 	CLICAP_ACCOUNT_NOTIFY = capability_put(cli_capindex, "account-notify", &high_priority);
 	CLICAP_EXTENDED_JOIN = capability_put(cli_capindex, "extended-join", &high_priority);
