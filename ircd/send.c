@@ -40,7 +40,7 @@
 #include "monitor.h"
 #include "msgbuf.h"
 
-#define CLIENT_CAP_MASK(x)	((x)->from->localClient->client_caps | (IsServerCapable((x)->from, CAP_STAG) ? UINT64_MAX : 0))
+#define CLIENT_CAP_MASK(x)	((x)->from->localClient->client_caps | (IsServerCapable((x)->from, CAP_STAG) ? serv_clicapmask : 0))
 
 static void send_queued_write(rb_fde_t *F, void *data);
 
