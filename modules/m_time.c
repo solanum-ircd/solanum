@@ -70,7 +70,7 @@ m_time(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	if(MyClient(source_p) && !IsFloodDone(source_p))
 		flood_endgrace(source_p);
 
-	if(hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) == HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s TIME :%s", 1, parc, parv) == HUNTED_ISME)
 		sendto_one_numeric(source_p, RPL_TIME, form_str(RPL_TIME),
 				   me.name, date());
 }

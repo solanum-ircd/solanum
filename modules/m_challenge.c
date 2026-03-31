@@ -45,6 +45,7 @@
 #include "s_user.h"
 #include "cache.h"
 #include "s_newconf.h"
+#include "response.h"
 
 #define CHALLENGE_WIDTH BUFSIZE - (NICKLEN + HOSTLEN + 12)
 #define CHALLENGE_EXPIRES	180	/* 180 seconds should be more than long enough */
@@ -114,6 +115,8 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	unsigned char *b_response;
 	size_t cnt;
 	int len = 0;
+
+	begin_local_response_batch();
 
         if (ConfigFileEntry.oper_secure_only && !IsSecureClient(source_p))
         {

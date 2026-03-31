@@ -33,6 +33,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char version_desc[] =
 	"Provides the VERSION command to display server version information";
@@ -78,10 +79,11 @@ m_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		else
 			last_used = rb_current_time();
 
-		if(hunt_server(client_p, source_p, ":%s VERSION :%s", 1, parc, parv) != HUNTED_ISME)
+		if (hunt_server(client_p, source_p, ":%s VERSION :%s", 1, parc, parv) != HUNTED_ISME)
 			return;
 	}
 
+	begin_local_response_batch();
 	sendto_one_numeric(source_p, RPL_VERSION, form_str(RPL_VERSION),
 			   ircd_version, serno,
 #ifdef CUSTOM_BRANDING
@@ -99,8 +101,9 @@ m_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 static void
 mo_version(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if(hunt_server(client_p, source_p, ":%s VERSION :%s", 1, parc, parv) == HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s VERSION :%s", 1, parc, parv) == HUNTED_ISME)
 	{
+		begin_local_response_batch();
 		sendto_one_numeric(source_p, RPL_VERSION, form_str(RPL_VERSION),
 				   ircd_version, serno,
 #ifdef CUSTOM_BRANDING

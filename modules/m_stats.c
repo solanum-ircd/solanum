@@ -45,6 +45,7 @@
 #include "reject.h"
 #include "whowas.h"
 #include "rb_radixtree.h"
+#include "response.h"
 #include "sslproc.h"
 #include "s_assert.h"
 
@@ -209,6 +210,7 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		/* Check the user is actually allowed to do /stats, and isnt flooding */
 		if((last_used + ConfigFileEntry.pace_wait) > rb_current_time())
 		{
+			begin_local_response_batch();
 			/* safe enough to give this on a local connect only */
 			sendto_one(source_p, form_str(RPL_LOAD2HI),
 				   me.name, source_p->name, "STATS");
@@ -220,8 +222,10 @@ m_stats(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 			last_used = rb_current_time();
 	}
 
-	if(hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s STATS %s :%s", 2, parc, parv) != HUNTED_ISME)
 		return;
+
+	begin_local_response_batch();
 
 	hook_data_int data = {
 		.client = source_p,

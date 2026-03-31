@@ -37,6 +37,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 #include "s_newconf.h"
 
 static const char info_desc[] =
@@ -695,9 +696,10 @@ m_info(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	else
 		last_used = rb_current_time();
 
-	if(hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
+	begin_local_response_batch();
 	send_info_text(source_p);
 	send_birthdate_online_time(source_p);
 
@@ -711,21 +713,21 @@ m_info(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 static void
 mo_info(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if(hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) == HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s INFO :%s", 1, parc, parv) != HUNTED_ISME)
+		return;
+
+	begin_local_response_batch();
+	send_info_text(source_p);
+
+	if (IsOperGeneral(source_p))
 	{
-		send_info_text(source_p);
-
-		if(IsOperGeneral(source_p))
-		{
-			send_conf_options(source_p);
-			sendto_one_numeric(source_p, RPL_INFO, ":%s",
-					rb_lib_version());
-		}
-
-		send_birthdate_online_time(source_p);
-
-		sendto_one_numeric(source_p, RPL_ENDOFINFO, form_str(RPL_ENDOFINFO));
+		send_conf_options(source_p);
+		sendto_one_numeric(source_p, RPL_INFO, ":%s", rb_lib_version());
 	}
+
+	send_birthdate_online_time(source_p);
+
+	sendto_one_numeric(source_p, RPL_ENDOFINFO, form_str(RPL_ENDOFINFO));
 }
 
 /*
