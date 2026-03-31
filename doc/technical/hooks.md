@@ -28,6 +28,7 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 | Core      | new_local_user                 | A user connected locally, before introducing to network   |
 | Core      | new_remote_user                | A remote user was introduced, before propagating onward   |
 | Core      | outbound_msgbuf                | A message is about to be sent to one or more targets      |
+| Core      | parse_end                      | We have finished processing an incoming message           |
 | Core      | priv_change                    | An oper's privset changed                                 |
 | Core      | privmsg_channel                | A message or PART is about to be sent to a channel        |
 | Core      | privmsg_user                   | A message is about to be sent to a user                   |
@@ -1086,6 +1087,19 @@ The following send functions currently do not call this hook:
 
 - kill_client
 - kill_client_serv_butone
+
+### parse_end
+
+This hook is called after we have processed an incoming message, including
+sending all relevant responses.
+
+Hook data: always `NULL`
+
+The global state variables `incoming_client` and `incoming_message` are still
+defined at the time this hook is executed. If sending messages from this hook,
+ensure that you choose a priority lower than `HOOK_HIGHEST`; any messages sent
+from hook functions with `HOOK_HIGHEST` or `HOOK_MONITOR` will not have proper
+context for labeled-response.
 
 ### priv_change
 
