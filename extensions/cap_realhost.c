@@ -61,20 +61,20 @@ cap_oper_realhost_visible(struct Client *client)
 static void
 cap_realhost_outbound_msgbuf(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
+	hook_data_outbound_msgbuf *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 
-	if (data->client == NULL || !IsPerson(data->client))
+	if (data->source == NULL || !IsPerson(data->source))
 		return;
 
-	if (!IsIPSpoof(data->client) && !EmptyString(data->client->sockhost) && strcmp(data->client->sockhost, "0"))
+	if (!IsIPSpoof(data->source) && !EmptyString(data->source->sockhost) && strcmp(data->source->sockhost, "0"))
 	{
-		msgbuf_append_tag(msgbuf, "solanum.chat/ip", data->client->sockhost,
-				IsDynSpoof(data->client) ? CLICAP_OPER_REALHOST : CLICAP_REALHOST);
+		msgbuf_append_tag(msgbuf, "solanum.chat/ip", data->source->sockhost,
+				IsDynSpoof(data->source) ? CLICAP_OPER_REALHOST : CLICAP_REALHOST);
 	}
 
-	if (!EmptyString(data->client->orighost))
-		msgbuf_append_tag(msgbuf, "solanum.chat/realhost", data->client->orighost, CLICAP_OPER_REALHOST);
+	if (!EmptyString(data->source->orighost))
+		msgbuf_append_tag(msgbuf, "solanum.chat/realhost", data->source->orighost, CLICAP_OPER_REALHOST);
 }
 
 static inline void

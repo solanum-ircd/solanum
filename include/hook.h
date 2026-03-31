@@ -202,6 +202,15 @@ enum message_type {
 
 typedef struct
 {
+	struct Client *source;
+	struct MsgBuf *msgbuf;
+	struct Client *target;
+	struct Channel *chptr;
+	bool source_sees_message;
+} hook_data_outbound_msgbuf;
+
+typedef struct
+{
 	enum message_type msgtype;
 	struct Client *source_p;
 	struct Channel *chptr;
