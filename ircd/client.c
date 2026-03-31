@@ -53,6 +53,7 @@
 #include "rb_dictionary.h"
 #include "sslproc.h"
 #include "s_assert.h"
+#include "response.h"
 
 #define DEBUG_EXITED_CLIENTS
 
@@ -1718,6 +1719,7 @@ exit_client(struct Client *client_p,	/* The local client originating the
 	)
 {
 	int ret = -1;
+	rb_dlink_node *ptr, *nptr;
 
 	hook_data_client_exit hdata;
 	if(IsClosing(source_p))
@@ -1745,6 +1747,11 @@ exit_client(struct Client *client_p,	/* The local client originating the
 		/* IsUnknown || IsConnecting || IsHandShake */
 		else if(!IsReject(source_p))
 			ret = exit_unknown_client(client_p, source_p, from, comment);
+
+		RB_DLINK_FOREACH_SAFE(ptr, nptr, source_p->localClient->pending_remote_responses.head)
+		{
+			free_response_batch(ptr->data);
+		}
 	}
 	else
 	{
