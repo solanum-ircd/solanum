@@ -1,5 +1,6 @@
 autoload_modules = [
   'cap_account_tag',
+  'cap_labeled_response',
   'cap_server_time',
   'chm_nocolour',
   'chm_noctcp',
