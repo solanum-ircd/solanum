@@ -262,14 +262,16 @@ linebuf_put_msgf(buf_head_t *linebuf, const rb_strf_t *message, const char *form
 
 /* build_msgbuf
  *
- * inputs       - msgbuf object, client the message is from, line (excluding tags), tags to include
+ * inputs       - msgbuf object, client the message is from, target (NULL if multi-target), line (excluding tags), tags to include
  * outputs      - none
  * side effects - a msgbuf object is populated with the full command and relevant tags
  */
 static void
-build_msgbuf(struct MsgBuf *msgbuf, struct Client *from, char *line, size_t n_tags, const struct MsgTag tags[])
+build_msgbuf(struct MsgBuf *msgbuf, struct Client *from,
+	struct Client *target, struct Channel *chptr, bool source_sees_message,
+	char *line, size_t n_tags, const struct MsgTag tags[])
 {
-	hook_data hdata;
+	hook_data_outbound_msgbuf hdata;
 
 	msgbuf_init(msgbuf);
 	msgbuf_partial_parse(msgbuf, line);
@@ -280,8 +282,11 @@ build_msgbuf(struct MsgBuf *msgbuf, struct Client *from, char *line, size_t n_ta
 			msgbuf_append_tag(msgbuf, tags[i].key, tags[i].value, tags[i].capmask);
 	}
 
-	hdata.client = from;
-	hdata.arg1 = msgbuf;
+	hdata.source = from;
+	hdata.msgbuf = msgbuf;
+	hdata.target = target;
+	hdata.chptr = chptr;
+	hdata.source_sees_message = source_sees_message;
 
 	call_hook(h_outbound_msgbuf, &hdata);
 
@@ -312,7 +317,7 @@ sendto_one(struct Client *target_p, const char *pattern, ...)
 	rb_fsnprint(buf, sizeof(buf), &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, 0, NULL);
+	build_msgbuf(&msgbuf, &me, target_p, NULL, false, buf, 0, NULL);
 	send_msgbuf(target_p, &msgbuf);
 }
 
@@ -348,7 +353,8 @@ sendto_one_prefix(struct Client *target_p, struct Client *source_p,
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, buf, 0, NULL);
+	bool receives_message = MyClient(source_p) && source_p == target_p;
+	build_msgbuf(&msgbuf, source_p, target_p, NULL, receives_message, buf, 0, NULL);
 	send_msgbuf(target_p, &msgbuf);
 }
 
@@ -387,7 +393,7 @@ sendto_one_notice(struct Client *target_p, const char *pattern, ...)
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, 0, NULL);
+	build_msgbuf(&msgbuf, &me, target_p, NULL, false, buf, 0, NULL);
 	send_msgbuf(target_p, &msgbuf);
 }
 
@@ -427,7 +433,7 @@ sendto_one_numeric(struct Client *target_p, int numeric, const char *pattern, ..
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, 0, NULL);
+	build_msgbuf(&msgbuf, &me, target_p, NULL, false, buf, 0, NULL);
 	send_msgbuf(target_p, &msgbuf);
 }
 
@@ -457,7 +463,7 @@ sendto_one_tags(struct Client *target_p, uint64_t serv_cap, uint64_t serv_negcap
 	rb_fsnprint(buf, sizeof(buf), &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, n_tags, tags);
+	build_msgbuf(&msgbuf, &me, target_p, NULL, false, buf, n_tags, tags);
 	send_msgbuf(target_p, &msgbuf);
 }
 
@@ -495,7 +501,7 @@ sendto_server_internal(struct Client *one, struct Channel *chptr, uint64_t caps,
 		return;
 
 	rb_fsnprint(buf, sizeof(buf), &strings);
-	build_msgbuf(&msgbuf, &me, buf, n_tags, tags);
+	build_msgbuf(&msgbuf, &me, NULL, chptr, false, buf, n_tags, tags);
 	/* source is already provided as part of format; don't overwrite it with anything else */
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
@@ -606,7 +612,23 @@ sendto_channel_flags_internal(struct Client *one, int type, struct Client *sourc
 		source_p->name, source_p->username, source_p->host);
 
 	rb_fsnprint(buf, sizeof(buf), strings);
-	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
+
+	bool receives_message = false;
+	if (MyClient(source_p))
+	{
+		receives_message = IsClientCapable(source_p, CLICAP_ECHO_MESSAGE);
+		if (!receives_message && (msptr = find_channel_membership(chptr, source_p)) != NULL)
+		{
+			receives_message = source_p != one
+				&& (!type || (msptr->flags & type) != 0)
+				&& !IsDeaf(source_p)
+				&& IsClientCapable(source_p, cli_cap)
+				&& NotClientCapable(source_p, cli_negcap)
+				&& (priv == NULL || HasPrivilege(source_p, priv));
+		}
+	}
+
+	build_msgbuf(&msgbuf, source_p, NULL, chptr, receives_message, buf, n_tags, tags);
 
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, local_source, use_id(source_p));
 
@@ -732,7 +754,22 @@ sendto_channel_opmod_internal(struct Client *one, struct Client *source_p, struc
 		source_p->name, source_p->username, source_p->host);
 
 	snprintf(buf, sizeof(buf), fmt, command, statusmsg_prefix, chptr->chname, text);
-	build_msgbuf(&msgbuf_statusmsg, source_p, buf, n_tags, tags);
+
+	bool receives_message = false;
+	if (MyClient(source_p))
+	{
+		receives_message = IsClientCapable(source_p, CLICAP_ECHO_MESSAGE);
+		if (!receives_message && (msptr = find_channel_membership(chptr, source_p)) != NULL)
+		{
+			receives_message = source_p != one
+				&& (msptr->flags & CHFL_CHANOP) != 0
+				&& !IsDeaf(source_p)
+				&& IsClientCapable(source_p, cli_cap)
+				&& NotClientCapable(source_p, cli_negcap);
+		}
+	}
+
+	build_msgbuf(&msgbuf_statusmsg, source_p, NULL, chptr, receives_message, buf, n_tags, tags);
 	msgbuf_cache_init(&msgbuf_cache_statusmsg, &msgbuf_statusmsg, local_source, use_id(source_p));
 
 	memcpy(&msgbuf_eopmod, &msgbuf_statusmsg, sizeof(struct MsgBuf));
@@ -845,7 +882,18 @@ sendto_channel_local_internal(struct Client *one, int type, struct Client *sourc
 	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 
 	rb_fsnprint(buf, sizeof(buf), &strings);
-	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
+
+	bool receives_message = false;
+	if (MyClient(source_p) && (msptr = find_channel_membership(chptr, source_p)) != NULL)
+	{
+		receives_message = source_p != one
+			&& (!type || (msptr->flags & type) != 0)
+			&& IsClientCapable(source_p, caps)
+			&& NotClientCapable(source_p, negcaps)
+			&& (priv == NULL || HasPrivilege(source_p, priv));
+	}
+
+	build_msgbuf(&msgbuf, source_p, NULL, chptr, receives_message, buf, n_tags, tags);
 
 	/* source is already provided as part of pattern; don't overwrite it with anything else */
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
@@ -1035,7 +1083,12 @@ sendto_common_channels_local_internal(struct Client *one, struct Client *user, u
 	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 	rb_fsnprint(buf, sizeof(buf), &strings);
 
-	build_msgbuf(&msgbuf, user, buf, n_tags, tags);
+	bool receives_message = MyClient(user)
+		&& user != one
+		&& IsClientCapable(user, caps)
+		&& NotClientCapable(user, negcaps);
+
+	build_msgbuf(&msgbuf, user, NULL, NULL, receives_message, buf, n_tags, tags);
 	/* source is already provided as part of pattern; don't overwrite it with anything else */
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
@@ -1191,7 +1244,14 @@ sendto_match_internal(struct Client *one, struct Client *source_p, const char *m
 	snprintf(local_source, sizeof(local_source), IsPerson(source_p) ? "%s!%s@%s" : "%s",
 		source_p->name, source_p->username, source_p->host);
 
-	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
+	bool receives_message = false;
+	if (MyClient(source_p) && IsClientCapable(source_p, cli_cap) && NotClientCapable(source_p, cli_negcap))
+	{
+		receives_message = (what == MATCH_HOST && match(mask, source_p->host))
+			|| (what == MATCH_SERVER && match(mask, me.name));
+	}
+
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, receives_message, buf, n_tags, tags);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, local_source, use_id(source_p));
 
 	if (what == MATCH_HOST)
@@ -1288,7 +1348,7 @@ sendto_match_servs_internal(struct Client *source_p, const char *mask, uint64_t 
 	int used = snprintf(buf, sizeof(buf), ":%s ", use_id(source_p));
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 
-	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, false, buf, n_tags, tags);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	current_serial++;
@@ -1376,7 +1436,7 @@ sendto_local_clients_with_capability(uint64_t cap, const char *pattern, ...)
 	rb_fsnprint(buf, sizeof(buf), &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, 0, NULL);
+	build_msgbuf(&msgbuf, &me, NULL, NULL, false, buf, 0, NULL);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	RB_DLINK_FOREACH(ptr, lclient_list.head)
@@ -1414,7 +1474,7 @@ sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *patt
 	rb_fsnprint(buf, sizeof(buf), &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, buf, 0, NULL);
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, false, buf, 0, NULL);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, monptr->users.head)
@@ -1459,7 +1519,8 @@ sendto_anywhere_internal(struct Client *dest_p, struct Client *target_p,
 			get_id(source_p, target_p), command, get_id(target_p, target_p));
 
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
-	build_msgbuf(&msgbuf, source_p, buf, n_tags, tags);
+	bool receives_message = MyClient(source_p) && source_p == dest_p;
+	build_msgbuf(&msgbuf, source_p, dest_p, NULL, receives_message, buf, n_tags, tags);
 	send_msgbuf(dest_p, &msgbuf);
 }
 
@@ -1543,7 +1604,7 @@ sendto_realops_snomask(int flags, int level, const char *pattern, ...)
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, &me, buf, 0, NULL);
+	build_msgbuf(&msgbuf, &me, NULL, NULL, false, buf, 0, NULL);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	/* Be very sure not to do things like "Trying to send to myself"
@@ -1607,7 +1668,15 @@ sendto_realops_snomask_from(int flags, int level, struct Client *source_p,
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, buf, 0, NULL);
+	bool receives_message = false;
+	if (MyClient(source_p) && (source_p->snomask & flags) != 0)
+	{
+		receives_message = (level == L_ADMIN && IsOperAdmin(source_p))
+			|| (level == L_OPER && !IsOperAdmin(source_p))
+			|| (level != L_OPER && level != L_ADMIN);
+	}
+
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, receives_message, buf, 0, NULL);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, local_oper_list.head)
@@ -1656,7 +1725,8 @@ sendto_wallops_flags(int flags, struct Client *source_p, const char *pattern, ..
 	rb_fsnprint(buf + used, sizeof(buf) - used, &strings);
 	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, buf, 0, NULL);
+	bool receives_message = MyClient(source_p) && (source_p->umodes & flags) != 0;
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, receives_message, buf, 0, NULL);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, IsPerson(source_p) && flags == UMODE_WALLOP ? lclient_list.head : local_oper_list.head)
