@@ -48,10 +48,12 @@ struct Channel;
 /* Capabilities */
 extern struct CapabilityIndex *serv_capindex;
 extern struct CapabilityIndex *cli_capindex;
+extern uint64_t serv_clicapmask;
 
 /* register client capabilities with this structure for 3.2 enhanced capability negotiation */
 #define CLICAP_FLAGS_STICKY    0x001
 #define CLICAP_FLAGS_PRIORITY  0x002
+#define CLICAP_FLAGS_NOPROP    0x004
 
 struct ClientCapability {
 	bool (*visible)(struct Client *);		/* whether or not to display the capability.  set to NULL or true return value = displayed */
@@ -60,6 +62,7 @@ struct ClientCapability {
 };
 
 /* builtin client capabilities */
+extern uint64_t CLICAP_SERVONLY;           /* for s2s-only message tag propagation; no client ever has this cap */
 extern uint64_t CLICAP_MULTI_PREFIX;
 extern uint64_t CLICAP_ACCOUNT_NOTIFY;
 extern uint64_t CLICAP_EXTENDED_JOIN;
@@ -104,11 +107,11 @@ extern uint64_t CAP_STAG;			/* supports s2s tags and TAGMSG */
 /*
  * Capability macros.
  */
-#define IsClientCapable(x, cap)         (((x)->localClient->client_caps & (cap)) == cap)
+#define IsClientCapable(x, cap)         (((x)->localClient->client_caps & (cap)) == (cap))
 #define NotClientCapable(x, cap)        (((x)->localClient->client_caps & (cap)) == 0)
 #define SetClientCap(x, cap)            ((x)->localClient->client_caps |= (cap))
 #define ClearClientCap(x, cap)          ((x)->localClient->client_caps &= ~(cap))
-#define IsServerCapable(x, cap)         (((x)->localClient->server_caps & (cap)) == cap)
+#define IsServerCapable(x, cap)         (((x)->localClient->server_caps & (cap)) == (cap))
 #define NotServerCapable(x, cap)        (((x)->localClient->server_caps & (cap)) == 0)
 #define SetServerCap(x, cap)            ((x)->localClient->server_caps |= (cap))
 #define ClearServerCap(x, cap)          ((x)->localClient->server_caps &= ~(cap))
