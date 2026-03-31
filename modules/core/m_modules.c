@@ -33,6 +33,7 @@
 #include "send.h"
 #include "packet.h"
 #include "logger.h"
+#include "response.h"
 
 static const char modules_desc[] = "Provides module management commands";
 
@@ -184,12 +185,14 @@ mo_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 
 	if(parc > 2)
 	{
+		begin_remote_response_batch(count_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS));
 		sendto_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS,
 				"ENCAP %s MODLIST %s", parv[2], parv[1]);
 		if(match(parv[2], me.name) == 0)
 			return;
 	}
 
+	begin_local_response_batch();
 	do_modlist(source_p, parc > 1 ? parv[1] : 0);
 }
 

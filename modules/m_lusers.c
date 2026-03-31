@@ -33,6 +33,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char lusers_desc[] =
 	"Provides the LUSERS command to view the number of current and maximum lusers on a server";
@@ -74,11 +75,11 @@ m_lusers(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		else
 			last_used = rb_current_time();
 
-		if(hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) !=
-			   HUNTED_ISME)
+		if (hunt_server(client_p, source_p, ":%s LUSERS %s :%s", 2, parc, parv) != HUNTED_ISME)
 			return;
 	}
 
+	begin_local_response_batch();
 	show_lusers(source_p);
 }
 

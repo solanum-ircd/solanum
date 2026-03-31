@@ -30,6 +30,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char close_desc[] = "Provides the CLOSE command to clear all unfinished connections";
 
@@ -55,6 +56,8 @@ mo_close(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	rb_dlink_node *ptr;
 	rb_dlink_node *ptr_next;
 	int closed = 0;
+
+	begin_local_response_batch();
 
 	RB_DLINK_FOREACH_SAFE(ptr, ptr_next, unknown_list.head)
 	{

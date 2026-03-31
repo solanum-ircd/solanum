@@ -39,6 +39,7 @@
 #include "packet.h"
 #include "tgchange.h"
 #include "logger.h"
+#include "response.h"
 #include "inline/stringops.h"
 
 static const char topic_desc[] =
@@ -167,6 +168,7 @@ m_topic(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 					me.name, source_p->name, name);
 		else
 		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_TOPIC),
 					me.name, source_p->name, chptr->chname, chptr->topic);
 

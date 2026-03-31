@@ -47,6 +47,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "logger.h"
+#include "response.h"
 
 static const char scan_desc[] =
 	"Provides the SCAN command to show users that have a mode set or cleared";
@@ -207,6 +208,9 @@ scan_umodes(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 			return;
 		}
 	}
+
+	if (list_users)
+		begin_local_response_batch();
 
 	RB_DLINK_FOREACH(tn, target_list->head)
 	{
