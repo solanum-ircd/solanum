@@ -37,6 +37,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 #include "s_newconf.h"
 
 static const char whowas_desc[] =
@@ -77,6 +78,7 @@ m_whowas(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 						ConfigFileEntry.pace_wait_simple
 				) > rb_current_time())
 		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_LOAD2HI),
 				   me.name, source_p->name, "WHOWAS");
 			sendto_one_numeric(source_p, RPL_ENDOFWHOWAS, form_str(RPL_ENDOFWHOWAS),
@@ -92,8 +94,10 @@ m_whowas(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		max = atoi(parv[2]);
 
 	if(parc > 3)
-		if(hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3, parc, parv))
+	{
+		if (hunt_server(client_p, source_p, ":%s WHOWAS %s %s :%s", 3, parc, parv) != HUNTED_ISME)
 			return;
+	}
 
 	if(!MyClient(source_p) && (max <= 0 || max > 20))
 		max = 20;
@@ -105,6 +109,8 @@ m_whowas(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	sendq_limit = get_sendq(client_p) * 9 / 10;
 	whowas_list = whowas_get_list(nick);
+
+	begin_local_response_batch();
 
 	if(whowas_list == NULL)
 	{

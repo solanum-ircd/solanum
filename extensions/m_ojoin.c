@@ -34,6 +34,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "messages.h"
+#include "response.h"
 
 static const char ojoin_desc[] = "Allow admins to forcibly join channels with the OJOIN command";
 
@@ -86,6 +87,8 @@ mo_ojoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if(move_me == 1)
 		parv[1]--;
+
+	begin_local_response_batch();
 
 	sendto_wallops_flags(UMODE_WALLOP, &me,
 			     "OJOIN called for %s by %s!%s@%s",

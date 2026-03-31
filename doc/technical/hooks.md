@@ -28,6 +28,7 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 | Core      | new_local_user                 | A user connected locally, before introducing to network   |
 | Core      | new_remote_user                | A remote user was introduced, before propagating onward   |
 | Core      | outbound_msgbuf                | A message is about to be sent to one or more targets      |
+| Core      | parse_end                      | We have finished processing an incoming message           |
 | Core      | priv_change                    | An oper's privset changed                                 |
 | Core      | privmsg_channel                | A message or PART is about to be sent to a channel        |
 | Core      | privmsg_user                   | A message is about to be sent to a user                   |
@@ -1068,24 +1069,46 @@ Hook functions can manipulate the message tags that would be sent by modifying
 the passed-in data. This hook is only called once per outbound message,
 regardless of how many clients the message will be sent to.
 
-Hook data: `hook_data *`
+Hook data: `hook_data_outbound_msgbuf *`
 
 Fields:
 
-- client (`struct Client *`): The client sending the message
-- arg1 (`struct MsgBuf *`): The message buffer being sent
-- arg2 (`void *`): Unused (always `NULL`)
+- source (`struct Client *`): The client sending the message
+- msgbuf (`struct MsgBuf *`): The message buffer being sent
+- target (`struct Client *`): The single client receiving the message or `NULL`
+- chptr (`struct Channel *`): The channel receiving the message or `NULL`
+- source_sees_message (`bool`): Whether the client sending the message will also receive it
 
-Hook functions can inspect `arg1` and modify it. Any modifications such as the
+Hook functions can inspect `msgbuf` and modify it. Any modifications such as the
 addition or removal of message tags will be sent to the targets of the
 message. To add message tags, call msgbuf_append_tag. To remove tags, set the
 tag's `capmask` to 0. Changing other aspects of the MsgBuf such as the origin
 or parameter array is not recommended and may not function as expected.
 
+The target field will be non-`NULL` when the message is being sent to a single
+client and will be `NULL` for messages sent to channels or that are broadcast
+to potentially many clients. The chptr field will be non-`NULL` when the
+message is being sent to a single channel and will be `NULL` for messages not
+sent to channels or that are sent to everyone in multiple channels. Both
+fields will be `NULL` for broadcast-type messages.
+
 The following send functions currently do not call this hook:
 
 - kill_client
 - kill_client_serv_butone
+
+### parse_end
+
+This hook is called after we have processed an incoming message, including
+sending all relevant responses.
+
+Hook data: always `NULL`
+
+The global state variables `incoming_client` and `incoming_message` are still
+defined at the time this hook is executed. If sending messages from this hook,
+ensure that you choose a priority lower than `HOOK_HIGHEST`; any messages sent
+from hook functions with `HOOK_HIGHEST` or `HOOK_MONITOR` will not have proper
+context for labeled-response.
 
 ### priv_change
 

@@ -33,6 +33,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char accept_desc[] =
 	"Provides the ACCEPT command for use with Caller ID/user mode +g";
@@ -70,6 +71,7 @@ m_accept(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if(*parv[1] == '*')
 	{
+		begin_local_response_batch();
 		list_accepts(source_p);
 		return;
 	}

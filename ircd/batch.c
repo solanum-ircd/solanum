@@ -22,6 +22,7 @@
 #include "stdinc.h"
 #include "batch.h"
 #include "rb_dictionary.h"
+#include "response.h"
 
 static rb_dictionary *handlers = NULL;
 
@@ -65,9 +66,6 @@ generate_batch_id(char *buf, size_t size)
 {
 	static const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-A";
 
-	if (size > BATCH_ID_LEN + 1)
-		size = BATCH_ID_LEN + 1;
-
 	for (size_t i = 0; i < size - 1; i++)
 		buf[i] = alphabet[rand() % 64];
 
@@ -109,6 +107,7 @@ batch_free(struct Batch *batch)
 		batch_free(child);
 	}
 
+	free_response_batch(batch->response_info);
 	rb_free(batch->start->data);
 	rb_free(batch->start);
 	rb_free(batch);
@@ -123,8 +122,12 @@ allocate_batch_message(struct MsgBuf *msg)
 
 	for (int i = 0; i < msg->n_tags; i++)
 	{
+		if (msg->tags[i].key == NULL)
+			continue;
+
 		len += strlen(msg->tags[i].key) + 1;
-		len += strlen(msg->tags[i].value) + 1;
+		if (msg->tags[i].value != NULL)
+			len += strlen(msg->tags[i].value) + 1;
 	}
 
 	for (int i = 0; i < msg->n_para; i++)
@@ -147,15 +150,28 @@ allocate_batch_message(struct MsgBuf *msg)
 
 	copy->msg.n_tags = msg->n_tags;
 	copy->msg.tagslen = msg->tagslen;
+	int j = 0;
 	for (int i = 0; i < msg->n_tags; i++)
 	{
+		if (msg->tags[i].key == NULL)
+		{
+			copy->msg.n_tags--;
+			continue;
+		}
+
 		strcpy(c, msg->tags[i].key);
-		copy->msg.tags[i].key = c;
+		copy->msg.tags[j].key = c;
 		c += strlen(c) + 1;
 
-		strcpy(c, msg->tags[i].value);
-		copy->msg.tags[i].value = c;
-		c += strlen(c) + 1;
+		if (msg->tags[i].value != NULL)
+		{
+			strcpy(c, msg->tags[i].value);
+			copy->msg.tags[j].value = c;
+			c += strlen(c) + 1;
+		}
+
+		copy->msg.tags[j].capmask = msg->tags[i].capmask;
+		j++;
 	}
 
 	copy->msg.n_para = msg->n_para;

@@ -47,6 +47,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "logger.h"
+#include "response.h"
 #include "supported.h"
 
 static const char etrace_desc[] =
@@ -106,24 +107,37 @@ mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if(parc > 1 && !EmptyString(parv[1]))
 	{
 		if(!irccmp(parv[1], "-full"))
+		{
+			begin_local_response_batch();
 			do_etrace_full(source_p);
+		}
 		else if(!irccmp(parv[1], "-v6"))
+		{
+			begin_local_response_batch();
 			do_etrace(source_p, 0, 1);
+		}
 		else if(!irccmp(parv[1], "-v4"))
+		{
+			begin_local_response_batch();
 			do_etrace(source_p, 1, 0);
+		}
 		else
 		{
 			struct Client *target_p = find_named_person(parv[1]);
 
 			if(target_p)
 			{
-				if(!MyClient(target_p))
+				if (!MyClient(target_p))
+				{
+					begin_remote_response_batch(1);
 					sendto_one(target_p, ":%s ENCAP %s ETRACE %s",
 						get_id(source_p, target_p),
 						target_p->servptr->name,
 						get_id(target_p, target_p));
+				}
 				else
 				{
+					begin_local_response_batch();
 					do_single_etrace(source_p, target_p);
 					sendto_one_numeric(source_p, RPL_ENDOFTRACE, form_str(RPL_ENDOFTRACE), target_p->name);
 				}
@@ -134,7 +148,10 @@ mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 		}
 	}
 	else
+	{
+		begin_local_response_batch();
 		do_etrace(source_p, 1, 1);
+	}
 }
 
 static void
@@ -267,6 +284,8 @@ m_chantrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		return;
 	}
 
+	begin_local_response_batch();
+
 	RB_DLINK_FOREACH(ptr, chptr->members.head)
 	{
 		msptr = ptr->data;
@@ -373,6 +392,7 @@ mo_masktrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 		return;
 	}
 
+	begin_local_response_batch();
 	match_masktrace(source_p, &global_client_list, username, hostname, name, gecos);
 	sendto_one_numeric(source_p, RPL_ENDOFTRACE, form_str(RPL_ENDOFTRACE), me.name);
 }
