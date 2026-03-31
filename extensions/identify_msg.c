@@ -19,10 +19,10 @@ static mapi_hfn_list_av1 identmsg_hfnlist[] = {
 
 static void identmsg_outbound(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
+	hook_data_outbound_msgbuf *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 
-	if (IsIdentified(data->client))
+	if (IsIdentified(data->source))
 		msgbuf_append_tag(msgbuf, "solanum.chat/identified", NULL, CLICAP_IDENTIFY_MSG);
 }
 
