@@ -75,6 +75,7 @@ int h_priv_change;
 int h_cap_change;
 int h_message_tag;
 int h_message_handler;
+int h_parse_end;
 
 void
 init_hook(void)
@@ -103,6 +104,7 @@ init_hook(void)
 	h_cap_change = register_hook("cap_change");
 	h_message_tag = register_hook("message_tag");
 	h_message_handler = register_hook("message_handler");
+	h_parse_end = register_hook("parse_end");
 }
 
 /* grow_hooktable()
