@@ -279,6 +279,7 @@ struct LocalUser
 
 	uint32_t pending_batch_lines;	/* number of lines held in pending client-initiated batches */
 	rb_dlink_list pending_batches;	/* batches this client started but did not finish */
+	rb_dlink_list pending_remote_responses; /* labeled-response replies we're awaiting from remote servers */
 };
 
 #define AUTHC_F_DEFERRED 0x01
@@ -308,12 +309,21 @@ struct PreClient
 	char id[IDLEN]; /* UID/SID, unique on the network (unverified) */
 };
 
+struct ResponseInfo;
+
 struct ListClient
 {
-	char *chname, *mask, *nomask;
-	unsigned int users_min, users_max;
-	time_t created_min, created_max, topic_min, topic_max;
+	char *chname;
+	char *mask;
+	char *nomask;
+	unsigned int users_min;
+	unsigned int users_max;
+	time_t created_min;
+	time_t created_max;
+	time_t topic_min;
+	time_t topic_max;
 	int operspy;
+	struct ResponseInfo *response_info;
 };
 
 /*

@@ -64,6 +64,7 @@
 #include "bandbi.h"
 #include "authproc.h"
 #include "operhash.h"
+#include "response.h"
 
 static void
 ircd_die_cb(const char *str) __attribute__((noreturn));
@@ -659,6 +660,7 @@ solanum_main(int argc, char * const argv[])
 	init_reject();
 	init_cache();
 	init_monitor();
+	init_response();
 
         construct_cflags_strings();
 
