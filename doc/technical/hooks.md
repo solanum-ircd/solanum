@@ -1069,19 +1069,28 @@ Hook functions can manipulate the message tags that would be sent by modifying
 the passed-in data. This hook is only called once per outbound message,
 regardless of how many clients the message will be sent to.
 
-Hook data: `hook_data *`
+Hook data: `hook_data_outbound_msgbuf *`
 
 Fields:
 
-- client (`struct Client *`): The client sending the message
-- arg1 (`struct MsgBuf *`): The message buffer being sent
-- arg2 (`void *`): Unused (always `NULL`)
+- source (`struct Client *`): The client sending the message
+- msgbuf (`struct MsgBuf *`): The message buffer being sent
+- target (`struct Client *`): The single client receiving the message or `NULL`
+- chptr (`struct Channel *`): The channel receiving the message or `NULL`
+- source_sees_message (`bool`): Whether the client sending the message will also receive it
 
-Hook functions can inspect `arg1` and modify it. Any modifications such as the
+Hook functions can inspect `msgbuf` and modify it. Any modifications such as the
 addition or removal of message tags will be sent to the targets of the
 message. To add message tags, call msgbuf_append_tag. To remove tags, set the
 tag's `capmask` to 0. Changing other aspects of the MsgBuf such as the origin
 or parameter array is not recommended and may not function as expected.
+
+The target field will be non-`NULL` when the message is being sent to a single
+client and will be `NULL` for messages sent to channels or that are broadcast
+to potentially many clients. The chptr field will be non-`NULL` when the
+message is being sent to a single channel and will be `NULL` for messages not
+sent to channels or that are sent to everyone in multiple channels. Both
+fields will be `NULL` for broadcast-type messages.
 
 The following send functions currently do not call this hook:
 

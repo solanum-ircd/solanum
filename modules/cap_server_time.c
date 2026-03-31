@@ -65,10 +65,10 @@ cap_server_time_incoming(void *data_)
 static void
 cap_server_time_process(void *data_)
 {
-	hook_data *data = data_;
+	hook_data_outbound_msgbuf *data = data_;
 	static char buf[BUFSIZE];
 	const char *tagged_time;
-	struct MsgBuf *msgbuf = data->arg1;
+	struct MsgBuf *msgbuf = data->msgbuf;
 	struct timeval tv;
 
 	if (msgbuf_get_tag(msgbuf, "time"))
@@ -80,7 +80,7 @@ cap_server_time_process(void *data_)
 		return;
 	}
 
-	if (data->client != NULL && !IsMe(data->client) && !MyClient(data->client))
+	if (data->source != NULL && !IsMe(data->source) && !MyClient(data->source))
 		return;
 
 	if (!rb_gettimeofday(&tv, NULL)) {
