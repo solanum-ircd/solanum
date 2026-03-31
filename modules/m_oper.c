@@ -38,6 +38,7 @@
 #include "modules.h"
 #include "packet.h"
 #include "cache.h"
+#include "response.h"
 
 static const char oper_desc[] = "Provides the OPER command to become an IRC operator";
 
@@ -151,6 +152,7 @@ m_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	if(match_oper_password(password, oper_p))
 	{
+		begin_local_response_batch();
 		oper_up(source_p, oper_p);
 
 		ilog(L_OPERED, "OPER %s by %s!%s@%s (%s)",
