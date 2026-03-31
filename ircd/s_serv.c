@@ -51,6 +51,7 @@
 #include "reject.h"
 #include "sslproc.h"
 #include "capability.h"
+#include "response.h"
 #include "s_assert.h"
 
 int MaxConnectionCount = 1;
@@ -245,6 +246,7 @@ hunt_server(struct Client *client_p, struct Client *source_p,
 		old = parv[server];
 		parv[server] = get_id(target_p, target_p);
 
+		begin_remote_response_batch(1);
 		sendto_one(target_p, command, get_id(source_p, target_p),
 			   parv[1], parv[2], parv[3], parv[4], parv[5], parv[6], parv[7], parv[8]);
 		parv[server] = old;
