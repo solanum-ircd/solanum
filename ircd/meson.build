@@ -54,6 +54,7 @@ libircd_sources = files(
   'privilege.c',
   'ratelimit.c',
   'reject.c',
+  'response.c',
   'restart.c',
   's_conf.c',
   's_newconf.c',
