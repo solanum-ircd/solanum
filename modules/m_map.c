@@ -24,6 +24,7 @@
 #include "client.h"
 #include "modules.h"
 #include "numeric.h"
+#include "response.h"
 #include "send.h"
 #include "s_conf.h"
 #include "scache.h"
@@ -54,6 +55,8 @@ static char buf[BUFSIZE];
 static void
 m_map(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	begin_local_response_batch();
+
 	if((!IsExemptShide(source_p) && ConfigServerHide.flatten_links) ||
 	   ConfigFileEntry.map_oper_only)
 	{
@@ -72,6 +75,7 @@ m_map(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 static void
 mo_map(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	begin_local_response_batch();
 	dump_map(client_p, &me, buf);
 	scache_send_missing(client_p);
 	sendto_one_numeric(client_p, RPL_MAPEND, form_str(RPL_MAPEND));

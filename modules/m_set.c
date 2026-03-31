@@ -37,6 +37,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char set_desc[] = "Provides the SET command to change server parameters";
 
@@ -548,5 +549,6 @@ mo_set(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		return;
 	}
 
+	begin_local_response_batch();
 	list_quote_commands(source_p);
 }

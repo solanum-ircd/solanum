@@ -33,6 +33,7 @@
 #include "modules.h"
 #include "packet.h"
 #include "messages.h"
+#include "response.h"
 
 static const char findfowards_desc[] = "Allows operators to find forwards to a given channel";
 
@@ -87,6 +88,7 @@ m_findforwards(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 			last_used = rb_current_time();
 	}
 
+	begin_local_response_batch();
 	send_multiline_init(source_p, " ", ":%s NOTICE %s :Forwards for %s: ",
 			me.name,
 			source_p->name,

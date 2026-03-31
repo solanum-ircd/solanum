@@ -35,6 +35,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 #include "s_newconf.h"
 
 static const char names_desc[] = "Provides the NAMES command to view users on a channel";
@@ -82,7 +83,10 @@ m_names(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		}
 
 		if((chptr = find_channel(p)) != NULL)
+		{
+			begin_local_response_batch();
 			channel_member_names(chptr, source_p, 1);
+		}
 		else
 			sendto_one(source_p, form_str(RPL_ENDOFNAMES),
 				   me.name, source_p->name, p);
@@ -93,6 +97,7 @@ m_names(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		{
 			if((last_used + ConfigFileEntry.pace_wait) > rb_current_time())
 			{
+				begin_local_response_batch();
 				sendto_one(source_p, form_str(RPL_LOAD2HI),
 					   me.name, source_p->name, "NAMES");
 				sendto_one(source_p, form_str(RPL_ENDOFNAMES),
@@ -103,6 +108,7 @@ m_names(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 				last_used = rb_current_time();
 		}
 
+		begin_local_response_batch();
 		names_global(source_p);
 		sendto_one(source_p, form_str(RPL_ENDOFNAMES),
 			   me.name, source_p->name, "*");

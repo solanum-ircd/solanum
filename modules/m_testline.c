@@ -38,6 +38,7 @@
 #include "s_conf.h"
 #include "s_newconf.h"
 #include "reject.h"
+#include "response.h"
 
 static const char testline_desc[] = "Provides the ability to test I/K/D/X lines and RESVs";
 
@@ -161,20 +162,24 @@ mo_testline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 			return;
 		}
 		/* Otherwise, aconf is an exempt{} */
-		if(aconf == NULL &&
-				(duration = is_reject_ip((struct sockaddr *)&ip)))
+		if (aconf == NULL && (duration = is_reject_ip((struct sockaddr *)&ip)))
+		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_TESTLINE),
 					me.name, source_p->name,
 					'!',
 					duration / 60L,
 					host, "Reject cache");
-		if(aconf == NULL &&
-				(duration = is_throttle_ip((struct sockaddr *)&ip)))
+		}
+		if (aconf == NULL && (duration = is_throttle_ip((struct sockaddr *)&ip)))
+		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_TESTLINE),
 					me.name, source_p->name,
 					'!',
 					duration / 60L,
 					host, "Throttled");
+		}
 	}
 
 	if (username != NULL)
@@ -323,17 +328,23 @@ mo_testkline(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 		}
 		/* Otherwise, aconf is an exempt{} */
 		if (aconf == NULL && (duration = is_reject_ip((struct sockaddr *)&ip)))
+		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_TESTLINE),
 					me.name, source_p->name,
 					'!',
 					duration / 60L,
 					host, "Reject cache");
+		}
 		if (aconf == NULL && (duration = is_throttle_ip((struct sockaddr *)&ip)))
+		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_TESTLINE),
 					me.name, source_p->name,
 					'!',
 					duration / 60L,
 					host, "Throttled");
+		}
 	}
 
 	if (username != NULL)
