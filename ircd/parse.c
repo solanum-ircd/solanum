@@ -137,29 +137,6 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 		return;
 	}
 
-	if(IsDigit(*msgbuf.cmd) && IsDigit(*(msgbuf.cmd + 1)) && IsDigit(*(msgbuf.cmd + 2)))
-	{
-		mptr = NULL;
-		numeric = atoi(msgbuf.cmd);
-		ServerStats.is_num++;
-	}
-	else
-	{
-		mptr = rb_dictionary_retrieve(cmd_dict, msgbuf.cmd);
-
-		/* no command or its encap only, error */
-		if(!mptr || !mptr->cmd)
-		{
-			if(IsPerson(from))
-			{
-				sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
-					   me.name, from->name, msgbuf.cmd);
-			}
-			ServerStats.is_unco++;
-			return;
-		}
-	}
-
 	/* The tags array may be mutated via hooks; this holds the updated array */
 	struct MsgBuf updated_msg;
 	int ntags = msgbuf.n_tags;
@@ -207,7 +184,10 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 			break;
 
 		case MESSAGE_TAG_DROP:
-			/* entire message is rejected, don't send at all */
+			/* entire message is rejected, don't send at all;
+			 * call parse_end in case any cleanup is needed for tags already processed
+			 */
+			call_hook(h_parse_end, NULL);
 			return;
 		}
 	}
@@ -217,9 +197,30 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 	incoming_message = &updated_msg;
 	incoming_client = client_p;
 
-	if (mptr == NULL)
+	if (IsDigit(*msgbuf.cmd) && IsDigit(*(msgbuf.cmd + 1)) && IsDigit(*(msgbuf.cmd + 2)))
+	{
+		mptr = NULL;
+		numeric = atoi(msgbuf.cmd);
+		ServerStats.is_num++;
+	}
+	else
+	{
+		mptr = rb_dictionary_retrieve(cmd_dict, msgbuf.cmd);
+		numeric = -1;
+	}
+
+	if (numeric != -1)
 	{
 		do_numeric(numeric, client_p, from, &updated_msg);
+	}
+	else if (!mptr || !mptr->cmd)
+	{
+		/* no command or its encap only, error */
+		if (IsPerson(from))
+			sendto_one(from, form_str(ERR_UNKNOWNCOMMAND),
+				   me.name, from->name, msgbuf.cmd);
+
+		ServerStats.is_unco++;
 	}
 	else if (handle_command(mptr, &updated_msg, client_p, from) < -1)
 	{
@@ -244,6 +245,8 @@ parse(struct Client *client_p, char *pbuffer, char *bufend)
 				     p[6], p[7], p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 		}
 	}
+
+	call_hook(h_parse_end, NULL);
 
 	incoming_message = NULL;
 	incoming_client = NULL;
