@@ -70,7 +70,6 @@ static void
 tag_reply_allow(void *data_)
 {
 	hook_data_message_tag *data = data_;
-	time_t ts;
 
 	if (strcmp("+reply", data->key) != 0 || EmptyString(data->value))
 		return;
@@ -139,28 +138,7 @@ tag_reply_allow(void *data_)
 			struct Channel *chptr = find_channel(ch_target);
 			if (chptr == NULL)
 				return;
-
-			ts = chptr->channelts;
 		}
-		else
-		{
-			/* the target must match the UID in the reply tag */
-			struct Client *target_p = find_named_client(data->message->para[1]);
-			if (target_p == NULL)
-				return;
-
-			if (strcmp(target_p->id, data->value + 20) != 0)
-				return;
-
-			ts = target_p->tsinfo;
-		}
-
-		/* reply tag ts must be >= the creation ts of the channel or the connection ts of the user */
-		char ts_buf[11] = {0};
-		memcpy(ts_buf, data->value + 1, 10);
-		time_t reply_ts = strtol(ts_buf, NULL, 10);
-		if (reply_ts < ts)
-			return;
 	}
 
 	data->capmask = CLICAP_MESSAGE_TAGS;
