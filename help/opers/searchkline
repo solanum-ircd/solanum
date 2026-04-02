@@ -1,0 +1,5 @@
+SEARCHKLINE [user@]host
+
+Given a ban mask, report any K/D-lines that match a subset
+of that mask. For example, SEARCHKLINE *@*ample* will report
+a match for a K-line on foo@example.com.
