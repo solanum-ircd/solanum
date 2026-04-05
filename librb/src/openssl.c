@@ -563,6 +563,9 @@ rb_get_random(void *const buf, const size_t length)
 const char *
 rb_get_ssl_strerror(rb_fde_t *const F)
 {
+	if (ERR_GET_LIB(F->ssl_errno) == ERR_LIB_SYS)
+		return strerror(ERR_GET_REASON(F->ssl_errno));
+
 	return rb_ssl_strerror(F->ssl_errno);
 }
 
