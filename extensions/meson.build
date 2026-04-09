@@ -61,6 +61,7 @@ extension_modules = [
   'sno_farconnect',
   'sno_globalnickchange',
   'sno_globaloper',
+  'tag_channel_context',
   'tag_message_id',
   'tag_typing',
   'umode_hide_idle_time',
