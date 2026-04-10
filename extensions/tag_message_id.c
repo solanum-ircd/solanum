@@ -144,7 +144,7 @@ generate_msgid(char *buf, size_t len, struct Client *source_p, const char *targe
 	 */
 	char *encoded = NULL;
 	if (target != NULL)
-		encoded = rb_base64_encode(target, strlen(target));
+		encoded = (char *)rb_base64_encode((const unsigned char *)target, strlen(target));
 
 	snprintf(buf, len, "1%010d%03d%06d%s%s",
 		(unsigned)prev_ts, prev_ms, ctr, source_p->id, encoded == NULL ? "" : encoded);

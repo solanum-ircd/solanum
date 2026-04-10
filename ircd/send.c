@@ -222,27 +222,6 @@ send_queued_write(rb_fde_t *F, void *data)
  * side effects - the linebuf object is cleared, then populated
  */
 static void
-linebuf_put_tags(buf_head_t *linebuf, const struct MsgBuf *msgbuf, const struct Client *target_p, rb_strf_t *message)
-{
-	struct MsgBuf_str_data msgbuf_str_data = { .msgbuf = msgbuf, .caps = CLIENT_CAP_MASK(target_p) };
-	rb_strf_t strings = { .func = msgbuf_unparse_linebuf_tags, .func_args = &msgbuf_str_data, .length = TAGSLEN + 1, .next = message };
-
-	message->length = DATALEN + 1;
-	rb_linebuf_put(linebuf, &strings);
-}
-
-static void
-linebuf_put_tagsf(buf_head_t *linebuf, const struct MsgBuf *msgbuf, const struct Client *target_p, const rb_strf_t *message, const char *format, ...)
-{
-	va_list va;
-	rb_strf_t strings = { .format = format, .format_args = &va, .next = message };
-
-	va_start(va, format);
-	linebuf_put_tags(linebuf, msgbuf, target_p, &strings);
-	va_end(va);
-}
-
-static void
 linebuf_put_msg(buf_head_t *linebuf, rb_strf_t *message)
 {
 	message->length = DATALEN + 1;
@@ -1451,9 +1430,12 @@ sendto_anywhere_internal(struct Client *dest_p, struct Client *target_p,
 	if (!MyClient(dest_p) && (!IsServerCapable(target_p->from, serv_cap) || !NotServerCapable(target_p->from, serv_negcap)))
 		return;
 
-	if (MyClient(dest_p))
-		used = snprintf(buf, sizeof(buf), IsPerson(source_p) ? ":%1$s!%4$s@%5$s %2$s %3$s " : ":%1$s %2$s %3$s ",
-			source_p->name, command, target_p->name, source_p->username, source_p->host);
+	if (MyClient(dest_p) && IsPerson(source_p))
+		used = snprintf(buf, sizeof(buf), ":%s!%s@%s %s %s ",
+			source_p->name, source_p->username, source_p->host, command, target_p->name);
+	else if (MyClient(dest_p))
+		used = snprintf(buf, sizeof(buf), ":%s %s %s ",
+			source_p->name, command, target_p->name);
 	else
 		used = snprintf(buf, sizeof(buf), ":%s %s %s ",
 			get_id(source_p, target_p), command, get_id(target_p, target_p));
@@ -1744,13 +1726,13 @@ kill_client_serv_butone(struct Client *one, struct Client *target_p, const char 
 
 static struct Client *multiline_stashed_target_p;
 static char multiline_prefix[DATALEN+1]; /* allow for null termination */
-static int multiline_prefix_len;
+static size_t multiline_prefix_len;
 static char multiline_separator[2];
-static int multiline_separator_len;
+static size_t multiline_separator_len;
 static char *multiline_item_start;
 static char *multiline_cur;
-static int multiline_cur_len;
-static int multiline_remote_pad;
+static size_t multiline_cur_len;
+static size_t multiline_remote_pad;
 
 bool
 send_multiline_init(struct Client *target_p, const char *separator, const char *format, ...)
@@ -1886,7 +1868,7 @@ send_multiline_fini(struct Client *target_p, const char *format, ...)
 		final_len = vsnprintf(final, sizeof final, format, args);
 		va_end(args);
 
-		if (final_len <= 0 || final_len > multiline_prefix_len)
+		if (final_len <= 0 || (unsigned int)final_len > multiline_prefix_len)
 		{
 			s_assert(false && "Multiline: failure preparing final prefix!");
 			multiline_stashed_target_p = NULL;

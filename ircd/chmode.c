@@ -1354,7 +1354,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 	mbuf = modebuf;
 
-	for (ml = parv[0]; *ml != 0 && ms - modesets < ARRAY_SIZE(modesets); ml++)
+	for (ml = parv[0]; *ml != 0 && (size_t)(ms - modesets) < ARRAY_SIZE(modesets); ml++)
 	{
 		c = *ml;
 		switch (c)

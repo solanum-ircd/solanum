@@ -33,8 +33,8 @@
 #include "client_tags.h"
 
 static struct client_tag_support supported_client_tags[MAX_CLIENT_TAGS];
-static int num_client_tags = 0;
-static int max_client_tags = MAX_CLIENT_TAGS;
+static unsigned int num_client_tags = 0;
+static unsigned int max_client_tags = MAX_CLIENT_TAGS;
 
 int
 add_client_tag(const char *name)
@@ -51,7 +51,7 @@ add_client_tag(const char *name)
 void
 remove_client_tag(const char *name)
 {
-	for (int index = 0; index < num_client_tags; index++)
+	for (unsigned int index = 0; index < num_client_tags; index++)
 	{
 		if (!strcmp(supported_client_tags[index].name, name)) {
 			if (index < num_client_tags - 1)
@@ -68,7 +68,7 @@ format_client_tags(char *dst, size_t dst_sz, const char *individual_fmt, const c
 	size_t start = 0;
 	size_t join_len = strlen(join_sep);
 	*dst = 0;
-	for (size_t index = 0; index < num_client_tags; index++) {
+	for (unsigned int index = 0; index < num_client_tags; index++) {
 		if (start >= dst_sz)
 			break;
 
