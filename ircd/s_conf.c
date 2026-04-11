@@ -67,6 +67,9 @@ rb_dlink_list service_list;
 
 rb_dictionary *prop_bans_dict;
 
+/* used for automatic rehash after loading a module which changes config */
+bool conf_changed = false;
+
 /* internally defined functions */
 static void set_default_conf(void);
 static void validate_conf(void);
@@ -623,13 +626,14 @@ struct rehash_data {
 	bool sig;
 };
 
+static struct rehash_data rehash_sig = { true };
+static struct rehash_data rehash_no_sig = { false };
+
 static void
 service_rehash(void *data_)
 {
 	struct rehash_data *data = data_;
 	bool sig = data->sig;
-
-	rb_free(data);
 
 	rb_dlink_node *n;
 
@@ -675,9 +679,7 @@ service_rehash(void *data_)
 bool
 rehash(bool sig)
 {
-	struct rehash_data *data = rb_malloc(sizeof *data);
-	data->sig = sig;
-	rb_defer(service_rehash, data);
+	rb_defer_once(service_rehash, sig ? &rehash_sig : &rehash_no_sig);
 	return false;
 }
 

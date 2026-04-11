@@ -419,6 +419,8 @@ extern unsigned long cidr_to_bitmask[];
 extern char conffilebuf[BUFSIZE + 1];
 extern int lineno;
 
+extern bool conf_changed;
+
 #define NOT_AUTHORISED  (-1)
 #define I_SOCKET_ERROR  (-2)
 #define I_LINE_FULL     (-3)
