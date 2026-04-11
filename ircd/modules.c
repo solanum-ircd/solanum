@@ -571,6 +571,9 @@ load_a_module(const char *path, bool warn, int origin, bool core)
 		return false;
 	}
 
+	/* flag to determine if a rehash is needed after this module load */
+	conf_changed = false;
+
 	switch (MAPI_VERSION(*mapi_version))
 	{
 	case 1:
@@ -760,6 +763,10 @@ load_a_module(const char *path, bool warn, int origin, bool core)
 	mod->origin = origin;
 	mod->path = rb_strdup(path);
 	rb_dlinkAddTail(mod, &mod->node, &module_list);
+
+	/* queue a rehash if the conf changed */
+	if (conf_changed)
+		rehash(false);
 
 	if(warn)
 	{

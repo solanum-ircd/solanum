@@ -2032,6 +2032,20 @@ rb_defer(void (*fn)(void *), void *data)
 	rb_dlinkAdd(defer, &defer->node, &defer_list);
 }
 
+void
+rb_defer_once(void (*fn)(void *), void *data)
+{
+	rb_dlink_node *ptr;
+	RB_DLINK_FOREACH(ptr, defer_list.head)
+	{
+		struct defer *node = ptr->data;
+		if (node->fn == fn && node->data == data)
+			return;
+	}
+
+	rb_defer(fn, data);
+}
+
 int
 rb_select(unsigned long timeout)
 {

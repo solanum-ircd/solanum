@@ -160,6 +160,7 @@ void rb_setselect(rb_fde_t *, unsigned int type, PF * handler, void *client_data
 void rb_init_netio(void);
 int rb_select(unsigned long);
 void rb_defer(void (*)(void *), void *);
+void rb_defer_once(void (*)(void *), void *);
 int rb_fd_ssl(rb_fde_t *F);
 int rb_get_fd(rb_fde_t *F);
 const char *rb_get_ssl_strerror(rb_fde_t *F);
