@@ -8,52 +8,53 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 
 ## Hook list
 
-| Module    | Hook name                      | Description                                               |
-|-----------|--------------------------------|-----------------------------------------------------------|
-| Core      | after_client_exit              | A user has left the server                                |
-| Core      | burst_client                   | A user was sent to a remote server during a netjoin       |
-| Core      | burst_channel                  | A channel was sent to a remote server during a netjoin    |
-| Core      | burst_finished                 | We finished bursting users/channels during a netjoin      |
-| Core      | can_join                       | A local user is about to join a channel                   |
-| Core      | can_kick                       | A user is about to be kicked from a channel               |
-| Core      | can_send                       | Called when checking if a user can talk on a channel      |
-| Core      | cap_change                     | A user's client capabilities changed                      |
-| Core      | client_exit                    | A user is leaving the server                              |
-| Core      | conf_read_end                  | Called after reading conf files on start or rehash        |
-| Core      | conf_read_start                | Called before reading conf files on start or rehash       |
-| Core      | get_channel_access             | Called when checking a user's privileges on a channel     |
-| Core      | introduce_client               | A user has been introduced to the rest of the network     |
-| Core      | message_handler                | Determine the handler used to process an incoming message |
-| Core      | message_tag                    | Called for each tag on incoming messages                  |
-| Core      | new_local_user                 | A user connected locally, before introducing to network   |
-| Core      | new_remote_user                | A remote user was introduced, before propagating onward   |
-| Core      | outbound_msgbuf                | A message is about to be sent to one or more targets      |
-| Core      | priv_change                    | An oper's privset changed                                 |
-| Core      | privmsg_channel                | A message or PART is about to be sent to a channel        |
-| Core      | privmsg_user                   | A message is about to be sent to a user                   |
-| Core      | rehash                         | The server finished rehashing its conf files              |
-| Core      | server_introduced              | A server has been introduced to the network (pre-burst)   |
-| Core      | server_eob                     | A server has finished processing a netjoin burst from us  |
-| Core      | umode_changed                  | The modes for a user have changed                         |
-| m_info    | doing_info_conf                | Conf entries have been sent to an oper using INFO         |
-| m_invite  | can_invite                     | A local user is about to invite another user to a channel |
-| m_invite  | invite                         | A local user is about to be invited to a channel          |
-| m_join    | can_create_channel             | A user is about to create a channel                       |
-| m_join    | channel_join                   | A user has finished joining a channel                     |
-| m_join    | channel_lowerts                | A remote server gave us a lower TS for a channel          |
-| m_kill    | can_kill                       | A local oper is about to kill a user                      |
-| m_nick    | local_nick_change              | A local user has changed nicknames                        |
-| m_nick    | remote_nick_change             | A remote user has changed nicknames                       |
-| m_quit    | client_quit                    | A user has quit from the network                          |
-| m_stats   | doing_stats                    | A user has run STATS                                      |
-| m_stats   | doing_stats_show_idle          | Called to determine if send/recv data is shown in STATS l |
-| m_trace   | doing_trace_show_idle          | Called to determine if timestamp data is shown in TRACE   |
-| m_version | doing_version_confopts         | Called before sending confopts in VERSION                 |
-| m_who     | doing_who_show_idle            | Called to determine if idle time is shown in WHOX         |
-| m_whois   | doing_whois                    | A local user has run WHOIS                                |
-| m_whois   | doing_whois_channel_visibility | Called to determine which channels to display in WHOIS    |
-| m_whois   | doing_whois_global             | A user has run a remote WHOIS targeting this server       |
-| m_whois   | doing_whois_show_idle          | Called to determine if idle time is shown in WHOIS        |
+| Module     | Hook name                      | Description                                               |
+|------------|--------------------------------|-----------------------------------------------------------|
+| Core       | after_client_exit              | A user has left the server                                |
+| Core       | burst_client                   | A user was sent to a remote server during a netjoin       |
+| Core       | burst_channel                  | A channel was sent to a remote server during a netjoin    |
+| Core       | burst_finished                 | We finished bursting users/channels during a netjoin      |
+| Core       | can_join                       | A local user is about to join a channel                   |
+| Core       | can_kick                       | A user is about to be kicked from a channel               |
+| Core       | can_send                       | Called when checking if a user can talk on a channel      |
+| Core       | cap_change                     | A user's client capabilities changed                      |
+| Core       | client_exit                    | A user is leaving the server                              |
+| Core       | conf_read_end                  | Called after reading conf files on start or rehash        |
+| Core       | conf_read_start                | Called before reading conf files on start or rehash       |
+| Core       | get_channel_access             | Called when checking a user's privileges on a channel     |
+| Core       | introduce_client               | A user has been introduced to the rest of the network     |
+| Core       | message_handler                | Determine the handler used to process an incoming message |
+| Core       | message_tag                    | Called for each tag on incoming messages                  |
+| Core       | new_local_user                 | A user connected locally, before introducing to network   |
+| Core       | new_remote_user                | A remote user was introduced, before propagating onward   |
+| Core       | outbound_msgbuf                | A message is about to be sent to one or more targets      |
+| Core       | priv_change                    | An oper's privset changed                                 |
+| Core       | privmsg_channel                | A message or PART is about to be sent to a channel        |
+| Core       | privmsg_user                   | A message is about to be sent to a user                   |
+| Core       | rehash                         | The server finished rehashing its conf files              |
+| Core       | server_introduced              | A server has been introduced to the network (pre-burst)   |
+| Core       | server_eob                     | A server has finished processing a netjoin burst from us  |
+| Core       | umode_changed                  | The modes for a user have changed                         |
+| m_info     | doing_info_conf                | Conf entries have been sent to an oper using INFO         |
+| m_invite   | can_invite                     | A local user is about to invite another user to a channel |
+| m_invite   | invite                         | A local user is about to be invited to a channel          |
+| m_join     | can_create_channel             | A user is about to create a channel                       |
+| m_join     | channel_join                   | A user has finished joining a channel                     |
+| m_join     | channel_lowerts                | A remote server gave us a lower TS for a channel          |
+| m_kill     | can_kill                       | A local oper is about to kill a user                      |
+| m_nick     | local_nick_change              | A local user has changed nicknames                        |
+| m_nick     | remote_nick_change             | A remote user has changed nicknames                       |
+| m_quit     | client_quit                    | A user has quit from the network                          |
+| m_services | account_change                 | A user's services account has changed                     |
+| m_stats    | doing_stats                    | A user has run STATS                                      |
+| m_stats    | doing_stats_show_idle          | Called to determine if send/recv data is shown in STATS l |
+| m_trace    | doing_trace_show_idle          | Called to determine if timestamp data is shown in TRACE   |
+| m_version  | doing_version_confopts         | Called before sending confopts in VERSION                 |
+| m_who      | doing_who_show_idle            | Called to determine if idle time is shown in WHOX         |
+| m_whois    | doing_whois                    | A local user has run WHOIS                                |
+| m_whois    | doing_whois_channel_visibility | Called to determine which channels to display in WHOIS    |
+| m_whois    | doing_whois_global             | A user has run a remote WHOIS targeting this server       |
+| m_whois    | doing_whois_show_idle          | Called to determine if idle time is shown in WHOIS        |
 
 ## Registering hook functions
 
@@ -132,6 +133,29 @@ between hooked functions and your module, such as if you want other modules to
 be able to pass data back to you by modifying any of the field values.
 
 ## Hook details
+### account_change
+
+This hook is called after a user's services user (account name) has changed.
+The user may be either local or remote. This hook is not called when a user's
+services account changes during registration.
+
+Hook data: `hook_cdata *`
+
+Fields:
+
+- client (`struct Client *`): The user whose services account changed
+- arg1 (`const char *`): The user's previous services account
+- arg2 (`const void *`): Unused (always `NULL`)
+
+The user's updated account is available via `client->user->suser`. If the
+user was previously logged out, `arg1` will be an empty string. If the user
+just logged out, then `client->user->suser` will be an empty string.
+
+Although unlikely, it is possible for the old and updated account names to be
+identical or vary only by casing; no checks are made for this before invoking
+the hook. Hook functions that need to operate only if the services account
+meaningfully changed should compare the two strings via `irccmp()`.
+
 ### after_client_exit
 
 This hook is called after any client (user or server) exits the network. All
