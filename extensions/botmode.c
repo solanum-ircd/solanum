@@ -50,10 +50,15 @@ modinit(void)
 	umode = user_modes['B'] = find_umode_slot();
 	if (!umode)
 		return -1;
+	chmode = cflag_add('B', chm_simple);
+	if (!chmode)
+	{
+		user_modes['B'] = 0;
+		return -1;
+	}
 	
 	construct_umodebuf();
 	add_isupport("BOT", isupport_string, "B");
-	chmode = cflag_add('B', chm_simple);
 	return 0;
 }
 
@@ -63,11 +68,10 @@ moddeinit(void)
 	user_modes['B'] = 0;
 	construct_umodebuf();
 	delete_isupport("BOT");
-	if (chmode)
-		cflag_orphan('B');
+	cflag_orphan('B');
 }
 
-void
+static void
 botmode_can_send(void *data_)
 {
 	hook_data_channel *data = data_;
@@ -98,7 +102,7 @@ botmode_can_send(void *data_)
 	data->approved = CAN_SEND_NO;
 }
 
-void
+static void
 botmode_can_join(void *data_)
 {
 	hook_data_channel *data = data_;
@@ -149,17 +153,17 @@ botmode_can_join(void *data_)
 	data->approved = ERR_CUSTOM;
 }
 
-void
+static void
 botmode_apply_tag(void *data_)
 {
 	hook_data *data = data_;
 	struct MsgBuf *msgbuf = data->arg1;
 
 	if (data->client != NULL && IsBot(data->client) && *data->client->user->suser)
-		msgbuf_append_tag(msgbuf, "bot", data->client->user->suser, CLICAP_MESSAGE_TAGS);
+		msgbuf_append_tag(msgbuf, "bot", NULL, CLICAP_MESSAGE_TAGS);
 }
 
-void
+static void
 botmode_whois(void *data_)
 {
 	hook_data_client *data = data_;
@@ -169,7 +173,7 @@ botmode_whois(void *data_)
 	sendto_one_numeric(data->client, RPL_WHOISBOT, form_str(RPL_WHOISBOT), data->client->name, data->target->name);
 }
 
-void
+static void
 botmode_change(void *data_)
 {
 	hook_data_umode_changed *data = data_;
@@ -181,7 +185,7 @@ botmode_change(void *data_)
 	if (IsBot(data->client) && !(data->oldumodes & umode))
 	{
 		/* Attempted to set botmode while in a channel. TODO: Send error. */
-		data->client->umodes &= !umode;
+		data->client->umodes &= ~umode;
 	}
 	else if (!IsBot(data->client) && (data->oldumodes & umode))
 	{
@@ -190,7 +194,7 @@ botmode_change(void *data_)
 	}
 }
 
-mapi_hfn_list_av1 botmode_hfnlist[] = {
+static mapi_hfn_list_av1 botmode_hfnlist[] = {
 	{ "can_send", botmode_can_send },
 	{ "can_join", botmode_can_join },
 	{ "outbound_msgbuf", botmode_apply_tag },
