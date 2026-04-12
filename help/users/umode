@@ -16,6 +16,8 @@ User modes: (? designates that the umode is provided by an extension
                   based on content.
          +w     - Can see oper wallops.
        ? +x     - Has a cloaked host. May be +h depending on cloaking module
+       ? +B     - Designates this client is a bot. Cannot be set or unset
+                  while joined to channels.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
          +G     - Deny users not on your /ACCEPT list and not in a channel
