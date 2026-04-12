@@ -14,6 +14,8 @@ User modes: (? designates that the umode is provided by an extension
        ? +u     - Receive messages that would otherwise be filtered server side
                   based on content.
          +w     - Can see oper wallops.
+       ? +B     - Designates this client is a bot. Cannot be set or unset
+                  while joined to channels.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.
          +G     - Deny users not on your /ACCEPT list and not in a channel

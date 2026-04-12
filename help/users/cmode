@@ -38,6 +38,7 @@ NO PARAMETERS:
               are disallowed.
   ?  +O     - IRC Operator only channel.
   ?  +A     - IRC server administrator only channel.
+  ?  +B     - Non-oper bots must be invited to join and opped/voiced to talk.
   ?  +T     - No NOTICEs allowed in the channel.
   ?  +S     - Only users connected via SSL/TLS may join the channel while this 
               mode is set. Users already in the channel are not affected.

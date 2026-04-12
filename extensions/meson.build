@@ -1,4 +1,5 @@
 extension_modules = [
+  'botmode',
   'cap_oper',
   'cap_realhost',
   'chantype_dummy',
