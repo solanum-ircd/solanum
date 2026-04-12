@@ -77,14 +77,14 @@ botmode_can_send(void *data_)
 	if (data->approved == CAN_SEND_NO)
 		return;
 
-	if(!IsBot(data->client))
+	if (!IsBot(data->client))
 		return;
 
-	if(!(data->chptr->mode.mode & chmode))
+	if (!(data->chptr->mode.mode & chmode))
 		return;
 
 	/* Allow oper bots to bypass this mode. */
-	if(IsOper(data->client))
+	if (IsOper(data->client))
 		return;
 
 	msptr = find_channel_membership(data->chptr, data->client);
@@ -110,28 +110,28 @@ botmode_can_join(void *data_)
 	rb_dlink_node *ptr;
 
 	/* If join is already blocked, defer. */
-	if(data->approved)
+	if (data->approved)
 		return;
 
-	if(!IsBot(client))
+	if (!IsBot(client))
 		return;
 
-	if(!(chptr->mode.mode & chmode))
+	if (!(chptr->mode.mode & chmode))
 		return;
 
 	/* Allow oper bots to bypass this mode. */
-	if(IsOper(data->client))
+	if (IsOper(data->client))
 		return;
 
 	/* Check for invites. */
 	RB_DLINK_FOREACH(invite, client->user->invited.head)
 	{
-		if(invite->data == chptr)
+		if (invite->data == chptr)
 			return;
 	}
 
 	/* Check for invexes. */
-	if(ConfigChannel.use_invex)
+	if (ConfigChannel.use_invex)
 	{
 		RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
 		{
@@ -175,15 +175,15 @@ botmode_change(void *data_)
 	hook_data_umode_changed *data = data_;
 
 	/* Check if we are in at least one channel. */
-	if(data->client->user->channel.head == NULL)
+	if (data->client->user->channel.head == NULL)
 		return;
 
-	if(IsBot(data->client) && !(data->oldumodes & umode))
+	if (IsBot(data->client) && !(data->oldumodes & umode))
 	{
 		/* Attempted to set botmode while in a channel. TODO: Send error. */
 		data->client->umodes &= !umode;
 	}
-	else if(!IsBot(data->client) && (data->oldumodes & umode))
+	else if (!IsBot(data->client) && (data->oldumodes & umode))
 	{
 		/* Attempted to unset botmode while in a channel. TODO: Send error. */
 		data->client->umodes |= umode;
