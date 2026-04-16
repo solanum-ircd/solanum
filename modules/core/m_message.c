@@ -1074,7 +1074,7 @@ msg_client(enum message_type msgtype,
 	}
 	else
 	{
-		begin_remote_response_batch(1);
+		begin_remote_response_batch(1, target_p->servptr->name);
 		sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
 			msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
 			NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
@@ -1094,7 +1094,7 @@ msg_client_targeted(enum message_type msgtype,
 {
 	s_assert(!IsMe(target_p) && IsServer(target_p));
 
-	begin_remote_response_batch(1);
+	begin_remote_response_batch(1, target_p->servptr->name);
 	sendto_one_tags(target_p,
 		msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
 		NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,

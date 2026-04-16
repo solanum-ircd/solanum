@@ -42,6 +42,8 @@ struct ResponseInfo
 	bool sent;
 	/* while this is >0, outgoing messages will not be tagged with label/batch even if they otherwise would */
 	int skip_tags;
+	/* for remote batches, the server mask dictating which servers we are expecting responses from */
+	char mask[HOSTLEN + 1];
 };
 
 /* state of an outgoing labeled-response */
@@ -57,9 +59,11 @@ void begin_local_response_batch(void);
 
 /* send a labeled-response BATCH to the incoming client for replies that will be generated at least partially
  * by remote servers. server_count must be the number of servers expected to send responses back.
- * If a batch is already opened, adds server_count to the number of servers we're expecting responses from.
+ * mask must be a string (potentially containing * and ? wildcards) that matches servers we need responses from.
+ * If a local batch is already opened, transforms it into a remote batch.
+ * Calling on an existing remote batch is an error.
  */
-void begin_remote_response_batch(int server_count);
+void begin_remote_response_batch(int server_count, const char *mask);
 
 /* Get details for a labeled-response batch with the specified batch ID */
 struct ResponseInfo *get_remote_response_batch(const char *batch);
