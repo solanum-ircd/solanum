@@ -66,6 +66,9 @@ struct ServerStatistics
 	unsigned int is_sbad;	/* failed sasl authentications */
 	unsigned int is_tgch;	/* messages blocked due to target change */
 	unsigned int is_rl;     /* commands blocked due to ratelimit */
+	unsigned int is_cib;    /* number of open client-initiated batches */
+	unsigned int is_cibl;   /* number of queued lines in open client-initiated batches */
+	unsigned int is_rrb;    /* number of open remote response batches */
 };
 
 extern struct ServerStatistics ServerStats;

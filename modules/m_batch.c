@@ -32,6 +32,7 @@
 #include "hook.h"
 #include "modules.h"
 #include "batch.h"
+#include "response.h"
 
 static const char batch_desc[] =
 	"Provides the BATCH command for client-initiated or propagated batches";
@@ -62,6 +63,38 @@ mapi_hfn_list_av1 batch_hfnlist[] = {
 
 DECLARE_MODULE_AV2(batch, batch_modinit, batch_moddeinit, batch_clist, NULL, batch_hfnlist, NULL, NULL, batch_desc);
 
+/* Restore global contextual pointers with the opening BATCH message */
+static void
+restore_global_context(struct Client *client_p, struct Batch *batch)
+{
+	uint64_t CLICAP_LABELED_RESPONSE = capability_get(cli_capindex, "labeled-response", NULL);
+	uint64_t CLICAP_RECEIVE_LABEL = capability_get(cli_capindex, "?receive_label", NULL);
+	if (outgoing_response_info != NULL && MyConnect(outgoing_response_info->source_p) && CLICAP_RECEIVE_LABEL)
+		ClearClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+
+	outgoing_response_info = batch->response_info;
+	incoming_client = client_p;
+	incoming_message = &batch->start->msg;
+
+	if (outgoing_response_info != NULL
+		&& MyConnect(outgoing_response_info->source_p)
+		&& IsClientCapable(outgoing_response_info->source_p, CLICAP_LABELED_RESPONSE | CLICAP_BATCH)
+		&& CLICAP_RECEIVE_LABEL)
+	{
+		SetClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+	}
+}
+
+static void
+reset_global_context(const struct Client *orig_ic, const struct MsgBuf *orig_im, struct ResponseInfo *orig_ori, uint64_t set_cap)
+{
+	outgoing_response_info = orig_ori;
+	incoming_client = orig_ic;
+	incoming_message = orig_im;
+	if (orig_ori != NULL && set_cap)
+		SetClientCap(orig_ori->source_p, set_cap);
+}
+
 static void
 batch_timeout(void *arg)
 {
@@ -79,6 +112,7 @@ batch_timeout(void *arg)
 			batch = ptr->data;
 			if (arg != NULL || batch->expires <= now)
 			{
+				restore_global_context(client, batch);
 				sendto_one(client, ":%s FAIL BATCH TIMEOUT %s :Batch timed out",
 					me.name, batch->tag);
 				client->localClient->pending_batch_lines -= batch->len + 1;
@@ -103,6 +137,9 @@ batch_timeout(void *arg)
 			client->localClient->pending_batch_lines = 0;
 		}
 	}
+
+	/* reset context back to NULL since we're in an event handler */
+	reset_global_context(NULL, NULL, NULL, NOCAPS);
 }
 
 static void
@@ -136,6 +173,7 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		struct Batch *other = ptr->data;
 		if (other->parent == batch)
 		{
+			restore_global_context(client_p, other);
 			if (IsClient(source_p))
 				sendto_one(source_p, ":%s FAIL BATCH INCOMPLETE %s :Nested batch not finished before enclosing batch",
 					me.name, other->tag);
@@ -147,6 +185,7 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 	}
 
 	client_p->localClient->pending_batch_lines -= batch->len + 1;
+	restore_global_context(client_p, batch);
 
 	if (handler == NULL)
 	{
@@ -323,6 +362,10 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		batch->parent = parent;
 		rb_dlinkAddAlloc(batch, &client_p->localClient->pending_batches);
 		client_p->localClient->pending_batch_lines++;
+
+		/* postpone any labeled-response to when the batch completes */
+		batch->response_info = outgoing_response_info;
+		outgoing_response_info = NULL;
 	}
 	else
 	{
@@ -347,7 +390,19 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		}
 		else
 		{
+			/* save off global state since finish_batch() smashes it */
+			uint64_t CLICAP_RECEIVE_LABEL = capability_get(cli_capindex, "?receive_label", NULL);
+			const struct Client *orig_incoming_client = incoming_client;
+			const struct MsgBuf *orig_incoming_message = incoming_message;
+			struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+			bool has_receive_label = outgoing_response_info != NULL
+				&& CLICAP_RECEIVE_LABEL > 0
+				&& IsClientCapable(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+
 			finish_batch(client_p, source_p, batch);
+
+			reset_global_context(orig_incoming_client, orig_incoming_message, orig_outgoing_response_info,
+				has_receive_label ? CLICAP_RECEIVE_LABEL : NOCAPS);
 		}
 	}
 }

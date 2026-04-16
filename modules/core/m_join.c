@@ -42,6 +42,7 @@
 #include "s_assert.h"
 #include "hook.h"
 #include "batch.h"
+#include "response.h"
 
 static const char join_desc[] = "Provides the JOIN and TS6 SJOIN commands to facilitate joining and creating channels";
 
@@ -179,6 +180,11 @@ m_join(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	char *mykey;
 
 	jbuf[0] = '\0';
+
+	/* always batch a labeled-response since they could be trying to join multiple channels;
+	 * easier to have one code path than trying to save some bandwidth in the single-channel case
+	 */
+	begin_local_response_batch();
 
 	/* rebuild the list of channels theyre supposed to be joining.
 	 * this code has a side effect of losing keys, but..

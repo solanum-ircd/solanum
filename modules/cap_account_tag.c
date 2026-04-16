@@ -51,11 +51,11 @@ mapi_cap_list_av2 cap_account_tag_cap_list[] = {
 static void
 cap_account_tag_process(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
+	hook_data_outbound_msgbuf *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 
-	if (data->client != NULL && IsPerson(data->client) && *data->client->user->suser)
-		msgbuf_append_tag(msgbuf, "account", data->client->user->suser, CLICAP_ACCOUNT_TAG);
+	if (data->source != NULL && IsPerson(data->source) && *data->source->user->suser)
+		msgbuf_append_tag(msgbuf, "account", data->source->user->suser, CLICAP_ACCOUNT_TAG);
 }
 
 DECLARE_MODULE_AV2(cap_account_tag, NULL, NULL, NULL, NULL, cap_account_tag_hfnlist, cap_account_tag_cap_list, NULL, cap_account_tag_desc);

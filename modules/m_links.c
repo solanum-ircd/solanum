@@ -34,6 +34,7 @@
 #include "parse.h"
 #include "modules.h"
 #include "hook.h"
+#include "response.h"
 #include "scache.h"
 #include "s_assert.h"
 
@@ -70,7 +71,10 @@ static void
 m_links(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	if(ConfigServerHide.flatten_links && !IsExemptShide(source_p))
+	{
+		begin_local_response_batch();
 		scache_send_flattened_links(source_p);
+	}
 	else
 		mo_links(msgbuf_p, client_p, source_p, parc, parv);
 }
@@ -87,10 +91,10 @@ mo_links(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 	if(parc > 2)
 	{
-		if(strlen(parv[2]) > HOSTLEN)
+		if (strlen(parv[2]) > HOSTLEN)
 			return;
-		if(hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv)
-		   != HUNTED_ISME)
+
+		if (hunt_server(client_p, source_p, ":%s LINKS %s :%s", 1, parc, parv) != HUNTED_ISME)
 			return;
 
 		mask = parv[2];
@@ -106,6 +110,7 @@ mo_links(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	hd.arg1 = mask;
 	hd.arg2 = NULL;
 
+	begin_local_response_batch();
 	call_hook(doing_links_hook, &hd);
 
 	RB_DLINK_FOREACH(ptr, global_serv_list.head)

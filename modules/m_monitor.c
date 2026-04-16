@@ -35,6 +35,7 @@
 #include "modules.h"
 #include "monitor.h"
 #include "numeric.h"
+#include "response.h"
 #include "s_conf.h"
 #include "send.h"
 #include "supported.h"
@@ -280,6 +281,7 @@ m_monitor(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 				return;
 			}
 
+			begin_local_response_batch();
 			add_monitor(source_p, parv[2]);
 			break;
 		case '-':
@@ -300,11 +302,13 @@ m_monitor(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 
 		case 'L':
 		case 'l':
+			begin_local_response_batch();
 			list_monitor(source_p);
 			break;
 
 		case 'S':
 		case 's':
+			begin_local_response_batch();
 			show_monitor_status(source_p);
 			break;
 

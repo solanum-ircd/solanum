@@ -43,6 +43,7 @@
 #include "send.h"
 #include "s_conf.h"
 #include "hash.h"
+#include "response.h"
 
 static const char cap_desc[] = "Provides the commands used for client capability negotiation";
 
@@ -282,6 +283,7 @@ static void
 cap_list(struct Client *source_p, const char *arg)
 {
 	/* list of what theyre currently using */
+	begin_local_response_batch();
 	clicap_generate(source_p, "LIST",
 			source_p->localClient->client_caps ? source_p->localClient->client_caps : -1);
 }
@@ -304,6 +306,7 @@ cap_ls(struct Client *source_p, const char *arg)
 	}
 
 	/* list of what we support */
+	begin_local_response_batch();
 	clicap_generate(source_p, "LS", 0);
 }
 
@@ -322,6 +325,8 @@ cap_req(struct Client *source_p, const char *arg)
 
 	if(EmptyString(arg))
 		return;
+
+	begin_local_response_batch();
 
 	ret = snprintf(ack_buf, sizeof ack_buf, ":%s CAP %s ACK :%s",
 			me.name, EmptyString(source_p->name)? "*" : source_p->name, arg);

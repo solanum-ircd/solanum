@@ -35,6 +35,7 @@
 #include "s_conf.h"
 #include "cache.h"
 #include "ratelimit.h"
+#include "response.h"
 
 static const char motd_desc[] = "Provides the MOTD command to view the Message of the Day";
 
@@ -63,6 +64,7 @@ m_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		/* do nothing */
 	} else if ((last_used + ConfigFileEntry.pace_wait) > rb_current_time() || !ratelimit_client(source_p, 6)) {
 		/* safe enough to give this on a local connect only */
+		begin_local_response_batch();
 		sendto_one(source_p, form_str(RPL_LOAD2HI),
 			   me.name, source_p->name, "MOTD");
 		sendto_one(source_p, form_str(RPL_ENDOFMOTD),
@@ -72,9 +74,10 @@ m_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		last_used = rb_current_time();
 	}
 
-	if(hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
+	begin_local_response_batch();
 	send_user_motd(source_p);
 }
 
@@ -85,8 +88,9 @@ m_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 static void
 mo_motd(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if(hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s MOTD :%s", 1, parc, parv) != HUNTED_ISME)
 		return;
 
+	begin_local_response_batch();
 	send_user_motd(source_p);
 }

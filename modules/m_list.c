@@ -50,6 +50,7 @@
 #include "s_assert.h"
 #include "logger.h"
 #include "rb_radixtree.h"
+#include "response.h"
 
 static const char list_desc[] = "Provides the LIST command to clients to view non-hidden channels";
 
@@ -72,6 +73,9 @@ static void safelist_client_release(struct Client *);
 static void safelist_iterate_client(struct Client *source_p);
 static void safelist_iterate_clients(void *unused);
 static void safelist_channel_named(struct Client *source_p, const char *name, int operspy);
+
+static uint64_t restore_global_context(struct Client *);
+static void reset_global_context(struct ResponseInfo *, uint64_t);
 
 struct Message list_msgtab = {
 	"LIST", 0, 0, 0, 0,
@@ -107,7 +111,30 @@ static int _modinit(void)
 
 static void _moddeinit(void)
 {
+	rb_dlink_node *n, *n2;
+	struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+	uint64_t set_cap = NOCAPS;
+	bool first = true;
+
 	rb_event_delete(iterate_clients_ev);
+
+	RB_DLINK_FOREACH_SAFE(n, n2, safelisting_clients.head)
+	{
+		struct Client *source_p = n->data;
+		if (first)
+		{
+			set_cap = restore_global_context(source_p);
+			first = false;
+		}
+		else
+			restore_global_context(source_p);
+
+		sendto_one_notice(source_p, ":/LIST aborted");
+		safelist_client_release(source_p);
+	}
+
+	if (!first)
+		reset_global_context(orig_outgoing_response_info, set_cap);
 
 	delete_isupport("SAFELIST");
 	delete_isupport("ELIST");
@@ -121,7 +148,11 @@ static void safelist_check_cliexit(void *data)
 	 */
 	if (MyClient(hdata->target) && hdata->target->localClient->safelist_data != NULL)
 	{
+		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+		uint64_t set_cap = restore_global_context(hdata->target);
+		sendto_one_notice(hdata->target, ":/LIST aborted");
 		safelist_client_release(hdata->target);
+		reset_global_context(orig_outgoing_response_info, set_cap);
 	}
 }
 
@@ -138,8 +169,11 @@ m_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 
 	if (source_p->localClient->safelist_data != NULL)
 	{
+		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+		uint64_t set_cap = restore_global_context(source_p);
 		sendto_one_notice(source_p, ":/LIST aborted");
 		safelist_client_release(source_p);
+		reset_global_context(orig_outgoing_response_info, set_cap);
 		return;
 	}
 
@@ -148,6 +182,7 @@ m_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		/* pace this due to the sheer traffic involved */
 		if (((last_used + ConfigFileEntry.pace_wait) > rb_current_time()))
 		{
+			begin_local_response_batch();
 			sendto_one(source_p, form_str(RPL_LOAD2HI), me.name, source_p->name, "LIST");
 			sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
 			return;
@@ -173,8 +208,11 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	if (source_p->localClient->safelist_data != NULL)
 	{
+		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+		uint64_t set_cap = restore_global_context(source_p);
 		sendto_one_notice(source_p, ":/LIST aborted");
 		safelist_client_release(source_p);
+		reset_global_context(orig_outgoing_response_info, set_cap);
 		return;
 	}
 
@@ -193,6 +231,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	/* Single channel. */
 	if (args && IsChannelName(args) && !strpbrk(args, "*?, "))
 	{
+		begin_local_response_batch();
 		safelist_channel_named(source_p, args, operspy);
 		return;
 	}
@@ -306,11 +345,16 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		}
 	}
 
+	/* mark it as a "remote" response so we don't terminate the batch at the end of the command handler */
+	begin_remote_response_batch(1, "");
+	params->response_info = outgoing_response_info;
+
 	safelist_client_instantiate(source_p, params);
 	return;
 
 fail:
 	rb_free(params);
+	begin_local_response_batch();
 	sendto_one(source_p, form_str(RPL_LISTSTART), me.name, source_p->name);
 	sendto_one_notice(source_p, ":Invalid parameters for /LIST");
 	sendto_one(source_p, form_str(RPL_LISTEND), me.name, source_p->name);
@@ -391,6 +435,41 @@ static void safelist_client_instantiate(struct Client *client_p, struct ListClie
 	safelist_iterate_client(client_p);
 }
 
+/* Restore global contextual pointers for SAFELIST */
+static uint64_t
+restore_global_context(struct Client *client_p)
+{
+	uint64_t CLICAP_LABELED_RESPONSE = capability_get(cli_capindex, "labeled-response", NULL);
+	uint64_t CLICAP_RECEIVE_LABEL = capability_get(cli_capindex, "?receive_label", NULL);
+	uint64_t set_cap = NOCAPS;
+
+	if (outgoing_response_info != NULL && MyConnect(outgoing_response_info->source_p) && CLICAP_RECEIVE_LABEL)
+	{
+		set_cap = IsClientCapable(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL) ? CLICAP_RECEIVE_LABEL : NOCAPS;
+		ClearClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+	}
+
+	outgoing_response_info = client_p->localClient->safelist_data->response_info;
+
+	if (outgoing_response_info != NULL
+		&& MyConnect(outgoing_response_info->source_p)
+		&& IsClientCapable(outgoing_response_info->source_p, CLICAP_LABELED_RESPONSE | CLICAP_BATCH)
+		&& CLICAP_RECEIVE_LABEL)
+	{
+		SetClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+	}
+
+	return set_cap;
+}
+
+static void
+reset_global_context(struct ResponseInfo *orig, uint64_t set_cap)
+{
+	outgoing_response_info = orig;
+	if (orig != NULL && set_cap)
+		SetClientCap(orig->source_p, set_cap);
+}
+
 /*
  * safelist_client_release()
  *
@@ -401,10 +480,8 @@ static void safelist_client_instantiate(struct Client *client_p, struct ListClie
  */
 static void safelist_client_release(struct Client *client_p)
 {
-	if(!MyClient(client_p))
+	if (!MyClient(client_p))
 		return;
-
-	s_assert(MyClient(client_p));
 
 	rb_dlinkFindDestroy(client_p, &safelisting_clients);
 
@@ -416,6 +493,11 @@ static void safelist_client_release(struct Client *client_p)
 	client_p->localClient->safelist_data = NULL;
 
 	sendto_one(client_p, form_str(RPL_LISTEND), me.name, client_p->name);
+
+	if (outgoing_response_info != NULL)
+		sendto_one(client_p, ":%s BATCH -%s", me.name, outgoing_response_info->batch);
+
+	free_response_batch(outgoing_response_info);
 }
 
 /*
@@ -514,6 +596,8 @@ static void safelist_iterate_client(struct Client *source_p)
 {
 	struct Channel *chptr;
 	rb_radixtree_iteration_state iter;
+	struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
+	uint64_t set_cap = restore_global_context(source_p);
 
 	RB_RADIXTREE_FOREACH_FROM(chptr, &iter, channel_tree, source_p->localClient->safelist_data->chname)
 	{
@@ -521,6 +605,7 @@ static void safelist_iterate_client(struct Client *source_p)
 		{
 			rb_free(source_p->localClient->safelist_data->chname);
 			source_p->localClient->safelist_data->chname = rb_strdup(chptr->chname);
+			outgoing_response_info = orig_outgoing_response_info;
 
 			return;
 		}
@@ -529,6 +614,7 @@ static void safelist_iterate_client(struct Client *source_p)
 	}
 
 	safelist_client_release(source_p);
+	reset_global_context(orig_outgoing_response_info, set_cap);
 }
 
 static void safelist_iterate_clients(void *unused)
