@@ -25,6 +25,7 @@
 #include "client.h"
 #include "response.h"
 #include "send.h"
+#include "s_assert.h"
 #include "s_serv.h"
 
 /* number of seconds we'll wait for remote servers to finish sending their responses
@@ -93,16 +94,17 @@ begin_local_response_batch(void)
 }
 
 void
-begin_remote_response_batch(int server_count)
+begin_remote_response_batch(int server_count, const char *mask)
 {
 	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p))
 		return;
 
 	if (EmptyString(outgoing_response_info->batch))
 	{
-		/* creating a new remote response batch */
+		/* creating a new response batch */
 		generate_batch_id(outgoing_response_info->batch, sizeof(outgoing_response_info->batch));
 		outgoing_response_info->remote_response = server_count;
+		rb_strlcpy(outgoing_response_info->mask, mask, sizeof(outgoing_response_info->mask));
 		outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
 		rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
 		rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
@@ -111,16 +113,14 @@ begin_remote_response_batch(int server_count)
 	}
 	else
 	{
-		/* increase the number of servers we're expecting responses from */
-		outgoing_response_info->remote_response += server_count;
+		/* can only upgrade local batches to remote */
+		s_assert(outgoing_response_info->remote_response == 0);
 
-		/* if we're upgrading a local batch to a remote batch, add it to tracking places */
-		if (outgoing_response_info->expires == 0)
-		{
-			outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
-			rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
-			rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
-		}
+		outgoing_response_info->remote_response += server_count;
+		rb_strlcpy(outgoing_response_info->mask, mask, sizeof(outgoing_response_info->mask));
+		outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
+		rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
+		rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
 	}
 }
 
@@ -167,7 +167,7 @@ count_match_servs(struct Client *one, const char *mask, uint64_t cap, uint64_t n
 	RB_DLINK_FOREACH(ptr, global_serv_list.head)
 	{
 		struct Client *target_p = ptr->data;
-		if (target_p == &me)
+		if (IsMe(target_p))
 			continue;
 
 		if (target_p->from == one->from)

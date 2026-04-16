@@ -58,7 +58,7 @@ mo_grant(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	}
 	else
 	{
-		begin_remote_response_batch(1);
+		begin_remote_response_batch(1, target_p->servptr->name);
 		sendto_one(target_p, ":%s ENCAP %s GRANT %s %s",
 				get_id(source_p, target_p), target_p->servptr->name,
 				get_id(target_p, target_p), parv[2]);

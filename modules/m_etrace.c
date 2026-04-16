@@ -129,7 +129,7 @@ mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 			{
 				if (!MyClient(target_p))
 				{
-					begin_remote_response_batch(1);
+					begin_remote_response_batch(1, target_p->servptr->name);
 					sendto_one(target_p, ":%s ENCAP %s ETRACE %s",
 						get_id(source_p, target_p),
 						target_p->servptr->name,
