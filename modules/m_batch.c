@@ -91,7 +91,7 @@ reset_global_context(const struct Client *orig_ic, const struct MsgBuf *orig_im,
 	outgoing_response_info = orig_ori;
 	incoming_client = orig_ic;
 	incoming_message = orig_im;
-	if (set_cap)
+	if (orig_ori != NULL && set_cap)
 		SetClientCap(orig_ori->source_p, set_cap);
 }
 
