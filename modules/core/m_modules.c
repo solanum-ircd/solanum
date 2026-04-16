@@ -185,7 +185,7 @@ mo_modlist(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 
 	if(parc > 2)
 	{
-		begin_remote_response_batch(count_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS));
+		begin_remote_response_batch(count_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS), parv[2]);
 		sendto_match_servs(source_p, parv[2], CAP_ENCAP, NOCAPS,
 				"ENCAP %s MODLIST %s", parv[2], parv[1]);
 		if(match(parv[2], me.name) == 0)

@@ -99,17 +99,25 @@ cap_labeled_response_incoming(void *data_)
 	}
 	else if (IsServer(data->client) && !strcmp(serv_response_tag, data->key) && !EmptyString(data->value))
 	{
-		/* tag value should be UID,batch_id */
-		char uid[IDLEN] = { 0 };
-		const char *batch_id = strchr(data->value, ',');
-		if (batch_id == NULL)
-			return;
+		/* tag value should be UID,batch_id,mask */
+		char *buf = rb_strdup(data->value);
+		char *p;
+		const char *uid = rb_strtok_r(buf, ",", &p);
+		const char *batch_id = rb_strtok_r(NULL, ",", &p);
+		const char *mask = rb_strtok_r(NULL, ",", &p);
 
-		++batch_id;
-		memcpy(uid, data->value, sizeof(uid) - 1);
+		if (uid == NULL || batch_id == NULL || mask == NULL)
+		{
+			rb_free(buf);
+			return;
+		}
+
 		struct Client *client = find_id(uid);
 		if (client == NULL)
+		{
+			rb_free(buf);
 			return;
+		}
 
 		if (MyConnect(client))
 		{
@@ -120,15 +128,17 @@ cap_labeled_response_incoming(void *data_)
 				SetClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
 			}
 		}
-		else
+		else if (data->client == client->from && match(mask, me.name))
 		{
 			outgoing_response_info = rb_malloc(sizeof(struct ResponseInfo));
 			outgoing_response_info->source_p = client;
 			outgoing_response_info->client_p = client->from;
 			rb_strlcpy(outgoing_response_info->batch, batch_id, sizeof(outgoing_response_info->batch));
+			rb_strlcpy(outgoing_response_info->mask, mask, sizeof(outgoing_response_info->mask));
 			outgoing_response_info->sent = true;
 		}
 
+		rb_free(buf);
 		data->approved = MESSAGE_TAG_ALLOW;
 		data->capmask = CLICAP_SERVONLY;
 	}
@@ -174,8 +184,8 @@ cap_labeled_response_process(void *data_)
 	}
 	else if (outgoing_response_info != NULL && outgoing_response_info->remote_response > 0)
 	{
-		snprintf(response_tag_buf, sizeof(response_tag_buf), "%s,%s",
-			outgoing_response_info->source_p->id, outgoing_response_info->batch);
+		snprintf(response_tag_buf, sizeof(response_tag_buf), "%s,%s,%s",
+			outgoing_response_info->source_p->id, outgoing_response_info->batch, outgoing_response_info->mask);
 		msgbuf_append_tag(msgbuf, serv_response_tag, response_tag_buf, CLICAP_SERVONLY);
 	}
 }

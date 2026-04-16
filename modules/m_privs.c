@@ -182,7 +182,7 @@ mo_privs(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	}
 	else
 	{
-		begin_remote_response_batch(1);
+		begin_remote_response_batch(1, server_p->name);
 		sendto_one(server_p, ":%s ENCAP %s PRIVS %s",
 				get_id(source_p, server_p),
 				server_p->name,
