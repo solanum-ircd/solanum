@@ -42,6 +42,8 @@
 #include "s_stats.h"
 #include "tgchange.h"
 #include "client_tags.h"
+#include "response.h"
+#include "s_assert.h"
 #include "inline/stringops.h"
 
 static const char message_desc[] =
@@ -80,7 +82,12 @@ static uint64_t CAP_ECHO;
 
 struct entity
 {
-	void* ptr;
+	union
+	{
+		struct Client *target_p;
+		struct Channel *chptr;
+	};
+	char mask[NICKLEN + HOSTLEN + 2];
 	int type;
 	int flags;
 };
@@ -140,11 +147,11 @@ static bool flood_attack_client(enum message_type msgtype, struct Client *source
 #define ENTITY_CHANNEL_OPMOD 2
 #define ENTITY_CHANOPS_ON_CHANNEL 3
 #define ENTITY_CLIENT  4
+#define ENTITY_TARGET_ON_SERVER 5
+#define ENTITY_MASS_MESSAGE 6
 
 static struct entity targets[512];
 static int ntargets = 0;
-
-static bool duplicate_ptr(void *);
 
 static void msg_channel(enum message_type msgtype,
 			struct Client *client_p,
@@ -166,9 +173,12 @@ static void msg_client(enum message_type msgtype,
 		       struct Client *source_p, struct Client *target_p, const char *text,
 		       struct MsgBuf *msgbuf_p);
 
-static void handle_special(enum message_type msgtype,
-			   struct Client *client_p, struct Client *source_p, const char *nick,
-			   const char *text, struct MsgBuf *msgbuf_p);
+static void msg_client_targeted(enum message_type msgtype,
+	struct Client *source_p, const char *nick, struct Client *target_p,
+	const char *text, struct MsgBuf *msgbuf_p);
+
+static void msg_mass(enum message_type msgtype, struct Client *client_p,
+	struct Client *source_p, const char *mask, const char *text, struct MsgBuf *msgbuf_p);
 
 /*
 ** m_privmsg
@@ -268,6 +278,10 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	if (text == NULL)
 		text = "";
 
+	/* start a batch for multi-target messages */
+	if (strchr(parv[1], ',') != NULL)
+		begin_local_response_batch();
+
 	build_target_list(msgtype, client_p, source_p, parv[1], text, &msgbuf);
 	if (ntargets <= 0)
 		return;
@@ -277,24 +291,27 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 		switch (targets[i].type)
 		{
 		case ENTITY_CHANNEL:
-			msg_channel(msgtype, client_p, source_p,
-				    (struct Channel *) targets[i].ptr, text, &msgbuf);
+			msg_channel(msgtype, client_p, source_p, targets[i].chptr, text, &msgbuf);
 			break;
 
 		case ENTITY_CHANNEL_OPMOD:
-			msg_channel_opmod(msgtype, client_p, source_p,
-				   (struct Channel *) targets[i].ptr, text, &msgbuf);
+			msg_channel_opmod(msgtype, client_p, source_p, targets[i].chptr, text, &msgbuf);
 			break;
 
 		case ENTITY_CHANOPS_ON_CHANNEL:
-			msg_channel_flags(msgtype, client_p, source_p,
-					  (struct Channel *) targets[i].ptr,
-					  targets[i].flags, text, &msgbuf);
+			msg_channel_flags(msgtype, client_p, source_p, targets[i].chptr, targets[i].flags, text, &msgbuf);
 			break;
 
 		case ENTITY_CLIENT:
-			msg_client(msgtype, source_p,
-				   (struct Client *) targets[i].ptr, text, &msgbuf);
+			msg_client(msgtype, source_p, targets[i].target_p, text, &msgbuf);
+			break;
+
+		case ENTITY_TARGET_ON_SERVER:
+			msg_client_targeted(msgtype, source_p, targets[i].mask, targets[i].target_p, text, &msgbuf);
+			break;
+
+		case ENTITY_MASS_MESSAGE:
+			msg_mass(msgtype, client_p, source_p, targets[i].mask, text, &msgbuf);
 			break;
 		}
 	}
@@ -323,6 +340,43 @@ m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		text = "";
 
 	echo_msg(source_p, target_p, msgtype, parv[3], msgbuf_p);
+}
+
+/*
+ * duplicate_*
+ *
+ * inputs	- pointer to check
+ *		- pointer to table of entities
+ *		- number of valid entities so far
+ * output	- true if duplicate pointer in table, false if not.
+ *		  note, this does the canonize using pointers
+ * side effects	- NONE
+ */
+static bool
+duplicate_client(struct Client *ptr)
+{
+	for (int i = 0; i < ntargets; i++)
+		if (targets[i].target_p == ptr)
+			return true;
+	return false;
+}
+
+static bool
+duplicate_channel(struct Channel *ptr)
+{
+	for (int i = 0; i < ntargets; i++)
+		if (targets[i].chptr == ptr)
+			return true;
+	return false;
+}
+
+static bool
+duplicate_mask(const char *mask)
+{
+	for (int i = 0; i < ntargets; i++)
+		if (!strcmp(targets[i].mask, mask))
+			return true;
+	return false;
 }
 
 /*
@@ -359,6 +413,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 	for(nick = rb_strtok_r(target_list, ",", &p); nick; nick = rb_strtok_r(NULL, ",", &p))
 	{
 		char *with_prefix;
+		rb_strlcpy(targets[ntargets].mask, nick, sizeof(targets[ntargets].mask));
 		/*
 		 * channels are privmsg'd a lot more than other clients, moved up
 		 * here plain old channel msg?
@@ -372,7 +427,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 
 			if((chptr = find_channel(nick)) != NULL)
 			{
-				if(!duplicate_ptr(chptr))
+				if(!duplicate_channel(chptr))
 				{
 					if(ntargets >= ConfigFileEntry.max_targets)
 					{
@@ -380,7 +435,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 							   me.name, source_p->name, nick);
 						return (1);
 					}
-					targets[ntargets].ptr = (void *) chptr;
+					targets[ntargets].chptr = chptr;
 					targets[ntargets++].type = ENTITY_CHANNEL;
 				}
 			}
@@ -401,7 +456,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 		/* look for a privmsg to another client */
 		if(target_p)
 		{
-			if(!duplicate_ptr(target_p))
+			if(!duplicate_client(target_p))
 			{
 				if(ntargets >= ConfigFileEntry.max_targets)
 				{
@@ -409,7 +464,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 						   me.name, source_p->name, nick);
 					return (1);
 				}
-				targets[ntargets].ptr = (void *) target_p;
+				targets[ntargets].target_p = target_p;
 				targets[ntargets].type = ENTITY_CLIENT;
 				targets[ntargets++].flags = 0;
 			}
@@ -461,7 +516,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 					continue;
 				}
 
-				if(!duplicate_ptr(chptr))
+				if(!duplicate_channel(chptr))
 				{
 					if(ntargets >= ConfigFileEntry.max_targets)
 					{
@@ -469,7 +524,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 							   me.name, source_p->name, nick);
 						return (1);
 					}
-					targets[ntargets].ptr = (void *) chptr;
+					targets[ntargets].chptr = chptr;
 					targets[ntargets].type = ENTITY_CHANOPS_ON_CHANNEL;
 					targets[ntargets++].flags = type;
 				}
@@ -488,7 +543,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 			nick++;
 			if((chptr = find_channel(nick)) != NULL)
 			{
-				if(!duplicate_ptr(chptr))
+				if(!duplicate_channel(chptr))
 				{
 					if(ntargets >= ConfigFileEntry.max_targets)
 					{
@@ -496,7 +551,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 							   me.name, source_p->name, nick);
 						return (1);
 					}
-					targets[ntargets].ptr = (void *) chptr;
+					targets[ntargets].chptr = chptr;
 					targets[ntargets++].type = ENTITY_CHANNEL_OPMOD;
 				}
 			}
@@ -509,9 +564,83 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 			continue;
 		}
 
-		if(strchr(nick, '@') || (IsOper(source_p) && (*nick == '$')))
+		char *server = strchr(targets[ntargets].mask, '@');
+		if (server != NULL)
 		{
-			handle_special(msgtype, client_p, source_p, nick, text, msgbuf_p);
+			*server++ = '\0';
+			target_p = find_server(source_p, server);
+			if (target_p == NULL)
+			{
+				if (msgtype == MESSAGE_TYPE_PRIVMSG)
+					sendto_one_numeric(source_p, ERR_NOSUCHSERVER,
+						form_str(ERR_NOSUCHSERVER), server);
+				continue;
+			}
+
+			/* This was not very useful except for bypassing certain
+			 * restrictions. Note that we still allow sending to
+			 * remote servers this way, for messaging pseudoservers
+			 * securely whether they have a service{} block or not.
+			 * -- jilles
+			 */
+			if (IsMe(target_p))
+			{
+				if (msgtype == MESSAGE_TYPE_PRIVMSG)
+					sendto_one_numeric(source_p, ERR_NOSUCHNICK,
+						   form_str(ERR_NOSUCHNICK), nick);
+				continue;
+			}
+
+			if (!duplicate_client(target_p) && !duplicate_mask(targets[ntargets].mask))
+			{
+				if (ntargets >= ConfigFileEntry.max_targets)
+				{
+					sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+						me.name, source_p->name, nick);
+					return 1;
+				}
+
+				targets[ntargets].target_p = target_p;
+				targets[ntargets++].type = ENTITY_TARGET_ON_SERVER;
+			}
+
+			continue;
+		}
+
+		if (*nick == '$')
+		{
+			if (MyClient(source_p) && !IsOperMassNotice(source_p))
+			{
+				if (!IsOper(source_p))
+					sendto_one_numeric(source_p, ERR_NOPRIVILEGES,
+						form_str(ERR_NOPRIVILEGES));
+				else
+					sendto_one(source_p, form_str(ERR_NOPRIVS),
+						me.name, source_p->name, "mass_notice");
+				continue;
+			}
+
+			if (*(nick + 1) != '$' && *(nick + 1) != '#')
+			{
+				sendto_one(source_p,
+					":%s NOTICE %s :The command %s %s is no longer supported, please use $%s",
+					me.name, source_p->name, cmdname[msgtype], nick, nick);
+				continue;
+			}
+
+			if (!duplicate_mask(targets[ntargets].mask))
+			{
+				if (ntargets >= ConfigFileEntry.max_targets)
+				{
+					sendto_one(source_p, form_str(ERR_TOOMANYTARGETS),
+						me.name, source_p->name, nick);
+					return 1;
+				}
+
+				targets[ntargets].target_p = NULL;
+				targets[ntargets++].type = ENTITY_MASS_MESSAGE;
+			}
+
 			continue;
 		}
 
@@ -533,26 +662,6 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 
 	}
 	return (1);
-}
-
-/*
- * duplicate_ptr
- *
- * inputs	- pointer to check
- *		- pointer to table of entities
- *		- number of valid entities so far
- * output	- true if duplicate pointer in table, false if not.
- *		  note, this does the canonize using pointers
- * side effects	- NONE
- */
-static bool
-duplicate_ptr(void *ptr)
-{
-	int i;
-	for(i = 0; i < ntargets; i++)
-		if(targets[i].ptr == ptr)
-			return true;
-	return false;
 }
 
 /*
@@ -941,6 +1050,10 @@ msg_client(enum message_type msgtype,
 			return;
 		}
 
+		/* suppress labeled-response on the primary message if they're messaging themselves */
+		if (outgoing_response_info != NULL && source_p == target_p)
+			outgoing_response_info->skip_tags++;
+
 		if (msgtype == MESSAGE_TYPE_TAGMSG && IsClientCapable(target_p, CLICAP_MESSAGE_TAGS))
 		{
 			add_reply_target(target_p, source_p);
@@ -954,10 +1067,14 @@ msg_client(enum message_type msgtype,
 				NOCAPS, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags, ":%s", text);
 		}
 
+		if (outgoing_response_info != NULL && source_p == target_p)
+			outgoing_response_info->skip_tags--;
+
 		echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 	else
 	{
+		begin_remote_response_batch(1, target_p->servptr->name);
 		sendto_anywhere_tags(target_p, source_p, cmdname[msgtype],
 			msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
 			NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
@@ -967,6 +1084,89 @@ msg_client(enum message_type msgtype,
 		/* if the remote doesn't support ECHO, generate a local echo-message instead */
 		if (!IsServerCapable(target_p->from, CAP_ECHO))
 			echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
+	}
+}
+
+static void
+msg_client_targeted(enum message_type msgtype,
+	struct Client *source_p, const char *nick, struct Client *target_p,
+	const char *text, struct MsgBuf *msgbuf_p)
+{
+	s_assert(!IsMe(target_p) && IsServer(target_p));
+
+	begin_remote_response_batch(1, target_p->servptr->name);
+	sendto_one_tags(target_p,
+		msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS,
+		NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
+		msgtype == MESSAGE_TYPE_TAGMSG ? ":%s %s %s@%s" : ":%s %s %s@%s :%s",
+		get_id(source_p, target_p), cmdname[msgtype], nick, target_p->name, text);
+
+	/* ECHO doesn't work with special syntax, so generate a local echo instead */
+	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
+	{
+		const char *fmt = msgtype == MESSAGE_TYPE_TAGMSG
+			? ":%s!%s@%s %s %s@%s"
+			: ":%s!%s@%s %s %s@%s :%s";
+
+		sendto_one_tags(source_p, NOCAPS, NOCAPS,
+			msgbuf_p->n_tags, msgbuf_p->tags, fmt,
+			source_p->name, source_p->username, source_p->host,
+			cmdname[msgtype], nick, target_p->name, text);
+	}
+}
+
+static void
+msg_mass(enum message_type msgtype, struct Client *client_p, struct Client *source_p,
+	const char *mask, const char *text, struct MsgBuf *msgbuf_p)
+{
+	uint64_t cli_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CLICAP_MESSAGE_TAGS : NOCAPS;
+	uint64_t serv_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS;
+
+	/* skip past initial '$' */
+	mask++;
+
+	begin_local_response_batch();
+
+	if (MyClient(source_p))
+	{
+		/* tag data could easily exceed max IRC message length, so including the tags in the snote
+		 * text isn't really workable. Sending a mass-tagmsg in itself is already pretty questionable,
+		 * but the spec allows for it. */
+		sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
+				msgtype == MESSAGE_TYPE_TAGMSG ? "%s sent mass-%s to %s" : "%s sent mass-%s to %s: %s",
+				get_oper_name(source_p),
+				cmdname_lower[msgtype],
+				mask, text);
+	}
+
+	/* suppress labeled-response on the message (it might be going to themselves) */
+	if (outgoing_response_info != NULL)
+		outgoing_response_info->skip_tags++;
+
+	sendto_match_butone_tags(IsServer(client_p) ? client_p : NULL, source_p,
+		mask + 1,
+		(*mask == '#') ? MATCH_HOST : MATCH_SERVER,
+		cli_cap, NOCAPS, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
+		msgtype == MESSAGE_TYPE_TAGMSG ? "%s $%s" : "%s $%s :%s",
+		cmdname[msgtype], mask, text);
+
+	if (msgtype == MESSAGE_TYPE_PRIVMSG && *text == '\001')
+		source_p->large_ctcp_sent = rb_current_time();
+
+	if (outgoing_response_info != NULL)
+		outgoing_response_info->skip_tags--;
+
+	/* ECHO doesn't work with special syntax, so generate a local echo instead */
+	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
+	{
+		const char *fmt = msgtype == MESSAGE_TYPE_TAGMSG
+			? ":%s!%s@%s %s %s"
+			: ":%s!%s@%s %s %s :%s";
+
+		sendto_one_tags(source_p, NOCAPS, NOCAPS,
+			msgbuf_p->n_tags, msgbuf_p->tags, fmt,
+			source_p->name, source_p->username, source_p->host,
+			cmdname[msgtype], mask, text);
 	}
 }
 
@@ -1028,130 +1228,4 @@ flood_attack_client(enum message_type msgtype, struct Client *source_p, struct C
 	}
 
 	return false;
-}
-
-/*
- * handle_special
- *
- * inputs	- server pointer
- *		- client pointer
- *		- nick stuff to grok for opers
- *		- text to send if grok
- *		- tags to send
- * output	- none
- * side effects	- all the traditional oper type messages are parsed here.
- *		  i.e. "/msg #some.host."
- *		  However, syntax has been changed.
- *		  previous syntax "/msg #some.host.mask"
- *		  now becomes     "/msg $#some.host.mask"
- *		  previous syntax of: "/msg $some.server.mask" remains
- *		  This disambiguates the syntax.
- */
-static void
-handle_special(enum message_type msgtype, struct Client *client_p,
-	       struct Client *source_p, const char *nick, const char *text, struct MsgBuf *msgbuf_p)
-{
-	struct Client *target_p;
-	char *server;
-	int cli_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CLICAP_MESSAGE_TAGS : 0;
-	int serv_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : 0;
-
-	/* user[%host]@server addressed?
-	 * NOTE: users can send to user@server, but not user%host@server
-	 * or opers@server
-	 */
-	if ((server = strchr(nick, '@')) != NULL)
-	{
-		if ((target_p = find_server(source_p, server + 1)) == NULL)
-		{
-			sendto_one_numeric(source_p, ERR_NOSUCHSERVER,
-					   form_str(ERR_NOSUCHSERVER), server + 1);
-			return;
-		}
-
-		if (!IsOper(source_p))
-		{
-			if(strchr(nick, '%') || (strncmp(nick, "opers", 5) == 0))
-			{
-				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
-						   form_str(ERR_NOSUCHNICK), nick);
-				return;
-			}
-		}
-
-		/* somewhere else.. */
-		if (!IsMe(target_p))
-		{
-			sendto_one_tags(target_p, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
-				msgtype == MESSAGE_TYPE_TAGMSG ? ":%s %s %s" : ":%s %s %s :%s",
-				get_id(source_p, target_p), cmdname[msgtype], nick, text);
-			return;
-		}
-
-		/* Check if someones msg'ing opers@our.server */
-		if (strncmp(nick, "opers@", 6) == 0)
-		{
-			if (msgtype != MESSAGE_TYPE_TAGMSG)
-				sendto_realops_snomask(SNO_GENERAL, L_ALL, "To opers: From: %s: %s",
-					source_p->name, text);
-			return;
-		}
-
-		/* This was not very useful except for bypassing certain
-		 * restrictions. Note that we still allow sending to
-		 * remote servers this way, for messaging pseudoservers
-		 * securely whether they have a service{} block or not.
-		 * -- jilles
-		 */
-		sendto_one_numeric(source_p, ERR_NOSUCHNICK,
-				   form_str(ERR_NOSUCHNICK), nick);
-		return;
-	}
-
-	/*
-	 * the following two cases allow masks in NOTICEs
-	 * (for OPERs only)
-	 *
-	 * Armin, 8Jun90 (gruner@informatik.tu-muenchen.de)
-	 */
-	if (IsOper(source_p) && *nick == '$')
-	{
-		if((*(nick + 1) == '$' || *(nick + 1) == '#'))
-			nick++;
-		else if (MyOper(source_p))
-		{
-			sendto_one(source_p,
-				   ":%s NOTICE %s :The command %s %s is no longer supported, please use $%s",
-				   me.name, source_p->name, cmdname[msgtype], nick, nick);
-			return;
-		}
-
-		if (MyClient(source_p) && !IsOperMassNotice(source_p))
-		{
-			sendto_one(source_p, form_str(ERR_NOPRIVS),
-				   me.name, source_p->name, "mass_notice");
-			return;
-		}
-
-		if (MyClient(source_p))
-		{
-			/* tag data could easily exceed max IRC message length, so including the tags in the snote
-			 * text isn't really workable. Sending a mass-tagmsg in itself is already pretty questionable,
-			 * but the spec allows for it. */
-			sendto_realops_snomask(SNO_GENERAL, L_ALL | L_NETWIDE,
-					msgtype == MESSAGE_TYPE_TAGMSG ? "%s sent mass-%s to %s" : "%s sent mass-%s to %s: %s",
-					get_oper_name(source_p),
-					cmdname_lower[msgtype],
-					nick, text);
-		}
-
-		sendto_match_butone_tags(IsServer(client_p) ? client_p : NULL, source_p,
-				    nick + 1,
-				    (*nick == '#') ? MATCH_HOST : MATCH_SERVER,
-				    cli_cap, 0, serv_cap, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags,
-				    msgtype == MESSAGE_TYPE_TAGMSG ? "%s $%s" : "%s $%s :%s",
-					cmdname[msgtype], nick, text);
-		if (msgtype == MESSAGE_TYPE_PRIVMSG && *text == '\001')
-			source_p->large_ctcp_sent = rb_current_time();
-	}
 }
