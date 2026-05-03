@@ -6,18 +6,21 @@ User modes: (* designates that the umode is oper only)
 
      USERMODE     DESCRIPTION
 -----------------------------------------------------------------
-         +i     - Designates this client 'invisible'.
+       * +a     - Is marked as a server admin in whois.
          +g     - Deny users not on your /ACCEPT list from messaging you and
                   inviting you to channels.
-         +w     - Can see oper and server wallops.
-       ? +h     - Has a cloaked host. May be +x depending on cloaking module
+      ?* +h     - Show on /STATS p and marked as available for help in whois.
+         +i     - Designates this client 'invisible'.
+       * +l     - Can see oper locops (local wallops).
          +o     - Designates this client is an IRC Operator.
                   Use the /oper command to attain this.
-       * +a     - Is marked as a server admin in whois.
-       * +l     - Can see oper locops (local wallops).
+       ? +q     - Prevents you from joining channels or sending private messages
+                  until you identify to services (cannot be set or unset).
        * +s     - Can see server notices (see /quote help snomask).
        ? +u     - Receive messages that would otherwise be filtered server side
                   based on content.
+         +w     - Can see oper and server wallops.
+       ? +x     - Has a cloaked host. May be +h depending on cloaking module
        * +z     - Can see operwalls.
        ? +C     - Prevents you from receiving CTCPs other than ACTION.
          +D     - Deaf - ignores all channel messages.

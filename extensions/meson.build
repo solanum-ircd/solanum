@@ -47,6 +47,7 @@ extension_modules = [
   'm_okick',
   'm_omode',
   'm_opme',
+  'm_quarantine',
   'm_remove',
   'm_sendbans',
   'm_shedding',

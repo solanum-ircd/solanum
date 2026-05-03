@@ -105,6 +105,7 @@ add_top_conf(const char *name, int (*sfunc) (struct TopConf *),
 	tc->tc_entries = items;
 
 	rb_dlinkAddAlloc(tc, &conf_items);
+	conf_changed = true;
 	return 0;
 }
 
@@ -168,6 +169,7 @@ remove_top_conf(char *name)
 
 	rb_dlinkDestroy(ptr, &conf_items);
 	rb_free(tc);
+	conf_changed = true;
 
 	return 0;
 }
@@ -2553,6 +2555,7 @@ add_conf_item(const char *topconf, const char *name, int type, void (*func) (voi
 	cf->cf_arg = NULL;
 
 	rb_dlinkAddAlloc(cf, &tc->tc_items);
+	conf_changed = true;
 
 	return 0;
 }
@@ -2575,6 +2578,7 @@ remove_conf_item(const char *topconf, const char *name)
 
 	rb_dlinkDestroy(ptr, &tc->tc_items);
 	rb_free(cf);
+	conf_changed = true;
 
 	return 0;
 }
