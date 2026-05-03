@@ -33,6 +33,7 @@
 #include "ircd.h"
 #include "send.h"
 #include "s_conf.h"
+#include "s_newconf.h"
 #include "s_serv.h"
 #include "s_user.h"
 #include "supported.h"
@@ -87,8 +88,8 @@ botmode_can_send(void *data_)
 	if (!(data->chptr->mode.mode & chmode))
 		return;
 
-	/* Allow oper bots to bypass this mode. */
-	if (IsOper(data->client))
+	/* Allow bots with oper:always_message to bypass this mode. */
+	if (HasPrivilege(data->client, "oper:always_message"))
 		return;
 
 	msptr = find_channel_membership(data->chptr, data->client);
