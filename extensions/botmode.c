@@ -163,7 +163,7 @@ botmode_apply_tag(void *data_)
 	hook_data *data = data_;
 	struct MsgBuf *msgbuf = data->arg1;
 
-	if (data->client != NULL && IsBot(data->client) && *data->client->user->suser)
+	if (data->client != NULL && IsBot(data->client))
 		msgbuf_append_tag(msgbuf, "bot", NULL, CLICAP_MESSAGE_TAGS);
 }
 
