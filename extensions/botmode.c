@@ -48,16 +48,19 @@ static unsigned int chmode, umode;
 static int
 modinit(void)
 {
+	if (user_modes['B'])
+		return -1;
 	umode = user_modes['B'] = find_umode_slot();
 	if (!umode)
 		return -1;
+
 	chmode = cflag_add('B', chm_simple);
 	if (!chmode)
 	{
 		user_modes['B'] = 0;
 		return -1;
 	}
-	
+
 	construct_umodebuf();
 	add_isupport("BOT", isupport_string, "B");
 	return 0;
