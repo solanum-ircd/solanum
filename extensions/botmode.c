@@ -170,7 +170,7 @@ botmode_whois(void *data_)
 	if(!IsBot(data->target))
 		return;
 
-	sendto_one_numeric(data->client, RPL_WHOISBOT, form_str(RPL_WHOISBOT), data->client->name, data->target->name);
+	sendto_one_numeric(data->client, RPL_WHOISBOT, form_str(RPL_WHOISBOT), data->target->name);
 }
 
 static void
