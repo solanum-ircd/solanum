@@ -26,7 +26,7 @@
 #include "client.h"
 #include "privilege.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 void privilegeset_add_privs(struct PrivilegeSet *dst, const char *privs);
 

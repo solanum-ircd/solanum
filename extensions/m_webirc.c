@@ -146,7 +146,7 @@ mr_webirc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sourc
 	if (parc >= 6)
 	{
 		const char *s;
-		for (s = parv[5]; s != NULL; (s = strchr(s, ' ')) && s++)
+		for (s = parv[5]; s != NULL; (void)((s = strchr(s, ' ')) && s++))
 		{
 			if (!ircncmp(s, "secure", 6) && (s[6] == '=' || s[6] == ' ' || s[6] == '\0'))
 				secure = 1;

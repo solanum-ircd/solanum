@@ -150,7 +150,7 @@ clicap_find(const char *data, int *negate, int *finished)
  * Outputs: None
  */
 static void
-clicap_generate(struct Client *source_p, const char *subcmd, int flags)
+clicap_generate(struct Client *source_p, const char *subcmd, uint64_t flags)
 {
 	const char *str_cont = "* :";
 	const char *str_final = ":";
@@ -166,7 +166,7 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 			(source_p->flags & FLAGS_CLICAP_DATA) ? str_cont : str_final);
 
 	/* shortcut, nothing to do */
-	if (flags == -1 || !multiline_ret) {
+	if (flags == UINT64_MAX || !multiline_ret) {
 		sendto_one(source_p, ":%s CAP %s %s %s",
 				me.name,
 				EmptyString(source_p->name) ? "*" : source_p->name,
@@ -283,7 +283,7 @@ cap_list(struct Client *source_p, const char *arg)
 {
 	/* list of what theyre currently using */
 	clicap_generate(source_p, "LIST",
-			source_p->localClient->client_caps ? source_p->localClient->client_caps : -1);
+			source_p->localClient->client_caps ? source_p->localClient->client_caps : UINT64_MAX);
 }
 
 static void

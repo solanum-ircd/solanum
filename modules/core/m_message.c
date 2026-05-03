@@ -243,7 +243,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	if (msgtype == MESSAGE_TYPE_TAGMSG)
 	{
 		bool found_client_tag = false;
-		for (int i = 0; i < msgbuf_p->n_tags; i++)
+		for (size_t i = 0; i < msgbuf_p->n_tags; i++)
 		{
 			if (*msgbuf_p->tags[i].key == '+')
 			{

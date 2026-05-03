@@ -92,7 +92,7 @@ int match(const char *mask, const char *name)
 					  for (n_tmp = n; *n && irctolower(*n) != irctolower(*m); n++);
 				  }
 			  }
-			  /* and fall through */
+			  // fallthrough
 		  default:
 			  if (!*n)
 				  return (*m != '\0' ? 0 : 1);
@@ -198,7 +198,7 @@ int mask_match(const char *mask_, const char *name)
 					  for (n_tmp = n; *n && irctolower(*n) != irctolower(*m); n++);
 				  }
 			  }
-			  /* and fall through */
+			  // fallthrough
 		  default:
 			  if (!*n)
 				  return (*m != '\0' ? 0 : 1);
@@ -624,8 +624,8 @@ int ircncmp(const void *s1, const void *s2, int n)
 void matchset_for_client(struct Client *who, struct matchset *m)
 {
 	bool hide_ip = IsIPSpoof(who) || (!ConfigChannel.ip_bans_through_vhost && IsDynSpoof(who));
-	unsigned hostn = 0;
-	unsigned ipn = 0;
+	unsigned int hostn = 0;
+	unsigned int ipn = 0;
 
 	struct sockaddr_in ip4;
 
@@ -659,11 +659,11 @@ void matchset_for_client(struct Client *who, struct matchset *m)
 		ipn++;
 	}
 
-	for (int i = hostn; i < ARRAY_SIZE(m->host); i++)
+	for (size_t i = hostn; i < ARRAY_SIZE(m->host); i++)
 	{
 		m->host[i][0] = '\0';
 	}
-	for (int i = ipn; i < ARRAY_SIZE(m->ip); i++)
+	for (size_t i = ipn; i < ARRAY_SIZE(m->ip); i++)
 	{
 		m->ip[i][0] = '\0';
 	}
@@ -678,14 +678,14 @@ bool client_matches_mask(struct Client *who, const char *mask)
 
 bool matches_mask(const struct matchset *m, const char *mask)
 {
-	for (int i = 0; i < ARRAY_SIZE(m->host); i++)
+	for (size_t i = 0; i < ARRAY_SIZE(m->host); i++)
 	{
 		if (m->host[i][0] == '\0')
 			break;
 		if (match(mask, m->host[i]))
 			return true;
 	}
-	for (int i = 0; i < ARRAY_SIZE(m->ip); i++)
+	for (size_t i = 0; i < ARRAY_SIZE(m->ip); i++)
 	{
 		if (m->ip[i][0] == '\0')
 			break;
