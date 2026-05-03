@@ -40,7 +40,7 @@
 static const char botmode_desc[] =
 	"Implements bot mode and adds a channel mode to prohibit bots from joining or speaking";
 
-static unsigned chmode, umode;
+static unsigned int chmode, umode;
 
 #define IsBot(client) ((client)->umodes & umode)
 
