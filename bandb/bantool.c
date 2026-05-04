@@ -118,7 +118,7 @@ static void db_reclaim_slack(void);
 static void export_config(const char *conf, int id);
 static void import_config(const char *conf, int id);
 static void check_schema(void);
-static void print_help(int i_exit) __attribute__((noreturn));
+static void print_help(int i_exit) __noreturn;
 static void wipe_schema(void);
 static void drop_dupes(const char *user, const char *host, const char *t);
 

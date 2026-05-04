@@ -224,9 +224,6 @@ static void start_resolver(void)
  */
 void init_resolver(void)
 {
-#ifdef HAVE_SRAND48
-	srand48(rb_current_time());
-#endif
 	start_resolver();
 }
 

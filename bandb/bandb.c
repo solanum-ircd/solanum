@@ -237,7 +237,7 @@ parse_request(rb_helper *helper)
 
 
 static void
-error_cb(rb_helper *helper) __attribute__((noreturn));
+error_cb(rb_helper *helper) __noreturn;
 
 static void
 error_cb(rb_helper *helper)
@@ -282,7 +282,7 @@ setup_signals(void)
 
 
 static void
-db_error_cb(const char *errstr) __attribute__((noreturn));
+db_error_cb(const char *errstr) __noreturn;
 
 static void
 db_error_cb(const char *errstr)

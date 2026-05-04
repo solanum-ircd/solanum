@@ -44,37 +44,43 @@ librb_conf_data = configuration_data()
 rt_dep = cc.find_library('rt', required: false)
 
 librb_checks = {
-  'HAVE_CRYPT_H': cc.has_header('crypt.h'),
-  'HAVE_SYS_POLL_H': cc.has_header('sys/poll.h'),
-  'HAVE_SYS_EPOLL_H': cc.has_header('sys/epoll.h'),
-  'HAVE_SYS_SELECT_H': cc.has_header('sys/select.h'),
-  'HAVE_SYS_DEVPOLL_H': cc.has_header('sys/devpoll.h'),
-  'HAVE_SYS_EVENT_H': cc.has_header('sys/event.h'),
-  'HAVE_PORT_H': cc.has_header('port.h'),
-  'HAVE_SYS_SIGNALFD_H': cc.has_header('sys/signalfd.h'),
-  'HAVE_SYS_TIMERFD_H': cc.has_header('sys/timerfd.h'),
-  'TIME_WITH_SYS_TIME': cc.has_header('time.h'),
-  'HAVE_GETEXECNAME': cc.has_function('getexecname'),
-  'HAVE_STRLCPY': cc.has_function('strlcpy'),
-  'HAVE_STRLCAT': cc.has_function('strlcat'),
-  'HAVE_STRCASESTR': cc.has_function('strcasestr'),
-  'HAVE_SIGNALFD': cc.has_function('signalfd'),
+  'HAVE_ALLOCA_H': cc.check_header('alloca.h'),
+  'HAVE_CRYPT_H': cc.check_header('crypt.h'),
+  'HAVE_PORT_H': cc.check_header('port.h'),
+  'HAVE_SYS_DEVPOLL_H': cc.check_header('sys/devpoll.h'),
+  'HAVE_SYS_EPOLL_H': cc.check_header('sys/epoll.h'),
+  'HAVE_SYS_EVENT_H': cc.check_header('sys/event.h'),
+  'HAVE_SYS_POLL_H': cc.check_header('sys/poll.h'),
+  'HAVE_SYS_SELECT_H': cc.check_header('sys/select.h'),
+  'HAVE_SYS_SIGNALFD_H': cc.check_header('sys/signalfd.h'),
+  'HAVE_SYS_TIMERFD_H': cc.check_header('sys/timerfd.h'),
+
   'HAVE_ARC4RANDOM': cc.has_function('arc4random'),
-  'HAVE_KEVENT': cc.has_function('kevent', prefix: '#include <sys/event.h>'),
-  'HAVE_PORT_CREATE': cc.has_function('port_create', prefix: '#include <port.h>'),
-  'HAVE_EPOLL_CTL': cc.has_function('epoll_ctl', prefix: '#include <sys/epoll.h>'),
-  'HAVE_TIMERFD_CREATE': cc.has_function('timerfd_create', prefix: '#include <sys/timerfd.h>'),
   'HAVE_DLINFO': cc.has_function('dlinfo', dependencies: dl_dep),
+  'HAVE_EPOLL_CTL': cc.has_function('epoll_ctl', prefix: '#include <sys/epoll.h>'),
+  'HAVE_GETEXECNAME': cc.has_function('getexecname'),
+  'HAVE_KEVENT': cc.has_function('kevent', prefix: '#include <sys/event.h>'),
   'HAVE_NANOSLEEP': cc.has_function('nanosleep', dependencies: rt_dep),
+  'HAVE_PORT_CREATE': cc.has_function('port_create', prefix: '#include <port.h>'),
+  'HAVE_SIGNALFD': cc.has_function('signalfd'),
+  'HAVE_STRCASESTR': cc.has_function('strcasestr'),
+  'HAVE_STRLCAT': cc.has_function('strlcat'),
+  'HAVE_STRLCPY': cc.has_function('strlcpy'),
   'HAVE_TIMER_CREATE': cc.has_function('timer_create', dependencies: rt_dep, prefix: '#include <time.h>'),
+  'HAVE_TIMERFD_CREATE': cc.has_function('timerfd_create', prefix: '#include <sys/timerfd.h>'),
+
   'HAVE_DEVPOLL': fs.exists('/dev/poll'),
-  'SOCKADDR_IN_HAS_LEN': cc.has_member('struct sockaddr', 'sa_len', prefix: '#include <sys/types.h>\n#include <sys/socket.h>'),
+  'RB_SOCKADDR_HAS_SA_LEN': cc.has_member('struct sockaddr', 'sa_len', prefix: '#include <sys/types.h>\n#include <sys/socket.h>'),
 }
 foreach define, found : librb_checks
   if found
     librb_conf_data.set(define, 1)
   endif
 endforeach
+
+if host_machine.endian() == 'big'
+  conf_data.set('WORDS_BIGENDIAN', 1)
+endif
 
 # TLS backend configuration (passed from parent)
 if have_openssl

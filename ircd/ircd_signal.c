@@ -55,7 +55,7 @@ sigchld_handler(int sig)
  * sigterm_handler - exit the server
  */
 static void
-sigterm_handler(int sig) __attribute__((noreturn));
+sigterm_handler(int sig) __noreturn;
 
 static void
 sigterm_handler(int sig)

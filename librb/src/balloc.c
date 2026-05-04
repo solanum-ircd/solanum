@@ -57,7 +57,7 @@
 #include <librb_config.h>
 #include <rb_lib.h>
 
-static void _rb_bh_fail(const char *reason, const char *file, int line) __attribute__((noreturn));
+static void _rb_bh_fail(const char *reason, const char *file, int line) __noreturn;
 
 static uintptr_t offset_pad;
 

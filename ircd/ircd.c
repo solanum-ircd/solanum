@@ -67,7 +67,7 @@
 #include "response.h"
 
 static void
-ircd_die_cb(const char *str) __attribute__((noreturn));
+ircd_die_cb(const char *str) __noreturn;
 
 /* /quote set variables */
 struct SetOptions GlobalSetOptions;
