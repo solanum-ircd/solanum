@@ -25,7 +25,7 @@
 
 #define MAXPARA 10
 
-static void error_cb(rb_helper *helper) __attribute__((noreturn));
+static void error_cb(rb_helper *helper) __noreturn;
 static void handle_reload(int parc, char *parv[]);
 static void handle_stat(int parc, char *parv[]);
 static void handle_options(int parc, char *parv[]);

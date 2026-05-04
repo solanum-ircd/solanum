@@ -123,16 +123,15 @@ AC_DEFINE_DIR([PKGLIBEXECDIR], [pkglibexecdir], [Directory where binaries the IR
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_STDBOOL
-
-AC_CHECK_HEADERS([crypt.h sys/param.h sys/syslog.h sys/epoll.h machine/endian.h])
+AS_IF([test "x$ac_cv_header_stdbool_h" = "xno"], [
+    AC_MSG_ERROR([stdbool.h is required])
+])
+AC_CHECK_HEADERS([crypt.h strings.h sys/param.h])
 
 dnl Stuff that the memory manager (imalloc) depends on
 dnl ==================================================
 
 AC_C_CONST
-if test "$ac_cv_header_machine_endian_h" = "no" ; then
-    AC_C_BIGENDIAN
-fi
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_CHECK_SIZEOF(short)
@@ -162,20 +161,13 @@ fi
 
 AC_SUBST(CRYPT_LIB)
 
-AC_C_BIGENDIAN
-
 dnl Check for stdarg.h - if we can't find it, halt configure
 AC_CHECK_HEADER(stdarg.h, , [AC_MSG_ERROR([** stdarg.h could not be found - solanum will not compile without it **])])
-AC_CHECK_FUNCS([strlcat strlcpy])
 
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 
 AC_CHECK_TYPES([uintptr_t])
-
-dnl check for various functions...
-
-AC_FUNC_ALLOCA
 
 dnl OpenSSL support
 AC_MSG_CHECKING(for OpenSSL)

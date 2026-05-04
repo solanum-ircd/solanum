@@ -153,17 +153,6 @@ if have_hyperscan
   conf_data.set('HAVE_HYPERSCAN', 1)
 endif
 
-# TLS backend defines
-if have_openssl
-  conf_data.set('HAVE_OPENSSL', 1)
-endif
-if have_mbedtls
-  conf_data.set('HAVE_MBEDTLS', 1)
-endif
-if have_gnutls
-  conf_data.set('HAVE_GNUTLS', 1)
-endif
-
 # Performance
 if get_option('profile')
   conf_data.set('SOLANUM_PROFILE', 1)
@@ -189,13 +178,8 @@ conf_data.set('AWAY_HEAP_SIZE', 512)
 
 # System checks
 system_checks = {
-  'HAVE_CRYPT_H': cc.has_header('crypt.h'),
-  'HAVE_SYS_PARAM_H': cc.has_header('sys/param.h'),
-  'HAVE_SYS_SYSLOG_H': cc.has_header('sys/syslog.h'),
-  'HAVE_SYS_EPOLL_H': cc.has_header('sys/epoll.h'),
-  'HAVE_MACHINE_ENDIAN_H': cc.has_header('machine/endian.h'),
-  'HAVE_STRLCAT': cc.has_function('strlcat'),
-  'HAVE_STRLCPY': cc.has_function('strlcpy'),
+  'HAVE_STRINGS_H': cc.check_header('strings.h'),
+  'HAVE_SYS_PARAM_H': cc.check_header('sys/param.h'),
 }
 foreach define, found : system_checks
   if found
@@ -203,8 +187,12 @@ foreach define, found : system_checks
   endif
 endforeach
 
-if not cc.has_header('stdarg.h')
+if not cc.check_header('stdarg.h')
   error('stdarg.h is required')
+endif
+
+if not cc.check_header('stdbool.h')
+  error('stdbool.h is required')
 endif
 
 conf_data.set_quoted('PATH_DEVNULL', '/dev/null')

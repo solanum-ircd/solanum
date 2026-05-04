@@ -400,10 +400,6 @@ AC_CONFIG_COMMANDS([include/librb-config.h],
 
 _______EOF
 
-if test "x$rb_alloca_h" = "xyes"; then
-	echo '#define RB_HAVE_ALLOCA_H 1' >> $outfile
-fi
-
 echo '#include <stdlib.h>' >> $outfile
 echo '#include <stddef.h>' >> $outfile
 echo '#include <string.h>' >> $outfile
@@ -453,11 +449,6 @@ fi
 ],[
 	if test x$ac_cv_header_memory_h = xyes; then
 		rb_header_memory_h=yes
-	fi
-	if test "x${ac_cv_working_alloca_h+set}" = xset ; then
-		rb_alloca_h="$ac_cv_working_alloca_h"
-	else
-		rb_alloc_h="$ac_cv_header_alloca_h"
 	fi
 	if test x$ac_cv_member_struct_sockaddr_sa_len = xyes; then
 		rb_sockaddr_sa_len=yes

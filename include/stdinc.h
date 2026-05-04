@@ -21,122 +21,38 @@
  *
  */
 
+#ifndef INCLUDED_stdinc_h
+#define INCLUDED_stdinc_h 1
+
 #include "rb_lib.h"
 #include "ircd_defs.h"  /* Needed for some reasons here -- dwr */
 
-/* AIX requires this to be the first thing in the file.  */
-#ifdef __GNUC__
-#undef alloca
-#define alloca __builtin_alloca
-#else
-# ifdef _MSC_VER
-#  include <malloc.h>
-#  define alloca _alloca
-# else
-#  if HAVE_ALLOCA_H
-#   include <alloca.h>
-#  else
-#   ifdef _AIX
- #pragma alloca
-#   else
-#    ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#    endif
-#   endif
-#  endif
-# endif
-#endif
-
-
-#ifdef HAVE_STDLIB_H
+#include <stdbool.h>
 #include <stdlib.h>
-#endif
-#ifdef STRING_WITH_STRINGS
-# include <string.h>
-# include <strings.h>
-#else
-# ifdef HAVE_STRING_H
-#  include <string.h>
-# else
-#  ifdef HAVE_STRINGS_H
-#   include <strings.h>
-#  endif
-# endif
-#endif
 
-#include <stddef.h>
-
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-# ifndef HAVE__BOOL
-#  ifdef __cplusplus
-typedef bool _Bool;
-#  else
-#   define _Bool signed char
-#  endif
-# endif
-# define bool _Bool
-# define false 0
-# define true 1
-# define __bool_true_false_are_defined 1
-#endif
-
-
-#include <stdint.h>
-#include <assert.h>
-#include <stdio.h>
-#include <time.h>
-#include <fcntl.h>
-#include <stdarg.h>
-#include <signal.h>
 #include <dirent.h>
-#include <ctype.h>
-
-#include <limits.h>
+#include <errno.h>
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+#  include <strings.h>
+#endif
 #include <unistd.h>
-#include <sys/time.h>
-#include <sys/types.h>
+
 #include <sys/file.h>
 #include <sys/resource.h>
-
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
+#  include <sys/param.h>
 #endif
 
-#include <errno.h>
-#include <sys/uio.h>
-
-#if defined(__INTEL_COMPILER) || defined(__GNUC__)
-# ifdef __unused
-#  undef __unused
-# endif
-# ifdef __printf
-#  undef __printf
-# endif
-# ifdef __noreturn
-#  undef __noreturn
-# endif
-
-# define __unused __attribute__((__unused__))
-# define __printf(x) __attribute__((__format__ (__printf__, x, x + 1)))
-# define __noreturn __attribute__((__noreturn__))
+#if defined(strdupa)
+#  define LOCAL_COPY(s)         strdupa(s)
+#elif defined(__GNUC__) || defined(__INTEL_COMPILER)
+#  define LOCAL_COPY(s)         __extension__({ char *_s = alloca(strlen(s) + 1); strcpy(_s, s); _s; })
 #else
-# define __unused
-# define __printf
-# define __noreturn
+#  define LOCAL_COPY(s)         strcpy(alloca(strlen(s) + 1), s) /* XXX Is that allowed? */
 #endif
 
-
-
-#ifdef strdupa
-#define LOCAL_COPY(s) strdupa(s)
-#else
-#if defined(__INTEL_COMPILER) || defined(__GNUC__)
-# define LOCAL_COPY(s) __extension__({ char *_s = alloca(strlen(s) + 1); strcpy(_s, s); _s; })
-#else
-# define LOCAL_COPY(s) strcpy(alloca(strlen(s) + 1), s) /* XXX Is that allowed? */
-#endif /* defined(__INTEL_COMPILER) || defined(__GNUC__) */
-#endif /* strdupa */
+#endif /* !INCLUDED_stdinc_h */
