@@ -34,6 +34,7 @@
 #include "channel.h"
 #include "match.h"
 #include "hash.h"
+#include "batch.h"
 #include "class.h"
 #include "msg.h"
 #include "packet.h"
@@ -74,11 +75,13 @@ static void m_tagmsg(struct MsgBuf *, struct Client *, struct Client *, int, con
 static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 static void echo_msg(struct Client *, struct Client *, enum message_type, const char *text, struct MsgBuf *msgbuf_p);
+static void process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *);
 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
 static uint64_t CAP_ECHO;
+static uint64_t CAP_ECHOB;
 
 struct entity
 {
@@ -92,9 +95,14 @@ struct entity
 	int flags;
 };
 
+struct BatchHandler echo_batch_handler = { process_echo_batch, NULL, BATCH_FLAG_SKIP_CHILDREN | BATCH_FLAG_ALLOW_ALL, NULL };
+
 static int
 modinit(void)
 {
+	if (!register_batch_handler("solanum.chat/echo", &echo_batch_handler))
+		return -1;
+
 	expire_tgchange_event = rb_event_addish("expire_tgchange", expire_tgchange, NULL, 300);
 	expire_tgchange(NULL);
 	return 0;
@@ -103,6 +111,7 @@ modinit(void)
 static void
 moddeinit(void)
 {
+	remove_batch_handler("solanum.chat/echo");
 	rb_event_delete(expire_tgchange_event);
 }
 
@@ -127,6 +136,7 @@ mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab
 
 mapi_cap_list_av2 message_cap_list[] = {
 	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
+	{ MAPI_CAP_SERVER, "ECHOB", NULL, &CAP_ECHOB },
 	{ 0, NULL, NULL, NULL }
 };
 
@@ -959,6 +969,57 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 		shortname[msgtype],
 		use_id(target_p),
 		text);
+}
+
+static void
+process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *unused)
+{
+	struct MsgBuf *msgbuf = &batch->start->msg;
+	char params[BUFSIZE];
+	char prefix[USERHOST_REPLYLEN];
+	rb_dlink_node *ptr;
+
+	if (msgbuf->n_para < 4)
+		return;
+
+	struct Client *target_p = find_person(msgbuf->para[3]);
+	if (target_p == NULL)
+		return;
+
+	if (!MyClient(target_p))
+	{
+		if (NotServerCapable(target_p->from, CAP_ECHOB))
+			return;
+
+		/* don't give a prefix in the batch contents to save a bit of bandwidth on s2s links */
+		*prefix = '\0';
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s BATCH %s",
+			use_id(source_p), params);
+	}
+	else
+		snprintf(prefix, sizeof(prefix), ":%s!%s@%s ",
+			target_p->name, target_p->username, target_p->host);
+
+	RB_DLINK_FOREACH(ptr, batch->messages.head)
+	{
+		msgbuf = &((struct BatchMessage *)ptr->data)->msg;
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, "%s%s %s",
+			prefix, msgbuf->cmd, params);
+	}
+
+	RB_DLINK_FOREACH(ptr, batch->children.head)
+	{
+		process_echo_batch(client_p, source_p, ptr->data, unused);
+	}
+
+	if (!MyClient(target_p))
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s BATCH -%s",
+			use_id(source_p), batch->tag);
 }
 
 /*
