@@ -34,6 +34,7 @@
 #include "channel.h"
 #include "match.h"
 #include "hash.h"
+#include "batch.h"
 #include "class.h"
 #include "msg.h"
 #include "packet.h"
@@ -74,11 +75,14 @@ static void m_tagmsg(struct MsgBuf *, struct Client *, struct Client *, int, con
 static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 static void echo_msg(struct Client *, struct Client *, enum message_type, const char *text, struct MsgBuf *msgbuf_p);
+static void echo_inner_batch(struct Client *client_p, struct Client *source_p, struct Client *target_p, struct Batch *batch, const char *prefix, const char *outer);
+static void process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *);
 
 static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
 static uint64_t CAP_ECHO;
+static uint64_t CAP_ECHOB;
 
 struct entity
 {
@@ -92,9 +96,14 @@ struct entity
 	int flags;
 };
 
+struct BatchHandler echo_batch_handler = { process_echo_batch, NULL, BATCH_FLAG_SKIP_CHILDREN | BATCH_FLAG_ALLOW_ALL, NULL };
+
 static int
 modinit(void)
 {
+	if (!register_batch_handler("solanum.chat/echo", &echo_batch_handler))
+		return -1;
+
 	expire_tgchange_event = rb_event_addish("expire_tgchange", expire_tgchange, NULL, 300);
 	expire_tgchange(NULL);
 	return 0;
@@ -103,6 +112,7 @@ modinit(void)
 static void
 moddeinit(void)
 {
+	remove_batch_handler("solanum.chat/echo");
 	rb_event_delete(expire_tgchange_event);
 }
 
@@ -127,6 +137,7 @@ mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab
 
 mapi_cap_list_av2 message_cap_list[] = {
 	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
+	{ MAPI_CAP_SERVER, "ECHOB", NULL, &CAP_ECHOB },
 	{ 0, NULL, NULL, NULL }
 };
 
@@ -989,6 +1000,137 @@ echo_msg(struct Client *source_p, struct Client *target_p,
 		shortname[msgtype],
 		use_id(target_p),
 		text);
+}
+
+static void
+process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *unused)
+{
+	struct MsgBuf *msgbuf = &batch->start->msg;
+	char params[BUFSIZE];
+	char prefix[USERHOST_REPLYLEN];
+	rb_dlink_node *ptr;
+	const char *outer = NULL;
+
+	/* only allow this batch over s2s links */
+	if (!IsServer(client_p))
+	{
+		sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
+			me.name, batch->tag, batch->type);
+		return;
+	}
+
+	if (msgbuf->n_para < 4)
+		return;
+
+	struct Client *target_p = find_person(msgbuf->para[3]);
+	if (target_p == NULL)
+		return;
+
+	if (!MyClient(target_p))
+	{
+		if (NotServerCapable(target_p->from, CAP_ECHOB))
+			return;
+
+		/* keep source prefix when sending s2s to avoid fake direction */
+		strlcpy(prefix, use_id(source_p), sizeof(prefix));
+		/* msgbuf_unparse_para appends to the buffer, so empty it out first */
+		*params = '\0';
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
+			use_id(source_p), params);
+	}
+	else
+		snprintf(prefix, sizeof(prefix), "%s!%s@%s",
+			target_p->name, target_p->username, target_p->host);
+
+	RB_DLINK_FOREACH(ptr, batch->messages.head)
+	{
+		msgbuf = &((struct BatchMessage *)ptr->data)->msg;
+		*params = '\0';
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
+			prefix, params);
+	}
+
+	if (MyClient(target_p))
+	{
+		if (outgoing_response_info != NULL)
+			outer = outgoing_response_info->batch;
+	}
+	else
+		outer = batch->tag;
+
+	RB_DLINK_FOREACH(ptr, batch->children.head)
+	{
+		echo_inner_batch(client_p, source_p, target_p, ptr->data, prefix, outer);
+	}
+
+	if (!MyClient(target_p))
+		sendto_one(target_p, ":%s BATCH -%s",
+			use_id(source_p), batch->tag);
+}
+
+static void
+echo_inner_batch(struct Client *client_p, struct Client *source_p, struct Client *target_p, struct Batch *batch, const char *prefix, const char *outer)
+{
+	struct MsgBuf *msgbuf = &batch->start->msg;
+	struct MsgTag tag = { "batch", outer, CLICAP_BATCH };
+	char params[BUFSIZE];
+	rb_dlink_node *ptr;
+	int batch_tag = -1;
+
+	*params = '\0';
+	msgbuf_unparse_para(params, sizeof(params), msgbuf);
+
+	for (int i = 0; i < msgbuf->n_tags; i++)
+	{
+		if (!strcmp(msgbuf->tags[i].key, "batch"))
+		{
+			batch_tag = i;
+			break;
+		}
+	}
+
+	/* omit the batch tag if outer is NULL. This will be the case for batches nested directly under solanum.chat/echo
+	 * when sending to a local client, since we don't expose that outer wrapper batch to clients */
+	if (outer == NULL)
+	{
+		if (batch_tag > -1)
+			msgbuf->tags[batch_tag].capmask = NOCAPS;
+	}
+	else
+	{
+		if (batch_tag > -1)
+			msgbuf->tags[batch_tag].value = outer;
+		else
+			msgbuf_append_tag(msgbuf, "batch", outer, CLICAP_BATCH);
+	}
+
+	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+		msgbuf->n_tags, msgbuf->tags, ":%s %s",
+		prefix, params);
+
+	RB_DLINK_FOREACH(ptr, batch->messages.head)
+	{
+		msgbuf = &((struct BatchMessage *)ptr->data)->msg;
+		/* msgbuf_unparse_para appends to the buffer, so empty it out first */
+		*params = '\0';
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
+			prefix, params);
+	}
+
+	RB_DLINK_FOREACH(ptr, batch->children.head)
+	{
+		echo_inner_batch(client_p, source_p, target_p, ptr->data, prefix, batch->tag);
+	}
+
+	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+		outer == NULL ? 0 : 1, &tag, ":%s BATCH -%s",
+		prefix, batch->tag);
 }
 
 /*
