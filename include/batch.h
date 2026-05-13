@@ -36,6 +36,8 @@
  * The child_allowed field is ignored and never called if this is set. */
 #define BATCH_FLAG_ALLOW_ALL 0x02
 
+struct ResponseInfo;
+
 struct Batch
 {
 	/* server-generated batch ID (15 random characters + trailing null byte) */
@@ -58,6 +60,8 @@ struct Batch
 	unsigned int len;
 	/* A linked list of struct BatchMessage * for each message inside of the batch */
 	rb_dlink_list messages;
+	/* labeled-response context for this batch */
+	struct ResponseInfo *response_info;
 };
 
 struct BatchMessage

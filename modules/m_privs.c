@@ -39,6 +39,7 @@
 #include "s_conf.h"
 #include "s_newconf.h"
 #include "hash.h"
+#include "response.h"
 
 static const char privs_desc[] = "Provides the PRIVS command to inspect an operator's privileges";
 
@@ -175,12 +176,18 @@ mo_privs(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		server_p = server_p->servptr;
 
 	if (IsMe(server_p))
+	{
+		begin_local_response_batch();
 		show_privs(source_p, target_p);
+	}
 	else
+	{
+		begin_remote_response_batch(1, server_p->name);
 		sendto_one(server_p, ":%s ENCAP %s PRIVS %s",
 				get_id(source_p, server_p),
 				server_p->name,
 				use_id(target_p));
+	}
 }
 
 static void
@@ -193,5 +200,6 @@ m_privs(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		return;
 	}
 
+	begin_local_response_batch();
 	show_privs(source_p, source_p);
 }

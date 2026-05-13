@@ -39,6 +39,7 @@
 #include "s_newconf.h"
 #include "s_user.h"
 #include "ratelimit.h"
+#include "response.h"
 #include "supported.h"
 
 #define FIELD_CHANNEL    0x0001
@@ -160,6 +161,8 @@ m_who(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p,
 	mask = maskcopy;
 
 	collapse(mask);
+
+	begin_local_response_batch();
 
 	/* '/who *' */
 	if((*(mask + 1) == '\0') && (*mask == '*'))

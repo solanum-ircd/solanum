@@ -32,6 +32,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char users_desc[] =
 	"Provides the USERS command to display connection statistics locally and globally";
@@ -54,8 +55,9 @@ DECLARE_MODULE_AV2(users, NULL, NULL, users_clist, NULL, NULL, NULL, NULL, users
 static void
 m_users(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	if(hunt_server(client_p, source_p, ":%s USERS :%s", 1, parc, parv) == HUNTED_ISME)
+	if (hunt_server(client_p, source_p, ":%s USERS :%s", 1, parc, parv) == HUNTED_ISME)
 	{
+		begin_local_response_batch();
 		sendto_one_numeric(source_p, RPL_LOCALUSERS,
 				   form_str(RPL_LOCALUSERS),
 				   (int)rb_dlink_list_length(&lclient_list),

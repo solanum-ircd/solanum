@@ -66,20 +66,20 @@ cap_oper_oper_visible(struct Client *client)
 static void
 cap_oper_outbound_msgbuf(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
+	hook_data_outbound_msgbuf *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 
-	if (data->client == NULL || !IsPerson(data->client))
+	if (data->source == NULL || !IsPerson(data->source))
 		return;
 
-	if (IsOper(data->client))
+	if (IsOper(data->source))
 	{
 		/* send all oper data to auspex */
-		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->client->user->opername, CLICAP_OPER_AUSPEX);
-		if (HasPrivilege(data->client, "oper:hidden") || ConfigFileEntry.hide_opers)
+		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->source->user->opername, CLICAP_OPER_AUSPEX);
+		if (HasPrivilege(data->source, "oper:hidden") || ConfigFileEntry.hide_opers)
 			/* these people aren't allowed to see hidden opers */
 			return;
-		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->client->user->opername, CLICAP_OPER_JUSTOPER);
+		msgbuf_append_tag(msgbuf, "solanum.chat/oper", data->source->user->opername, CLICAP_OPER_JUSTOPER);
 		msgbuf_append_tag(msgbuf, "solanum.chat/oper", NULL, CLICAP_OPER_NORMAL);
 	}
 }

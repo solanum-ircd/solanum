@@ -38,6 +38,7 @@
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
+#include "response.h"
 
 static const char trace_desc[] =
 	"Provides the TRACE command to trace the route to a client or server";
@@ -83,8 +84,7 @@ m_trace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 		if(parc > 2)
 		{
-			if(hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv) !=
-					HUNTED_ISME)
+			if (hunt_server(client_p, source_p, ":%s TRACE %s :%s", 2, parc, parv) != HUNTED_ISME)
 				return;
 		}
 	}
@@ -157,6 +157,8 @@ m_trace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	wilds = strchr(tname, '*') || strchr(tname, '?');
 	dow = wilds || doall;
+
+	begin_local_response_batch();
 
 	/* specific trace */
 	if(!dow)

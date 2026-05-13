@@ -44,6 +44,7 @@
 #include "reject.h"
 #include "hostmask.h"
 #include "logger.h"
+#include "response.h"
 
 static const char ban_desc[] = "Provides the TS6 BAN command for propagating network-wide bans";
 
@@ -62,6 +63,7 @@ DECLARE_MODULE_AV2(ban, NULL, NULL, ban_clist, NULL, NULL, NULL, NULL, ban_desc)
 static void
 m_ban(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	begin_local_response_batch();
 	sendto_one_notice(source_p, ":The BAN command is not user-accessible.");
 	sendto_one_notice(source_p, ":To ban a user from a channel, see /QUOTE HELP CMODE");
 	if (IsOperGeneral(source_p))
