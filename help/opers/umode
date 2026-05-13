@@ -11,7 +11,6 @@ User modes: (* designates that the umode is oper only)
                   inviting you to channels.
       ?* +h     - Show on /STATS p and marked as available for help in whois.
          +i     - Designates this client 'invisible'.
-       * +l     - Can see oper locops (local wallops).
          +o     - Designates this client is an IRC Operator.
                   Use the /oper command to attain this.
        ? +q     - Prevents you from joining channels or sending private messages

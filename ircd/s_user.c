@@ -102,7 +102,7 @@ int user_modes[256] = {
 	UMODE_INVISIBLE,	/* i */
 	0,			/* j */
 	0,			/* k */
-	UMODE_LOCOPS,		/* l */
+	0,			/* l */
 	0,			/* m */
 	0,			/* n */
 	UMODE_OPER,		/* o */

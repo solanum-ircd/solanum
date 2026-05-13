@@ -449,7 +449,6 @@ struct ListClient
 #define UMODE_WALLOP       0x0002	/* send wallops to them */
 #define UMODE_OPERWALL     0x0004	/* Operwalls */
 #define UMODE_INVISIBLE    0x0008	/* makes user invisible */
-#define UMODE_LOCOPS       0x0020	/* show locops */
 #define UMODE_SERVICE      0x0040
 #define UMODE_DEAF	   0x0080
 #define UMODE_NOFORWARD    0x0100	/* don't forward */
@@ -459,8 +458,7 @@ struct ListClient
 #define UMODE_ADMIN        0x2000	/* Admin on server */
 #define UMODE_SECURE       0x4000	/* has a secure connection */
 
-#define DEFAULT_OPER_UMODES (UMODE_SERVNOTICE | UMODE_OPERWALL | \
-                             UMODE_WALLOP | UMODE_LOCOPS)
+#define DEFAULT_OPER_UMODES (UMODE_SERVNOTICE | UMODE_OPERWALL | UMODE_WALLOP)
 #define DEFAULT_OPER_SNOMASK SNO_GENERAL
 
 /*
@@ -533,7 +531,6 @@ struct ListClient
 #define ClearInvisible(x)       ((x)->umodes &= ~UMODE_INVISIBLE)
 #define IsSecureClient(x)       ((x)->umodes & UMODE_SECURE)
 #define SendWallops(x)          ((x)->umodes & UMODE_WALLOP)
-#define SendLocops(x)           ((x)->umodes & UMODE_LOCOPS)
 #define SendServNotice(x)       ((x)->umodes & UMODE_SERVNOTICE)
 #define SendOperwall(x)         ((x)->umodes & UMODE_OPERWALL)
 #define IsService(x)            ((x)->umodes & UMODE_SERVICE)

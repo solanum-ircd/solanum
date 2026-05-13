@@ -26,7 +26,6 @@
 #loadmodule "extensions/m_extendchans";
 #loadmodule "extensions/m_findforwards";
 #loadmodule "extensions/m_identify";
-#loadmodule "extensions/m_locops";
 #loadmodule "extensions/no_oper_invis";
 #loadmodule "extensions/sno_farconnect";
 #loadmodule "extensions/sno_globalnickchange";
@@ -273,7 +272,7 @@ operator "god" {
 	 * If this is specified an oper will not be given oper_umodes
 	 * These are described above oper_only_umodes in general {};
 	 */
-	#umodes = locops, servnotice, operwall, wallop;
+	#umodes = servnotice, operwall, wallop;
 
 	/* fingerprint: if specified, the oper's client certificate
 	 * fingerprint will be checked against the specified fingerprint
@@ -612,8 +611,8 @@ general {
 	client_flood_max_lines = 20;
 	post_registration_delay = 0 seconds;
 	use_whois_actually = no;
-	oper_only_umodes = operwall, locops, servnotice;
-	oper_umodes = locops, servnotice, operwall, wallop;
+	oper_only_umodes = operwall, servnotice;
+	oper_umodes = servnotice, operwall, wallop;
 	oper_snomask = "+s";
 	burst_away = yes;
 	nick_delay = 0 seconds; # 15 minutes if you want to enable this
