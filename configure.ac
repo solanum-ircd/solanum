@@ -279,9 +279,10 @@ AC_ARG_ENABLE(hyperscan,
 AC_HELP_STRING([--disable-hyperscan],[Disable hyperscan support]),
 [hyperscan=$enableval],[hyperscan=yes])
 
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+
 AS_IF([test "$hyperscan" = yes], [
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LIBS="$LIBS"
 	PKG_CHECK_MODULES([HS], [libhs >= 4], [], [hyperscan=no])
 	CPPFLAGS="$CPPFLAGS $HS_CFLAGS"
 	LIBS="$LIBS $HS_LIBS"
@@ -321,9 +322,10 @@ AC_ARG_ENABLE(icu,
 AC_HELP_STRING([--disable-icu],[Disable ICU support]),
 [icu=$enableval],[icu=yes])
 
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+
 AS_IF([test "$icu" = yes], [
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LIBS="$LIBS"
 	PKG_CHECK_MODULES([ICU], [icu-uc >= 70], [], [icu=no])
 	CPPFLAGS="$CPPFLAGS $ICU_CFLAGS"
 	LIBS="$LIBS $ICU_LIBS"
