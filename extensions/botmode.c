@@ -141,6 +141,7 @@ botmode_can_join(void *data_)
 	/* Check for invexes. */
 	if (ConfigChannel.use_invex)
 	{
+		matchset_for_client(client, &ms);
 		RB_DLINK_FOREACH(ptr, chptr->invexlist.head)
 		{
 			invex = ptr->data;
@@ -160,10 +161,10 @@ botmode_can_join(void *data_)
 static void
 botmode_apply_tag(void *data_)
 {
-	hook_data *data = data_;
-	struct MsgBuf *msgbuf = data->arg1;
+	hook_data_outbound_msgbuf *data = data_;
+	struct MsgBuf *msgbuf = data->msgbuf;
 
-	if (data->client != NULL && IsBot(data->client))
+	if (data->source != NULL && IsBot(data->source))
 		msgbuf_append_tag(msgbuf, "bot", NULL, CLICAP_MESSAGE_TAGS);
 }
 
