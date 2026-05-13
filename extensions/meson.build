@@ -47,6 +47,7 @@ extension_modules = [
   'm_sendbans',
   'm_shedding',
   'm_webirc',
+  'multiline',
   'no_kill_services',
   'no_oper_invis',
   'override',
