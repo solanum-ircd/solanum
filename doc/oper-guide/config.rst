@@ -697,10 +697,6 @@ tresv (q)
 unresv (R)
     ``RESV`` removals
 
-locops (L)
-    ``LOCOPS`` messages (sharing this with \* makes ``LOCOPS`` rather similar to
-    ``OPERWALL`` which is not useful)
-
 all
     All of the above
 
@@ -765,14 +761,8 @@ unresv (R)
     ``RESV`` removals
 
 all
-    All of the above; this does not include locops, rehash, dline,
+    All of the above; this does not include rehash, dline,
     tdline or undline.
-
-locops (L)
-    ``LOCOPS`` messages (accepting this from \* makes ``LOCOPS`` rather similar
-    to ``OPERWALL`` which is not useful); unlike the other flags, this can
-    only be accepted from \*@\* although it can be restricted based on
-    source server.
 
 rehash (H)
     ``REHASH`` commands; all options can be used

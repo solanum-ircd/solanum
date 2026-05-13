@@ -107,8 +107,6 @@ ms_wallops(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 	if (IsPerson(source_p))
 	{
 		if (!strncmp(parv[1], "OPERWALL - ", 11) ||
-				!strncmp(parv[1], "LOCOPS - ", 9) ||
-				!strncmp(parv[1], "SLOCOPS - ", 10) ||
 				!strncmp(parv[1], "ADMINWALL - ", 12))
 			prefix = "WALLOPS - ";
 	}

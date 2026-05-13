@@ -322,7 +322,6 @@ struct mode_table
 static struct mode_table umode_table[] = {
 	{"deaf",	UMODE_DEAF	},
 	{"invisible",	UMODE_INVISIBLE	},
-	{"locops",	UMODE_LOCOPS	},
 	{"noforward",	UMODE_NOFORWARD	},
 	{"servnotice",	UMODE_SERVNOTICE},
 	{"wallop",	UMODE_WALLOP	},
@@ -373,7 +372,6 @@ static struct mode_table cluster_table[] = {
 	{ "kline",	SHARED_PKLINE	},
 	{ "tkline",	SHARED_TKLINE	},
 	{ "unkline",	SHARED_UNKLINE	},
-	{ "locops",	SHARED_LOCOPS	},
 	{ "xline",	SHARED_PXLINE	},
 	{ "txline",	SHARED_TXLINE	},
 	{ "unxline",	SHARED_UNXLINE	},
