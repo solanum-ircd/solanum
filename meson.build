@@ -23,6 +23,9 @@ endif
 hyperscan_dep = dependency('libhs', version: '>=4', required: get_option('hyperscan'))
 have_hyperscan = hyperscan_dep.found()
 
+icu_dep = dependency('icu-uc', version: '>=70', required: get_option('icu'))
+have_icu = icu_dep.found()
+
 sctp_dep = cc.find_library('sctp', has_headers: ['netinet/sctp.h'], required: get_option('sctp'))
 have_sctp = sctp_dep.found()
 
@@ -152,6 +155,9 @@ endif
 if have_hyperscan
   conf_data.set('HAVE_HYPERSCAN', 1)
 endif
+if have_icu
+  conf_data.set('HAVE_LIBICU', 1)
+endif
 
 # TLS backend defines
 if have_openssl
@@ -264,6 +270,7 @@ summary({
   'TLS backend': tls_backend,
   'SCTP': have_sctp,
   'Hyperscan': have_hyperscan,
+  'ICU': have_icu,
   'OPER CHGHOST': get_option('oper_chghost'),
 }, section: 'Features')
 
