@@ -6,6 +6,7 @@ LIBS += $(top_srcdir)/ircd/libircd.la
 extensiondir=@moduledir@/extensions
 
 extension_LTLIBRARIES =		\
+  botmode.la			\
   cap_oper.la			\
   cap_realhost.la		\
   chantype_dummy.la		\
