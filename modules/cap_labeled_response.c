@@ -195,23 +195,27 @@ cap_labeled_response_cleanup(void *unused)
 {
 	if (outgoing_response_info != NULL)
 	{
-		if (MyConnect(outgoing_response_info->source_p))
+		/* don't try to send anything if they disconnected */
+		if (!IsIOError(outgoing_response_info->source_p))
 		{
-			/* send an ACK if the handlers didn't send anything */
-			if (!outgoing_response_info->sent)
-				sendto_one(outgoing_response_info->source_p, ":%s ACK", me.name);
-
-			if (!EmptyString(outgoing_response_info->batch) && outgoing_response_info->remote_response == 0)
+			if (MyConnect(outgoing_response_info->source_p))
 			{
-				sendto_one(outgoing_response_info->source_p, ":%s BATCH -%s",
-					me.name, outgoing_response_info->batch);
+				/* send an ACK if the handlers didn't send anything */
+				if (!outgoing_response_info->sent)
+					sendto_one(outgoing_response_info->source_p, ":%s ACK", me.name);
+
+				if (!EmptyString(outgoing_response_info->batch) && outgoing_response_info->remote_response == 0)
+				{
+					sendto_one(outgoing_response_info->source_p, ":%s BATCH -%s",
+						me.name, outgoing_response_info->batch);
+				}
 			}
-		}
-		else
-		{
-			/* notify remote that we're done sending responses to this command */
-			sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
-				me.id, outgoing_response_info->source_p->servptr->name);
+			else
+			{
+				/* notify remote that we're done sending responses to this command */
+				sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
+					me.id, outgoing_response_info->source_p->servptr->name);
+			}
 		}
 
 		if (outgoing_response_info->remote_response == 0)
