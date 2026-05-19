@@ -69,7 +69,7 @@ static void list_one_channel(struct Client *source_p, struct Channel *chptr, int
 static void safelist_one_channel(struct Client *source_p, struct Channel *chptr, struct ListClient *params);
 static void safelist_check_cliexit(void *);
 static void safelist_client_instantiate(struct Client *, struct ListClient *);
-static void safelist_client_release(struct Client *);
+static void safelist_client_release(struct Client *, struct ResponseInfo **);
 static void safelist_iterate_client(struct Client *source_p);
 static void safelist_iterate_clients(void *unused);
 static void safelist_channel_named(struct Client *source_p, const char *name, int operspy);
@@ -130,7 +130,7 @@ static void _moddeinit(void)
 			restore_global_context(source_p);
 
 		sendto_one_notice(source_p, ":/LIST aborted");
-		safelist_client_release(source_p);
+		safelist_client_release(source_p, &orig_outgoing_response_info);
 	}
 
 	if (!first)
@@ -151,7 +151,7 @@ static void safelist_check_cliexit(void *data)
 		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
 		uint64_t set_cap = restore_global_context(hdata->target);
 		sendto_one_notice(hdata->target, ":/LIST aborted");
-		safelist_client_release(hdata->target);
+		safelist_client_release(hdata->target, &orig_outgoing_response_info);
 		reset_global_context(orig_outgoing_response_info, set_cap);
 	}
 }
@@ -172,7 +172,7 @@ m_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
 		uint64_t set_cap = restore_global_context(source_p);
 		sendto_one_notice(source_p, ":/LIST aborted");
-		safelist_client_release(source_p);
+		safelist_client_release(source_p, &orig_outgoing_response_info);
 		reset_global_context(orig_outgoing_response_info, set_cap);
 		return;
 	}
@@ -211,7 +211,7 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
 		uint64_t set_cap = restore_global_context(source_p);
 		sendto_one_notice(source_p, ":/LIST aborted");
-		safelist_client_release(source_p);
+		safelist_client_release(source_p, &orig_outgoing_response_info);
 		reset_global_context(orig_outgoing_response_info, set_cap);
 		return;
 	}
@@ -478,7 +478,7 @@ reset_global_context(struct ResponseInfo *orig, uint64_t set_cap)
  * side effects - the client is no longer being
  *                listed
  */
-static void safelist_client_release(struct Client *client_p)
+static void safelist_client_release(struct Client *client_p, struct ResponseInfo **orig_response_info)
 {
 	if (!MyClient(client_p))
 		return;
@@ -498,6 +498,9 @@ static void safelist_client_release(struct Client *client_p)
 		sendto_one(client_p, ":%s BATCH -%s", me.name, outgoing_response_info->batch);
 
 	free_response_batch(outgoing_response_info);
+	/* outgoing_response_info is now pointing to freed memory, so if orig is the same pointer, wipe it */
+	if (outgoing_response_info == *orig_response_info)
+		*orig_response_info = NULL;
 }
 
 /*
@@ -613,7 +616,7 @@ static void safelist_iterate_client(struct Client *source_p)
 		safelist_one_channel(source_p, chptr, source_p->localClient->safelist_data);
 	}
 
-	safelist_client_release(source_p);
+	safelist_client_release(source_p, &orig_outgoing_response_info);
 	reset_global_context(orig_outgoing_response_info, set_cap);
 }
 
