@@ -497,10 +497,12 @@ static void safelist_client_release(struct Client *client_p, struct ResponseInfo
 	if (outgoing_response_info != NULL)
 		sendto_one(client_p, ":%s BATCH -%s", me.name, outgoing_response_info->batch);
 
-	free_response_batch(outgoing_response_info);
-	/* outgoing_response_info is now pointing to freed memory, so if orig is the same pointer, wipe it */
+	/* outgoing_response_info is about to be freed, so if orig is the same pointer, wipe it */
 	if (outgoing_response_info == *orig_response_info)
 		*orig_response_info = NULL;
+
+	free_response_batch(outgoing_response_info);
+	outgoing_response_info = NULL;
 }
 
 /*
