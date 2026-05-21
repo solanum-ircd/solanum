@@ -54,7 +54,7 @@ cleanup_pending_responses(void *unused)
 	/* RB_DICTIONARY_FOREACH is not safe for deletion, so need to do this in two passes */
 	RB_DICTIONARY_FOREACH(response, &iter, pending_responses)
 	{
-		if (response->expires < now)
+		if (response->expires != 0 && response->expires < now)
 		{
 			rb_dlinkAddAlloc(response, &freelist);
 		}
