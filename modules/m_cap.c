@@ -167,7 +167,10 @@ clicap_generate(struct Client *source_p, const char *subcmd, int flags)
 			(source_p->flags & FLAGS_CLICAP_DATA) ? str_cont : str_final);
 
 	/* shortcut, nothing to do */
-	if (flags == -1 || !multiline_ret) {
+	if (flags == -1 || !multiline_ret)
+	{
+		/* Currently safe to call if send_multiline_init failed. */
+		send_multiline_reset();
 		sendto_one(source_p, ":%s CAP %s %s %s",
 				me.name,
 				EmptyString(source_p->name) ? "*" : source_p->name,
