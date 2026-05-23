@@ -54,7 +54,7 @@ cleanup_pending_responses(void *unused)
 	/* RB_DICTIONARY_FOREACH is not safe for deletion, so need to do this in two passes */
 	RB_DICTIONARY_FOREACH(response, &iter, pending_responses)
 	{
-		if (response->expires != 0 && response->expires < now)
+		if (!(response->flags & RESPONSE_FLAG_NO_EXPIRE) && response->expires < now)
 		{
 			rb_dlinkAddAlloc(response, &freelist);
 		}
@@ -67,14 +67,14 @@ cleanup_pending_responses(void *unused)
 			sendto_one(response->source_p, ":%s BATCH -%s", me.name, response->batch);
 		rb_dlinkDestroy(ptr, &freelist);
 		rb_dictionary_delete(pending_responses, response->batch);
-		free_response_batch(response);
+		free_response_batch(response, outgoing_response_info);
 	}
 }
 
 void
 init_response(void)
 {
-	pending_responses = rb_dictionary_create("pending remote labeled responses", response_cmp);
+	pending_responses = rb_dictionary_create("remote labeled responses", response_cmp);
 
 	rb_event_addish("cleanup_pending_responses", &cleanup_pending_responses, NULL, 10);
 }
@@ -88,7 +88,9 @@ begin_local_response_batch(void)
 	if (!EmptyString(outgoing_response_info->batch))
 		return;
 
-	generate_batch_id(outgoing_response_info->batch, sizeof(outgoing_response_info->batch));
+	char *batch_id = rb_malloc(BATCH_ID_LEN);
+	generate_batch_id(batch_id, BATCH_ID_LEN);
+	outgoing_response_info->batch = batch_id;
 	sendto_one(outgoing_response_info->source_p, ":%s BATCH +%s labeled-response",
 		me.name, outgoing_response_info->batch);
 }
@@ -99,14 +101,19 @@ begin_remote_response_batch(int server_count, const char *mask)
 	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p))
 		return;
 
+	rb_dlink_node *node = rb_make_rb_dlink_node();
+	outgoing_response_info->remote_node = node;
+
 	if (EmptyString(outgoing_response_info->batch))
 	{
 		/* creating a new response batch */
-		generate_batch_id(outgoing_response_info->batch, sizeof(outgoing_response_info->batch));
+		char *batch_id = rb_malloc(BATCH_ID_LEN);
+		generate_batch_id(batch_id, BATCH_ID_LEN);
+		outgoing_response_info->batch = batch_id;
 		outgoing_response_info->remote_response = server_count;
-		rb_strlcpy(outgoing_response_info->mask, mask, sizeof(outgoing_response_info->mask));
+		outgoing_response_info->mask = rb_strdup(mask);
 		outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
-		rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
+		rb_dlinkAdd(outgoing_response_info, node, &outgoing_response_info->source_p->localClient->pending_remote_responses);
 		rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
 		sendto_one(outgoing_response_info->source_p, ":%s BATCH +%s labeled-response",
 			me.name, outgoing_response_info->batch);
@@ -117,9 +124,9 @@ begin_remote_response_batch(int server_count, const char *mask)
 		s_assert(outgoing_response_info->remote_response == 0);
 
 		outgoing_response_info->remote_response += server_count;
-		rb_strlcpy(outgoing_response_info->mask, mask, sizeof(outgoing_response_info->mask));
+		outgoing_response_info->mask = rb_strdup(mask);
 		outgoing_response_info->expires = rb_current_time() + RESPONSE_EXPIRY;
-		rb_dlinkAddAlloc(outgoing_response_info, &outgoing_response_info->source_p->localClient->pending_remote_responses);
+		rb_dlinkAdd(outgoing_response_info, node, &outgoing_response_info->source_p->localClient->pending_remote_responses);
 		rb_dictionary_add(pending_responses, outgoing_response_info->batch, outgoing_response_info);
 	}
 }
@@ -130,29 +137,58 @@ get_remote_response_batch(const char *batch)
 	return rb_dictionary_retrieve(pending_responses, batch);
 }
 
-void
-free_response_batch(struct ResponseInfo *response)
+struct ResponseInfo *
+resume_response_batch(struct ResponseInfo *response)
 {
-	rb_dlink_node *ptr, *nptr;
+	struct ResponseInfo *saved = outgoing_response_info;
+	/* already set? no need to mess with clicaps if so */
+	if (outgoing_response_info == response)
+		return saved;
 
+	if (outgoing_response_info != NULL && MyConnect(outgoing_response_info->source_p))
+		ClearClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
+
+	outgoing_response_info = response;
+	if (response != NULL && MyClient(response->source_p) && IsClientCapable(response->source_p, CLICAP_LABELED_RESPONSE | CLICAP_BATCH))
+		SetClientCap(response->source_p, CLICAP_RECEIVE_LABEL);
+
+	return saved;
+}
+
+void
+free_response_batch(struct ResponseInfo *response, struct ResponseInfo *resume)
+{
+	bool do_resume = response == outgoing_response_info;
 	if (response == NULL)
 		return;
 
+	if (response == resume)
+		resume = NULL;
+
 	if (MyConnect(response->source_p))
 	{
-		RB_DLINK_FOREACH_SAFE(ptr, nptr, response->source_p->localClient->pending_remote_responses.head)
-		{
-			if (ptr->data == response)
-			{
-				rb_dlinkDestroy(ptr, &response->source_p->localClient->pending_remote_responses);
-				break;
-			}
-		}
+		ClearClientCap(response->source_p, CLICAP_RECEIVE_LABEL);
 
-		rb_dictionary_delete(pending_responses, response->batch);
+		if (response->remote_node != NULL)
+			rb_dlinkDestroy(response->remote_node, &response->source_p->localClient->pending_remote_responses);
 	}
 
-	rb_free(response);
+	rb_dictionary_delete(pending_responses, response->batch);
+
+	if (!(response->flags & RESPONSE_FLAG_STATIC))
+	{
+		rb_free(response->batch);
+		rb_free(response->label);
+		rb_free(response->mask);
+		rb_free(response);
+	}
+
+	if (do_resume)
+	{
+		outgoing_response_info = resume;
+		if (resume != NULL && MyClient(resume->source_p) && IsClientCapable(resume->source_p, CLICAP_LABELED_RESPONSE | CLICAP_BATCH))
+			SetClientCap(resume->source_p, CLICAP_RECEIVE_LABEL);
+	}
 }
 
 int
