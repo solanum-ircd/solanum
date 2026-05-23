@@ -64,8 +64,17 @@ mr_capab(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(client_p->localClient == NULL)
 		return;
 
-	if(client_p->user)
+	if (client_p->user)
+	{
+		exit_client(client_p, client_p, client_p, "Mixing client and server protocol");
 		return;
+	}
+
+	if (!IsServerCapable(client_p, CAP_TS6))
+	{
+		exit_client(client_p, client_p, client_p, "Incompatible TS version");
+		return;
+	}
 
 	/* CAP_TS6 is set in PASS, so is valid.. */
 	if((client_p->localClient->server_caps & ~CAP_TS6) != 0)
