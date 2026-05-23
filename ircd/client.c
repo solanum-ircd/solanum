@@ -1741,7 +1741,7 @@ exit_client(struct Client *client_p,	/* The local client originating the
 	{
 		RB_DLINK_FOREACH_SAFE(ptr, nptr, source_p->localClient->pending_remote_responses.head)
 		{
-			free_response_batch(ptr->data);
+			free_response_batch(ptr->data, outgoing_response_info);
 		}
 
 		/* Local clients of various types */

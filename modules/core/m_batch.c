@@ -63,45 +63,35 @@ mapi_hfn_list_av1 batch_hfnlist[] = {
 
 DECLARE_MODULE_AV2(batch, batch_modinit, batch_moddeinit, batch_clist, NULL, batch_hfnlist, NULL, NULL, batch_desc);
 
+static struct
+{
+	const struct Client *incoming_client;
+	const struct MsgBuf *incoming_message;
+} saved_global_context;
+
 /* Restore global contextual pointers with the opening BATCH message */
 static void
 restore_global_context(struct Client *client_p, struct Batch *batch)
 {
-	uint64_t CLICAP_LABELED_RESPONSE = capability_get(cli_capindex, "labeled-response", NULL);
-	uint64_t CLICAP_RECEIVE_LABEL = capability_get(cli_capindex, "?receive_label", NULL);
-	if (outgoing_response_info != NULL && MyConnect(outgoing_response_info->source_p) && CLICAP_RECEIVE_LABEL)
-		ClearClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
-
-	outgoing_response_info = batch->response_info;
+	saved_global_context.incoming_client = incoming_client;
+	saved_global_context.incoming_message = incoming_message;
 	incoming_client = client_p;
 	incoming_message = &batch->start->msg;
-
-	if (outgoing_response_info != NULL
-		&& MyConnect(outgoing_response_info->source_p)
-		&& IsClientCapable(outgoing_response_info->source_p, CLICAP_LABELED_RESPONSE | CLICAP_BATCH)
-		&& CLICAP_RECEIVE_LABEL)
-	{
-		SetClientCap(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
-	}
 }
 
 static void
-reset_global_context(const struct Client *orig_ic, const struct MsgBuf *orig_im, struct ResponseInfo *orig_ori, uint64_t set_cap)
+reset_global_context(void)
 {
-	outgoing_response_info = orig_ori;
-	incoming_client = orig_ic;
-	incoming_message = orig_im;
-	if (orig_ori != NULL && set_cap)
-		SetClientCap(orig_ori->source_p, set_cap);
+	incoming_client = saved_global_context.incoming_client;
+	incoming_message = saved_global_context.incoming_message;
 }
 
 static void
 batch_timeout(void *arg)
 {
-	/* non-NULL arg indicates this is being called during module unload so we need to "time out" all batches */
+	/* non-NULL arg indicates this is being called during module reload so we need to "time out" all batches */
 	rb_dlink_node *cptr, *ptr, *next_ptr;
 	struct Client *client;
-	struct Batch *batch;
 	time_t now = rb_current_time();
 
 	RB_DLINK_FOREACH(cptr, lclient_list.head)
@@ -109,14 +99,16 @@ batch_timeout(void *arg)
 		client = cptr->data;
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client->localClient->pending_batches.head)
 		{
-			batch = ptr->data;
+			struct Batch* batch = ptr->data;
 			if (arg != NULL || batch->expires <= now)
 			{
 				restore_global_context(client, batch);
+				struct ResponseInfo *info = resume_response_batch(batch->response_info);
 				sendto_one(client, ":%s FAIL BATCH TIMEOUT %s :Batch timed out",
 					me.name, batch->tag);
 				client->localClient->pending_batch_lines -= batch->len + 1;
-				batch_free(batch);
+				batch_free(batch, info);
+				reset_global_context();
 				rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
 			}
 		}
@@ -124,22 +116,19 @@ batch_timeout(void *arg)
 
 	if (arg != NULL)
 	{
-		/* get rid of server batches only on module unload */
+		/* get rid of server batches only on module reload */
 		RB_DLINK_FOREACH(cptr, serv_list.head)
 		{
 			client = cptr->data;
 			RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client->localClient->pending_batches.head)
 			{
-				batch_free(ptr->data);
+				batch_free(ptr->data, outgoing_response_info);
 				rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
 			}
 
 			client->localClient->pending_batch_lines = 0;
 		}
 	}
-
-	/* reset context back to NULL since we're in an event handler */
-	reset_global_context(NULL, NULL, NULL, NOCAPS);
 }
 
 static void
@@ -153,7 +142,7 @@ handle_client_exit(void *data_)
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, data->target->localClient->pending_batches.head)
 	{
-		batch_free(ptr->data);
+		batch_free(ptr->data, outgoing_response_info);
 		rb_dlinkDestroy(ptr, &data->target->localClient->pending_batches);
 	}
 
@@ -166,6 +155,7 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 {
 	const struct BatchHandler *handler = get_batch_handler(batch->type);
 	rb_dlink_node *ptr, *next_ptr;
+	struct ResponseInfo *info;
 
 	/* abort unfinished nested batches under this one */
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->pending_batches.head)
@@ -174,18 +164,21 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		if (other->parent == batch)
 		{
 			restore_global_context(client_p, other);
+			info = resume_response_batch(batch->response_info);
 			if (IsClient(source_p))
 				sendto_one(source_p, ":%s FAIL BATCH INCOMPLETE %s :Nested batch not finished before enclosing batch",
 					me.name, other->tag);
 
 			client_p->localClient->pending_batch_lines -= other->len + 1;
-			batch_free(other);
+			batch_free(other, info);
+			reset_global_context();
 			rb_dlinkDestroy(ptr, &client_p->localClient->pending_batches);
 		}
 	}
 
 	client_p->localClient->pending_batch_lines -= batch->len + 1;
 	restore_global_context(client_p, batch);
+	info = resume_response_batch(batch->response_info);
 
 	if (handler == NULL)
 	{
@@ -196,7 +189,8 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 			sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
 				me.name, batch->tag, batch->type);
 
-		batch_free(batch);
+		batch_free(batch, info);
+		reset_global_context();
 		return;
 	}
 
@@ -209,11 +203,17 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		{
 			struct Batch *child = ptr->data;
 			rb_dlinkDestroy(ptr, &batch->children);
+			/* global context isn't a stack, so ensure we reset to base before recursing */
+			resume_response_batch(info);
+			reset_global_context();
 			finish_batch(client_p, source_p, child);
+			restore_global_context(client_p, batch);
+			info = resume_response_batch(batch->response_info);
 		}
 	}
 
-	batch_free(batch);
+	batch_free(batch, info);
+	reset_global_context();
 }
 
 static void
@@ -364,8 +364,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		client_p->localClient->pending_batch_lines++;
 
 		/* postpone any labeled-response to when the batch completes */
-		batch->response_info = outgoing_response_info;
-		outgoing_response_info = NULL;
+		batch->response_info = suspend_response_batch();
 	}
 	else
 	{
@@ -390,19 +389,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		}
 		else
 		{
-			/* save off global state since finish_batch() smashes it */
-			uint64_t CLICAP_RECEIVE_LABEL = capability_get(cli_capindex, "?receive_label", NULL);
-			const struct Client *orig_incoming_client = incoming_client;
-			const struct MsgBuf *orig_incoming_message = incoming_message;
-			struct ResponseInfo *orig_outgoing_response_info = outgoing_response_info;
-			bool has_receive_label = outgoing_response_info != NULL
-				&& CLICAP_RECEIVE_LABEL > 0
-				&& IsClientCapable(outgoing_response_info->source_p, CLICAP_RECEIVE_LABEL);
-
 			finish_batch(client_p, source_p, batch);
-
-			reset_global_context(orig_incoming_client, orig_incoming_message, orig_outgoing_response_info,
-				has_receive_label ? CLICAP_RECEIVE_LABEL : NOCAPS);
 		}
 	}
 }

@@ -77,7 +77,7 @@ clicap_visible(struct Client *client_p, const struct CapabilityEntry *cap)
 
 	clicap = cap->ownerdata;
 	if (clicap->visible == NULL)
-		return 1;
+		return (clicap->flags & CLICAP_FLAGS_INVISIBLE) == 0;
 
 	return clicap->visible(client_p);
 }
