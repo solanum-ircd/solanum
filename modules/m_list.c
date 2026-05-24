@@ -347,7 +347,8 @@ mo_list(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 
 	/* mark it as a "remote" response that cannot expire so we don't terminate the batch at the end of the command handler */
 	begin_remote_response_batch(1, "");
-	outgoing_response_info->expires = 0;
+	if (outgoing_response_info != NULL)
+		outgoing_response_info->expires = 0;
 	params->response_info = outgoing_response_info;
 
 	safelist_client_instantiate(source_p, params);
