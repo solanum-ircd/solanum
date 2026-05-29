@@ -172,7 +172,7 @@ static void
 botmode_whois(void *data_)
 {
 	hook_data_client *data = data_;
-	if(!IsBot(data->target))
+	if (!IsBot(data->target))
 		return;
 
 	sendto_one_numeric(data->client, RPL_WHOISBOT, form_str(RPL_WHOISBOT), data->target->name);
@@ -184,7 +184,7 @@ botmode_change(void *data_)
 	hook_data_umode_changed *data = data_;
 
 	/* Check if we are in at least one channel. */
-	if (data->client->user->channel.head == NULL)
+	if (data->client->user->channel.length == 0)
 		return;
 
 	if (IsBot(data->client) && !(data->oldumodes & umode))
