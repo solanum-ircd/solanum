@@ -205,7 +205,7 @@ static mapi_hfn_list_av1 botmode_hfnlist[] = {
 	{ "outbound_msgbuf", botmode_apply_tag },
 	{ "doing_whois", botmode_whois },
 	{ "doing_whois_global", botmode_whois },
-	{ "umode_change", botmode_change },
+	{ "umode_changed", botmode_change },
 	{ NULL, NULL }
 };
 
