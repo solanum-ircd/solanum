@@ -79,10 +79,9 @@ static void
 botmode_can_send(void *data_)
 {
 	hook_data_channel *data = data_;
-	struct membership *msptr;
 
-	/* If message is already blocked, defer. */
-	if (data->approved == CAN_SEND_NO)
+	/* If message is already blocked or the sender is opped/voiced, exit early.*/
+	if (data->approved != CAN_SEND_NONOP)
 		return;
 
 	if (!IsBot(data->client))
@@ -93,10 +92,6 @@ botmode_can_send(void *data_)
 
 	/* Allow bots with oper:always_message to bypass this mode. */
 	if (HasPrivilege(data->client, "oper:always_message"))
-		return;
-
-	msptr = find_channel_membership(data->chptr, data->client);
-	if (is_chanop_voiced(msptr))
 		return;
 
 	/* If we're here, umode AND cmode +B are set, and the client is not exempt for any reason. */
