@@ -56,7 +56,7 @@ This document refers to server capabilities in **BOLD** type and commands in
 same as a command. When there is other important information, *emphasis* via
 italics is used. For command parameters, `<angle brackets>` indicate a
 required parameter and `[square brackets]` indicate optional text. Text
-outside of angle brackets should be treated as those literal strings.
+outside of brackets should be treated as those literal strings.
 
 When defining propagation behavior, the following notations are used:
 
@@ -81,16 +81,17 @@ When defining propagation behavior, the following notations are used:
   a server name that does not include any wildcards.
 - Server mask: The command is sent to all servers matching the server mask
   parameter; they do not need to be locally connected. If a server sent us the
-  command, it is excluded from the mask evaluation. Intermediate servers still
-  should propagate the command to downstream servers even if the intermediate
-  does not match the server mask; it just doesn't process the command locally.
+  command, it is excluded from the mask evaluation. Intermediate servers
+  should still propagate the command to downstream servers even if the
+  intermediate does not match the server mask; it just doesn't process the
+  command locally.
 - None: The command is not propagated further.
 - Special: The command documentation describes propagation behavior.
 
-Propagation is evaluated independently for each server. In this way, a command
-which specifies "downstream servers" for its propagation behavior will
-eventually reach the entire network, as each server will in turn send it
-across their local segment of the network's spanning tree.
+Propagation is evaluated independently by each server. In this way, a command
+which specifies "broadcast" for its propagation behavior will eventually reach
+the entire network, as each server will in turn send it across their local
+segment of the network's spanning tree.
 
 Capabilities and commands will have an implementation status of one of the
 following values, indicating whether we recommend that servers or services
@@ -306,7 +307,7 @@ Solanum supports the following server capabilities (enabled via `CAPAB`):
 |------------|-----------|----------------|------------------------------------------------------|
 | BAN        | core      | recommended    | Propagated (global) KLINE/XLINE/RESV                 |
 | CHW        | core      | recommended    | STATUSMSG @+ prefixes ("channel walls")              |
-| CLUSTER    | core      | legacy         | Remote UN)RESV/(UN)XLINE (not using ENCAP)           | 
+| CLUSTER    | core      | legacy         | Remote (UN)RESV/(UN)XLINE (not using ENCAP)          |
 | EBMASK     | core      | recommended    | EBMASK command (burst +beIq with ts/setter data)     |
 | ECHO       | m_message | recommended    | ECHO command (for echo-message)                      |
 | ENCAP      | core      | required       | ENCAP command                                        |
@@ -541,8 +542,8 @@ ignored and not propagated if the creation TS of the incoming ban is older
 than the creation TS of the existing ban. If the incoming ban's creation TS is
 identical to the existing ban's creation TS and the incoming ban's lifetime is
 less than the existing ban's lifetime, it should not be propagated to avoid
-unnecessary network traffic. Two changes to bans that set to the TS to the
-same value may cause desynchronization.
+unnecessary network traffic. Two changes to bans that set the TS to the same
+value may cause desynchronization.
 
 When the duration has passed, the ban is no longer active but it may still
 be necessary to remember it. Setting the duration to 0 removes a ban.
@@ -656,10 +657,15 @@ otherwise the host change will be rejected:
 
 - Host cannot be an empty string
 - Host cannot begin with `:`
-- Host can only contain the characters A-Z, a-z, 0-9, and `-./:`
-- Notably, underscores and formatting codes are *not* allowed in hostnames 
-- A number cannot immediately follow the final `/` in the host
-- This prevents potential ambiguity with CIDR notation in bans 
+- Host can only contain the characters A-Z, a-z, 0-9, and `-./:`; notably,
+  underscores and formatting codes are *not* allowed in hostnames
+- A number cannot immediately follow the final `/` in the host; this prevents
+  potential ambiguity with CIDR notation in bans
+
+When changing the hostname to an IPv6 address, the ip cannot start with `:`
+(as this would otherwise be interpreted as the beginning of the trailing
+parameter in IRC protocol framing). To work around this, prefix the address
+with a leading 0, e.g. `0::1` for localhost.
 
 When propagating this command, if a server does not support **EUID**, it will
 be propagated via the `ENCAP` variant below instead. However, supporting
@@ -979,8 +985,8 @@ capability names.
 - Implementation: optional
 - Syntax: `ENCAP <server> GRANT <target> <privset>`
 
-Opers the target with the specified privset. The privset must exist on the
-target server.
+Opers the target with the specified privset. The target user must be locally
+connected to the target server and the privset must exist on that server.
 
 ----
 
@@ -990,7 +996,8 @@ target server.
 - Implementation: optional
 - Syntax: `ENCAP <server> GRANT <target> deoper`
 
-Revokes oper status from the target.
+Revokes oper status from the target, who must be locally connected to the
+target server.
 
 ### IDENTIFIED (E)
 
@@ -1223,7 +1230,7 @@ list; it is purely informational.
 
 If the list of supported mechanisms changes, services should send an updated
 `ENCAP MECHLIST` with the new list. Setting the list to an empty string will
-cause the sasl capability to be relayed to clients with an empty string value.
+cause the sasl capability to be relayed to clients with no value.
 
 ### MLOCK
 
@@ -1369,11 +1376,14 @@ via `RSFNC`).
 
 - Capability: none
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: required
 - Syntax: `NOTICE <channel> :<message>`
 
 Sends a notice to a channel.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
@@ -1389,7 +1399,7 @@ Sends a notice to a client.
 
 - Capability: **CHW**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `NOTICE <prefix><channel> :<message>`
 
@@ -1398,11 +1408,14 @@ voiced users and ops on the channel, or "@" to send to only ops. If the source
 is a user, they must have status equal to or greater than the selected prefix.
 This command is not propagated to servers which do not support **CHW**.
 
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
+
 ----
 
 - Capability: both **CHW** and **EOPMOD**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `NOTICE =<channel> :<message>`
 
@@ -1430,6 +1443,9 @@ server to bypass this check (allowing propagating of the newer +z that allows
 
 In general, implement support for both **CHW** and **EOPMOD** or neither to
 avoid this insanity.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
@@ -1589,11 +1605,14 @@ server originating the `PONG` (i.e. the destination of the `PING`). Unlike in
 
 - Capability: none
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: required
 - Syntax: `PRIVMSG <channel> :<message>`
 
 Sends a message to a channel.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
@@ -1609,7 +1628,7 @@ Sends a message to a client.
 
 - Capability: **CHW**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `PRIVMSG <prefix><channel> :<message>`
 
@@ -1619,11 +1638,14 @@ source is a user, they must have status equal to or greater than the selected
 prefix. This command is not propagated to servers which do not support
 **CHW**.
 
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
+
 ----
 
 - Capability: both **CHW** and **EOPMOD**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `PRIVMSG =<channel> :<message>`
 
@@ -1632,6 +1654,9 @@ treated as an @#channel STATUSMSG; however, the source does not need to be
 opped. When propagating, follow the same fallback matrix as `NOTICE` for
 =#channel messages. In general, implement support for both **CHW** and
 **EOPMOD** or neither to avoid fallback insanity.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
@@ -1727,7 +1752,7 @@ Otherwise, type will be one of the following options:
 - NICKDELAY: Clear all current nick delays (`NICKDELAY` command)
 - OMOTD: Reload the oper motd file
 - REJECTCACHE: Clear all rejected IPs (cached bans)
-- SSLD: Restart ssld helper processes
+- SSLD: Start new ssld helper processes
 - TDLINES: Clear all temporary d-lines (`DLINE`/`ENCAP DLINE` commands)
 - THROTTLES: Clear all throttled IPs (connection throttling)
 - TKLINES: Clear all temporary k-lines (`KLINE`/`ENCAP KLINE` commands)
@@ -2259,12 +2284,15 @@ broadcast to other servers via the `SIGNON` message.
 
 - Capability: **STAG**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `TAGMSG <channel>`
 
 Sends tags to a channel. Solanum implements tag filtering; commands without
 tags after filtering is performed will be dropped.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
@@ -2281,7 +2309,7 @@ tags after filtering is performed will be dropped.
 
 - Capability: both **STAG** and **CHW**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `TAGMSG <prefix><channel>`
 
@@ -2292,11 +2320,14 @@ greater than the selected prefix. This command is not propagated to servers
 which do not support **CHW**. Solanum implements tag filtering; commands
 without tags after filtering is performed will be dropped.
 
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
+
 ----
 
 - Capability: all of **STAG**, **CHW**, and **EOPMOD**
 - Source: any
-- Propagation: broadcast
+- Propagation: special
 - Implementation: recommended
 - Syntax: `TAGMSG =<channel>`
 
@@ -2305,6 +2336,9 @@ as an @#channel `TAGMSG`; however, the source does not need to be opped. When
 propagating, follow the same fallback matrix as `NOTICE` for =#channel
 messages. Solanum implements tag filtering; commands without tags after
 filtering is performed will be dropped.
+
+This command is propagated similarly to "broadcast" except it is not sent to
+server links if there are no clients in the channel behind that link.
 
 ----
 
