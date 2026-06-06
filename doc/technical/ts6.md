@@ -2781,6 +2781,8 @@ tag. Unrecognized tags are stripped and not propagated further.
 | +channel-context       | tag_channel_context  | optional       |
 | +reply                 | tag_reply            | optional       |
 | +typing                | tag_typing           | optional       |
+| +draft/react           | tag_react            | draft          |
+| +draft/unreact         | tag_react            | draft          |
 
 ### batch
 
@@ -2834,6 +2836,16 @@ sends.
 ### +channel-context
 
 The +channel-context client-only tag is forwarded as-is between servers.
+
+### +draft/react
+
+The +draft/react client-only tag is forwarded as-is between servers. If a
+message contains this tag but lacks the +reply tag, it will be stripped.
+
+### +draft/unreact
+
+The +draft/unreact client-only tag is forwarded as-is between servers. If a
+message contains this tag but lacks the +reply tag, it will be stripped.
 
 ### +reply
 
