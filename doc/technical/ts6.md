@@ -310,6 +310,7 @@ Solanum supports the following server capabilities (enabled via `CAPAB`):
 | CLUSTER    | core      | legacy         | Remote (UN)RESV/(UN)XLINE (not using ENCAP)          |
 | EBMASK     | core      | recommended    | EBMASK command (burst +beIq with ts/setter data)     |
 | ECHO       | m_message | recommended    | ECHO command (for echo-message)                      |
+| ECHOB      | m_message | recommended    | solanum.chat/echo BATCH type (for echo-message)      |
 | ENCAP      | core      | required       | ENCAP command                                        |
 | EOPMOD     | core      | recommended    | STATUSMSG = prefix (+z applied to +bq), ETB command  |
 | EUID       | core      | recommended    | EUID command (UID + realhost/login info)             |
@@ -318,6 +319,7 @@ Solanum supports the following server capabilities (enabled via `CAPAB`):
 | KLN        | core      | legacy         | Remote KLINE (not using ENCAP)                       | 
 | KNOCK      | core      | optional       | KNOCK command (request invite to channel)            |
 | MLOCK      | core      | recommended    | MLOCK command (force channel modes set/unset)        |
+| MULTILN    | multiline | draft          | draft/multiline BATCH type                           |
 | QS         | core      | required       | Quit storms (no need to send recursive SQUIT)        |
 | REMOVE     | m_remove  | optional       | REMOVE command (force part)                          |
 | RSFNC      | core      | advertisement  | ENCAP RSFNC (force nick change)                      |
@@ -2777,6 +2779,7 @@ tag. Unrecognized tags are stripped and not propagated further.
 | batch                  | m_batch              | required       |
 | msgid                  | tag_message_id       | recommended    |
 | time                   | cap_server_time      | recommended    |
+| draft/multiline-concat | multiline            | draft          |
 | solanum.chat/response  | cap_labeled_response | required       |
 | +channel-context       | tag_channel_context  | optional       |
 | +reply                 | tag_reply            | optional       |
@@ -2786,6 +2789,11 @@ tag. Unrecognized tags are stripped and not propagated further.
 
 Messages with a batch tag that do not correspond to an open `BATCH` between
 the linked servers will be silently dropped.
+
+### draft/multiline-concat
+
+This tag may only be attached to a message inside of a draft/multiline batch
+and will be stripped in all other contexts.
 
 ### msgid
 
@@ -2854,4 +2862,72 @@ nest batches, and can interleave batched and non-batched messages. Open S2S
 batches do not time out automatically and will remain open until the remote
 server finishes it or disconnects.
 
-Solanum does not currently support any S2S batch types.
+Solanum currently supports the following S2S batch types:
+
+### draft/multiline
+
+- Capability: **MULTILN**
+- Source: any
+- Propagation: broadcast
+- Implementation: draft
+- Nesting: No nesting allowed
+- Syntax: `BATCH +<id> draft/multiline [<prefix>]<channel>`
+
+Sends a multiline message to the channel. A prefix of "@" or "+" additionally
+requires **CHW** while a prefix of "=" additionally requires both **CHW** and
+**EOPMOD**. Propagation of this batch in the =#channel case matches that of
+`NOTICE` with respect to special fallback cases. Inner messages must adhere
+to the requirements of the multiline message ircv3 specification, but no
+validation is performed for multiline batches received from remote servers.
+
+----
+
+- Capability: **MULTILN**
+- Source: any
+- Propagation: target
+- Implementation: draft
+- Nesting: No nesting allowed
+- Syntax: `BATCH +<id> draft/multiline <target>`
+
+Sends a multiline message to the user. Inner messages must adhere to the
+requirements of the multiline message ircv3 specification, but no validation
+is performed for multiline batches received from remote servers.
+
+Note: Special targets (user@server, $$/$# mass-messages) are not supported for
+multiline batches.
+
+Example:
+```
+:001AAAAAA BATCH +foo draft/multiline 002BBBBBB
+@batch=foo :001AAAAAA PRIVMSG 002BBBBBB :hello
+@batch=foo,draft/multiline-concat :001AAAAAA PRIVMSG 002BBBBBB : world
+:001AAAAAA BATCH -foo
+```
+
+### solanum.chat/echo
+
+- Capability: **ECHOB**
+- Source: user
+- Propagation: target
+- Implementation: recommended
+- Nesting: Allows arbitrary nested batches
+- Syntax: `BATCH +<id> solanum.chat/echo <target>`
+
+This batch type is used when a server needs to generate an echo-message for a
+`BATCH`. All inner messages of the solanum.chat/echo batch will be relayed to
+the target as-is (unlike other S2S messages, SIDs/UIDs within parameters of
+inner messages *are not replaced* with the name of the server or client). The
+prefix may be omitted on inner messages, as the target server will generate
+the appropriate prefix as if the target sent the message. If inner messages
+contain a prefix, the prefix cannot specify a fake direction and will be
+otherwise ignored.
+
+Example:
+```
+:001AAAAAA BATCH +foo solanum.chat/echo 002BBBBBB
+@batch=foo BATCH +bar draft/multiline #channel
+@batch=bar PRIVMSG #channel :hello
+@batch=bar PRIVMSG #channel :world
+@batch=foo BATCH -bar
+:001AAAAAA BATCH -foo
+```
