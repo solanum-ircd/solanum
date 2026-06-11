@@ -1,5 +1,5 @@
 /*
- *  botmode.c: Bot self-identification and opt-out channel mode
+ *  chm_nobots.c: Prevent bots from joining/sending unless invited/voiced
  *
  *  Copyright (C) 2026 TheDaemoness
  *
@@ -27,58 +27,46 @@
 #include "chmode.h"
 #include "hook.h"
 #include "ircd.h"
-#include "messages.h"
 #include "modules.h"
 #include "numeric.h"
 #include "ircd.h"
+#include "logger.h"
 #include "send.h"
 #include "s_conf.h"
 #include "s_newconf.h"
 #include "s_serv.h"
 #include "s_user.h"
-#include "supported.h"
 
-static const char botmode_desc[] =
-	"Implements bot mode and adds a channel mode to prohibit bots from joining or speaking";
+static const char chm_nobots_desc[] =
+	"Adds channel mode +B which requires users with bot mode to be invited/voiced to join/speak";
 
-static unsigned int chmode, umode;
+static unsigned int chmode;
 
-#define IsBot(client) ((client)->umodes & umode)
+#define IsBot(client) ((client)->umodes & user_modes['B'])
 
 static int
 modinit(void)
 {
-	if (user_modes['B'])
-		return -1;
-	umode = user_modes['B'] = find_umode_slot();
-	if (!umode)
-		return -1;
-
 	chmode = cflag_add('B', chm_simple);
 	if (!chmode)
 	{
-		user_modes['B'] = 0;
+		ierror("chm_nobots: unable to allocate cmode slot for +B, unloading module");
 		return -1;
 	}
 
-	construct_umodebuf();
-	add_isupport("BOT", isupport_string, "B");
 	return 0;
 }
 
 static void
 moddeinit(void)
 {
-	user_modes['B'] = 0;
-	construct_umodebuf();
-	delete_isupport("BOT");
 	cflag_orphan('B');
 }
 
 static void
-botmode_can_send(void *data_)
+chm_nobots_can_send(void *data_)
 {
-	hook_data_channel *data = data_;
+	hook_data_channel_approval *data = data_;
 
 	/* If message is already blocked or the sender is opped/voiced, exit early.*/
 	if (data->approved != CAN_SEND_NONOP)
@@ -102,7 +90,7 @@ botmode_can_send(void *data_)
 }
 
 static void
-botmode_can_join(void *data_)
+chm_nobots_can_join(void *data_)
 {
 	hook_data_channel *data = data_;
 	struct Client *client = data->client;
@@ -153,55 +141,10 @@ botmode_can_join(void *data_)
 	data->approved = ERR_CUSTOM;
 }
 
-static void
-botmode_apply_tag(void *data_)
-{
-	hook_data_outbound_msgbuf *data = data_;
-	struct MsgBuf *msgbuf = data->msgbuf;
-
-	if (data->source != NULL && IsBot(data->source))
-		msgbuf_append_tag(msgbuf, "bot", NULL, CLICAP_MESSAGE_TAGS);
-}
-
-static void
-botmode_whois(void *data_)
-{
-	hook_data_client *data = data_;
-	if (!IsBot(data->target))
-		return;
-
-	sendto_one_numeric(data->client, RPL_WHOISBOT, form_str(RPL_WHOISBOT), data->target->name);
-}
-
-static void
-botmode_change(void *data_)
-{
-	hook_data_umode_changed *data = data_;
-
-	/* Check if we are in at least one channel. */
-	if (data->client->user->channel.length == 0)
-		return;
-
-	if (IsBot(data->client) && !(data->oldumodes & umode))
-	{
-		/* Attempted to set botmode while in a channel. TODO: Send error. */
-		data->client->umodes &= ~umode;
-	}
-	else if (!IsBot(data->client) && (data->oldumodes & umode))
-	{
-		/* Attempted to unset botmode while in a channel. TODO: Send error. */
-		data->client->umodes |= umode;
-	}
-}
-
-static mapi_hfn_list_av1 botmode_hfnlist[] = {
-	{ "can_send", botmode_can_send },
-	{ "can_join", botmode_can_join },
-	{ "outbound_msgbuf", botmode_apply_tag },
-	{ "doing_whois", botmode_whois },
-	{ "doing_whois_global", botmode_whois },
-	{ "umode_changed", botmode_change },
+static mapi_hfn_list_av1 chm_nobots_hfnlist[] = {
+	{ "can_send", chm_nobots_can_send },
+	{ "can_join", chm_nobots_can_join },
 	{ NULL, NULL }
 };
 
-DECLARE_MODULE_AV2(botmode, modinit, moddeinit, NULL, NULL, botmode_hfnlist, NULL, NULL, botmode_desc);
+DECLARE_MODULE_AV2(chm_nobots, modinit, moddeinit, NULL, NULL, chm_nobots_hfnlist, NULL, NULL, chm_nobots_desc);
