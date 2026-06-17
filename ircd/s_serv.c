@@ -93,6 +93,7 @@ uint64_t CAP_EBMASK;
 uint64_t CAP_STAG;
 
 uint64_t CLICAP_SERVONLY;
+uint64_t CLICAP_RECEIVE_LABEL;
 uint64_t CLICAP_MULTI_PREFIX;
 uint64_t CLICAP_ACCOUNT_NOTIFY;
 uint64_t CLICAP_EXTENDED_JOIN;
@@ -104,6 +105,7 @@ uint64_t CLICAP_ECHO_MESSAGE;
 uint64_t CLICAP_MESSAGE_TAGS;
 uint64_t CLICAP_BATCH;
 uint64_t CLICAP_NO_IMPLICIT_NAMES;
+uint64_t CLICAP_LABELED_RESPONSE;
 
 /*
  * initialize our builtin capability table. --nenolod
@@ -112,6 +114,8 @@ void
 init_builtin_capabs(void)
 {
 	static struct ClientCapability high_priority = {.flags = CLICAP_FLAGS_PRIORITY};
+	static struct ClientCapability invisible_noprop = {.flags = CLICAP_FLAGS_NOPROP | CLICAP_FLAGS_INVISIBLE};
+
 	serv_capindex = capability_index_create("server capabilities");
 
 	/* These two are not set via CAPAB/GCAP keywords. */
@@ -147,6 +151,7 @@ init_builtin_capabs(void)
 	cli_capindex = capability_index_create("client capabilities");
 
 	CLICAP_SERVONLY = capability_put_anonymous(cli_capindex);
+	CLICAP_RECEIVE_LABEL = capability_put(cli_capindex, "?receive_label", &invisible_noprop);
 	CLICAP_MULTI_PREFIX = capability_put(cli_capindex, "multi-prefix", &high_priority);
 	CLICAP_ACCOUNT_NOTIFY = capability_put(cli_capindex, "account-notify", &high_priority);
 	CLICAP_EXTENDED_JOIN = capability_put(cli_capindex, "extended-join", &high_priority);
@@ -158,6 +163,7 @@ init_builtin_capabs(void)
 	CLICAP_MESSAGE_TAGS = capability_put(cli_capindex, "message-tags", NULL);
 	CLICAP_BATCH = capability_put(cli_capindex, "batch", &high_priority);
 	CLICAP_NO_IMPLICIT_NAMES = capability_put(cli_capindex, "no-implicit-names", NULL);
+	CLICAP_LABELED_RESPONSE = capability_put(cli_capindex, "labeled-response", NULL);
 }
 
 static CNCB serv_connect_callback;

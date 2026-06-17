@@ -8,7 +8,6 @@ auto_load_moddir=@moduledir@/autoload
 
 auto_load_mod_LTLIBRARIES = \
   cap_account_tag.la \
-  cap_labeled_response.la \
   cap_server_time.la \
   chm_nocolour.la \
   chm_noctcp.la \
@@ -18,7 +17,6 @@ auto_load_mod_LTLIBRARIES = \
   m_admin.la \
   m_alias.la \
   m_away.la \
-  m_batch.la \
   m_cap.la \
   m_capab.la \
   m_certfp.la \
@@ -82,7 +80,9 @@ auto_load_mod_LTLIBRARIES = \
   sno_routing.la
 
 module_LTLIBRARIES = \
+  core/cap_labeled_response.la \
   core/m_ban.la \
+  core/m_batch.la \
   core/m_die.la \
   core/m_error.la \
   core/m_join.la \

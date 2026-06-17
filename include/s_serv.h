@@ -54,6 +54,7 @@ extern uint64_t serv_clicapmask;
 #define CLICAP_FLAGS_STICKY    0x001
 #define CLICAP_FLAGS_PRIORITY  0x002
 #define CLICAP_FLAGS_NOPROP    0x004
+#define CLICAP_FLAGS_INVISIBLE 0x008
 
 struct ClientCapability {
 	bool (*visible)(struct Client *);		/* whether or not to display the capability.  set to NULL or true return value = displayed */
@@ -63,6 +64,7 @@ struct ClientCapability {
 
 /* builtin client capabilities */
 extern uint64_t CLICAP_SERVONLY;           /* for s2s-only message tag propagation; no client ever has this cap */
+extern uint64_t CLICAP_RECEIVE_LABEL;
 extern uint64_t CLICAP_MULTI_PREFIX;
 extern uint64_t CLICAP_ACCOUNT_NOTIFY;
 extern uint64_t CLICAP_EXTENDED_JOIN;
@@ -74,6 +76,7 @@ extern uint64_t CLICAP_ECHO_MESSAGE;
 extern uint64_t CLICAP_MESSAGE_TAGS;
 extern uint64_t CLICAP_BATCH;
 extern uint64_t CLICAP_NO_IMPLICIT_NAMES;
+extern uint64_t CLICAP_LABELED_RESPONSE;
 
 /*
  * XXX: this is kind of ugly, but this allows us to have backwards

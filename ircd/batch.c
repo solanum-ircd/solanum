@@ -88,7 +88,7 @@ batch_init(struct MsgBuf *start)
 }
 
 void
-batch_free(struct Batch *batch)
+batch_free(struct Batch *batch, struct ResponseInfo *resume)
 {
 	rb_dlink_node *ptr, *next_ptr;
 
@@ -104,10 +104,10 @@ batch_free(struct Batch *batch)
 	{
 		struct Batch *child = ptr->data;
 		rb_dlinkDestroy(ptr, &batch->children);
-		batch_free(child);
+		batch_free(child, resume);
 	}
 
-	free_response_batch(batch->response_info);
+	free_response_batch(batch->response_info, resume);
 	rb_free(batch->start->data);
 	rb_free(batch->start);
 	rb_free(batch);

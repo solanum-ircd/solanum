@@ -14,7 +14,8 @@ Server notice masks: (? designates that the snomask is provided
        +f     - Clients refused due to limits
      ? +F     - Global client connections and exits
        +k     - Server and service kill messages
-       +n     - Local client nick changes
+     ? +l     - Channel creations
+       +n     - Local client nick changes (global via extension)
        +r     - Invalid usernames and DNSBL listings
        +s     - Generic server messages and oper kills
        +u     - Client connections without auth{} block

@@ -1051,8 +1051,9 @@ msg_client(enum message_type msgtype,
 		}
 
 		/* suppress labeled-response on the primary message if they're messaging themselves */
-		if (outgoing_response_info != NULL && source_p == target_p)
-			outgoing_response_info->skip_tags++;
+		struct ResponseInfo *info = outgoing_response_info;
+		if (source_p == target_p)
+			suspend_response_batch();
 
 		if (msgtype == MESSAGE_TYPE_TAGMSG && IsClientCapable(target_p, CLICAP_MESSAGE_TAGS))
 		{
@@ -1067,9 +1068,7 @@ msg_client(enum message_type msgtype,
 				NOCAPS, NOCAPS, msgbuf_p->n_tags, msgbuf_p->tags, ":%s", text);
 		}
 
-		if (outgoing_response_info != NULL && source_p == target_p)
-			outgoing_response_info->skip_tags--;
-
+		resume_response_batch(info);
 		echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 	else
@@ -1140,8 +1139,7 @@ msg_mass(enum message_type msgtype, struct Client *client_p, struct Client *sour
 	}
 
 	/* suppress labeled-response on the message (it might be going to themselves) */
-	if (outgoing_response_info != NULL)
-		outgoing_response_info->skip_tags++;
+	struct ResponseInfo *info = suspend_response_batch();
 
 	sendto_match_butone_tags(IsServer(client_p) ? client_p : NULL, source_p,
 		mask + 1,
@@ -1153,8 +1151,7 @@ msg_mass(enum message_type msgtype, struct Client *client_p, struct Client *sour
 	if (msgtype == MESSAGE_TYPE_PRIVMSG && *text == '\001')
 		source_p->large_ctcp_sent = rb_current_time();
 
-	if (outgoing_response_info != NULL)
-		outgoing_response_info->skip_tags--;
+	resume_response_batch(info);
 
 	/* ECHO doesn't work with special syntax, so generate a local echo instead */
 	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))

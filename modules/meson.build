@@ -1,6 +1,5 @@
 autoload_modules = [
   'cap_account_tag',
-  'cap_labeled_response',
   'cap_server_time',
   'chm_nocolour',
   'chm_noctcp',
@@ -10,7 +9,6 @@ autoload_modules = [
   'm_admin',
   'm_alias',
   'm_away',
-  'm_batch',
   'm_cap',
   'm_capab',
   'm_certfp',
@@ -86,7 +84,9 @@ foreach mod : autoload_modules
 endforeach
 
 core_modules = [
+  'cap_labeled_response',
   'm_ban',
+  'm_batch',
   'm_die',
   'm_error',
   'm_join',
