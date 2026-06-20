@@ -36,6 +36,7 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 | Core       | server_introduced              | A server has been introduced to the network (pre-burst)   |
 | Core       | server_eob                     | A server has finished processing a netjoin burst from us  |
 | Core       | umode_changed                  | The modes for a user have changed                         |
+| Core       | user_welcome                   | Called during the registration burst for a new local user |
 | m_info     | doing_info_conf                | Conf entries have been sent to an oper using INFO         |
 | m_invite   | can_invite                     | A local user is about to invite another user to a channel |
 | m_invite   | invite                         | A local user is about to be invited to a channel          |
@@ -1295,3 +1296,14 @@ Fields:
 
 Because any mode changes have already been applied, hook functions can check
 the current user modes or snomask for the user to determine what has changed.
+
+### user_welcome
+
+This hook is called while the registration burst for a new local user is being
+sent. It happens after sending ISUPPORT but before sending LUSERS. Some IRCv3
+specifications require sending additional registration data during precisely
+this timing.
+
+Hook data: `struct Client *`
+
+The hook data is the client that is being introduced to the network.
