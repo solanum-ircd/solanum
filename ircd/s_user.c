@@ -1707,6 +1707,12 @@ change_nick_user_host(struct Client *target_p,	const char *nick, const char *use
 	{
 		monitor_signon(target_p);
 		del_all_accepts(target_p, false);
+
+		/* Update channel positions */
+		RB_DLINK_FOREACH(ptr, target_p->user->channel.head)
+		{
+			update_channel_member_pos(ptr->data);
+		}
 	}
 }
 

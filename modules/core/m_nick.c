@@ -623,6 +623,7 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	char note[NICKLEN + 10];
 	int samenick;
 	hook_cdata hook_info;
+	rb_dlink_node *ptr;
 
 	if (dosend)
 	{
@@ -704,10 +705,14 @@ change_local_nick(struct Client *client_p, struct Client *source_p,
 	 */
 	del_all_accepts(source_p, false);
 
+	/* Update channel positions */
+	RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
+	{
+		update_channel_member_pos(ptr->data);
+	}
+
 	snprintf(note, sizeof(note), "Nick: %s", nick);
 	rb_note(client_p->localClient->F, note);
-
-	return;
 }
 
 /*
@@ -761,15 +766,12 @@ change_remote_nick(struct Client *client_p, struct Client *source_p,
 		monitor_signon(source_p);
 
 	/* remove all accepts pointing to the client */
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, source_p->on_allow_list.head)
-	{
-		target_p = ptr->data;
+	del_all_accepts(source_p, false);
 
-		if (!has_common_channel(source_p, target_p))
-		{
-			rb_dlinkFindDestroy(source_p, &target_p->localClient->allow_list);
-			rb_dlinkDestroy(ptr, &source_p->on_allow_list);
-		}
+	/* Update channel positions */
+	RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
+	{
+		update_channel_member_pos(ptr->data);
 	}
 }
 

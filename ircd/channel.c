@@ -262,7 +262,16 @@ add_user_to_channel(struct Channel *chptr, struct Client *client_p, int flags)
 	else
 		rb_dlinkAddBefore(p, msptr, &msptr->usernode, &client_p->user->channel);
 
-	rb_dlinkAdd(msptr, &msptr->channode, &chptr->members);
+	RB_DLINK_FOREACH(p, chptr->members.head)
+	{
+		struct membership *ms2 = p->data;
+		if (irccmp(client_p->name, ms2->client_p->name) < 0)
+			break;
+	}
+	if (p == NULL)
+		rb_dlinkAddTail(msptr, &msptr->channode, &chptr->members);
+	else
+		rb_dlinkAddBefore(p, msptr, &msptr->channode, &chptr->members);
 
 	if(MyClient(client_p))
 		rb_dlinkAdd(msptr, &msptr->locchannode, &chptr->locmembers);
@@ -359,6 +368,31 @@ invalidate_bancache_user(struct Client *client_p)
 		msptr->bants = 0;
 		msptr->flags &= ~CHFL_BANNED;
 	}
+}
+
+/* update_channel_member_pos()
+ *
+ * input	- membership to update position for
+ * output	-
+ * side effects - keeps channel member list alphabetical
+ */
+void
+update_channel_member_pos(struct membership *msptr)
+{
+	rb_dlink_node *ptr;
+
+	RB_DLINK_FOREACH(ptr, msptr->chptr->members.head)
+	{
+		struct membership *m2 = ptr->data;
+		if (irccmp(msptr->client_p->name, m2->client_p->name) < 0)
+			break;
+	}
+
+	rb_dlinkDelete(&msptr->channode, &msptr->chptr->members);
+	if (ptr == NULL)
+		rb_dlinkAddTail(msptr, &msptr->channode, &msptr->chptr->members);
+	else
+		rb_dlinkAddBefore(ptr, msptr, &msptr->channode, &msptr->chptr->members);
 }
 
 /* check_channel_name()

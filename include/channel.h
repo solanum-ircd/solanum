@@ -266,6 +266,7 @@ extern void add_user_to_channel(struct Channel *, struct Client *, int flags);
 extern void remove_user_from_channel(struct membership *);
 extern void remove_user_from_channels(struct Client *);
 extern void invalidate_bancache_user(struct Client *);
+extern void update_channel_member_pos(struct membership *msptr);
 
 extern void free_channel_list(rb_dlink_list *);
 

@@ -194,6 +194,7 @@ me_rsfnc(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	time_t newts, curts;
 	struct nd_entry *nd;
 	char note[NAMELEN + 10];
+	rb_dlink_node *ptr;
 
 	if(!(source_p->flags & FLAGS_SERVICE))
 	{
@@ -299,6 +300,12 @@ doit:
 	 * loses that reference.
 	 */
 	del_all_accepts(target_p, false);
+
+	/* Update channel positions */
+	RB_DLINK_FOREACH(ptr, target_p->user->channel.head)
+	{
+		update_channel_member_pos(ptr->data);
+	}
 
 	snprintf(note, sizeof(note), "Nick: %s", target_p->name);
 	rb_note(target_p->localClient->F, note);
