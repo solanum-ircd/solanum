@@ -229,7 +229,7 @@ static void
 single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 {
 	char buf[BUFSIZE];
-	hook_data_client hdata;
+	hook_data_client_approval hdata;
 	struct sockaddr_in ip4;
 
 	if(target_p->user == NULL)
@@ -255,6 +255,7 @@ single_whois(struct Client *source_p, struct Client *target_p, int operspy)
 
 	hdata.client = source_p;
 	hdata.target = target_p;
+	hdata.approved = operspy;
 
 	if (!IsService(target_p))
 	{
