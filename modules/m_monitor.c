@@ -42,6 +42,8 @@
 
 static const char monitor_desc[] = "Provides the MONITOR facility for tracking user signon and signoff";
 
+static int h_new_monitor;
+
 static int monitor_init(void);
 static void monitor_deinit(void);
 static void m_monitor(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
@@ -52,8 +54,12 @@ struct Message monitor_msgtab = {
 };
 
 mapi_clist_av1 monitor_clist[] = { &monitor_msgtab, NULL };
+mapi_hlist_av1 monitor_hlist[] = {
+	{ "new_monitor", &h_new_monitor },
+	{ NULL, NULL }
+};
 
-DECLARE_MODULE_AV2(monitor, monitor_init, monitor_deinit, monitor_clist, NULL, NULL, NULL, NULL, monitor_desc);
+DECLARE_MODULE_AV2(monitor, monitor_init, monitor_deinit, monitor_clist, monitor_hlist, NULL, NULL, NULL, monitor_desc);
 
 static int monitor_init(void)
 {
@@ -75,6 +81,7 @@ add_monitor(struct Client *client_p, const char *nicks)
 	const char *name;
 	char *tmp;
 	char *p;
+	hook_data hdata = { client_p };
 
 	prev_head = client_p->localClient->monitor_list.head;
 	tmp = LOCAL_COPY(nicks);
@@ -160,6 +167,14 @@ add_monitor(struct Client *client_p, const char *nicks)
 				client_p->name,
 				ConfigFileEntry.max_monitor,
 				buf);
+	}
+
+	RB_DLINK_FOREACH_PREV(ptr, prev_head)
+	{
+		monptr = ptr->data;
+		hdata.arg1 = monptr;
+		hdata.arg2 = find_named_person(monptr->name);
+		call_hook(h_new_monitor, &hdata);
 	}
 }
 

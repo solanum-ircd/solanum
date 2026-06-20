@@ -26,6 +26,7 @@ void free_monitor(struct monitor *);
 void init_monitor(void);
 struct monitor *find_monitor(const char *name, int add);
 void clear_monitor(struct Client *);
+bool is_monitoring(struct Client *client_p, const char *name);
 
 void monitor_signon(struct Client *);
 void monitor_signoff(struct Client *);
