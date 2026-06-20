@@ -1456,42 +1456,91 @@ sendto_local_clients_with_capability(uint64_t cap, const char *pattern, ...)
 	msgbuf_cache_free(&msgbuf_cache);
 }
 
-/* sendto_monitor()
- *
- * inputs	- monitor nick to send to, format, va_args
- * outputs	- message to local users monitoring the given nick
- * side effects -
- */
-void
-sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *pattern, ...)
+static void
+sendto_list_internal(struct Client *one, struct Client *source_p, rb_dlink_list *list,
+	uint64_t caps, uint64_t negcaps, bool (*filter)(struct Client *, void *), void *filter_data,
+	const char *pattern, va_list *args,
+	size_t n_tags, const struct MsgTag tags[])
 {
-	va_list args;
 	struct Client *target_p;
 	rb_dlink_node *ptr;
-	rb_dlink_node *next_ptr;
 	struct MsgBuf msgbuf;
 	struct MsgBuf_cache msgbuf_cache;
 	char buf[DATALEN + 1];
-	rb_strf_t strings = { .format = pattern, .format_args = &args, .next = NULL };
+	rb_strf_t strings = { .format = pattern, .format_args = args, .next = NULL };
 
-	va_start(args, pattern);
 	rb_fsnprint(buf, sizeof(buf), &strings);
-	va_end(args);
 
-	build_msgbuf(&msgbuf, source_p, NULL, NULL, false, buf, 0, NULL);
+	build_msgbuf(&msgbuf, source_p, NULL, NULL, false, buf, n_tags, tags);
 	msgbuf_cache_init(&msgbuf_cache, &msgbuf, NULL, NULL);
 
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, monptr->users.head)
+	RB_DLINK_FOREACH(ptr, list->head)
 	{
 		target_p = ptr->data;
+		if (target_p == one)
+			continue;
 
-		if (IsIOError(target_p))
+		if (caps != NOCAPS && !IsClientCapable(target_p, caps))
+			continue;
+
+		if (negcaps != NOCAPS && !NotClientCapable(target_p, negcaps))
+			continue;
+
+		if (filter != NULL && !filter(target_p, filter_data))
 			continue;
 
 		send_linebuf(target_p, msgbuf_cache_get(&msgbuf_cache, CLIENT_CAP_MASK(target_p), false));
 	}
 
 	msgbuf_cache_free(&msgbuf_cache);
+}
+
+/* sendto_list_local_butone()
+ *
+ * inputs	- target to exclude, list of targets to send to, filters, format, va_args
+ * outputs	- message to local users on the list who match the filters
+ * side effects -
+ */
+void
+sendto_list_local_butone(struct Client *one, struct Client *source_p, rb_dlink_list *list,
+	uint64_t caps, uint64_t negcaps, bool (*filter)(struct Client *, void *), void *filter_data,
+	const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_list_internal(one, source_p, list, caps, negcaps, filter, filter_data, pattern, &args, 0, NULL);
+	va_end(args);
+}
+
+void
+sendto_list_local_tags_butone(struct Client *one, struct Client *source_p, rb_dlink_list *list,
+	uint64_t caps, uint64_t negcaps, bool (*filter)(struct Client *, void *), void *filter_data,
+	size_t n_tags, const struct MsgTag tags[],
+	const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_list_internal(one, source_p, list, caps, negcaps, filter, filter_data, pattern, &args, n_tags, tags);
+	va_end(args);
+}
+
+void
+sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_list_internal(NULL, source_p, &monptr->users, NOCAPS, NOCAPS, NULL, NULL, pattern, &args, 0, NULL);
+	va_end(args);
+}
+
+void
+sendto_monitor_with_capability(struct Client *source_p, struct monitor *monptr,
+	uint64_t caps, uint64_t negcaps, const char *pattern, ...)
+{
+	va_list args;
+	va_start(args, pattern);
+	sendto_list_internal(NULL, source_p, &monptr->users, caps, negcaps, NULL, NULL, pattern, &args, 0, NULL);
+	va_end(args);
 }
 
 /* _sendto_anywhere()
