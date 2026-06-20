@@ -494,25 +494,23 @@ channel is -k.
 
 ### channel_lowerts
 
-This hook is called after the server receives a join message for a remote user
-with a lower channel timestamp than what the server has for the channel. This
-hook is not called during netjoin bursts or when the remote side believes it
-has created a new channel; it is only called a join to an existing channel on
-the remote side.
+This hook is called after the server receives a `JOIN` or `SJOIN` message for
+a remote user with a lower channel timestamp than what the server has for the
+channel.
 
 Hook data: `hook_data_channel *`
 
 Fields:
 
-- client (`struct Client *`): The remote user joining the channel
+- client (`struct Client *`): For `JOIN`, the remote user joining the channel;
+  for `SJOIN`, the server issuing the `SJOIN` message
 - chptr (`struct Channel *`): The channel being joined
 - approved (`int`): Unused (always 0)
 
-At the time the hook is called, client has not yet been added to chptr as a
-member, but we have cleared all modes from the local channel. Because this
-hook is only called when we receive a JOIN from a remote server and not an
-SJOIN, it is not a reliable method of knowing that a local channel has had its
-timestamp lowered.
+At the time the hook is called, `client` has not yet been added to chptr as a
+member (for `JOIN`) or the clients specified in the user list have not yet
+been joined to the channel (for `SJOIN`), but we have cleared all modes from
+the local channel.
 
 ### client_exit
 
