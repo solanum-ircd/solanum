@@ -30,6 +30,7 @@
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
+int rb_strcmp(const void *s1, const void *s2);
 int rb_strcasecmp(const void *s1, const void *s2);
 int rb_strncasecmp(const void *s1, const void *s2, size_t n);
 char *rb_strcasestr(const char *s, const char *find);

@@ -60,6 +60,11 @@ struct rb_dictionary_iter
 extern rb_dictionary *rb_dictionary_create(const char *name, DCF compare_cb);
 
 /*
+ * rb_dictionary_get_for_tests() gets a dictionary by name, for use in tests/ ONLY.
+ */
+extern rb_dictionary *rb_dictionary_get_for_tests(const char *name);
+
+/*
  * rb_dictionary_set_comparator_func() resets the comparator used for lookups and
  * insertions in the DTree structure.
  */

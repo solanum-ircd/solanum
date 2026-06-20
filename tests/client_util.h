@@ -66,7 +66,9 @@ void client_util_free(void);
 struct Client *make_local_unknown(void);
 struct Client *make_local_person(void);
 struct Client *make_local_person_nick(const char *nick);
+struct Client *make_local_person_id(const char *nick, const char *id);
 struct Client *make_local_person_full(const char *nick, const char *username, const char *hostname, const char *ip, const char *realname);
+struct Client *make_local_person_full_id(const char *nick, const char *username, const char *hostname, const char *ip, const char *realname, const char *id);
 void make_local_person_oper(struct Client *client);
 void remove_local_person(struct Client *client);
 
@@ -75,7 +77,9 @@ struct Client *make_remote_server_name(struct Client *uplink, const char *name);
 struct Client *make_remote_server_full(struct Client *uplink, const char *name, const char *id);
 struct Client *make_remote_person(struct Client *server);
 struct Client *make_remote_person_nick(struct Client *server, const char *nick);
+struct Client *make_remote_person_id(struct Client *server, const char *nick, const char *id);
 struct Client *make_remote_person_full(struct Client *server, const char *nick, const char *username, const char *hostname, const char *ip, const char *realname);
+struct Client *make_remote_person_full_id(struct Client *server, const char *nick, const char *username, const char *hostname, const char *ip, const char *realname, const char *id);
 void make_remote_person_oper(struct Client *client);
 void remove_remote_person(struct Client *client);
 void remove_remote_server(struct Client *server);
@@ -83,6 +87,7 @@ void remove_remote_server(struct Client *server);
 struct Channel *make_channel(void);
 
 char *get_client_sendq(const struct Client *client);
+void drain_client_sendq(const struct Client *client);
 
 void client_util_parse(struct Client *client, const char *message);
 
