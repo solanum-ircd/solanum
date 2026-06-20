@@ -780,15 +780,17 @@ target of the WHOIS will always be a local client. The hook is called after
 all regular WHOIS lines have been sent to the user, but before the
 `RPL_ENDOFWHOIS` numeric is sent to the user.
 
-Hook data: `hook_data_client *`
+Hook data: `hook_data_client_approval *`
 
 Fields:
 
 - client (`struct Client *`): The user executing WHOIS
 - target (`struct Client *`): The target of the WHOIS command
+- approved (`int`): Set to 1 if this is an operspy WHOIS, 0 otherwise
 
 Hook functions can use this hook to send additional lines to the client as a
-part of the WHOIS response.
+part of the WHOIS response. The approved field is not an output field; it is
+an indicator as to whether or not an operspy was performed.
 
 ### doing_whois_channel_visibility
 
@@ -822,15 +824,17 @@ target of the WHOIS in such a case will always be a local client. The hook is
 called after all regular WHOIS lines have been sent to the user, but before
 the `RPL_ENDOFWHOIS` numeric is sent to the user.
 
-Hook data: `hook_data_client *`
+Hook data: `hook_data_client_approval *`
 
 Fields:
 
 - client (`struct Client *`): The user executing WHOIS
 - target (`struct Client *`): The target of the WHOIS command
+- approved (`int`): Set to 1 if this is an operspy WHOIS, 0 otherwise
 
 Hook functions can use this hook to send additional lines to the client as a
-part of the WHOIS response.
+part of the WHOIS response. The approved field is not an output field; it is
+an indicator as to whether or not an operspy was performed.
 
 ### doing_whois_show_idle
 
