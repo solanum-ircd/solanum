@@ -208,6 +208,23 @@ rb_run_one_event(struct ev_entry *ev)
 		event_time_min = ev->when;
 }
 
+void
+rb_run_one_event_for_tests(const char *name)
+{
+	rb_dlink_node *ptr;
+	struct ev_entry *ev;
+
+	RB_DLINK_FOREACH(ptr, event_list.head)
+	{
+		ev = ptr->data;
+		if (!strcmp(ev->name, name))
+		{
+			rb_run_one_event(ev);
+			return;
+		}
+	}
+}
+
 /*
  * void rb_event_run(void)
  *

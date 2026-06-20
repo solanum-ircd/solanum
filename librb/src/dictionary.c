@@ -68,6 +68,21 @@ rb_dictionary *rb_dictionary_create(const char *name,
 	return dtree;
 }
 
+rb_dictionary *rb_dictionary_get_for_tests(const char *name)
+{
+	rb_dlink_node *ptr;
+	rb_dictionary *dtree;
+
+	RB_DLINK_FOREACH(ptr, dictionary_list.head)
+	{
+		dtree = ptr->data;
+		if (!strcmp(dtree->id, name))
+			return dtree;
+	}
+
+	return NULL;
+}
+
 /*
  * rb_dictionary_set_comparator_func(rb_dictionary *dict,
  *     DCF compare_cb)

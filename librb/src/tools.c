@@ -134,6 +134,12 @@ rb_string_to_array(char *string, char **parv, int maxpara)
 }
 
 int
+rb_strcmp(const void *s1, const void *s2)
+{
+	return strcmp(s1, s2);
+}
+
+int
 rb_strcasecmp(const void *s1, const void *s2)
 {
 	return strcasecmp(s1, s2);

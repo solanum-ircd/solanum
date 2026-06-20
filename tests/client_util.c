@@ -35,7 +35,7 @@
 static struct Listener fake_listener = {
 	.name = "fake",
 	.F = NULL,
-	.ref_count = 0,
+	.ref_count = 1,
 	.active = 1,
 	.ssl = 1,
 	.defer_accept = 0,
@@ -44,7 +44,7 @@ static struct Listener fake_listener = {
 		{ .ss_family = AF_INET6 },
 		{ .ss_family = AF_INET6 },
 	},
-	.vhost = { "fake" },
+	.vhost = { 'f', 'a', 'k', 'e' },
 };
 
 struct Client *make_local_unknown(void)
@@ -56,6 +56,7 @@ struct Client *make_local_unknown(void)
 	client->servptr = &me;
 	rb_dlinkAdd(client, &client->lnode, &client->servptr->serv->users);
 	client->localClient->listener = &fake_listener;
+	fake_listener.ref_count++;
 	client->preClient->auth.accepted = true;
 	client->localClient->localflags |= LFLAGS_FAKE;
 
@@ -69,10 +70,20 @@ struct Client *make_local_person(void)
 
 struct Client *make_local_person_nick(const char *nick)
 {
-	return make_local_person_full(nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME);
+	return make_local_person_full_id(nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME, "");
+}
+
+struct Client *make_local_person_id(const char *nick, const char *id)
+{
+	return make_local_person_full_id(nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME, id);
 }
 
 struct Client *make_local_person_full(const char *nick, const char *username, const char *hostname, const char *ip, const char *realname)
+{
+	return make_local_person_full_id(nick, username, hostname, ip, realname, "");
+}
+
+struct Client *make_local_person_full_id(const char *nick, const char *username, const char *hostname, const char *ip, const char *realname, const char *id)
 {
 	struct Client *client;
 
@@ -81,6 +92,7 @@ struct Client *make_local_person_full(const char *nick, const char *username, co
 	SetClient(client);
 
 	rb_inet_pton_sock(ip, &client->localClient->ip);
+	rb_strlcpy(client->id, id, sizeof(client->id));
 	rb_strlcpy(client->name, nick, sizeof(client->name));
 	rb_strlcpy(client->username, username, sizeof(client->username));
 	rb_strlcpy(client->host, hostname, sizeof(client->host));
@@ -88,6 +100,9 @@ struct Client *make_local_person_full(const char *nick, const char *username, co
 	rb_strlcpy(client->info, realname, sizeof(client->info));
 
 	add_to_client_hash(client->name, client);
+	add_to_hostname_hash(client->host, client);
+	if (strlen(id))
+		add_to_id_hash(client->id, client);
 
 	return client;
 }
@@ -150,10 +165,20 @@ struct Client *make_remote_person(struct Client *server)
 
 struct Client *make_remote_person_nick(struct Client *server, const char *nick)
 {
-	return make_remote_person_full(server, nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME);
+	return make_remote_person_full_id(server, nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME, "");
+}
+
+struct Client *make_remote_person_id(struct Client *server, const char *nick, const char *id)
+{
+	return make_remote_person_full_id(server, nick, TEST_USERNAME, TEST_HOSTNAME, TEST_IP, TEST_REALNAME, id);
 }
 
 struct Client *make_remote_person_full(struct Client *server, const char *nick, const char *username, const char *hostname, const char *ip, const char *realname)
+{
+	return make_remote_person_full_id(server, nick, username, hostname, ip, realname, "");
+}
+
+struct Client *make_remote_person_full_id(struct Client *server, const char *nick, const char *username, const char *hostname, const char *ip, const char *realname, const char *id)
 {
 	struct Client *client;
 	struct sockaddr_storage addr;
@@ -166,6 +191,7 @@ struct Client *make_remote_person_full(struct Client *server, const char *nick, 
 	rb_dlinkAdd(server, &server->lnode, &server->servptr->serv->users);
 
 	rb_inet_pton_sock(ip, &addr);
+	rb_strlcpy(client->id, id, sizeof(client->id));
 	rb_strlcpy(client->name, nick, sizeof(client->name));
 	rb_strlcpy(client->username, username, sizeof(client->username));
 	rb_strlcpy(client->host, hostname, sizeof(client->host));
@@ -174,6 +200,8 @@ struct Client *make_remote_person_full(struct Client *server, const char *nick, 
 
 	add_to_client_hash(nick, client);
 	add_to_hostname_hash(client->host, client);
+	if (strlen(id))
+		add_to_id_hash(client->id, client);
 
 	return client;
 }
@@ -186,22 +214,23 @@ void make_remote_person_oper(struct Client *client)
 
 void remove_remote_person(struct Client *client)
 {
-	exit_client(client, client->servptr, client->servptr, "Test client removed");
+	exit_client(NULL, client, &me, "Test client removed");
 }
 
 void remove_remote_server(struct Client *server)
 {
-	exit_client(server, server, server->servptr, "Test server removed");
+	exit_client(NULL, server, &me, "Test server removed");
 }
 
 struct Channel *make_channel(void)
 {
-	return allocate_channel(TEST_CHANNEL);
+	return get_or_create_channel(&me, TEST_CHANNEL, NULL);
 }
 
 char *get_client_sendq(const struct Client *client)
 {
 	static char buf[EXT_BUFSIZE + sizeof(CRLF)];
+	*buf = '\0';
 
 	if (rb_linebuf_len(&client->localClient->buf_sendq)) {
 		int ret;
@@ -209,14 +238,23 @@ char *get_client_sendq(const struct Client *client)
 		memset(buf, 0, sizeof(buf));
 		ret = rb_linebuf_get(&client->localClient->buf_sendq, buf, sizeof(buf), 0, 1);
 
-		if (ok(ret > 0, MSG)) {
-			return buf;
-		} else {
-			return "<get_client_sendq error>";
+		if (!ok(ret > 0, MSG)) {
+			strcpy(buf, "<get_client_sendq error>");
 		}
 	}
 
-	return "";
+	return buf;
+}
+
+void drain_client_sendq(const struct Client *client)
+{
+	static char buf[EXT_BUFSIZE + sizeof(CRLF)];
+
+	while (rb_linebuf_len(&client->localClient->buf_sendq) > 0)
+	{
+		if (!rb_linebuf_get(&client->localClient->buf_sendq, buf, sizeof(buf), 0, 1))
+			return;
+	}
 }
 
 void client_util_parse(struct Client *client, const char *message)

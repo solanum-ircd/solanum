@@ -42,6 +42,7 @@ rb_dictionary_retrieve
 rb_dictionary_size
 rb_dictionary_stats
 rb_dictionary_stats_walk
+rb_dictionary_get_for_tests
 rb_dirname
 rb_dump_events
 rb_dump_fd
@@ -153,6 +154,7 @@ rb_rawbuf_length
 rb_read
 rb_recv_fd_buf
 rb_run_one_event
+rb_run_one_event_for_tests
 rb_sctp_bindx
 rb_select
 rb_send_fd_buf
@@ -180,6 +182,7 @@ rb_ssl_start_accepted
 rb_ssl_start_connected
 rb_strcasecmp
 rb_strcasestr
+rb_strcmp
 rb_strerror
 rb_string_to_array
 rb_strlcat
