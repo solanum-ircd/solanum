@@ -750,6 +750,12 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 
 		/* since we're dropping our modes, we want to clear the mlock as well. --nenolod */
 		set_channel_mlock(client_p, source_p, chptr, NULL, false);
+
+		hook_data_channel hookdata;
+		hookdata.client = source_p;
+		hookdata.chptr = chptr;
+
+		call_hook(h_channel_lowerts, &hookdata);
 	}
 
 	if(*modebuf != '\0')
