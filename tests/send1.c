@@ -3434,6 +3434,356 @@ static void sendto_monitor1__tags(void)
 	standard_free();
 }
 
+static void sendto_monitor_with_capability1(void)
+{
+	struct monitor *monptr;
+
+	standard_init();
+
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX);
+
+	monptr = find_monitor(TEST_NICK, 1);
+	rb_dlinkAddAlloc(local_chan_o, &monptr->users);
+	rb_dlinkAddAlloc(monptr, &local_chan_o->localClient->monitor_list);
+	rb_dlinkAddAlloc(local_chan_v, &monptr->users);
+	rb_dlinkAddAlloc(monptr, &local_chan_v->localClient->monitor_list);
+
+	sendto_monitor_with_capability(user, monptr, CAP_MULTI_PREFIX, NOCAPS, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_o, "Monitoring, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_v, "Monitoring, no cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_monitor_with_capability(user, monptr, NOCAPS, CAP_MULTI_PREFIX, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_o, "Monitoring, has negcap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "Monitoring, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_monitor_with_capability(user, monptr, NOCAPS, NOCAPS, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_o, "Monitoring; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "Monitoring; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
+static void sendto_monitor_with_capability1__tags(void)
+{
+	struct monitor *monptr;
+
+	standard_init();
+
+	strcpy(user->user->suser, "test");
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX | CAP_ACCOUNT_TAG | CAP_SERVER_TIME);
+	SetClientCap(local_chan_v, CAP_ACCOUNT_TAG);
+
+	monptr = find_monitor(TEST_NICK, 1);
+	rb_dlinkAddAlloc(local_chan_o, &monptr->users);
+	rb_dlinkAddAlloc(monptr, &local_chan_o->localClient->monitor_list);
+	rb_dlinkAddAlloc(local_chan_v, &monptr->users);
+	rb_dlinkAddAlloc(monptr, &local_chan_v->localClient->monitor_list);
+
+	sendto_monitor_with_capability(user, monptr, CAP_MULTI_PREFIX, NOCAPS, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "Monitoring, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_v, "Monitoring, no cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_monitor_with_capability(user, monptr, NOCAPS, CAP_MULTI_PREFIX, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_o, "Monitoring, has negcap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq("@account=test Hello World!" CRLF, local_chan_v, "Monitoring, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_monitor_with_capability(user, monptr, NOCAPS, NOCAPS, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not monitoring; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "Monitoring; " MSG);
+	is_client_sendq_empty(local_chan_ov, "Not monitoring; " MSG);
+	is_client_sendq("@account=test Hello World!" CRLF, local_chan_v, "Monitoring; " MSG);
+	is_client_sendq_empty(local_chan_p, "Not monitoring; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not monitoring; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
+static bool filter_voice(struct Client *client_p, void *chptr)
+{
+	struct membership *msptr = find_channel_membership(chptr, client_p);
+	return msptr != NULL && msptr->flags & CHFL_VOICE;
+}
+
+static void sendto_list_local_butone1(void)
+{
+	rb_dlink_list list = { NULL, NULL, 0 };
+	rb_dlink_node n1, n2, n3, n4;
+
+	standard_init();
+
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX);
+	SetClientCap(local_chan_v, CAP_MULTI_PREFIX);
+
+	rb_dlinkAdd(local_chan_o, &n1, &list);
+	rb_dlinkAdd(local_chan_ov, &n2, &list);
+	rb_dlinkAdd(local_chan_v, &n3, &list);
+	rb_dlinkAdd(local_chan_p, &n4, &list);
+
+	sendto_list_local_butone(NULL, user, &list, NOCAPS, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_o, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, NOCAPS, NOCAPS, filter_voice, channel, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "In list, no filter match; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list, filter match; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list, filter match; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no filter match; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(local_chan_o, user, &list, NOCAPS, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "Is the one (neo); " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, CAP_MULTI_PREFIX, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_o, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, CAP_MULTI_PREFIX, NOCAPS, filter_voice, channel, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "In list, has cap, no filter match; " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap, filter match; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list, has cap, filter match; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap, no filter match; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, NOCAPS, CAP_MULTI_PREFIX, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "In list, has negcap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_v, "In list, has negcap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(local_chan_o, user, &list, CAP_MULTI_PREFIX, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "Is the one (neo); " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
+static void sendto_list_local_butone1__tags(void)
+{
+	rb_dlink_list list = { NULL, NULL, 0 };
+	rb_dlink_node n1, n2, n3, n4;
+
+	standard_init();
+
+	strcpy(user->user->suser, "test");
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX | CAP_ACCOUNT_TAG | CAP_SERVER_TIME);
+	SetClientCap(local_chan_v, CAP_MULTI_PREFIX);
+	SetClientCap(local_chan_ov, CAP_SERVER_TIME);
+
+	rb_dlinkAdd(local_chan_o, &n1, &list);
+	rb_dlinkAdd(local_chan_ov, &n2, &list);
+	rb_dlinkAdd(local_chan_v, &n3, &list);
+	rb_dlinkAdd(local_chan_p, &n4, &list);
+
+	sendto_list_local_butone(NULL, user, &list, NOCAPS, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "In list; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME " Hello World!" CRLF, local_chan_ov, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(local_chan_o, user, &list, NOCAPS, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "Is the one (neo); " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME " Hello World!" CRLF, local_chan_ov, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, CAP_MULTI_PREFIX, NOCAPS, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_v, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_butone(NULL, user, &list, NOCAPS, CAP_MULTI_PREFIX, NULL, NULL, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "In list, has negcap; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME " Hello World!" CRLF, local_chan_ov, "In list, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_v, "In list, has negcap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list, no negcap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
+static void sendto_list_local_tags_butone1(void)
+{
+	rb_dlink_list list = { NULL, NULL, 0 };
+	rb_dlink_node n1, n2, n3, n4;
+	struct MsgTag tag = { "test", "123abc", CAP_MULTI_PREFIX };
+
+	standard_init();
+
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX);
+	SetClientCap(local_chan_v, CAP_MULTI_PREFIX);
+
+	rb_dlinkAdd(local_chan_o, &n1, &list);
+	rb_dlinkAdd(local_chan_ov, &n2, &list);
+	rb_dlinkAdd(local_chan_v, &n3, &list);
+	rb_dlinkAdd(local_chan_p, &n4, &list);
+
+	sendto_list_local_tags_butone(NULL, user, &list, NOCAPS, NOCAPS, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_o, "In list, has cap for tag; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list, no cap for tag; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_v, "In list, has cap for tag; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list, no cap for tag; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_tags_butone(local_chan_o, user, &list, NOCAPS, NOCAPS, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "Is the one (neo); " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list, no cap for tag; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_v, "In list, has cap for tag; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list, no cap for tag; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_tags_butone(NULL, user, &list, CAP_MULTI_PREFIX, NOCAPS, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_o, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_v, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_tags_butone(NULL, user, &list, NOCAPS, CAP_MULTI_PREFIX, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq_empty(local_chan_o, "In list, has negcap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_ov, "In list, no negcap (no cap for tag); " MSG);
+	is_client_sendq_empty(local_chan_v, "In list, has negcap; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list, no negcap (no cap for tag); " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
+static void sendto_list_local_tags_butone1__tags(void)
+{
+	rb_dlink_list list = { NULL, NULL, 0 };
+	rb_dlink_node n1, n2, n3, n4;
+	struct MsgTag tag = { "test", "123abc", CAP_MULTI_PREFIX };
+
+	standard_init();
+
+	strcpy(user->user->suser, "test");
+	SetClientCap(local_chan_o, CAP_MULTI_PREFIX | CAP_ACCOUNT_TAG | CAP_SERVER_TIME);
+	SetClientCap(local_chan_v, CAP_MULTI_PREFIX);
+	SetClientCap(local_chan_ov, CAP_SERVER_TIME);
+
+	rb_dlinkAdd(local_chan_o, &n1, &list);
+	rb_dlinkAdd(local_chan_ov, &n2, &list);
+	rb_dlinkAdd(local_chan_v, &n3, &list);
+	rb_dlinkAdd(local_chan_p, &n4, &list);
+
+	sendto_list_local_tags_butone(NULL, user, &list, NOCAPS, NOCAPS, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@test=123abc;time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "In list; " MSG);
+	is_client_sendq("@time=" ADVENTURE_TIME " Hello World!" CRLF, local_chan_ov, "In list; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_v, "In list; " MSG);
+	is_client_sendq("Hello World!" CRLF, local_chan_p, "In list; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	sendto_list_local_tags_butone(NULL, user, &list, CAP_MULTI_PREFIX, NOCAPS, NULL, NULL, 1, &tag, "Hello %s!", "World");
+	is_client_sendq_empty(user, "Not in list; " MSG);
+	is_client_sendq("@test=123abc;time=" ADVENTURE_TIME ";account=test Hello World!" CRLF, local_chan_o, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_ov, "In list, no cap; " MSG);
+	is_client_sendq("@test=123abc Hello World!" CRLF, local_chan_v, "In list, has cap; " MSG);
+	is_client_sendq_empty(local_chan_p, "In list, no cap; " MSG);
+	is_client_sendq_empty(local_chan_d, "Not in list; " MSG);
+	is_client_sendq_empty(server, MSG);
+	is_client_sendq_empty(server2, MSG);
+
+	standard_free();
+}
+
 static void sendto_anywhere1(void)
 {
 	standard_init();
@@ -5081,8 +5431,16 @@ int main(int argc, char *argv[])
 	sendto_match_servs1__tags();
 	sendto_local_clients_with_capability1();
 	sendto_local_clients_with_capability1__tags();
+
 	sendto_monitor1();
 	sendto_monitor1__tags();
+	sendto_monitor_with_capability1();
+	sendto_monitor_with_capability1__tags();
+	sendto_list_local_butone1();
+	sendto_list_local_butone1__tags();
+	sendto_list_local_tags_butone1();
+	sendto_list_local_tags_butone1__tags();
+
 	sendto_anywhere1();
 	sendto_anywhere1__tags();
 	sendto_anywhere_echo1();
