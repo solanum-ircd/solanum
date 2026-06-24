@@ -3,7 +3,7 @@ meson.add_install_script(files('make_index.SH'), meson.current_source_dir(), hel
 
 # Symlinks from users -> opers for shared help topics
 user_symlinks = [
-  'topic', 'accept', 'cmode', 'admin', 'names', 'links', 'away', 'whowas',
+  'topic', 'accept', 'admin', 'names', 'links', 'away', 'whowas',
   'version', 'kick', 'who', 'invite', 'quit', 'join', 'list', 'nick',
   'oper', 'part', 'time', 'credits', 'motd', 'userhost', 'users', 'whois',
   'ison', 'lusers', 'user', 'help', 'pass', 'error', 'challenge', 'knock',

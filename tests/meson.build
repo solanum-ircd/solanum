@@ -19,6 +19,14 @@ test_utils = static_library('test_utils',
   include_directories: [include_directories('..')]
 )
 
+test_runtime = custom_target('test_runtime',
+  output: ['test_runtime'],
+  install: false,
+  build_by_default: true,
+  build_always_stale: true,
+  command: [files('make_test_runtime.sh'), '@SOURCE_ROOT@', '@BUILD_ROOT@', '@OUTDIR@']
+)
+
 test_programs = {
   'chmode1': 'chmode1.c',
   'match1': 'match1.c',
@@ -46,7 +54,10 @@ foreach test_name, test_source : test_programs
     build_by_default: true
   )
 
-  test(test_name, test_exe)
+  test(test_name, test_exe,
+    protocol: 'tap',
+    depends: [test_runtime],
+    workdir: meson.current_build_dir())
 endforeach
 
 runtests = executable('runtests',

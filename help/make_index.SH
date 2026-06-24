@@ -21,7 +21,7 @@ for help in "$SOURCE/users/"*; do
 done
 
 # Add symlinks to users index
-for link in topic accept cmode admin names links away whowas version kick who invite quit join list nick oper part time credits motd userhost users whois ison lusers user help pass error challenge knock ping pong map trace chantrace extban monitor batch; do
+for link in topic accept admin names links away whowas version kick who invite quit join list nick oper part time credits motd userhost users whois ison lusers user help pass error challenge knock ping pong map trace chantrace extban monitor batch; do
   echo "$link" >> "$USERS_INDEX.tmp"
 done
 
