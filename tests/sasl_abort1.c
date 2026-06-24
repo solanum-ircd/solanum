@@ -56,10 +56,7 @@ static void common_sasl_test(bool aborted)
 	remote->umodes |= UMODE_SERVICE;
 
 	client_util_parse(user, "CAP LS 302" CRLF);
-	const char *line;
-	while ((line = get_client_sendq(user)) && strcmp(line, "")) {
-		printf("%s", line);
-	}
+	drain_client_sendq(user);
 
 	client_util_parse(user, "NICK " TEST_NICK CRLF);
 	client_util_parse(user, "USER " TEST_USERNAME " 0 0 :" TEST_REALNAME CRLF);
@@ -99,9 +96,7 @@ static void common_sasl_test(bool aborted)
 	}
 
 	is_client_sendq_one(":" TEST_ME_NAME " 001 " TEST_NICK " :Welcome to the Test Internet Relay Chat Network " TEST_NICK CRLF, user, MSG);
-	while ((line = get_client_sendq(user)) && strcmp(line, "")) {
-		printf("%s", line);
-	}
+	drain_client_sendq(user);
 
 	if (aborted) {
 		// Return a successful auth after auth was aborted
