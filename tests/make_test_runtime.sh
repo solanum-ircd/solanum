@@ -20,18 +20,18 @@ ln -s $BUILDROOT/ssld/ssld $OUTPUT/bin/ssld
 cp -r $SOURCEROOT/help/opers $OUTPUT/help
 cp -r $SOURCEROOT/help/users $OUTPUT/help
 $SOURCEROOT/help/make_index.SH $SOURCEROOT/help $OUTPUT/help
-links=($(grep -Pazo '(?s)user_symlinks = \[.*?\]' $SOURCEROOT/help/meson.build | grep -Pao "(?<=')[a-z]+"))
-for link in "${links[@]}"; do
+links=$(grep -Pazo '(?s)user_symlinks = \[.*?\]' $SOURCEROOT/help/meson.build | grep -Pao "(?<=')[a-z]+")
+echo $links | tr ' ' '\n' |  while read link; do
   ln -s "$OUTPUT/help/opers/$link" "$OUTPUT/help/users/$link"
 done
 
-coremods=($(grep -Pazo '(?s)core_modules = \[.*?\]' $SOURCEROOT/modules/meson.build | grep -Pao "(?<=')[^']+(?=')"))
-for link in "${coremods[@]}"; do
+coremods=$(grep -Pazo '(?s)core_modules = \[.*?\]' $SOURCEROOT/modules/meson.build | grep -Pao "(?<=')[^']+(?=')")
+echo $coremods | tr ' ' '\n' | while read link; do
   ln -s "$BUILDROOT/modules/$link.so" "$OUTPUT/modules/$link.so"
 done
 
-modules=($(grep -Pazo '(?s)autoload_modules = \[.*?\]' $SOURCEROOT/modules/meson.build | grep -Pao "(?<=')[^']+(?=')"))
-for link in "${modules[@]}"; do
+modules=$(grep -Pazo '(?s)autoload_modules = \[.*?\]' $SOURCEROOT/modules/meson.build | grep -Pao "(?<=')[^']+(?=')")
+echo $modules | tr ' ' '\n' | while read link; do
   ln -s "$BUILDROOT/modules/$link.so" "$OUTPUT/modules/autoload/$link.so"
 done
 
