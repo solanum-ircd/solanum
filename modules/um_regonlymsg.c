@@ -85,10 +85,10 @@ allow_message(struct Client *source_p, struct Client *target_p)
 	if (IsOper(source_p))
 		return true;
 
-	if (accept_message(source_p, target_p))
+	if (source_p->user->suser[0])
 		return true;
 
-	if (source_p->user->suser[0])
+	if (accept_message(source_p, target_p))
 		return true;
 
 	return false;
@@ -101,9 +101,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 		return true;
 
 	if(msgtype != MESSAGE_TYPE_NOTICE &&
-		IsSetRegOnlyMsg(source_p) &&
-		!accept_message(target_p, source_p) &&
-		!IsOperGeneral(target_p))
+		!allow_message(target_p, source_p))
 	{
 		if(rb_dlink_list_length(&source_p->localClient->allow_list) <
 				(unsigned long)ConfigFileEntry.max_accept)
