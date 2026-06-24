@@ -883,6 +883,10 @@ sendto_channel_local_internal(struct Client *one, int type, struct Client *sourc
 
 	rb_fsnprint(buf, sizeof(buf), &strings);
 
+	/* source_p == NULL in some tests; in real code this would indicate a server-sent message, so use &me if NULL */
+	if (source_p == NULL)
+		source_p = &me;
+
 	bool receives_message = false;
 	if (MyClient(source_p) && (msptr = find_channel_membership(chptr, source_p)) != NULL)
 	{
