@@ -440,7 +440,7 @@ build_target_list(enum message_type msgtype, struct Client *client_p,
 				}
 			}
 
-			/* non existant channel */
+			/* non-existent channel */
 			else if(msgtype == MESSAGE_TYPE_PRIVMSG)
 				sendto_one_numeric(source_p, ERR_NOSUCHNICK,
 						   form_str(ERR_NOSUCHNICK), nick);
@@ -683,8 +683,8 @@ msg_channel(enum message_type msgtype,
 {
 	int result;
 	hook_data_privmsg_channel hdata;
-	int cli_cap = 0;
-	int serv_cap = 0;
+	uint64_t cli_cap = NOCAPS;
+	uint64_t serv_cap = NOCAPS;
 	const char *fmt = "%s %s :%s";
 
 	if (msgtype == MESSAGE_TYPE_TAGMSG)
@@ -788,8 +788,8 @@ msg_channel_opmod(enum message_type msgtype,
 		  struct Channel *chptr, const char *text, struct MsgBuf *msgbuf_p)
 {
 	hook_data_privmsg_channel hdata;
-	int cli_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CLICAP_MESSAGE_TAGS : 0;
-	int serv_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : 0;
+	uint64_t cli_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CLICAP_MESSAGE_TAGS : NOCAPS;
+	uint64_t serv_cap = msgtype == MESSAGE_TYPE_TAGMSG ? CAP_STAG : NOCAPS;
 
 	hdata.msgtype = msgtype;
 	hdata.source_p = source_p;
@@ -855,8 +855,8 @@ msg_channel_flags(enum message_type msgtype, struct Client *client_p,
 	int type;
 	char c;
 	hook_data_privmsg_channel hdata;
-	int cli_cap = 0;
-	int serv_cap = 0;
+	uint64_t cli_cap = NOCAPS;
+	uint64_t serv_cap = NOCAPS;
 	const char *fmt = "%s %c%s :%s";
 
 	if (msgtype == MESSAGE_TYPE_TAGMSG)
