@@ -173,7 +173,8 @@ free_response_batch(struct ResponseInfo *response, struct ResponseInfo *resume)
 			rb_dlinkDestroy(response->remote_node, &response->source_p->localClient->pending_remote_responses);
 	}
 
-	rb_dictionary_delete(pending_responses, response->batch);
+	if (!EmptyString(response->batch))
+		rb_dictionary_delete(pending_responses, response->batch);
 
 	if (!(response->flags & RESPONSE_FLAG_STATIC))
 	{
