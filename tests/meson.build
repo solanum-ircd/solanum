@@ -34,6 +34,7 @@ test_programs = {
   'msgbuf_parse1': 'msgbuf_parse1.c',
   'msgbuf_unparse1': 'msgbuf_unparse1.c',
   'hostmask1': 'hostmask1.c',
+  'labeled_response1': 'labeled_response1.c',
   'privilege1': 'privilege1.c',
   'rb_dictionary1': 'rb_dictionary1.c',
   'rb_snprintf_append1': 'rb_snprintf_append1.c',
