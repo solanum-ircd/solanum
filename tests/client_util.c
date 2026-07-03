@@ -44,7 +44,7 @@ static struct Listener fake_listener = {
 		{ .ss_family = AF_INET6 },
 		{ .ss_family = AF_INET6 },
 	},
-	.vhost = { 'f', 'a', 'k', 'e' },
+	.vhost = { "fake" },
 };
 
 struct Client *make_local_unknown(void)
