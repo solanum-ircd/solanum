@@ -323,7 +323,7 @@ Solanum supports the following server capabilities (enabled via `CAPAB`):
 | RSFNC      | core      | advertisement  | ENCAP RSFNC (force nick change)                      |
 | RSFNCF     | core      | advertisement  | Additional parameter to ENCAP RSFNC to override RESV |
 | SAVE       | core      | recommended    | SAVE (force nick change on nick collision)           |
-| SERVICE    | core      | advertisement  | ENCAP SU/LOGIN, channel mode +r                      |
+| SERVICES   | core      | advertisement  | ENCAP SU/LOGIN, channel mode +r                      |
 | STAG       | core      | recommended    | Message tags                                         |
 | TB         | core      | recommended    | TB (topic burst)                                     | 
 | UNKLN      | core      | legacy         | Remote UNKLINE (not using ENCAP)                     |
