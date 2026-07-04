@@ -164,34 +164,36 @@ cap_labeled_response_process(void *data_)
 static void
 cap_labeled_response_cleanup(void *unused)
 {
-	if (outgoing_response_info != NULL)
-	{
-		/* don't try to send anything if they disconnected */
-		if (!IsAnyDead(outgoing_response_info->source_p))
-		{
-			if (MyConnect(outgoing_response_info->source_p))
-			{
-				/* send an ACK if the handlers didn't send anything */
-				if (!ResponseSent(outgoing_response_info))
-					sendto_one(outgoing_response_info->source_p, ":%s ACK", me.name);
+	if (outgoing_response_info == NULL)
+		return;
 
-				if (!EmptyString(outgoing_response_info->batch) && outgoing_response_info->remote_response == 0)
-				{
-					sendto_one(outgoing_response_info->source_p, ":%s BATCH -%s",
-						me.name, outgoing_response_info->batch);
-				}
-			}
-			else
+	/* don't try to send anything if they disconnected */
+	if (!IsAnyDead(outgoing_response_info->source_p))
+	{
+		if (MyConnect(outgoing_response_info->source_p))
+		{
+			/* send an ACK if the handlers didn't send anything */
+			if (!ResponseSent(outgoing_response_info))
+				sendto_one(outgoing_response_info->source_p, ":%s ACK", me.name);
+
+			if (!EmptyString(outgoing_response_info->batch) && outgoing_response_info->remote_response == 0)
 			{
-				/* notify remote that we're done sending responses to this command */
-				sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
-					me.id, outgoing_response_info->source_p->servptr->name);
+				sendto_one(outgoing_response_info->source_p, ":%s BATCH -%s",
+					me.name, outgoing_response_info->batch);
 			}
 		}
-
-		if (outgoing_response_info->remote_response == 0)
-			free_response_batch(outgoing_response_info, NULL);
+		else
+		{
+			/* notify remote that we're done sending responses to this command */
+			sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
+				me.id, outgoing_response_info->source_p->servptr->name);
+		}
 	}
+
+	if (outgoing_response_info->remote_response == 0)
+		free_response_batch(outgoing_response_info, NULL);
+
+	outgoing_response_info = NULL;
 }
 
 static void

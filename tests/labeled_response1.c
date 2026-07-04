@@ -548,6 +548,23 @@ static void response_tag(void)
 	standard_free();
 }
 
+static void response_cleanup(void)
+{
+	char expected[BUFSIZE];
+
+	standard_init();
+	SetClientCap(user, CLICAP_LABELED_RESPONSE | CLICAP_BATCH);
+
+	client_util_parse(user, "@label=foo PRIVMSG " TEST_REMOTE_NICK " :hi");
+	snprintf(expected, sizeof(expected), "@label=foo :%s BATCH +%s labeled-response" CRLF, me.name, batch1);
+	is_client_sendq(expected, user, MSG);
+	/* ensure outgoing_response_info is NULL after parsing a command;
+	 * otherwise, future commands will inherit incorrect context (and possibly crash) */
+	is_hex(0, (uintptr_t)outgoing_response_info, "outgoing_response_info not cleaned up: " MSG);
+
+	standard_free();
+}
+
 static void safelist_response(void)
 {
 	char expected[BUFSIZE];
@@ -714,6 +731,7 @@ int main(int argc, char *argv[])
 	remote_response__timeout();
 
 	response_tag();
+	response_cleanup();
 
 	safelist_response();
 	safelist_response__exit();
