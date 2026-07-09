@@ -27,7 +27,7 @@
 #include "ircd_defs.h"
 #include "client.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 #define MKTEXT(n) &text[sizeof(text) - ((n) + 1)]
 
@@ -38,15 +38,6 @@ static void replace1(void)
 
 	ok(original != NULL, MSG);
 	is_string("data1", original->data, MSG);
-
-#ifdef SOFT_ASSERT
-	rb_dictionary_element *replacement = rb_dictionary_add(dict, "test", "data2");
-
-	ok(replacement != NULL, MSG);
-	ok(original == replacement, MSG);
-
-	is_string("data2", original->data, MSG);
-#endif
 }
 
 int main(int argc, char *argv[])

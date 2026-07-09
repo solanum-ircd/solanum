@@ -29,7 +29,7 @@
 #include "client.h"
 #include "modules.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 extern int solanum_main(int argc, const char *argv[]);
 

@@ -31,7 +31,7 @@
 #include "s_conf.h"
 #include "hash.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 static void sendto_multiline_basic(void)
 {

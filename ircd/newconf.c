@@ -883,7 +883,7 @@ static char *listener_address[2];
 static int
 conf_begin_listen(struct TopConf *tc)
 {
-	for (int i = 0; i < ARRAY_SIZE(listener_address); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(listener_address); i++) {
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}
@@ -894,7 +894,7 @@ conf_begin_listen(struct TopConf *tc)
 static int
 conf_end_listen(struct TopConf *tc)
 {
-	for (int i = 0; i < ARRAY_SIZE(listener_address); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(listener_address); i++) {
 		rb_free(listener_address[i]);
 		listener_address[i] = NULL;
 	}

@@ -904,7 +904,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 			return;
 
 		if (forward)
-			forward[-1]= '$';
+			*(forward - 1) = '$';
 
 		mode_changes[mode_count].letter = c;
 		mode_changes[mode_count].dir = MODE_ADD;
@@ -1354,7 +1354,7 @@ set_channel_mode(struct Client *client_p, struct Client *source_p,
 
 	mbuf = modebuf;
 
-	for (ml = parv[0]; *ml != 0 && ms - modesets < ARRAY_SIZE(modesets); ml++)
+	for (ml = parv[0]; *ml != 0 && (size_t)(ms - modesets) < ARRAY_SIZE(modesets); ml++)
 	{
 		c = *ml;
 		switch (c)
