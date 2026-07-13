@@ -38,20 +38,16 @@
 
 static void common_sasl_test(bool aborted)
 {
-	ircd_util_init(__FILE__);
-	client_util_init();
-
+	/* reset UIDs for consistency in tests */
+	init_uid();
 	struct Client *user = make_local_unknown();
-	struct Client *server = make_remote_server(&me);
-	struct Client *remote = make_remote_person(server);
+	struct Client *server = make_remote_server_full(&me, TEST_SERVER_NAME, TEST_SERVER_ID);
+	struct Client *remote = make_remote_person_id(server, TEST_REMOTE_NICK, TEST_REMOTE_ID);
 
 	rb_inet_pton_sock(TEST_IP, &user->localClient->ip);
 	rb_strlcpy(user->host, TEST_HOSTNAME, sizeof(user->host));
 	rb_inet_ntop_sock((struct sockaddr *)&user->localClient->ip, user->sockhost, sizeof(user->sockhost));
 
-	strcpy(server->id, TEST_SERVER_ID);
-	strcpy(remote->id, TEST_REMOTE_ID);
-	add_to_id_hash(remote->id, remote);
 	SetServerCap(server, CAP_ENCAP | CAP_TS6);
 	remote->umodes |= UMODE_SERVICE;
 
@@ -109,9 +105,7 @@ static void common_sasl_test(bool aborted)
 	remove_local_person(user);
 	remove_remote_person(remote);
 	remove_remote_server(server);
-
-	client_util_free();
-	ircd_util_free();
+	rb_run_one_event_for_tests("free_exited_clients");
 }
 
 static void successful_login(void)
@@ -127,9 +121,13 @@ static void successful_login_after_aborted_by_user(void)
 int main(int argc, char *argv[])
 {
 	plan_lazy();
+	ircd_util_init(__FILE__);
+	client_util_init();
 
 	successful_login();
 	successful_login_after_aborted_by_user();
 
+	client_util_free();
+	ircd_util_free();
 	return 0;
 }
