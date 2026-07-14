@@ -434,7 +434,10 @@ dnsbls_generic_cancel(struct auth_client *auth, const char *message)
 	rb_free(bluser);
 	set_provider_data(auth, SELF_PID, NULL);
 	set_provider_timeout_absolute(auth, SELF_PID, 0);
-	provider_done(auth, SELF_PID);
+
+	/* this may have already happened via e.g. reject_client() */
+	if (is_provider_running(auth, SELF_PID))
+		provider_done(auth, SELF_PID);
 
 	auth_client_unref(auth);
 }
