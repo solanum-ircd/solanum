@@ -24,6 +24,7 @@
 #ifndef INCLUDED_stdinc_h
 #define INCLUDED_stdinc_h 1
 
+#include "setup.h"
 #include "rb_lib.h"
 #include "ircd_defs.h"  /* Needed for some reasons here -- dwr */
 

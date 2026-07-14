@@ -205,6 +205,13 @@ endif
 # We only support Linux, though
 conf_data.set_quoted('LT_MODULE_EXT', '.so')
 
+if get_option('b_ndebug') == 'true'
+  assertions_enabled = false
+elif get_option('b_ndebug') == 'if-release' and get_option('buildtype') == 'release'
+  assertions_enabled = false
+else
+  assertions_enabled = true
+endif
 
 c_args = []
 link_args = []
@@ -256,7 +263,7 @@ summary({
 }, section: 'Features')
 
 summary({
-  'Assertions': get_option('b_ndebug'),
+  'Assertions': assertions_enabled,
   'Profile': get_option('profile'),
   'Warnings': get_option('warning_level'),
 }, section: 'Debug Options')
