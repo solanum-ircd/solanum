@@ -33,8 +33,14 @@
 #ifndef INCLUDED_supported_h
 #define INCLUDED_supported_h
 
+struct isupport_data
+{
+	const char *(*func)(const void *);
+	const void *param;
+};
+
 extern void add_isupport(const char *, const char *(*)(const void *), const void *);
-extern const void *change_isupport(const char *, const char *(*)(const void *), const void *);
+extern int change_isupport(const char *, const char *(*)(const void *), const void *, struct isupport_data *);
 extern void delete_isupport(const char *);
 extern void show_isupport(struct Client *);
 extern void init_isupport(void);
