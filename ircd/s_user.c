@@ -1462,6 +1462,13 @@ void
 oper_up(struct Client *source_p, struct oper_conf *oper_p)
 {
 	unsigned int old = source_p->umodes, oldsnomask = source_p->snomask;
+	unsigned int i = 0;
+	rb_dlink_node *ptr;
+	struct membership *mscptr;
+	struct Channel *chptr;
+	unsigned char cmodes_hidden[256], cmodes_send[256];
+	unsigned char *cmode_ptr = cmodes_hidden;
+
 	hook_data_umode_changed hdata;
 
 	SetOper(source_p);
@@ -1531,6 +1538,30 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	send_umode_out(source_p, source_p, old);
 	sendto_one_numeric(source_p, RPL_SNOMASK, form_str(RPL_SNOMASK),
 		   construct_snobuf(source_p->snomask));
+
+	if (HasPrivilege(source_p, "auspex:cmodes"))
+	{
+		for (i = 0; i < 256; i++)
+			if (chmode_table[i].set_func == chm_hidden)
+				*cmode_ptr++ = i;
+		*cmode_ptr = '\0';
+
+		RB_DLINK_FOREACH(ptr, source_p->user->channel.head)
+		{
+			mscptr = ptr->data;
+			chptr = mscptr->chptr;
+			cmode_ptr = cmodes_send;
+
+			for (i = 0; cmodes_hidden[i] != '\0'; i++)
+				if (chptr->mode.mode & chmode_flags[cmodes_hidden[i]])
+					*cmode_ptr++ = cmodes_hidden[i];
+			*cmode_ptr = '\0';
+
+			if (cmodes_send[0] != '\0')
+				sendto_one(source_p, ":%s MODE %s +%s", me.name, chptr->chname, cmodes_send);
+		}
+	}
+
 	sendto_one(source_p, form_str(RPL_YOUREOPER), me.name, source_p->name);
 	sendto_one_notice(source_p, ":*** Oper privilege set is %s", oper_p->privset->name);
 	send_multiline_init(source_p, " ", ":%s NOTICE %s :*** Oper privs are ", me.name, source_p->name);
