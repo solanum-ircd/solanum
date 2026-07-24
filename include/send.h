@@ -103,7 +103,15 @@ extern void sendto_match_servs(struct Client *source_p, const char *mask,
 extern void sendto_match_servs_tags(struct Client *source_p, const char *mask,
 				uint64_t cap, uint64_t negcap, size_t n_tags, const struct MsgTag tags[], const char *, ...) AFP(7, 8);
 
-extern void sendto_monitor(struct Client *, struct monitor *monptr, const char *, ...) AFP(3, 4);
+extern void sendto_monitor(struct Client *source_p, struct monitor *monptr, const char *pattern, ...) AFP(3, 4);
+extern void sendto_monitor_with_capability(struct Client *source_p, struct monitor *monptr,
+	uint64_t caps, uint64_t negcaps, const char *pattern, ...) AFP(5, 6);
+extern void sendto_list_local_butone(struct Client *one, struct Client *source_p, rb_dlink_list *list,
+	uint64_t caps, uint64_t negcaps, bool (*filter)(struct Client *, void *), void *filter_data,
+	const char *pattern, ...) AFP(8, 9);
+extern void sendto_list_local_tags_butone(struct Client *one, struct Client *source_p, rb_dlink_list *list,
+	uint64_t caps, uint64_t negcaps, bool (*filter)(struct Client *, void *), void *filter_data,
+	size_t n_tags, const struct MsgTag tags[], const char *pattern, ...) AFP(10, 11);
 
 extern void sendto_anywhere(struct Client *, struct Client *, const char *,
 			    const char *, ...) AFP(4, 5);

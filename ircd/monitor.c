@@ -76,6 +76,16 @@ free_monitor(struct monitor *monptr)
 	rb_free(monptr);
 }
 
+bool
+is_monitoring(struct Client *client_p, const char *name)
+{
+	struct monitor *monptr = find_monitor(name, 0);
+	if (monptr == NULL)
+		return false;
+
+	return rb_dlinkFind(client_p, &monptr->users) != NULL;
+}
+
 /* monitor_signon()
  *
  * inputs	- client who has just connected

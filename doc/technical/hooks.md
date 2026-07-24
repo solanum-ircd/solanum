@@ -43,6 +43,7 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 | m_join     | channel_join                   | A user has finished joining a channel                     |
 | m_join     | channel_lowerts                | A remote server gave us a lower TS for a channel          |
 | m_kill     | can_kill                       | A local oper is about to kill a user                      |
+| m_monitor  | new_monitor                    | A user has added a new entry to their MONITOR list        |
 | m_nick     | local_nick_change              | A local user has changed nicknames                        |
 | m_nick     | remote_nick_change             | A remote user has changed nicknames                       |
 | m_quit     | client_quit                    | A user has quit from the network                          |
@@ -1069,6 +1070,24 @@ Hook data: `struct Client *`
 
 The hook data is the user being introduced. Hook functions can safely kill
 this client should the connection attempt not be allowed to proceed.
+
+### new_monitor
+
+This hook is called after a local user has added a new nickname to their
+MONITOR list.
+
+Hook data: `hook_data *`
+
+Fields:
+
+- client (`struct Client *`): The client adding the monitor entry
+- arg1 (`struct monitor *`): The monitor entry that was added
+- arg2 (`struct Client *`): The client corresponding to the new entry, or
+  `NULL` if no client matching the nickname is online
+
+The `client` has already been added to the `arg1->users` list at the time this
+hook is called. All relevant `RPL_MONONLINE` and `RPL_MONOFFLINE` messages
+have already been sent to the client for the added nickname.
 
 ### new_remote_user
 
