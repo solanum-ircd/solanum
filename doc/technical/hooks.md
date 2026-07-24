@@ -36,6 +36,7 @@ module or define a new hook in a module, see `extensions/example_module.c`.
 | Core       | server_introduced              | A server has been introduced to the network (pre-burst)   |
 | Core       | server_eob                     | A server has finished processing a netjoin burst from us  |
 | Core       | umode_changed                  | The modes for a user have changed                         |
+| Core       | user_welcome                   | Called during the registration burst for a new local user |
 | m_info     | doing_info_conf                | Conf entries have been sent to an oper using INFO         |
 | m_invite   | can_invite                     | A local user is about to invite another user to a channel |
 | m_invite   | invite                         | A local user is about to be invited to a channel          |
@@ -493,25 +494,23 @@ channel is -k.
 
 ### channel_lowerts
 
-This hook is called after the server receives a join message for a remote user
-with a lower channel timestamp than what the server has for the channel. This
-hook is not called during netjoin bursts or when the remote side believes it
-has created a new channel; it is only called a join to an existing channel on
-the remote side.
+This hook is called after the server receives a `JOIN` or `SJOIN` message for
+a remote user with a lower channel timestamp than what the server has for the
+channel.
 
 Hook data: `hook_data_channel *`
 
 Fields:
 
-- client (`struct Client *`): The remote user joining the channel
+- client (`struct Client *`): For `JOIN`, the remote user joining the channel;
+  for `SJOIN`, the server issuing the `SJOIN` message
 - chptr (`struct Channel *`): The channel being joined
 - approved (`int`): Unused (always 0)
 
-At the time the hook is called, client has not yet been added to chptr as a
-member, but we have cleared all modes from the local channel. Because this
-hook is only called when we receive a JOIN from a remote server and not an
-SJOIN, it is not a reliable method of knowing that a local channel has had its
-timestamp lowered.
+At the time the hook is called, `client` has not yet been added to chptr as a
+member (for `JOIN`) or the clients specified in the user list have not yet
+been joined to the channel (for `SJOIN`), but we have cleared all modes from
+the local channel.
 
 ### client_exit
 
@@ -780,15 +779,17 @@ target of the WHOIS will always be a local client. The hook is called after
 all regular WHOIS lines have been sent to the user, but before the
 `RPL_ENDOFWHOIS` numeric is sent to the user.
 
-Hook data: `hook_data_client *`
+Hook data: `hook_data_client_approval *`
 
 Fields:
 
 - client (`struct Client *`): The user executing WHOIS
 - target (`struct Client *`): The target of the WHOIS command
+- approved (`int`): Set to 1 if this is an operspy WHOIS, 0 otherwise
 
 Hook functions can use this hook to send additional lines to the client as a
-part of the WHOIS response.
+part of the WHOIS response. The approved field is not an output field; it is
+an indicator as to whether or not an operspy was performed.
 
 ### doing_whois_channel_visibility
 
@@ -822,15 +823,17 @@ target of the WHOIS in such a case will always be a local client. The hook is
 called after all regular WHOIS lines have been sent to the user, but before
 the `RPL_ENDOFWHOIS` numeric is sent to the user.
 
-Hook data: `hook_data_client *`
+Hook data: `hook_data_client_approval *`
 
 Fields:
 
 - client (`struct Client *`): The user executing WHOIS
 - target (`struct Client *`): The target of the WHOIS command
+- approved (`int`): Set to 1 if this is an operspy WHOIS, 0 otherwise
 
 Hook functions can use this hook to send additional lines to the client as a
-part of the WHOIS response.
+part of the WHOIS response. The approved field is not an output field; it is
+an indicator as to whether or not an operspy was performed.
 
 ### doing_whois_show_idle
 
@@ -1291,3 +1294,14 @@ Fields:
 
 Because any mode changes have already been applied, hook functions can check
 the current user modes or snomask for the user to determine what has changed.
+
+### user_welcome
+
+This hook is called while the registration burst for a new local user is being
+sent. It happens after sending ISUPPORT but before sending LUSERS. Some IRCv3
+specifications require sending additional registration data during precisely
+this timing.
+
+Hook data: `struct Client *`
+
+The hook data is the client that is being introduced to the network.

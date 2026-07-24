@@ -1431,7 +1431,7 @@ user_welcome(struct Client *source_p)
 	sendto_one_numeric(source_p, RPL_MYINFO, form_str(RPL_MYINFO), me.name, ircd_version, umodebuf, cflagsmyinfo);
 
 	show_isupport(source_p);
-
+	call_hook(h_user_welcome, source_p);
 	show_lusers(source_p);
 
 	if(ConfigFileEntry.short_motd)
