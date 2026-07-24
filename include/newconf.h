@@ -16,7 +16,7 @@ struct ConfEntry
 struct TopConf
 {
 	const char *tc_name;
-	int (*tc_sfunc) (struct TopConf *);
+	int (*tc_sfunc) (struct TopConf *, const char *);
 	int (*tc_efunc) (struct TopConf *);
 	rb_dlink_list tc_items;
 	struct ConfEntry *tc_entries;
@@ -71,7 +71,7 @@ void conf_report_warning(const char *, ...);
 void newconf_init(void);
 int add_conf_item(const char *topconf, const char *name, int type, void (*func) (void *));
 int remove_conf_item(const char *topconf, const char *name);
-int add_top_conf(const char *name, int (*sfunc) (struct TopConf *), int (*efunc) (struct TopConf *), struct ConfEntry *items);
+int add_top_conf(const char *name, int (*sfunc) (struct TopConf *, const char *), int (*efunc) (struct TopConf *), struct ConfEntry *items);
 int remove_top_conf(char *name);
 struct TopConf *find_top_conf(const char *name);
 struct ConfEntry *find_conf_item(const struct TopConf *top, const char *name);
