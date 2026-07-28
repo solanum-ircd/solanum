@@ -83,9 +83,6 @@ chm_nobots_can_send(void *data_)
 		return;
 
 	/* If we're here, umode AND cmode +B are set, and the client is not exempt for any reason. */
-	sendto_one_numeric(data->client, ERR_CANNOTSENDTOCHAN,
-			"%s :Cannot send to channel (+B) - bots must be opped/voiced",
-			data->chptr->chname);
 	data->approved = CAN_SEND_NO;
 }
 
