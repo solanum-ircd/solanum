@@ -83,7 +83,7 @@ umode_bot_apply_tag(void *data_)
 static void
 umode_bot_whois(void *data_)
 {
-	hook_data_client *data = data_;
+	hook_data_client_approval *data = data_;
 	if (!IsBot(data->target))
 		return;
 

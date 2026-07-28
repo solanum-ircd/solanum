@@ -47,6 +47,7 @@ restrict_botmode(void *data_)
 {
 	hook_data_umode_changed *data = data_;
 	unsigned int umode = user_modes['B'];
+	bool send_error = MyClient(data->client);
 	/* No need to check if umode is 0; if it is for some reason, both macros will evaluate to false. */
 
 	/* Check if we are in at least one channel. */
@@ -54,14 +55,16 @@ restrict_botmode(void *data_)
 		return;
 
 	if (HasMode(data, umode) && !HadMode(data, umode))
-	{
-		/* TODO: Send error. */
 		data->client->umodes &= ~umode;
-	}
 	else if (!HasMode(data, umode) && HadMode(data, umode))
-	{
-		/* TODO: Send error. */
 		data->client->umodes |= umode;
+	else
+		send_error = false;
+
+	if (send_error)
+	{
+		/* TODO: If Solanum starts using standard-replies, use one below for clients that enabled it instead of a server notice. */
+		sendto_one_notice(data->client, ":Bot mode cannot be changed while joined to channels");
 	}
 }
 
