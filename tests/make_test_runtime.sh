@@ -10,6 +10,7 @@ OUTPUT=$(realpath -s $3)/runtime
 
 rm -rf $OUTPUT
 mkdir -p $OUTPUT/modules/autoload
+mkdir -p $OUTPUT/modules/extensions
 mkdir $OUTPUT/bin
 mkdir $OUTPUT/help
 
@@ -33,6 +34,13 @@ done
 modules=$(grep -Pazo '(?s)autoload_modules = \[.*?\]' $SOURCEROOT/modules/meson.build | grep -Pao "(?<=')[^']+(?=')")
 echo $modules | tr ' ' '\n' | while read link; do
   ln -s "$BUILDROOT/modules/$link.so" "$OUTPUT/modules/autoload/$link.so"
+done
+
+extensions=$(grep -Pazo '(?s)extension_modules = \[.*?\]' $SOURCEROOT/extensions/meson.build | grep -Pao "(?<=')[^']+(?=')")
+echo $extensions | tr ' ' '\n' | while read link; do
+  if test -e "$BUILDROOT/extensions/$link.so"; then
+    ln -s "$BUILDROOT/extensions/$link.so" "$OUTPUT/modules/extensions/$link.so"
+  fi
 done
 
 cp $SOURCEROOT/tests/*.conf $3

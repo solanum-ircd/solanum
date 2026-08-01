@@ -4,6 +4,7 @@ check_PROGRAMS = runtests \
 	misc \
 	msgbuf_parse1 \
 	msgbuf_unparse1 \
+	multiline1 \
 	hostmask1 \
 	labeled_response1 \
 	privilege1 \
@@ -15,6 +16,7 @@ check_PROGRAMS = runtests \
 	send_multiline1 \
 	serv_connect1 \
 	substitution1
+test_extensions = multiline
 AM_CFLAGS=$(WARNFLAGS)
 AM_CPPFLAGS = $(DEFAULT_INCLUDES) -I../librb/include -I..
 AM_LDFLAGS = -no-install
@@ -41,11 +43,13 @@ check-local: $(check_PROGRAMS) \
 	../bandb/bandb \
 	../ssld/ssld \
 	$(patsubst ../modules/%.c,../modules/.libs/%.so,$(wildcard ../modules/*.c)) \
-	$(patsubst ../modules/core/%.c,../modules/core/.libs/%.so,$(wildcard ../modules/core/*.c))
+	$(patsubst ../modules/core/%.c,../modules/core/.libs/%.so,$(wildcard ../modules/core/*.c)) \
+	$(patsubst %,../extensions/.libs/%.so,$(test_extensions))
 
-	rm -rf runtime/modules && mkdir -p runtime/modules/autoload
+	rm -rf runtime/modules && mkdir -p runtime/modules/autoload runtime/modules/extensions
 	for f in ../modules/core/.libs/*.so; do ln -s "../../../modules/core/.libs/$${f##*/}" "runtime/modules/$${f##*/}"; done
 	for f in ../modules/.libs/*.so; do ln -s "../../../../modules/.libs/$${f##*/}" "runtime/modules/autoload/$${f##*/}"; done
+	for f in ../extensions/.libs/*.so; do ln -s "../../../../extensions/.libs/$${f##*/}" "runtime/modules/extensions/$${f##*/}"; done
 
 	ASAN_OPTIONS="${ASAN_OPTIONS}:detect_leaks=false" ./runtests -l $(abs_top_srcdir)/tests/TESTS
 
