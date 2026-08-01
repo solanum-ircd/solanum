@@ -86,6 +86,18 @@ reset_global_context(void)
 	incoming_message = saved_global_context.incoming_message;
 }
 
+static bool
+valid_batch_tag(const char *tag)
+{
+	for (; *tag != '\0'; tag++)
+	{
+		if (!IsIdChar(*tag) && *tag != '-')
+			return false;
+	}
+
+	return true;
+}
+
 static void
 batch_timeout(void *arg)
 {
@@ -291,7 +303,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		return;
 	}
 
-	if ((!adding && *parv[1] != '-') || EmptyString(parv[1] + 1))
+	if ((!adding && *parv[1] != '-') || EmptyString(parv[1] + 1) || !valid_batch_tag(parv[1] + 1))
 	{
 		if (IsClient(source_p))
 			sendto_one(source_p, ":%s FAIL BATCH INVALID_REFTAG %s :Invalid reference tag",
