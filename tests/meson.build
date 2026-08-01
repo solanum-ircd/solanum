@@ -33,6 +33,7 @@ test_programs = {
   'misc': 'misc.c',
   'msgbuf_parse1': 'msgbuf_parse1.c',
   'msgbuf_unparse1': 'msgbuf_unparse1.c',
+  'multiline1': 'multiline1.c',
   'hostmask1': 'hostmask1.c',
   'labeled_response1': 'labeled_response1.c',
   'privilege1': 'privilege1.c',
