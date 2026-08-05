@@ -17,7 +17,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
  *  USA
  */
-#define _GNU_SOURCE
 #include <dlfcn.h>
 #include <errno.h>
 #include <stdio.h>
@@ -34,7 +33,7 @@
 #include "s_newconf.h"
 #include "hash.h"
 
-#define MSG "%s:%d (%s; aborted=%d)", __FILE__, __LINE__, __FUNCTION__, aborted
+#define MSG "%s:%d (%s; aborted=%d)", __FILE__, __LINE__, __func__, aborted
 
 static void common_sasl_test(bool aborted)
 {

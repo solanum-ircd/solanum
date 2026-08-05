@@ -34,7 +34,7 @@
 #include "s_newconf.h"
 #include "s_user.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 #define LONG_VALUE_50 "12345678901234567890123456789012345678901234567890"
 #define LONG_VALUE_100 LONG_VALUE_50 LONG_VALUE_50
 #define LONG_VALUE_200 LONG_VALUE_100 LONG_VALUE_100
