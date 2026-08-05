@@ -24,7 +24,8 @@ extension_LTLIBRARIES =		\
   extb_channel.la		\
   extb_guest.la		\
   extb_hostmask.la		\
-  extb_oper.la			\
+  extb_operpriv.la		\
+  extb_opername.la		\
   extb_server.la		\
   extb_ssl.la			\
   extb_realname.la		\
