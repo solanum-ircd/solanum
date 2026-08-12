@@ -193,7 +193,7 @@ m_join(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	for(name = rb_strtok_r(chanlist, ",", &p); name; name = rb_strtok_r(NULL, ",", &p))
 	{
 		/* check the length and name of channel is ok */
-		if(!check_channel_name_loc(source_p, name) || (strlen(name) > LOC_CHANNELLEN))
+		if(!check_channel_name_loc(source_p, name))
 		{
 			sendto_one_numeric(source_p, ERR_BADCHANNAME,
 					   form_str(ERR_BADCHANNAME), (unsigned char *) name);
@@ -657,8 +657,7 @@ ms_sjoin(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		s = "";
 
 	if((chptr = get_or_create_channel(source_p, parv[2], &isnew)) == NULL)
-		return;	/* channel name too long? */
-
+		return;
 
 	oldts = chptr->channelts;
 	oldmode = &chptr->mode;
@@ -988,7 +987,11 @@ check_channel_name_loc(struct Client *source_p, const char *name)
 	const char *p;
 
 	s_assert(name != NULL);
+
 	if(EmptyString(name))
+		return false;
+
+	if(strlen(name) > LOC_CHANNELLEN)
 		return false;
 
 	if(ConfigFileEntry.disable_fake_channels && !IsOperGeneral(source_p))

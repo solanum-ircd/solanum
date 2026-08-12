@@ -371,7 +371,11 @@ bool
 check_channel_name(const char *name)
 {
 	s_assert(name != NULL);
-	if(name == NULL)
+
+	if(EmptyString(name))
+		return false;
+
+	if(strlen(name) > CHANNELLEN)
 		return false;
 
 	for (; *name; ++name)
