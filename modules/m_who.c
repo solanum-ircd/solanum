@@ -37,6 +37,7 @@
 #include "modules.h"
 #include "packet.h"
 #include "s_newconf.h"
+#include "s_user.h"
 #include "ratelimit.h"
 #include "response.h"
 #include "supported.h"
@@ -495,13 +496,16 @@ append_format(char *buf, size_t bufsize, size_t *pos, const char *fmt, ...)
 static void
 do_who(struct Client *source_p, struct Client *target_p, struct membership *msptr, struct who_format *fmt)
 {
-	char status[16];
+	char status[16]; /* sizeof taken below */
 	char str[510 + 1]; /* linebuf.c will add \r\n */
 	size_t pos;
 	const char *q;
 
-	sprintf(status, "%c%s%s",
-		   target_p->user->away ? 'G' : 'H', SeesOper(target_p, source_p) ? "*" : "", msptr ? find_channel_status(msptr, fmt->fields || IsClientCapable(source_p, CLICAP_MULTI_PREFIX)) : "");
+	snprintf(status, sizeof(status), "%c%s%s%s",
+			target_p->user->away ? 'G' : 'H',
+			target_p->umodes & user_modes['B'] ? "B" : "",
+			SeesOper(target_p, source_p) ? "*" : "",
+			msptr ? find_channel_status(msptr, fmt->fields || IsClientCapable(source_p, CLICAP_MULTI_PREFIX)) : "");
 
 	if (fmt->fields == 0)
 		sendto_one(source_p, form_str(RPL_WHOREPLY), me.name,
