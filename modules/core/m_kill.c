@@ -196,6 +196,10 @@ ms_kill(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 		{
 			*t = '\0';
 			t++;
+
+			if(strlen(t) > (size_t) KILLLEN)
+				t[KILLLEN] = '\0';
+
 			reason = t;
 		}
 		else
