@@ -1,0 +1,6 @@
+FINDFORWARDS <channel>
+
+Lists all channels that forward (via channel mode +f) to
+the target channel. Ban forwards are not considered. You
+must either be opped on the target channel or be an IRC
+operator.
