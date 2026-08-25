@@ -214,7 +214,11 @@ mc_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 	}
 
 	rb_free(source_p->user->opername);
-	source_p->user->opername = rb_strdup(parv[1]);
+
+	if (clean_nick(parv[1], 0))
+		source_p->user->opername = rb_strdup(parv[1]);
+	else
+		source_p->user->opername = NULL;
 }
 
 /*
@@ -225,7 +229,11 @@ static void
 me_oper(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
 	rb_free(source_p->user->opername);
-	source_p->user->opername = rb_strdup(parv[1]);
+
+	if (clean_nick(parv[1], 0))
+		source_p->user->opername = rb_strdup(parv[1]);
+	else
+		source_p->user->opername = NULL;
 }
 
 /*

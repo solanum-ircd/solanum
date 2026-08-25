@@ -106,7 +106,7 @@ parse_ban(bandb_type type, char *parv[], int parc)
 	}
 
 	rsdb_exec(NULL,
-		  "INSERT INTO %s (mask1, mask2, oper, time, perm, reason) VALUES('%Q', '%Q', '%Q', %s, %s, '%Q')",
+		  "INSERT INTO %s (mask1, mask2, oper, time, perm, reason) VALUES('%Q', '%Q', '%Q', '%Q', '%Q', '%Q')",
 		  bandb_table[type], mask1, mask2 ? mask2 : "", oper, curtime, perm, reason);
 }
 

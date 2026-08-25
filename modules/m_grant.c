@@ -167,6 +167,8 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 	}
 	else
 	{
+		const char *opername = EmptyString(target_p->user->opername) ? "*" : target_p->user->opername;
+
 		if (privset != NULL)
 			privilegeset_ref(privset);
 
@@ -177,7 +179,7 @@ static int do_grant(struct Client *source_p, struct Client *target_p, const char
 
 		if (privset != NULL)
 			sendto_server(NULL, NULL, CAP_TS6, NOCAPS, ":%s OPER %s %s",
-					use_id(target_p), target_p->user->opername, privset->name);
+					use_id(target_p), opername, privset->name);
 
 		report_priv_change(target_p, old_privset, privset);
 

@@ -586,6 +586,12 @@ conf_end_oper(struct TopConf *tc)
 		return 0;
 	}
 
+	if(!clean_nick(yy_oper->name, 0))
+	{
+		conf_report_error("Ignoring operator block -- invalid name.");
+		return 0;
+	}
+
 #ifdef HAVE_OPENSSL
 	if(EmptyString(yy_oper->passwd) && EmptyString(yy_oper->rsa_pubkey_file))
 #else
