@@ -644,7 +644,7 @@ static int proc_answer(struct reslist *request, HEADER * header, char *buf, char
 		current += (size_t) n;
 
 		if (!(((char *)current + ANSWER_FIXED_SIZE) < eob))
-			break;
+			return (0);
 
 		type = irc_ns_get16(current);
 		current += TYPE_SIZE;
