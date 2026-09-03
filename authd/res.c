@@ -134,21 +134,21 @@ res_ourserver(const struct rb_sockaddr_storage *inp)
 						   sizeof(struct in6_addr)) == 0) ||
 					   (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any,
 						   sizeof(struct in6_addr)) == 0))
-						return 1;
+						return ns;
 			break;
 		case AF_INET:
 			if(GET_SS_FAMILY(srv) == GET_SS_FAMILY(inp))
 				if(v4->sin_port == v4in->sin_port)
 					if((v4->sin_addr.s_addr == INADDR_ANY)
 					   || (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
-						return 1;
+						return ns;
 			break;
 		default:
 			break;
 		}
 	}
 
-	return 0;
+	return -1;
 }
 
 /*
