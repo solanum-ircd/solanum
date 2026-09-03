@@ -661,6 +661,9 @@ static int proc_answer(struct reslist *request, HEADER * header, char *buf, char
 		if (rrclass != C_IN)
 			return (0);
 
+		if (((char *)current + rd_length) > eob)
+			return (0);
+
 		/*
 		 * Wait to set request->type until we verify this structure
 		 */
