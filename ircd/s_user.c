@@ -1305,14 +1305,14 @@ user_mode(struct Client *client_p, struct Client *source_p, int parc, const char
 		source_p->umodes &= ~UMODE_ADMIN;
 	}
 
-	if(MyClient(source_p))
-		source_p->handler = IsOperGeneral(source_p) ? OPER_HANDLER : CLIENT_HANDLER;
-
 	/* let modules providing usermodes know that we've changed our usermode --nenolod */
 	hdata.client = source_p;
 	hdata.oldumodes = setflags;
 	hdata.oldsnomask = setsnomask;
 	call_hook(h_umode_changed, &hdata);
+
+	if(MyClient(source_p))
+		source_p->handler = IsOper(source_p) ? OPER_HANDLER : CLIENT_HANDLER;
 
 	if(!(setflags & UMODE_INVISIBLE) && IsInvisible(source_p))
 		++Count.invisi;
@@ -1517,7 +1517,7 @@ oper_up(struct Client *source_p, struct oper_conf *oper_p)
 	hdata.oldsnomask = oldsnomask;
 	call_hook(h_umode_changed, &hdata);
 
-	source_p->handler = IsOperGeneral(source_p) ? OPER_HANDLER : CLIENT_HANDLER;
+	source_p->handler = IsOper(source_p) ? OPER_HANDLER : CLIENT_HANDLER;
 
 	sendto_realops_snomask(SNO_GENERAL, L_ALL,
 			     "%s (%s!%s@%s) is now an operator", oper_p->name, source_p->name,

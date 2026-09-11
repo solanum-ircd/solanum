@@ -27,6 +27,7 @@
 #include "ircd.h"
 #include "numeric.h"
 #include "send.h"
+#include "s_newconf.h"
 #include "msg.h"
 #include "parse.h"
 #include "modules.h"
@@ -56,6 +57,13 @@ mo_close(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	rb_dlink_node *ptr;
 	rb_dlink_node *ptr_next;
 	int closed = 0;
+
+	if(!IsOperAdmin(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "admin");
+		return;
+	}
 
 	begin_local_response_batch();
 
