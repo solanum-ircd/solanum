@@ -166,7 +166,7 @@ mo_quarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *s
 static void
 me_quarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	struct Client *target_p = find_named_person(parv[1]);
+	struct Client *target_p = find_person(parv[1]);
 	if (target_p == NULL)
 	{
 		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), parv[1]);
@@ -203,7 +203,7 @@ mo_unquarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client 
 static void
 me_unquarantine(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	struct Client *target_p = find_named_person(parv[1]);
+	struct Client *target_p = find_person(parv[1]);
 	if (target_p == NULL)
 	{
 		sendto_one_numeric(source_p, ERR_NOSUCHNICK, form_str(ERR_NOSUCHNICK), parv[1]);
