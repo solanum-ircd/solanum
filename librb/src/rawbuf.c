@@ -269,8 +269,8 @@ rb_rawbuf_get(rawbuf_head_t * rb, void *data, int len)
 int
 rb_rawbuf_length(rawbuf_head_t * rb)
 {
-	if (rb_dlink_list_length(&rb->list) == 0 && lrb_assert(rb->len == 0))
-		rb->len = 0;
+	if (rb_dlink_list_length(&rb->list) == 0)
+		lrb_assert(rb->len == 0);
 	return rb->len;
 }
 

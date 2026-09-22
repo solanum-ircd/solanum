@@ -10,10 +10,12 @@ AC_LANG(C)
 AC_USE_SYSTEM_EXTENSIONS
 AC_GNU_SOURCE
 
-AC_PROG_CC_C99
+AC_PROG_CC
 
-if test x"$ac_cv_prog_cc_c99" = "xno"; then
-	AC_ERROR([solanum requires a C99 capable compiler])
+dnl meson uses C17 but autoconf doesn't support that in AC_PROG_CC
+dnl GCC backported all C17 fixes to C11 anyway, so it's fine to just check for that here
+if test x"$ac_prog_cc_stdc" = "xc89" -o x"$ac_prog_cc_stdc" = "xc99"; then
+	AC_ERROR([solanum requires a C11 capable compiler])
 fi
 
 AC_PREFIX_DEFAULT($HOME/ircd)
@@ -34,8 +36,10 @@ LTDL_INIT
 build_ltdl=$with_included_ltdl
 AM_CONDITIONAL([BUILD_LTDL], [test x"$build_ltdl" = x"yes"])
 
+IRC_CFLAGS="$IRC_CFLAGS -std=gnu11 -D_GNU_SOURCE"
+
 if test "$ac_cv_c_compiler_gnu" = yes; then
-	IRC_CFLAGS="$IRC_CFLAGS -O0 -Wall"
+	IRC_CFLAGS="$IRC_CFLAGS -O0 -Wall -Wextra -pedantic -Wno-unused-parameter -Wno-missing-field-initializers -Wno-format-zero-length -Wno-overlength-strings"
 fi
 
 dnl If we support -g, use it!
@@ -460,13 +464,10 @@ dnl Debug-related options
 dnl =====================
 
 AC_ARG_ENABLE(assert,
-AC_HELP_STRING([--enable-assert],[Enable assert(). Choose between soft(warnings) and hard(aborts the daemon)]),
+AC_HELP_STRING([--enable-assert],[Enable assert().]),
 [assert=$enableval], [assert=no])
 
 if test "$assert" = no; then
-	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
-elif test "$assert" = soft; then
-	AC_DEFINE(SOFT_ASSERT, 1, [Define this to enable soft asserts.])
 	AC_DEFINE(NDEBUG, 1, [Define this to disable debugging support.])
 elif test "$assert" = yes; then
 	assert="hard"

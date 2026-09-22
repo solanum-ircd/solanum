@@ -43,7 +43,7 @@
 #include "s_assert.h"
 #include "logger.h"
 
-static rb_dlink_list listener_list = {};
+static rb_dlink_list listener_list;
 static int accept_precallback(rb_fde_t *F, struct sockaddr *addr, rb_socklen_t addrlen, void *data);
 static void accept_callback(rb_fde_t *F, int status, struct sockaddr *addr, rb_socklen_t addrlen, void *data);
 static SSL_OPEN_CB accept_sslcallback;
@@ -230,7 +230,7 @@ find_listener(struct rb_sockaddr_storage *addr, int sctp)
 		if (listener->sctp != sctp)
 			continue;
 
-		for (int i = 0; i < ARRAY_SIZE(listener->addr); i++) {
+		for (size_t i = 0; i < ARRAY_SIZE(listener->addr); i++) {
 			if (GET_SS_FAMILY(&addr[i]) != GET_SS_FAMILY(&listener->addr[i]))
 				goto next;
 
