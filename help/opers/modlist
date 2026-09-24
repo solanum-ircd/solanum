@@ -1,8 +1,14 @@
 MODLIST [match string]
 
--- List the modules that are currently loaded into the
-ircd, along with their address and version.
+List the modules that are currently loaded into the
+ircd, along with their description, version, and
+address (viewing address requires oper:admin).
 When a match string is provided, modlist only prints
 modules with names matching the match string.
+
+MODLIST <match string> <server mask>
+
+View the module list for remote servers matching
+the provided server mask.
 
 - Requires Oper Priv: oper:admin
