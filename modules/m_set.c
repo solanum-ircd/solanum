@@ -190,13 +190,6 @@ quote_floodcount(struct Client *source_p, const char *arg, int newval)
 static void
 quote_identtimeout(struct Client *source_p, const char *arg, int newval)
 {
-	if(!IsOperAdmin(source_p))
-	{
-		sendto_one(source_p, form_str(ERR_NOPRIVS),
-			   me.name, source_p->name, "admin");
-		return;
-	}
-
 	if(newval > 0)
 	{
 		sendto_realops_snomask(SNO_GENERAL, L_NETWIDE,
@@ -461,6 +454,13 @@ mo_set(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	int i, n;
 	const char *arg = NULL;
 	const char *intarg = NULL;
+
+	if(!IsOperAdmin(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "admin");
+		return;
+	}
 
 	if(parc > 1)
 	{

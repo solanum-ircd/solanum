@@ -2,3 +2,5 @@ CLOSE
 
 Close any connections from clients or servers who have
 not fully registered yet.
+
+- Requires Oper Priv: oper:admin

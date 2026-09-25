@@ -82,13 +82,12 @@ oper:resv, channel control
 This allows using /resv, /unresv and changing the channel modes +L and
 +P.
 
-oper:routing, remote routing
-----------------------------
+oper:routing, network routing
+-----------------------------
 
-This allows using the third argument of the ``CONNECT`` command, to instruct
-another server to connect somewhere, and using ``SQUIT`` with an argument
-that is not locally connected. (In both cases all opers with +w set will
-be notified.)
+This allows using the ``CONNECT`` command to instruct a server to connect
+somewhere, and using the ``SQUIT`` command to disconnect a server. (In both
+cases all opers with the +s snomask set will be notified.)
 
 oper:spy, use operspy
 ---------------------
