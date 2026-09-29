@@ -34,6 +34,8 @@
 #include "batch.h"
 #include "response.h"
 
+#define HasBatchFlag(x, y) (((x)->flags & (y)) == (y))
+
 static const char batch_desc[] =
 	"Provides the BATCH command for client-initiated or propagated batches";
 
@@ -84,6 +86,18 @@ reset_global_context(void)
 {
 	incoming_client = saved_global_context.incoming_client;
 	incoming_message = saved_global_context.incoming_message;
+}
+
+static bool
+valid_batch_tag(const char *tag)
+{
+	for (; *tag != '\0'; tag++)
+	{
+		if (!IsIdChar(*tag) && *tag != '-')
+			return false;
+	}
+
+	return true;
 }
 
 static void
@@ -197,7 +211,7 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 	handler->handler(client_p, source_p, batch, handler->userdata);
 
 	/* handle child batches */
-	if (!(handler->flags & BATCH_FLAG_SKIP_CHILDREN))
+	if (!HasBatchFlag(handler, BATCH_FLAG_SKIP_CHILDREN))
 	{
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, batch->children.head)
 		{
@@ -291,7 +305,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		return;
 	}
 
-	if ((!adding && *parv[1] != '-') || EmptyString(parv[1] + 1))
+	if ((!adding && *parv[1] != '-') || EmptyString(parv[1] + 1) || !valid_batch_tag(parv[1] + 1))
 	{
 		if (IsClient(source_p))
 			sendto_one(source_p, ":%s FAIL BATCH INVALID_REFTAG %s :Invalid reference tag",
@@ -319,14 +333,6 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 			return;
 		}
 
-		if (get_batch_handler(parv[2]) == NULL)
-		{
-			if (IsClient(source_p))
-				sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
-					me.name, parv[1], parv[2]);
-			return;
-		}
-
 		if (parent != NULL)
 		{
 			const struct BatchHandler *parent_handler = get_batch_handler(parent->type);
@@ -339,7 +345,15 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 				return;
 			}
 
-			bool allowed = (parent_handler->flags & BATCH_FLAG_ALLOW_ALL) == BATCH_FLAG_ALLOW_ALL;
+			if (!HasBatchFlag(parent_handler, BATCH_FLAG_SKIP_CHILDREN) && get_batch_handler(parv[2]) == NULL)
+			{
+				if (IsClient(source_p))
+					sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
+						me.name, parv[1], parv[2]);
+				return;
+			}
+
+			bool allowed = HasBatchFlag(parent_handler, BATCH_FLAG_ALLOW_ALL);
 			const char *error = NULL;
 			if (!allowed && parent_handler->child_allowed != NULL)
 				allowed = parent_handler->child_allowed(client_p, source_p, parent, msgbuf, parent_handler->userdata, &error);
@@ -356,6 +370,13 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 				}
 				return;
 			}
+		}
+		else if (get_batch_handler(parv[2]) == NULL)
+		{
+			if (IsClient(source_p))
+				sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
+					me.name, parv[1], parv[2]);
+			return;
 		}
 
 		batch = batch_init(msgbuf);
