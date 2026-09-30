@@ -279,9 +279,10 @@ AC_ARG_ENABLE(hyperscan,
 AC_HELP_STRING([--disable-hyperscan],[Disable hyperscan support]),
 [hyperscan=$enableval],[hyperscan=yes])
 
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+
 AS_IF([test "$hyperscan" = yes], [
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LIBS="$LIBS"
 	PKG_CHECK_MODULES([HS], [libhs >= 4], [], [hyperscan=no])
 	CPPFLAGS="$CPPFLAGS $HS_CFLAGS"
 	LIBS="$LIBS $HS_LIBS"
@@ -315,6 +316,31 @@ AC_CHECK_HEADER(netinet/sctp.h, [
 ], sctp=no)
 
 fi
+
+
+AC_ARG_ENABLE(icu,
+AC_HELP_STRING([--disable-icu],[Disable ICU support]),
+[icu=$enableval],[icu=yes])
+
+save_CPPFLAGS="$CPPFLAGS"
+save_LIBS="$LIBS"
+
+AS_IF([test "$icu" = yes], [
+	PKG_CHECK_MODULES([ICU], [icu-uc >= 70], [], [icu=no])
+	CPPFLAGS="$CPPFLAGS $ICU_CFLAGS"
+	LIBS="$LIBS $ICU_LIBS"
+	AC_CHECK_HEADERS([unicode/ustring.h unicode/uchar.h],
+	[
+	    AC_DEFINE(HAVE_LIBICU, 1, [Define to 1 if libicu is available.])
+	], [icu=no])
+])
+
+AS_IF([test "$icu" = no], [
+	CPPFLAGS="$save_CPPFLAGS"
+	LIBS="$save_LIBS"
+])
+
+AM_CONDITIONAL([HAVE_ICU], [test "$icu" = "yes"])
 
 dnl Check for shared sqlite
 dnl ======================
@@ -648,6 +674,7 @@ Configuration of ${BRANDING_NAME}-${BRANDING_VERSION}:
 
 	OpenSSL            : $openssl
 	SCTP               : $sctp
+	ICU                : $icu
 
 	Nickname length    : $NICKLEN
 	Topic length       : $TOPICLEN

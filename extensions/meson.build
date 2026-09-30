@@ -90,3 +90,14 @@ if have_hyperscan
     install_dir: moduledir / 'extensions'
   )
 endif
+
+if have_icu
+  shared_module('tag_react',
+    'tag_react.c',
+    name_prefix: '',
+    name_suffix: 'so',
+    dependencies: [libircd_dep, librb_dep, global_include_dep, icu_dep],
+    install: true,
+    install_dir: moduledir / 'extensions'
+  )
+endif
