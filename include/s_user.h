@@ -38,6 +38,7 @@ extern bool valid_username(const char *username);
 extern int user_mode(struct Client *, struct Client *, int, const char **);
 extern void send_umode(struct Client *, struct Client *, int, char *);
 extern void send_umode_out(struct Client *, struct Client *, int);
+extern void change_default_umodes(struct Client *);
 extern void show_lusers(struct Client *source_p);
 extern int register_local_user(struct Client *, struct Client *);
 
@@ -55,6 +56,6 @@ struct PrivilegeSet;
 extern void report_priv_change(struct Client *, struct PrivilegeSet *, struct PrivilegeSet *);
 extern void oper_up(struct Client *, struct oper_conf *);
 
-#endif
-
 extern bool has_common_channel(struct Client *source_p, struct Client *target_p);
+
+#endif
