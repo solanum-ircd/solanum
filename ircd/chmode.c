@@ -389,7 +389,6 @@ pretty_mask(const char *idmask)
 			*t = '~';
 		if (*t == '~')
 			t++;
-		*t = irctolower(*t);
 		return mask_buf + old_mask_pos;
 	}
 
