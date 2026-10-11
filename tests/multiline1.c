@@ -417,6 +417,72 @@ local_validation__empty_batch(void)
 }
 
 static void
+local_validation__invalid_privmsg(void)
+{
+	char expected[BUFSIZE];
+	char line[BUFSIZE];
+
+	standard_init();
+	SetClientCap(user, CLICAP_BATCH | CLICAP_MULTILINE);
+
+	snprintf(line, sizeof(line), "BATCH +invalid draft/multiline %s" CRLF, local_chan_p->name);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid PRIVMSG %s" CRLF, local_chan_p->name);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid PRIVMSG" CRLF);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid PRIVMSG :" CRLF);
+	client_util_parse(user, line);
+	client_util_parse(user, "BATCH -invalid" CRLF);
+
+	snprintf(expected, sizeof(expected), ":%s 461 %s PRIVMSG :Not enough parameters" CRLF,
+		me.name, user->name);
+	is_client_sendq_one(expected, user, MSG);
+	snprintf(expected, sizeof(expected), ":%s 411 %s :No recipient given (PRIVMSG)" CRLF,
+		me.name, user->name);
+	is_client_sendq_one(expected, user, MSG);
+	snprintf(expected, sizeof(expected), ":%s 411 %s :No recipient given (PRIVMSG)" CRLF,
+		me.name, user->name);
+	is_client_sendq_one(expected, user, MSG);
+	// the invalid PRIVMSGs are ignored and due to no valid PRIVMSGs within the batch, it is treated as empty
+	snprintf(expected, sizeof(expected), ":%s FAIL BATCH MULTILINE_INVALID :multiline batches cannot be empty" CRLF,
+		me.name);
+	is_client_sendq(expected, user, MSG);
+	is_client_sendq_empty(local_chan_p, MSG);
+
+	standard_free();
+}
+
+static void
+local_validation__invalid_notice(void)
+{
+	char expected[BUFSIZE];
+	char line[BUFSIZE];
+
+	standard_init();
+	SetClientCap(user, CLICAP_BATCH | CLICAP_MULTILINE);
+
+	snprintf(line, sizeof(line), "BATCH +invalid draft/multiline %s" CRLF, local_chan_p->name);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid NOTICE %s" CRLF, local_chan_p->name);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid NOTICE" CRLF);
+	client_util_parse(user, line);
+	snprintf(line, sizeof(line), "@batch=invalid NOTICE :" CRLF);
+	client_util_parse(user, line);
+	client_util_parse(user, "BATCH -invalid" CRLF);
+
+	// unlike PRIVMSG, invalid NOTICE don't generate error numerics in m_message,
+	// so the only error is the fact we lack any messages in the batch
+	snprintf(expected, sizeof(expected), ":%s FAIL BATCH MULTILINE_INVALID :multiline batches cannot be empty" CRLF,
+		me.name);
+	is_client_sendq(expected, user, MSG);
+	is_client_sendq_empty(local_chan_p, MSG);
+
+	standard_free();
+}
+
+static void
 local_validation__blank_lines(void)
 {
 	char expected[BUFSIZE];
@@ -881,6 +947,8 @@ main(int argc, char *argv[])
 	local_validation__mismatched_target();
 	local_validation__blank_concat();
 	local_validation__empty_batch();
+	local_validation__invalid_privmsg();
+	local_validation__invalid_notice();
 	local_validation__blank_lines();
 	local_validation__missing_target();
 	local_validation__max_lines();

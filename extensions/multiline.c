@@ -27,6 +27,7 @@
 #include "msgbuf.h"
 #include "newconf.h"
 #include "numeric.h"
+#include "response.h"
 #include "send.h"
 #include "s_assert.h"
 #include "s_conf.h"
@@ -373,6 +374,9 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	rb_dlink_node *ptr;
 	char origin[USERHOST_REPLYLEN];
 	int msgid = -1;
+	uint64_t CAP_ECHO = capability_get(serv_capindex, "ECHO", NULL);
+	uint64_t CAP_ECHOB = capability_get(serv_capindex, "ECHOB", NULL);
+	s_assert(CAP_ECHO != 0 && CAP_ECHOB != 0);
 
 	/* figure out command and normalize to uppercase */
 	const char *command = ((struct BatchMessage *)batch->messages.head->data)->msg.cmd;
@@ -416,6 +420,13 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	}
 	else
 	{
+		/* we'll be getting potentially multiple regular ECHOs due to fallback behaviour,
+		 * so we need to make a labeled-response batch for it maybe */
+		if (MyClient(source_p) && IsServerCapable(target_p->from, CAP_ECHO) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
+		{
+			begin_remote_response_batch(1, target_p->servptr->name);
+		}
+
 		RB_DLINK_FOREACH(ptr, batch->messages.head)
 		{
 			struct BatchMessage *data = ptr->data;
@@ -432,13 +443,10 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 		}
 	}
 
-	uint64_t CAP_ECHO = capability_get(serv_capindex, "ECHO", NULL);
-	uint64_t CAP_ECHOB = capability_get(serv_capindex, "ECHOB", NULL);
-	s_assert(CAP_ECHO != 0 && CAP_ECHOB != 0);
 	/* we'll get a remote echo if the target server supports ECHO but not MULTILINE **OR** if it supports both ECHOB and MULTILINE */
 	if (MyClient(target_p)
-		|| (IsServerCapable(target_p->from, CAP_ECHO) && NotServerCapable(target_p->from, CAP_MULTILINE))
-		|| IsServerCapable(target_p->from, CAP_ECHOB | CAP_MULTILINE))
+		|| NotServerCapable(target_p->from, CAP_ECHO | CAP_MULTILINE)
+		|| (IsServerCapable(target_p->from, CAP_MULTILINE) && NotServerCapable(target_p->from, CAP_ECHOB)))
 	{
 		char echo_batch_id[16];
 		generate_batch_id(echo_batch_id, sizeof(echo_batch_id));
@@ -507,7 +515,7 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 	unsigned int bytes = 0;
 	char *combined, *pos;
 	const char *command;
-	rb_dlink_node *ptr;
+	rb_dlink_node *ptr, *nptr;
 
 	/* do they have the caps? */
 	if (MyClient(source_p) && !IsClientCapable(source_p, CLICAP_MULTILINE | CLICAP_BATCH))
@@ -678,7 +686,7 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 	 * We need to ensure it stays under max-bytes, commands are valid, targets match,
 	 * and then give hooks a chance to filter or modify the message.
 	 */
-	RB_DLINK_FOREACH(ptr, batch->messages.head)
+	RB_DLINK_FOREACH_SAFE(ptr, nptr, batch->messages.head)
 	{
 		struct BatchMessage *data = ptr->data;
 		if (rb_strcasecmp(command, data->msg.cmd) != 0)
@@ -686,6 +694,28 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 			sendto_one(source_p, ":%s FAIL BATCH MULTILINE_INVALID :multiline batch must only have either PRIVMSG or NOTICE commands",
 				me.name);
 			return;
+		}
+
+		if (data->msg.n_para < 2 || EmptyString(data->msg.para[1]))
+		{
+			if (msgtype != MESSAGE_TYPE_NOTICE)
+				sendto_one(source_p, form_str(ERR_NORECIPIENT), me.name, source_p->name, command);
+			rb_dlinkDestroy(ptr, &batch->messages);
+			free_batch_message(data);
+			--batch->len;
+			continue;
+		}
+
+		if (data->msg.n_para < 3)
+		{
+			/* m_message uses ERR_NOTEXTTOSEND, but multiline allows fully-blank lines under certain conditions;
+			 use the more generic NEEDMOREPARAMS instead to avoid misleading people */
+			if (msgtype != MESSAGE_TYPE_NOTICE)
+				sendto_one(source_p, form_str(ERR_NEEDMOREPARAMS), me.name, source_p->name, command);
+			rb_dlinkDestroy(ptr, &batch->messages);
+			free_batch_message(data);
+			--batch->len;
+			continue;
 		}
 
 		if (irccmp(target, data->msg.para[1]) != 0)
@@ -783,6 +813,14 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 			rb_free(data->data);
 			rb_free(data);
 		}
+	}
+
+	/* re-check if it's empty after ignoring invalid commands */
+	if (batch->len == 0)
+	{
+		sendto_one(source_p, ":%s FAIL BATCH MULTILINE_INVALID :multiline batches cannot be empty",
+			me.name);
+		return;
 	}
 
 	if (!have_content)

@@ -96,8 +96,7 @@ batch_free(struct Batch *batch, struct ResponseInfo *resume)
 	{
 		struct BatchMessage *message = ptr->data;
 		rb_dlinkDestroy(ptr, &batch->messages);
-		rb_free(message->data);
-		rb_free(message);
+		free_batch_message(message);
 	}
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, batch->children.head)
@@ -211,4 +210,12 @@ allocate_batch_message(struct MsgBuf *msg)
 
 	copy->msg.preserve_trailing = msg->preserve_trailing;
 	return copy;
+}
+
+void
+free_batch_message(struct BatchMessage *message)
+{
+	if (message != NULL)
+		rb_free(message->data);
+	rb_free(message);
 }
