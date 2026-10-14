@@ -121,6 +121,8 @@ multiline_moddeinit(void)
 {
 	remove_batch_handler("draft/multiline");
 	remove_batch_handler("multiline");
+	remove_conf_item("general", "multiline_max_bytes");
+	remove_conf_item("general", "multiline_max_lines");
 }
 
 static const char *
@@ -371,12 +373,22 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	struct Client *target_p,
 	struct Batch *batch, size_t n_tags, struct MsgTag tags[])
 {
+	struct MsgBuf outer_tags = {0};
 	rb_dlink_node *ptr;
 	char origin[USERHOST_REPLYLEN];
 	int msgid = -1;
+	int batch_tag = -1;
 	uint64_t CAP_ECHO = capability_get(serv_capindex, "ECHO", NULL);
 	uint64_t CAP_ECHOB = capability_get(serv_capindex, "ECHOB", NULL);
 	s_assert(CAP_ECHO != 0 && CAP_ECHOB != 0);
+
+	if (MyClient(source_p) && ConfigFileEntry.target_change && !IsOperGeneral(source_p)
+		&& !find_allowing_channel(source_p, target_p) && !add_target(source_p, target_p))
+	{
+		sendto_one(source_p, form_str(ERR_TARGCHANGE),
+			me.name, source_p->name, target_p->name);
+		return;
+	}
 
 	/* figure out command and normalize to uppercase */
 	const char *command = ((struct BatchMessage *)batch->messages.head->data)->msg.cmd;
@@ -386,13 +398,15 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	for (size_t i = 0; i < n_tags; i++)
 	{
 		if (!strcmp(tags[i].key, "msgid"))
-		{
 			msgid = (int)i;
-			break;
-		}
+
+		if (!strcmp(tags[i].key, "batch"))
+			batch_tag = (int)i;
+
+		msgbuf_append_tag(&outer_tags, tags[i].key, tags[i].value, tags[i].capmask);
 	}
 
-	snprintf(origin, sizeof(origin), IsPerson(source_p) ? "%s!%s@%s" : "%s",
+	snprintf(origin, sizeof(origin), IsPerson(source_p) && MyClient(target_p) ? "%s!%s@%s" : "%s",
 		get_id(source_p, target_p), source_p->username, source_p->host);
 
 	struct MsgTag inner_tags[] = {
@@ -400,12 +414,27 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 		{ "draft/multiline-concat", NULL, CLICAP_MULTILINE },
 	};
 
+	/* set up remote labeled-response context for remote targets if we're getting an echo from them */
+	if (MyClient(source_p) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE) && !MyClient(target_p)
+		&& (
+			(NotServerCapable(target_p->from, CAP_MULTILINE) && IsServerCapable(target_p->from, CAP_ECHO))
+			|| IsServerCapable(target_p->from, CAP_MULTILINE | CAP_ECHOB)
+		))
+	{
+		begin_remote_response_batch(1, target_p->servptr->name);
+	}
+
 	if ((MyClient(target_p) && IsClientCapable(target_p, CLICAP_MULTILINE | CLICAP_BATCH))
 		|| (!MyClient(target_p) && IsServerCapable(target_p->from, CAP_MULTILINE)))
 	{
-		sendto_one_tags(target_p, NOCAPS, NOCAPS, n_tags, tags,
+		/* suppress labeled-response on the primary message if they're messaging themselves */
+		struct ResponseInfo *info = outgoing_response_info;
+		if (source_p == target_p)
+			suspend_response_batch();
+
+		sendto_one_tags(target_p, NOCAPS, NOCAPS, outer_tags.n_tags, outer_tags.tags,
 			":%s BATCH +%s draft/multiline %s",
-			origin, batch->id, target_p->name);
+			origin, batch->id, get_id(target_p, target_p));
 
 		RB_DLINK_FOREACH(ptr, batch->messages.head)
 		{
@@ -417,16 +446,10 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 		}
 
 		sendto_one(target_p, ":%s BATCH -%s", origin, batch->id);
+		resume_response_batch(info);
 	}
 	else
 	{
-		/* we'll be getting potentially multiple regular ECHOs due to fallback behaviour,
-		 * so we need to make a labeled-response batch for it maybe */
-		if (MyClient(source_p) && IsServerCapable(target_p->from, CAP_ECHO) && IsClientCapable(source_p, CLICAP_ECHO_MESSAGE))
-		{
-			begin_remote_response_batch(1, target_p->servptr->name);
-		}
-
 		RB_DLINK_FOREACH(ptr, batch->messages.head)
 		{
 			struct BatchMessage *data = ptr->data;
@@ -434,12 +457,12 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 				continue;
 
 			sendto_one_tags(target_p, NOCAPS, NOCAPS,
-				n_tags, tags, ":%s %s %s :%s",
+				outer_tags.n_tags, outer_tags.tags, ":%s %s %s :%s",
 				origin, command, get_id(target_p, target_p), data->msg.para[2]);
 
 			/* msgid should only be attached to the first message of the fallback */
 			if (msgid > -1)
-				tags[msgid].capmask = NOCAPS;
+				outer_tags.tags[msgid].capmask = NOCAPS;
 		}
 	}
 
@@ -450,7 +473,19 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	{
 		char echo_batch_id[16];
 		generate_batch_id(echo_batch_id, sizeof(echo_batch_id));
-		struct MsgTag echo_batch = { "batch", echo_batch_id, CLICAP_BATCH };
+		if (batch_tag > -1)
+		{
+			outer_tags.tags[batch_tag].value = echo_batch_id;
+			outer_tags.tags[batch_tag].capmask = CLICAP_BATCH;
+		}
+		else
+		{
+			batch_tag = outer_tags.n_tags;
+			msgbuf_append_tag(&outer_tags, "batch", echo_batch_id, CLICAP_BATCH);
+		}
+
+		if (msgid > -1)
+			outer_tags.tags[msgid].capmask = CLICAP_MESSAGE_TAGS;
 
 		/* echo the incoming batch tag rather than our synthesized one */
 		inner_tags[0].value = batch->tag;
@@ -463,7 +498,9 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 			if (NotClientCapable(source_p, CLICAP_ECHO_MESSAGE))
 				return;
 
-			sendto_one_tags(source_p, NOCAPS, NOCAPS, n_tags, tags,
+			/* omit batch tag on local echo; it's only needed for s2s since we send a nested batch there */
+			outer_tags.tags[batch_tag].capmask = 0;
+			sendto_one_tags(source_p, NOCAPS, NOCAPS, outer_tags.n_tags, outer_tags.tags,
 				":%s BATCH +%s draft/multiline %s",
 				echo_prefix, batch->tag, target_p->name);
 		}
@@ -474,7 +511,7 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 				":%s BATCH +%s solanum.chat/echo %s",
 				echo_prefix, echo_batch_id, use_id(source_p));
 
-			sendto_one_tags(source_p, serv_cap, NOCAPS, 1, &echo_batch,
+			sendto_one_tags(source_p, serv_cap, NOCAPS, outer_tags.n_tags, outer_tags.tags,
 				":%s BATCH +%s draft/multiline %s",
 				echo_prefix, batch->tag, target_p->name);
 		}
@@ -494,7 +531,7 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 				":%s BATCH -%s", echo_prefix, batch->tag);
 		else
 		{
-			sendto_one_tags(source_p, serv_cap, NOCAPS, 1, &echo_batch,
+			sendto_one_tags(source_p, serv_cap, NOCAPS, 1, &outer_tags.tags[batch_tag],
 				":%s BATCH -%s", echo_prefix, batch->tag);
 
 			sendto_one_tags(source_p, serv_cap, NOCAPS, 0, NULL,
@@ -569,6 +606,14 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 	}
 
 	target = chtarget = batch->start->msg.para[3];
+	if (strchr(target, ',') != NULL)
+	{
+		if (MyClient(source_p))
+			sendto_one(source_p, ":%s FAIL BATCH MULTILINE_INVALID :multiline batches do not support multiple targets",
+				me.name);
+		return;
+	}
+
 	/* statusmsg/eopmod? */
 	if (*target == '@')
 	{

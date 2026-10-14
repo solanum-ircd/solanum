@@ -75,6 +75,7 @@ static void m_tagmsg(struct MsgBuf *, struct Client *, struct Client *, int, con
 static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 static void echo_msg(struct Client *, struct Client *, enum message_type, const char *text, struct MsgBuf *msgbuf_p);
+static void echo_inner_batch(struct Client *client_p, struct Client *source_p, struct Client *target_p, struct Batch *batch, const char *prefix, const char *outer);
 static void process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *);
 
 static void expire_tgchange(void *unused);
@@ -978,6 +979,7 @@ process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batc
 	char params[BUFSIZE];
 	char prefix[USERHOST_REPLYLEN];
 	rb_dlink_node *ptr;
+	const char *outer = NULL;
 
 	/* only allow this batch over s2s links */
 	if (!IsServer(client_p))
@@ -999,35 +1001,92 @@ process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batc
 		if (NotServerCapable(target_p->from, CAP_ECHOB))
 			return;
 
-		/* don't give a prefix in the batch contents to save a bit of bandwidth on s2s links */
-		*prefix = '\0';
+		/* keep source prefix when sending s2s to avoid fake direction */
+		strlcpy(prefix, use_id(source_p), sizeof(prefix));
+		/* msgbuf_unparse_para appends to the buffer, so empty it out first */
+		*params = '\0';
 		msgbuf_unparse_para(params, sizeof(params), msgbuf);
 		sendto_one_tags(target_p, NOCAPS, NOCAPS,
-			msgbuf->n_tags, msgbuf->tags, ":%s BATCH %s",
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
 			use_id(source_p), params);
 	}
 	else
-		snprintf(prefix, sizeof(prefix), ":%s!%s@%s ",
+		snprintf(prefix, sizeof(prefix), "%s!%s@%s",
 			target_p->name, target_p->username, target_p->host);
 
 	RB_DLINK_FOREACH(ptr, batch->messages.head)
 	{
 		msgbuf = &((struct BatchMessage *)ptr->data)->msg;
+		*params = '\0';
 		msgbuf_unparse_para(params, sizeof(params), msgbuf);
 		sendto_one_tags(target_p, NOCAPS, NOCAPS,
-			msgbuf->n_tags, msgbuf->tags, "%s%s %s",
-			prefix, msgbuf->cmd, params);
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
+			prefix, params);
+	}
+
+	if (MyClient(target_p))
+	{
+		if (outgoing_response_info != NULL)
+			outer = outgoing_response_info->batch;
+	}
+	else
+		outer = batch->tag;
+
+	RB_DLINK_FOREACH(ptr, batch->children.head)
+	{
+		echo_inner_batch(client_p, source_p, target_p, ptr->data, prefix, outer);
+	}
+
+	if (!MyClient(target_p))
+		sendto_one(target_p, ":%s BATCH -%s",
+			use_id(source_p), batch->tag);
+}
+
+static void
+echo_inner_batch(struct Client *client_p, struct Client *source_p, struct Client *target_p, struct Batch *batch, const char *prefix, const char *outer)
+{
+	struct MsgBuf *msgbuf = &batch->start->msg;
+	struct MsgTag tag = { "batch", outer, CLICAP_BATCH };
+	char params[BUFSIZE];
+	rb_dlink_node *ptr;
+
+	*params = '\0';
+	msgbuf_unparse_para(params, sizeof(params), msgbuf);
+
+	/* omit the batch tag if outer is NULL. This will be the case for batches nested directly under solanum.chat/echo
+	 * when sending to a local client, since we don't expose that outer wrapper batch to clients */
+	if (outer == NULL)
+	{
+		for (int i = 0; i < msgbuf->n_tags; i++)
+		{
+			if (!strcmp(msgbuf->tags[i].key, "batch"))
+				msgbuf->tags[i].capmask = NOCAPS;
+		}
+	}
+
+	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+		msgbuf->n_tags, msgbuf->tags, ":%s %s",
+		prefix, params);
+
+	RB_DLINK_FOREACH(ptr, batch->messages.head)
+	{
+		msgbuf = &((struct BatchMessage *)ptr->data)->msg;
+		/* msgbuf_unparse_para appends to the buffer, so empty it out first */
+		*params = '\0';
+		msgbuf_unparse_para(params, sizeof(params), msgbuf);
+		sendto_one_tags(target_p, NOCAPS, NOCAPS,
+			msgbuf->n_tags, msgbuf->tags, ":%s %s",
+			prefix, params);
 	}
 
 	RB_DLINK_FOREACH(ptr, batch->children.head)
 	{
-		process_echo_batch(client_p, source_p, ptr->data, unused);
+		echo_inner_batch(client_p, source_p, target_p, ptr->data, prefix, batch->tag);
 	}
 
-	if (!MyClient(target_p))
-		sendto_one_tags(target_p, NOCAPS, NOCAPS,
-			msgbuf->n_tags, msgbuf->tags, ":%s BATCH -%s",
-			use_id(source_p), batch->tag);
+	sendto_one_tags(target_p, NOCAPS, NOCAPS,
+		outer == NULL ? 0 : 1, &tag, ":%s BATCH -%s",
+		prefix, batch->tag);
 }
 
 /*
