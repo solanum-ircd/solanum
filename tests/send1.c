@@ -31,7 +31,7 @@
 #include "monitor.h"
 #include "s_conf.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 // What time is it?
 #define ADVENTURE_TIME "2017-07-14T02:40:00.000Z"

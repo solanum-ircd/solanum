@@ -25,7 +25,7 @@
 #include "ircd_util.h"
 #include "tap/basic.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 static struct Channel *channel;
 static struct Client *client;

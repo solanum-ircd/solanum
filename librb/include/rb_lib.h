@@ -66,28 +66,11 @@ void *alloca(size_t);
 #endif
 
 
-#ifdef __GNUC__
-#  define slrb_assert(expr)	(							\
-			rb_likely((expr)) || (						\
-				rb_lib_log( 						\
-				"file: %s line: %d (%s): Assertion failed: (%s)",	\
-				__FILE__, __LINE__, __PRETTY_FUNCTION__, #expr), 0) 	\
-			)
-#else
-#  define slrb_assert(expr)	(							\
-			rb_likely((expr)) || (						\
-				rb_lib_log( 						\
-				"file: %s line: %d: Assertion failed: (%s)",		\
-				__FILE__, __LINE__, #expr), 0) 				\
-			)
-#endif
+#define slrb_assert(expr)	(rb_likely((expr)) || (rb_lib_log(	\
+	"file: %s line: %d (%s): Assertion failed: (%s)",	\
+	__FILE__, __LINE__, __func__, #expr), 0))
 
-/* evaluates to true if assertion fails */
-#ifdef SOFT_ASSERT
-#  define lrb_assert(expr) 	(!slrb_assert(expr))
-#else
-#  define lrb_assert(expr)	(assert(slrb_assert(expr)), 0)
-#endif
+#define lrb_assert(expr)	assert(slrb_assert(expr))
 
 #ifdef RB_SOCKADDR_HAS_SA_LEN
 #  define ss_len sa_len
@@ -162,7 +145,7 @@ void rb_sleep(unsigned int seconds, unsigned int useconds);
 char *rb_crypt(const char *, const char *);
 
 unsigned char *rb_base64_encode(const unsigned char *str, int length);
-unsigned char *rb_base64_decode(const unsigned char *str, int length, int *ret);
+unsigned char *rb_base64_decode(const unsigned char *str, size_t length, int *ret);
 int rb_kill(pid_t, int);
 char *rb_strerror(int);
 

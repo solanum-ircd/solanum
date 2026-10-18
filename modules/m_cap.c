@@ -285,10 +285,9 @@ cap_end(struct Client *source_p, const char *arg)
 static void
 cap_list(struct Client *source_p, const char *arg)
 {
-	/* list of what theyre currently using */
+	/* list of what they're currently using */
 	begin_local_response_batch();
-	clicap_generate(source_p, "LIST",
-			source_p->localClient->client_caps ? source_p->localClient->client_caps : -1);
+	clicap_generate(source_p, "LIST", source_p->localClient->client_caps ? 1 : -1);
 }
 
 static void

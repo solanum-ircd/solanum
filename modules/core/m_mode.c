@@ -415,7 +415,7 @@ do_bmask(bool extended, struct MsgBuf *msgbuf_p, struct Client *client_p, struct
 			}
 
 			if (forward != NULL)
-				forward[-1] = '$';
+				*(forward - 1) = '$';
 
 			*output_ptr++ = parv[3][0];
 			arglen = sprintf(param_ptr, "%s ", mask);

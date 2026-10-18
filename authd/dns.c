@@ -107,7 +107,8 @@ lookup_hostname(const char *ip, DNSCB callback, void *data)
 void
 cancel_query(struct dns_query *query)
 {
-	query->callback = query->data = NULL;
+	query->callback = NULL;
+	query->data = NULL;
 }
 
 /* Callback from gethost_byname_type */
@@ -240,6 +241,7 @@ handle_resolve_dns(int parc, char *parv[])
 	{
 	case '6':
 		aftype = AF_INET6;
+		// fallthrough
 	case '4':
 		if(!lookup_ip(record, aftype, submit_dns_answer, id))
 			submit_dns_answer(NULL, false, qtype, NULL);

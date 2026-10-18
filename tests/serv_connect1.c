@@ -17,13 +17,13 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
  *  USA
  */
-#define _GNU_SOURCE
 #include <dlfcn.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include "tap/basic.h"
 
 #include "ircd_util.h"
@@ -36,13 +36,13 @@
 
 #include "rb_lib.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 static rb_fde_t *last_F = NULL;
 static CNCB *last_connect_callback = NULL;
 static void *last_connect_data = NULL;
 
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int connect(int sockfd, __CONST_SOCKADDR_ARG addr, socklen_t addrlen)
 {
 	printf("# connect(%d, ...)\n", sockfd);
 	errno = EINPROGRESS;
@@ -51,13 +51,14 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
 void rb_connect_tcp(rb_fde_t *F, struct sockaddr *dest, struct sockaddr *clocal, CNCB *callback, void *data, int timeout)
 {
-	printf("# rb_connect_tcp(%p, ...)\n", F);
+	printf("# rb_connect_tcp(%p, ...)\n", (void *)F);
 
 	last_F = F;
 	last_connect_callback = callback;
 	last_connect_data = data;
 
-	void *(*func)(rb_fde_t *, struct sockaddr *, struct sockaddr *, CNCB *, void *, int) = dlsym(RTLD_NEXT, "rb_connect_tcp");
+	void *(*func)(rb_fde_t *, struct sockaddr *, struct sockaddr *, CNCB *, void *, int);
+	*(void **)(&func) = dlsym(RTLD_NEXT, "rb_connect_tcp");
 	func(F, dest, clocal, callback, data, timeout);
 }
 

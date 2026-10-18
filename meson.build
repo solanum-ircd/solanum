@@ -1,6 +1,6 @@
 project('solanum', 'c',
   version: '1.0-dev',
-  default_options: ['c_std=c99', 'warning_level=0'],
+  default_options: ['c_std=gnu17', 'warning_level=3'],
   meson_version: '>=0.62.0', # dependency('dl')
   license: 'GPLv2'
 )
@@ -213,7 +213,12 @@ else
   assertions_enabled = true
 endif
 
-c_args = []
+c_args = [
+  '-Wno-unused-parameter',
+  '-Wno-missing-field-initializers',
+  '-Wno-format-zero-length',
+  '-Wno-overlength-strings',
+]
 link_args = []
 
 if get_option('profile')

@@ -324,7 +324,7 @@ rb_base64_encode(const unsigned char *str, int length)
 }
 
 unsigned char *
-rb_base64_decode(const unsigned char *str, int length, int *ret)
+rb_base64_decode(const unsigned char *str, size_t length, int *ret)
 {
 	const unsigned char *current = str;
 	int ch, i = 0, j = 0, k;

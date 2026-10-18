@@ -28,7 +28,7 @@
 #include "msgbuf.h"
 #include "client.h"
 
-#define MSG "%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__
+#define MSG "%s:%d (%s)", __FILE__, __LINE__, __func__
 
 struct Client me;
 static const char text[] =
@@ -247,7 +247,7 @@ static void no_tags(void)
 {
 	const struct MsgBuf msgbuf = {
 		.n_tags = 0,
-		.tags = {},
+		.tags = { { 0 } },
 
 		.cmd = "PRIVMSG",
 		.origin = "origin",
