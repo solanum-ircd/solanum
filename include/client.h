@@ -234,6 +234,9 @@ struct LocalUser
 	/* nicknames theyre monitoring */
 	rb_dlink_list monitor_list;
 
+	/* collects umodes explicitly changed by this user */
+	unsigned int changed_umodes;
+
 	/*
 	 * Anti-flood stuff. We track how many messages were parsed and how
 	 * many we were allowed in the current second, and apply a simple decay
