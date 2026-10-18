@@ -134,21 +134,21 @@ res_ourserver(const struct rb_sockaddr_storage *inp)
 						   sizeof(struct in6_addr)) == 0) ||
 					   (memcmp(&v6->sin6_addr.s6_addr, &in6addr_any,
 						   sizeof(struct in6_addr)) == 0))
-						return 1;
+						return ns;
 			break;
 		case AF_INET:
 			if(GET_SS_FAMILY(srv) == GET_SS_FAMILY(inp))
 				if(v4->sin_port == v4in->sin_port)
 					if((v4->sin_addr.s_addr == INADDR_ANY)
 					   || (v4->sin_addr.s_addr == v4in->sin_addr.s_addr))
-						return 1;
+						return ns;
 			break;
 		default:
 			break;
 		}
 	}
 
-	return 0;
+	return -1;
 }
 
 /*
@@ -594,6 +594,7 @@ static int proc_answer(struct reslist *request, HEADER * header, char *buf, char
 {
 	char hostbuf[IRCD_RES_HOSTLEN + 100];	/* working buffer */
 	unsigned char *current;	/* current position in buf */
+	int rrclass;		/* answer class */
 	int type;		/* answer type */
 	int n;			/* temp count */
 	int rd_length;
@@ -643,12 +644,12 @@ static int proc_answer(struct reslist *request, HEADER * header, char *buf, char
 		current += (size_t) n;
 
 		if (!(((char *)current + ANSWER_FIXED_SIZE) < eob))
-			break;
+			return (0);
 
 		type = irc_ns_get16(current);
 		current += TYPE_SIZE;
 
-		(void) irc_ns_get16(current);
+		rrclass = irc_ns_get16(current);
 		current += CLASS_SIZE;
 
 		request->ttl = irc_ns_get32(current);
@@ -656,6 +657,12 @@ static int proc_answer(struct reslist *request, HEADER * header, char *buf, char
 
 		rd_length = irc_ns_get16(current);
 		current += RDLENGTH_SIZE;
+
+		if (rrclass != C_IN)
+			return (0);
+
+		if (((char *)current + rd_length) > eob)
+			return (0);
 
 		/*
 		 * Wait to set request->type until we verify this structure
