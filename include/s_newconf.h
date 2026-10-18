@@ -146,7 +146,7 @@ extern void cluster_generic(struct Client *, const char *, int cltype,
 #define MayHavePrivilege(x, y)	(HasPrivilege((x), (y)) || (IsOper((x)) && (x)->user != NULL && (x)->user->privset == NULL))
 
 #define IsOperKill(x)           (HasPrivilege((x), "oper:kill"))
-#define IsOperRemote(x)         (HasPrivilege((x), "oper:routing"))
+#define IsOperRouting(x)        (HasPrivilege((x), "oper:routing"))
 #define IsOperUnkline(x)        (HasPrivilege((x), "oper:unkline"))
 #define IsOperN(x)              (HasPrivilege((x), "snomask:nick_changes"))
 #define IsOperK(x)              (HasPrivilege((x), "oper:kline"))

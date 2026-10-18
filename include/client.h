@@ -372,7 +372,7 @@ struct ListClient
 				 (x)->handler = SERVER_HANDLER; }
 
 #define SetClient(x)            {(x)->status = STAT_CLIENT; \
-				 (x)->handler = IsOperGeneral((x)) ? \
+				 (x)->handler = IsOper((x)) ? \
 					OPER_HANDLER : CLIENT_HANDLER; }
 #define SetRemoteClient(x)	{(x)->status = STAT_CLIENT; \
 				 (x)->handler = RCLIENT_HANDLER; }

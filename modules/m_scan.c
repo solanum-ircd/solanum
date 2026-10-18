@@ -90,6 +90,13 @@ mo_scan(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_
 {
 	struct scan_cmd *sptr;
 
+	if(!IsOperGeneral(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "general");
+		return;
+	}
+
 	for (sptr = scan_cmds; sptr->name != NULL; sptr++)
 	{
 		if (!irccmp(sptr->name, parv[1]))
@@ -204,7 +211,7 @@ scan_umodes(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 		else
 		{
 			sendto_one(source_p, form_str(ERR_NOPRIVS),
-				   me.name, source_p->name, "oper_spy");
+				   me.name, source_p->name, "spy");
 			return;
 		}
 	}

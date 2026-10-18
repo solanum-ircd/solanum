@@ -71,12 +71,10 @@ mo_connect(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 	struct server_conf *server_p;
 	struct Client *target_p;
 
-	/* always privileged with handlers */
-
-	if(MyConnect(source_p) && !IsOperRemote(source_p) && parc > 3)
+	if(!IsOperRouting(source_p))
 	{
 		sendto_one(source_p, form_str(ERR_NOPRIVS),
-			   me.name, source_p->name, "remote");
+			   me.name, source_p->name, "routing");
 		return;
 	}
 

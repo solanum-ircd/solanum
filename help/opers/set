@@ -26,3 +26,5 @@ SET <option> <value>
                 deactivate automatic splitmode.
   SPLITNUM    - Sets the minimum amount of servers needed to
                 deactivate automatic splitmode.
+
+- Requires Oper Priv: oper:admin
