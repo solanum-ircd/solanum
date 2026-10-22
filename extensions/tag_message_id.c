@@ -40,6 +40,10 @@ static void tag_message_id_incoming(void *);
 static void add_message_id_user(void *);
 static void add_message_id_channel(void *);
 
+static time_t prev_ts = 0;
+static unsigned short prev_ms = 0;
+static unsigned short ctr = 0;
+
 mapi_hfn_list_av1 tag_message_id_hfnlist[] = {
 	{ "message_tag", tag_message_id_incoming },
 	{ "privmsg_user", add_message_id_user },
@@ -102,10 +106,6 @@ add_message_id_channel(void *data_)
 static void
 generate_msgid(char *buf, size_t len, struct Client *source_p, const char *target)
 {
-	static time_t prev_ts = 0;
-	static unsigned short prev_ms = 0;
-	static unsigned short ctr;
-
 	const struct timeval *tv = rb_current_time_tv();
 	time_t ts = tv->tv_sec;
 	unsigned short ms = tv->tv_usec / 1000;
@@ -151,4 +151,17 @@ generate_msgid(char *buf, size_t len, struct Client *source_p, const char *targe
 
 	if (encoded != NULL)
 		rb_free(encoded);
+}
+
+/* loaded via lt_dlsym in tests */
+extern void
+reset_msgid_for_tests(void)
+{
+	const struct timeval *tv = rb_current_time_tv();
+	time_t ts = tv->tv_sec;
+	unsigned short ms = tv->tv_usec / 1000;
+
+	prev_ts = ts;
+	prev_ms = ms;
+	ctr = 0;
 }
