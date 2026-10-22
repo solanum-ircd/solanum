@@ -1049,19 +1049,33 @@ echo_inner_batch(struct Client *client_p, struct Client *source_p, struct Client
 	struct MsgTag tag = { "batch", outer, CLICAP_BATCH };
 	char params[BUFSIZE];
 	rb_dlink_node *ptr;
+	int batch_tag = -1;
 
 	*params = '\0';
 	msgbuf_unparse_para(params, sizeof(params), msgbuf);
+
+	for (int i = 0; i < msgbuf->n_tags; i++)
+	{
+		if (!strcmp(msgbuf->tags[i].key, "batch"))
+		{
+			batch_tag = i;
+			break;
+		}
+	}
 
 	/* omit the batch tag if outer is NULL. This will be the case for batches nested directly under solanum.chat/echo
 	 * when sending to a local client, since we don't expose that outer wrapper batch to clients */
 	if (outer == NULL)
 	{
-		for (int i = 0; i < msgbuf->n_tags; i++)
-		{
-			if (!strcmp(msgbuf->tags[i].key, "batch"))
-				msgbuf->tags[i].capmask = NOCAPS;
-		}
+		if (batch_tag > -1)
+			msgbuf->tags[batch_tag].capmask = NOCAPS;
+	}
+	else
+	{
+		if (batch_tag > -1)
+			msgbuf->tags[batch_tag].value = outer;
+		else
+			msgbuf_append_tag(msgbuf, "batch", outer, CLICAP_BATCH);
 	}
 
 	sendto_one_tags(target_p, NOCAPS, NOCAPS,

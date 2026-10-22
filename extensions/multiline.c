@@ -378,6 +378,7 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	char origin[USERHOST_REPLYLEN];
 	int msgid = -1;
 	int batch_tag = -1;
+	int response_tag = -1;
 	uint64_t CAP_ECHO = capability_get(serv_capindex, "ECHO", NULL);
 	uint64_t CAP_ECHOB = capability_get(serv_capindex, "ECHOB", NULL);
 	s_assert(CAP_ECHO != 0 && CAP_ECHOB != 0);
@@ -402,6 +403,9 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 
 		if (!strcmp(tags[i].key, "batch"))
 			batch_tag = (int)i;
+
+		if (!strcmp(tags[i].key, "solanum.chat/response"))
+			response_tag = (int)i;
 
 		msgbuf_append_tag(&outer_tags, tags[i].key, tags[i].value, tags[i].capmask);
 	}
@@ -450,11 +454,57 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	}
 	else
 	{
+		/* to avoid closing the labeled-response batch sent to the client early, ensure we only
+		 * get ENCAP ACK for the final message of the fallback by obscuring the remote server mask */
+		int cur = 0, final = 0;
+		char *orig_mask = NULL;
+		char hyphen[32] = "-"; /* needs to be big enough to hold a UID (9), batch id (15), 2 commas, and a hyphen */
 		RB_DLINK_FOREACH(ptr, batch->messages.head)
 		{
 			struct BatchMessage *data = ptr->data;
 			if (EmptyString(data->msg.para[2]))
 				continue;
+
+			++final;
+		}
+
+		if (MyClient(source_p))
+		{
+			if (outgoing_response_info != NULL && outgoing_response_info->mask != NULL)
+			{
+				orig_mask = outgoing_response_info->mask;
+				outgoing_response_info->mask = hyphen;
+			}
+		}
+		else if (response_tag > -1)
+		{
+			orig_mask = (char *)outer_tags.tags[response_tag].value;
+			rb_strlcpy(hyphen, outer_tags.tags[response_tag].value, sizeof(hyphen));
+			char *final_comma = strrchr(hyphen, ',');
+			if (final_comma != NULL && final_comma - hyphen < sizeof(hyphen) - 2)
+			{
+				*(final_comma + 1) = '-';
+				*(final_comma + 2) = '\0';
+				outer_tags.tags[response_tag].value = hyphen;
+			}
+		}
+
+		RB_DLINK_FOREACH(ptr, batch->messages.head)
+		{
+			struct BatchMessage *data = ptr->data;
+			if (EmptyString(data->msg.para[2]))
+				continue;
+
+			if (++cur == final)
+			{
+				if (MyClient(source_p))
+				{
+					if (outgoing_response_info != NULL)
+						outgoing_response_info->mask = orig_mask;
+				}
+				else if (response_tag > -1)
+					outer_tags.tags[response_tag].value = orig_mask;
+			}
 
 			sendto_one_tags(target_p, NOCAPS, NOCAPS,
 				outer_tags.n_tags, outer_tags.tags, ":%s %s %s :%s",
@@ -464,6 +514,9 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 			if (msgid > -1)
 				outer_tags.tags[msgid].capmask = NOCAPS;
 		}
+
+		/* if mask is still hyphen at this point we'll blow up later when we try to free() it */
+		s_assert(outgoing_response_info == NULL || outgoing_response_info->mask != hyphen);
 	}
 
 	/* we'll get a remote echo if the target server supports ECHO but not MULTILINE **OR** if it supports both ECHOB and MULTILINE */
