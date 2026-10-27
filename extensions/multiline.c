@@ -376,6 +376,7 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	struct MsgBuf outer_tags = {0};
 	rb_dlink_node *ptr;
 	char origin[USERHOST_REPLYLEN];
+	char echo_prefix[USERHOST_REPLYLEN];
 	int msgid = -1;
 	int batch_tag = -1;
 	int response_tag = -1;
@@ -412,6 +413,12 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 
 	snprintf(origin, sizeof(origin), IsPerson(source_p) && MyClient(target_p) ? "%s!%s@%s" : "%s",
 		get_id(source_p, target_p), source_p->username, source_p->host);
+
+	if (MyClient(source_p))
+		snprintf(echo_prefix, sizeof(echo_prefix), "%s!%s@%s",
+			source_p->name, source_p->username, source_p->host);
+	else
+		snprintf(echo_prefix, sizeof(echo_prefix), "%s", get_id(target_p, source_p));
 
 	struct MsgTag inner_tags[] = {
 		{ "batch", batch->id, CLICAP_BATCH },
@@ -522,7 +529,8 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 	/* we'll get a remote echo if the target server supports ECHO but not MULTILINE **OR** if it supports both ECHOB and MULTILINE */
 	if (MyClient(target_p)
 		|| NotServerCapable(target_p->from, CAP_ECHO | CAP_MULTILINE)
-		|| (IsServerCapable(target_p->from, CAP_MULTILINE) && NotServerCapable(target_p->from, CAP_ECHOB)))
+		|| (IsServerCapable(target_p->from, CAP_MULTILINE) && NotServerCapable(target_p->from, CAP_ECHOB))
+		|| ConfigFileEntry.disable_remote_labeled_response)
 	{
 		char echo_batch_id[16];
 		generate_batch_id(echo_batch_id, sizeof(echo_batch_id));
@@ -544,7 +552,6 @@ send_private_batch(struct Client *client_p, struct Client *source_p,
 		inner_tags[0].value = batch->tag;
 
 		/* send an echo batch here since the target's server won't send one */
-		const char *echo_prefix = MyClient(source_p) ? origin : get_id(target_p, source_p);
 		uint64_t serv_cap = NOCAPS;
 		if (MyClient(source_p))
 		{
