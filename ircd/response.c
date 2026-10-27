@@ -26,6 +26,7 @@
 #include "response.h"
 #include "send.h"
 #include "s_assert.h"
+#include "s_conf.h"
 #include "s_serv.h"
 
 /* number of seconds we'll wait for remote servers to finish sending their responses
@@ -98,7 +99,7 @@ begin_local_response_batch(void)
 void
 begin_remote_response_batch(int server_count, const char *mask)
 {
-	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p))
+	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p) || ConfigFileEntry.disable_remote_labeled_response)
 		return;
 
 	rb_dlink_node *node = rb_make_rb_dlink_node();

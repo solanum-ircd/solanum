@@ -361,6 +361,9 @@ m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	struct Client *target_p = find_person(parv[2]);
 	enum message_type msgtype;
 
+	if (ConfigFileEntry.disable_remote_labeled_response)
+		return;
+
 	if (target_p == NULL)
 		return;
 
@@ -1011,6 +1014,9 @@ process_echo_batch(struct Client *client_p, struct Client *source_p, struct Batc
 	rb_dlink_node *ptr;
 	const char *outer = NULL;
 
+	if (ConfigFileEntry.disable_remote_labeled_response)
+		return;
+
 	/* only allow this batch over s2s links */
 	if (!IsServer(client_p))
 	{
@@ -1252,7 +1258,7 @@ msg_client(enum message_type msgtype,
 			text);
 
 		/* if the remote doesn't support ECHO, generate a local echo-message instead */
-		if (!IsServerCapable(target_p->from, CAP_ECHO))
+		if (!IsServerCapable(target_p->from, CAP_ECHO) || ConfigFileEntry.disable_remote_labeled_response)
 			echo_msg(target_p, source_p, msgtype, text, msgbuf_p);
 	}
 }
