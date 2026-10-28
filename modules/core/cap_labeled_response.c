@@ -149,7 +149,7 @@ cap_labeled_response_process(void *data_)
 	}
 
 	/* propagate solanum.chat/response to other servers */
-	if (response_tag != NULL)
+	if (response_tag != NULL && msgbuf_get_tag(msgbuf, serv_response_tag) == NULL)
 	{
 		msgbuf_append_tag(msgbuf, serv_response_tag, response_tag, CLICAP_SERVONLY);
 	}
@@ -170,7 +170,7 @@ cap_labeled_response_cleanup(void *unused)
 	/* don't try to send anything if they disconnected */
 	if (!IsAnyDead(outgoing_response_info->source_p))
 	{
-		if (MyConnect(outgoing_response_info->source_p))
+		if (MyClient(outgoing_response_info->source_p))
 		{
 			/* send an ACK if the handlers didn't send anything */
 			if (!ResponseSent(outgoing_response_info))
