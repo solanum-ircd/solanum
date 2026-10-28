@@ -107,7 +107,13 @@ batch_free(struct Batch *batch, struct ResponseInfo *resume)
 		batch_free(child, resume);
 	}
 
-	free_response_batch(batch->response_info, resume);
+	/* if remote_response != 0, the ResponseInfo is reachable via labeled-response tracking
+	 * and we're still expecting incoming data from a remote server for it, so we don't want to free it here */
+	if (batch->response_info != NULL && batch->response_info->remote_response == 0)
+		free_response_batch(batch->response_info, resume);
+	else
+		resume_response_batch(resume);
+
 	rb_free(batch->start->data);
 	rb_free(batch->start);
 	rb_free(batch);

@@ -224,6 +224,22 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		}
 	}
 
+	/* send a labeled-response ACK if needed; we wipe the batch context below and free its memory
+	 * so we can't rely on the parse_end hook */
+	if (batch->response_info != NULL)
+	{
+		if (MyClient(batch->response_info->source_p))
+		{
+			if ((batch->response_info->flags & RESPONSE_FLAG_SENT) == 0)
+				sendto_one(batch->response_info->source_p, ":%s ACK", me.name);
+		}
+		else
+		{
+			sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
+				me.id, outgoing_response_info->source_p->servptr->name);
+		}
+	}
+
 	batch_free(batch, info);
 	reset_global_context();
 }
@@ -258,6 +274,10 @@ m_queue(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 			rb_dlinkAddTailAlloc(msg, &batch->messages);
 			batch->len++;
 			client_p->localClient->pending_batch_lines++;
+			/* ignore labels on batched messages */
+			struct ResponseInfo *info = suspend_response_batch();
+			if (info != NULL && info->remote_response == 0)
+				free_response_batch(info, NULL);
 			return;
 		}
 	}
