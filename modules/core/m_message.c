@@ -134,8 +134,7 @@ DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, messa
 
 static int build_target_list(enum message_type msgtype,
 			     struct Client *client_p,
-			     struct Client *source_p, const char *nicks_channels, const char *text,
-			     struct MsgBuf *msgbuf_p);
+			     struct Client *source_p, const char *nicks_channels, const char *text);
 
 static bool flood_attack_client(enum message_type msgtype, struct Client *source_p, struct Client *target_p);
 
@@ -231,10 +230,6 @@ static void
 m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	  struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
-	/* let hooks work on a copy of msgbuf_p so they don't mutate the tags in incoming_message */
-	struct MsgBuf msgbuf;
-	memcpy(&msgbuf, msgbuf_p, sizeof(struct MsgBuf));
-
 	if (parc < 2 || EmptyString(parv[1]))
 	{
 		if (msgtype != MESSAGE_TYPE_NOTICE)
@@ -282,7 +277,7 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 	if (strchr(parv[1], ',') != NULL)
 		begin_local_response_batch();
 
-	build_target_list(msgtype, client_p, source_p, parv[1], text, &msgbuf);
+	build_target_list(msgtype, client_p, source_p, parv[1], text);
 	if (ntargets <= 0)
 		return;
 
@@ -314,6 +309,12 @@ m_message(enum message_type msgtype, struct MsgBuf *msgbuf_p,
 
 	for (int i = 0; i < ntargets; i++)
 	{
+		/* let hooks work on a copy of msgbuf_p so they don't mutate the tags in incoming_message;
+		 * a new copy is made for each target so things like msgid don't get re-used across messages
+		 * and so that content modification like cmode +c only applies to messages for those targets */
+		struct MsgBuf msgbuf;
+		memcpy(&msgbuf, msgbuf_p, sizeof(struct MsgBuf));
+
 		switch (targets[i].type)
 		{
 		case ENTITY_CHANNEL:
@@ -413,7 +414,6 @@ duplicate_mask(const char *mask)
  *		- pointer to list of nicks/channels
  *		- pointer to table to place results
  *		- pointer to text (only used if source_p is an oper)
- *		- tags
  * output	- number of valid entities
  * side effects	- target_table is modified to contain a list of
  *		  pointers to channels or clients
@@ -425,7 +425,7 @@ duplicate_mask(const char *mask)
 
 static int
 build_target_list(enum message_type msgtype, struct Client *client_p,
-		  struct Client *source_p, const char *nicks_channels, const char *text, struct MsgBuf *msgbuf_p)
+		  struct Client *source_p, const char *nicks_channels, const char *text)
 {
 	int type;
 	char *p, *nick, *target_list;
