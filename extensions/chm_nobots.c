@@ -138,9 +138,28 @@ chm_nobots_can_join(void *data_)
 	data->approved = ERR_CUSTOM;
 }
 
+static void
+chm_nobots_invite(void *data_)
+{
+	hook_data_channel_approval *data = data_;
+	struct Client *client = data->client;
+	struct Channel *chptr = data->chptr;
+
+	if (!IsBot(client))
+		return;
+
+	if (!(chptr->mode.mode & chmode))
+		return;
+
+	/* If we're here, the invite needs to be stored for chm_nobots_can_join to check it later. */
+	data->dir = true;
+}
+
+
 static mapi_hfn_list_av1 chm_nobots_hfnlist[] = {
 	{ "can_send", chm_nobots_can_send },
 	{ "can_join", chm_nobots_can_join },
+	{ "invite",   chm_nobots_invite },
 	{ NULL, NULL }
 };
 
