@@ -149,7 +149,7 @@ send_callerid_notice(enum message_type msgtype, struct Client *source_p, struct 
 	if (!MyClient(target_p))
 		return;
 
-	if (msgtype == MESSAGE_TYPE_NOTICE)
+	if (msgtype != MESSAGE_TYPE_PRIVMSG)
 		return;
 
 	sendto_one_numeric(source_p, ERR_TARGUMODEG, form_str(ERR_TARGUMODEG),
@@ -181,7 +181,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 	 * as a way to taunt users, e.g. harass them and hide behind +g
 	 * as a way of griefing.  --nenolod
 	 */
-	if(msgtype != MESSAGE_TYPE_NOTICE &&
+	if(msgtype == MESSAGE_TYPE_PRIVMSG &&
 		IsSetAnyCallerID(source_p) &&
 		!accept_message(target_p, source_p) &&
 		!MayHavePrivilege(source_p, "oper:always_message"))
