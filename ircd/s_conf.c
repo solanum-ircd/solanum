@@ -779,6 +779,7 @@ set_default_conf(void)
 	ConfigFileEntry.away_interval = 30;
 	ConfigFileEntry.tls_ciphers_oper_only = false;
 	ConfigFileEntry.oper_secure_only = false;
+	ConfigFileEntry.disable_remote_labeled_response = false;
 
 	ConfigFileEntry.oper_umodes = DEFAULT_OPER_UMODES;
 	ConfigFileEntry.oper_only_umodes = UMODE_SERVNOTICE;
