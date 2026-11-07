@@ -671,6 +671,11 @@ static struct InfoStruct info_table[] = {
 		"Require TLS to become an oper",
 		INFO_INTBOOL_YN(&ConfigFileEntry.oper_secure_only),
 	},
+	{
+		"disable_remote_labeled_response",
+		"Disable labeled-response features that require remote server cooperation",
+		INFO_INTBOOL_YN(&ConfigFileEntry.disable_remote_labeled_response),
+	},
 
 	{ NULL, NULL, 0, { NULL } },
 };

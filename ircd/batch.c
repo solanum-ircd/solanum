@@ -96,8 +96,7 @@ batch_free(struct Batch *batch, struct ResponseInfo *resume)
 	{
 		struct BatchMessage *message = ptr->data;
 		rb_dlinkDestroy(ptr, &batch->messages);
-		rb_free(message->data);
-		rb_free(message);
+		free_batch_message(message);
 	}
 
 	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, batch->children.head)
@@ -107,7 +106,13 @@ batch_free(struct Batch *batch, struct ResponseInfo *resume)
 		batch_free(child, resume);
 	}
 
-	free_response_batch(batch->response_info, resume);
+	/* if remote_response != 0, the ResponseInfo is reachable via labeled-response tracking
+	 * and we're still expecting incoming data from a remote server for it, so we don't want to free it here */
+	if (batch->response_info != NULL && batch->response_info->remote_response == 0)
+		free_response_batch(batch->response_info, resume);
+	else
+		resume_response_batch(resume);
+
 	rb_free(batch->start->data);
 	rb_free(batch->start);
 	rb_free(batch);
@@ -211,4 +216,12 @@ allocate_batch_message(struct MsgBuf *msg)
 
 	copy->msg.preserve_trailing = msg->preserve_trailing;
 	return copy;
+}
+
+void
+free_batch_message(struct BatchMessage *message)
+{
+	if (message != NULL)
+		rb_free(message->data);
+	rb_free(message);
 }

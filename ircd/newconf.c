@@ -2819,6 +2819,7 @@ static struct ConfEntry conf_general_table[] =
 	{ "illegal_name_short_client_message",	CF_QSTRING, NULL, BUFSIZE, &ConfigFileEntry.illegal_name_short_client_message	},
 	{ "tls_ciphers_oper_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.tls_ciphers_oper_only	},
 	{ "oper_secure_only",	CF_YESNO, NULL, 0, &ConfigFileEntry.oper_secure_only	},
+	{ "disable_remote_labeled_response",	CF_YESNO,	NULL, BUFSIZE, &ConfigFileEntry.disable_remote_labeled_response	},
 	{ "\0", 		0, 	  NULL, 0, NULL }
 };
 

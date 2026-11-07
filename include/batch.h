@@ -98,6 +98,7 @@ void remove_batch_handler(const char *type);
 void generate_batch_id(char *buf, size_t size);
 struct Batch *batch_init(struct MsgBuf *start);
 struct BatchMessage *allocate_batch_message(struct MsgBuf *msg);
+void free_batch_message(struct BatchMessage *message);
 void batch_free(struct Batch *batch, struct ResponseInfo *resume);
 
 #endif /* INCLUDED_batch_h */

@@ -243,6 +243,7 @@ struct config_file_entry
 	int away_interval;
 	int tls_ciphers_oper_only;
 	int oper_secure_only;
+	int disable_remote_labeled_response;
 
 	char **hidden_caps;
 
