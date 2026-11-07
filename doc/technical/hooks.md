@@ -968,7 +968,7 @@ Fields:
 - msptr (`struct membership *`): The client's membership on chptr
 - target (`struct Client *`): The user being invited
 - approved (`int`): Output field indicating whether this attempt succeeds
-- dir (`int`): Unused (always 0)
+- dir (`int`): Output field controlling invite storage
 - modestr (`const char *`): Unused (always `NULL`)
 - error (`const char *`): Output field containing an optional error message to
   send to the user
@@ -981,6 +981,11 @@ nonzero and `error` is not `NULL`, the invite attempt will be rejected and the
 client will be sent the `approved` value as a numeric with parameters
 contained in the `error` string (the client's nick is automatically inserted
 as the first parameter and should not be present in the string).
+
+If `dir` is 1 (`true`), the invite will be stored in the user's invite list,
+allowing other functions to check if the user has been invited.
+Ignored if `approved` is nonzero.
+If `dir` is 0 (`false`), the invite will not be stored.
 
 ### local_nick_change
 
