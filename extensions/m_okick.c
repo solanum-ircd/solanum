@@ -33,8 +33,9 @@
 #include "parse.h"
 #include "hash.h"
 #include "packet.h"
-#include "s_conf.h"
 #include "s_serv.h"
+#include "s_conf.h"
+#include "s_newconf.h"
 #include "messages.h"
 #include "logger.h"
 
@@ -70,6 +71,13 @@ mo_okick(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	char *p = NULL;
 	char *user;
 	static char buf[BUFSIZE];
+
+	/* admins only */
+	if(!IsOperAdmin(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS), me.name, source_p->name, "admin");
+		return;
+	}
 
 	if(*parv[2] == '\0')
 	{
