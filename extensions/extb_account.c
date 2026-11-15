@@ -36,11 +36,13 @@ _moddeinit(void)
 static int eb_account(const char *data, struct Client *client_p,
 		struct Channel *chptr, long mode_type)
 {
+	if (EmptyString(client_p->user->suser))
+		return EXTBAN_NOMATCH;
 
-	(void)chptr;
 	/* $a alone matches any logged in user */
 	if (data == NULL)
-		return EmptyString(client_p->user->suser) ? EXTBAN_NOMATCH : EXTBAN_MATCH;
+		return EXTBAN_MATCH;
+
 	/* $a:MASK matches users logged in under matching account */
 	return match(data, client_p->user->suser) ? EXTBAN_MATCH : EXTBAN_NOMATCH;
 }
