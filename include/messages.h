@@ -135,7 +135,7 @@
 #define NUMERIC_STR_374      ":End of /INFO list."
 #define NUMERIC_STR_375      ":%s 375 %s :- %s Message of the Day - "
 #define NUMERIC_STR_376      ":%s 376 %s :End of /MOTD command."
-#define NUMERIC_STR_378      "%s :is connecting from *@%s %s"
+#define NUMERIC_STR_378      "%s :is connecting from *@%s %s (hidden)"
 #define NUMERIC_STR_381      ":%s 381 %s :We would like to take this moment to remind you that we accept absolutely no liability for the insanity you're about to endure."
 #define NUMERIC_STR_382      ":%s 382 %s %s :Rehashing"
 #define NUMERIC_STR_386      ":%s 386 %s :%s"
