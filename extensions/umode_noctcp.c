@@ -47,9 +47,8 @@ umode_noctcp_process(void *data_)
 	if (!MyClient(data->target_p))
 		return;
 
-	if (data->approved || data->msgtype == MESSAGE_TYPE_NOTICE) {
+	if (data->approved || data->msgtype != MESSAGE_TYPE_PRIVMSG)
 		return;
-	}
 
 	if (data->target_p->umodes & user_modes['C'] && *data->text == '\001' && rb_strncasecmp(data->text + 1, "ACTION", 6)) {
 		sendto_one_numeric(data->source_p, ERR_CANNOTSENDTOUSER, form_str(ERR_CANNOTSENDTOUSER), data->target_p->name, "+C set");
