@@ -909,6 +909,8 @@ This hook is called under the following circumstances:
     operator status on it and is in addition to the hook invocation for
     updating modes on the source channel
   - `dir` will always be `MODE_QUERY` and `modestr` will always be `NULL`
+- Using the FINDFORWARDS command to find forwards to a channel
+  - `dir` will always be `MODE_QUERY` and `modestr` will always be `NULL`
 - Setting the topic for a channel
   - `dir` will always be `MODE_ADD` and `modestr` will always be `NULL`
 - Inviting a user to a non-free-invite (`-g`) channel

@@ -71,7 +71,7 @@ m_findforwards(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 			return;
 		}
 
-		if(!is_chanop(msptr))
+		if(get_channel_access(source_p, chptr, msptr, MODE_QUERY, NULL) < CHFL_CHANOP)
 		{
 			sendto_one(source_p, form_str(ERR_CHANOPRIVSNEEDED),
 					me.name, source_p->name, parv[1]);
