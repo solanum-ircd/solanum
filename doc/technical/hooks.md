@@ -911,6 +911,8 @@ This hook is called under the following circumstances:
   - `dir` will always be `MODE_QUERY` and `modestr` will always be `NULL`
 - Setting the topic for a channel
   - `dir` will always be `MODE_ADD` and `modestr` will always be `NULL`
+- Inviting a user to a non-free-invite (`-g`) channel
+  - `dir` will always be `MODE_ADD` and `modestr` will always be `NULL`
 - Kicking a user from a channel
   - `dir` will always be `MODE_ADD` and `modestr` will always be `NULL`
 - Removing a user from a channel (via extensions/m_remove)
