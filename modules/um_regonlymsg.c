@@ -171,7 +171,7 @@ h_hdl_privmsg_user(void *vdata)
 
 	data->approved = ERR_NONONREG;
 
-	if (data->msgtype == MESSAGE_TYPE_NOTICE)
+	if (data->msgtype != MESSAGE_TYPE_PRIVMSG)
 		return;
 
 	sendto_one_numeric(source_p, ERR_NONONREG, form_str(ERR_NONONREG),
