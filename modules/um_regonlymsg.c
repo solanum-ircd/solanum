@@ -100,7 +100,7 @@ add_callerid_accept_for_source(enum message_type msgtype, struct Client *source_
 	if (!MyClient(source_p))
 		return true;
 
-	if(msgtype != MESSAGE_TYPE_NOTICE &&
+	if(msgtype == MESSAGE_TYPE_PRIVMSG &&
 		IsSetRegOnlyMsg(source_p) &&
 		!accept_message(target_p, source_p) &&
 		!IsOperGeneral(target_p))
