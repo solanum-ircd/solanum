@@ -31,6 +31,7 @@
 #include "stdinc.h"
 
 #include "client.h"
+#include "logger.h"
 #include "hash.h"
 #include "send.h"
 #include "msg.h"
@@ -131,9 +132,16 @@ m_authenticate(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *
 	}
 
 	saslserv_p = find_named_client(ConfigFileEntry.sasl_service);
-	if(saslserv_p == NULL || !IsService(saslserv_p))
+	if(saslserv_p == NULL)
 	{
 		sendto_one(source_p, form_str(ERR_SASLABORTED), me.name, EmptyString(source_p->name) ? "*" : source_p->name);
+		ilog(L_MAIN, "Could not find sasl_service %s", ConfigFileEntry.sasl_service);
+		return;
+	}
+	if(!IsService(saslserv_p))
+	{
+		sendto_one(source_p, form_str(ERR_SASLABORTED), me.name, EmptyString(source_p->name) ? "*" : source_p->name);
+		ilog(L_MAIN, "sasl_service %s is not a service", ConfigFileEntry.sasl_service);
 		return;
 	}
 
