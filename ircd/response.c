@@ -82,8 +82,12 @@ init_response(void)
 void
 begin_local_response_batch(void)
 {
-	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p))
+	if (outgoing_response_info == NULL
+		|| !MyConnect(outgoing_response_info->source_p)
+		|| (outgoing_response_info->flags & RESPONSE_FLAG_PROPAGATED))
+	{
 		return;
+	}
 
 	if (!EmptyString(outgoing_response_info->batch))
 		return;
@@ -98,8 +102,12 @@ begin_local_response_batch(void)
 void
 begin_remote_response_batch(int server_count, const char *mask)
 {
-	if (outgoing_response_info == NULL || !MyConnect(outgoing_response_info->source_p))
+	if (outgoing_response_info == NULL
+		|| !MyConnect(outgoing_response_info->source_p)
+		|| (outgoing_response_info->flags & RESPONSE_FLAG_PROPAGATED))
+	{
 		return;
+	}
 
 	rb_dlink_node *node = rb_make_rb_dlink_node();
 	outgoing_response_info->remote_node = node;

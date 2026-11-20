@@ -23,11 +23,13 @@
 #define INCLUDED_response_h
 
 /* indicates the ResponseInfo is statically allocated and free_response_batch should no-op on it */
-#define RESPONSE_FLAG_STATIC    0x01
+#define RESPONSE_FLAG_STATIC     0x01
 /* indicates that the label tag has already been sent for this ResponseInfo */
-#define RESPONSE_FLAG_SENT      0x02
+#define RESPONSE_FLAG_SENT       0x02
 /* indicates that the ResponseInfo should not automatically expire */
-#define RESPONSE_FLAG_NO_EXPIRE 0x04
+#define RESPONSE_FLAG_NO_EXPIRE  0x04
+/* indicates that the ResponseInfo was generated from an incoming solanum.chat/response tag */
+#define RESPONSE_FLAG_PROPAGATED 0x08
 
 struct Client;
 
