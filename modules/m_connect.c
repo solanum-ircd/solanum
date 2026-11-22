@@ -124,8 +124,14 @@ mo_connect(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sour
 	}
 
 	/*
-	 * Notify all operators about remote connect requests
+	 * Notify all operators about connect requests
 	 */
+	sendto_wallops_flags(UMODE_WALLOP, &me,
+			     "Local CONNECT %s %d from %s",
+			     parv[1], port, source_p->name);
+	sendto_server(NULL, NULL, CAP_TS6, NOCAPS,
+		      ":%s WALLOPS :Local CONNECT %s %d from %s",
+		      me.id, parv[1], port, source_p->name);
 
 	ilog(L_SERVER, "CONNECT From %s : %s %s", source_p->name, parv[1], parc > 2 ? parv[2] : "");
 
