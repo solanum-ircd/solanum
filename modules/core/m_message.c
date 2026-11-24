@@ -96,7 +96,12 @@ struct entity
 	int flags;
 };
 
-struct BatchHandler echo_batch_handler = { process_echo_batch, NULL, BATCH_FLAG_SKIP_CHILDREN | BATCH_FLAG_ALLOW_ALL, NULL };
+struct BatchHandler echo_batch_handler = {
+	.handlers = { NULL, NULL, process_echo_batch, process_echo_batch, NULL, NULL },
+	.userdata = NULL,
+	.flags = BATCH_FLAG_SKIP_CHILDREN | BATCH_FLAG_ALLOW_ALL,
+	.child_allowed = NULL
+};
 
 static int
 modinit(void)

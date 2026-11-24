@@ -83,7 +83,19 @@ mapi_cap_list_av2 multiline_cap_list[] = {
 	{ 0, NULL, NULL, NULL },
 };
 
-struct BatchHandler multiline_handler = { process_multiline, NULL, 0, NULL };
+struct BatchHandler draft_multiline_handler = {
+	.handlers = { NULL, process_multiline, process_multiline, NULL, NULL, process_multiline },
+	.userdata = NULL,
+	.flags = 0,
+	.child_allowed = NULL
+};
+
+struct BatchHandler multiline_handler = {
+	.handlers = { NULL, NULL, process_multiline, NULL, NULL, NULL },
+	.userdata = NULL,
+	.flags = 0,
+	.child_allowed = NULL
+};
 
 static void
 conf_set_multiline_max_bytes(void *data)
@@ -100,7 +112,7 @@ conf_set_multiline_max_lines(void *data)
 static int
 multiline_modinit(void)
 {
-	if (!register_batch_handler("draft/multiline", &multiline_handler))
+	if (!register_batch_handler("draft/multiline", &draft_multiline_handler))
 		return -1;
 
 	/* for forward compatibility, accept unprefixed multiline over S2S links too */
@@ -619,14 +631,6 @@ process_multiline(struct Client *client_p, struct Client *source_p, struct Batch
 	{
 		sendto_one(source_p, ":%s FAIL BATCH MULTILINE_INVALID :multiline batches require both the batch and draft/multiline capabilities",
 			me.name);
-		return;
-	}
-
-	/* unprefixed and is a local client? (only allow unprefixed multiline over s2s links) */
-	if (MyClient(source_p) && !strcmp(batch->type, "multiline"))
-	{
-		sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
-				me.name, batch->tag, batch->type);
 		return;
 	}
 

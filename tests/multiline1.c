@@ -828,7 +828,7 @@ local_validation__nested(void)
 	client_util_parse(user, "BATCH +outer draft/multiline " TEST_CHANNEL CRLF);
 	client_util_parse(user, "@batch=outer BATCH +inner draft/multiline " TEST_CHANNEL CRLF);
 
-	snprintf(expected, sizeof(expected), ":%s FAIL BATCH INVALID_NESTING +inner draft/multiline draft/multiline :The parent batch type does not allow this type to be nested under it" CRLF, me.name);
+	snprintf(expected, sizeof(expected), ":%s FAIL BATCH INVALID_NESTING inner draft/multiline draft/multiline :The parent batch type does not allow this type to be nested under it" CRLF, me.name);
 	is_client_sendq(expected, user, MSG);
 
 	standard_free();
