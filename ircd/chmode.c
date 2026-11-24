@@ -43,6 +43,7 @@
 #include "parse.h"
 #include "msgbuf.h"
 #include "packet.h"
+#include "response.h"
 
 /* bitmasks for error returns, so we send once per call */
 #define SM_ERR_NOTS             0x00000001	/* No TS on channel */
@@ -796,6 +797,8 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 			*errors |= SM_ERR_NOOPS;
 			return;
 		}
+
+		begin_local_response_batch();
 
 		RB_DLINK_FOREACH(ptr, list->head)
 		{

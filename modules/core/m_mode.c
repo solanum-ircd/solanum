@@ -39,6 +39,7 @@
 #include "modules.h"
 #include "packet.h"
 #include "s_newconf.h"
+#include "response.h"
 
 static const char mode_desc[] =
 	"Provides the MODE and MLOCK client and server commands, and TS6 server-to-server TMODE and BMASK commands";
@@ -131,6 +132,8 @@ m_mode(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	{
 		if(operspy)
 			report_operspy(source_p, "MODE", chptr->chname);
+
+		begin_local_response_batch();
 
 		sendto_one(source_p, form_str(RPL_CHANNELMODEIS),
 			   me.name, source_p->name, parv[1],
