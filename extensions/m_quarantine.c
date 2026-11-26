@@ -279,7 +279,7 @@ add_quarantine(struct Client *source_p, struct Client *target_p, const char *rea
 			if (!allowed)
 			{
 				sendto_server(NULL, chptr, CAP_TS6, NOCAPS, ":%s PART %s",
-					use_id(source_p), chptr->chname);
+					use_id(target_p), chptr->chname);
 				sendto_channel_local(target_p, ALL_MEMBERS, chptr, ":%s!%s@%s PART %s",
 					target_p->name, target_p->username, target_p->host, chptr->chname);
 				remove_user_from_channel(msptr);
