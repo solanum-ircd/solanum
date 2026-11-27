@@ -104,6 +104,13 @@ static const char *spoofed_sockhost = "0";
 static void
 mo_etrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[])
 {
+	if(!IsOperGeneral(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "general");
+		return;
+	}
+
 	if(parc > 1 && !EmptyString(parv[1]))
 	{
 		if(!irccmp(parv[1], "-full"))
@@ -359,6 +366,13 @@ mo_masktrace(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *so
 	const char *parv[])
 {
 	char *name, *username, *hostname, *gecos;
+
+	if(!IsOperGeneral(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "general");
+		return;
+	}
 
 	name = LOCAL_COPY(parv[1]);
 	collapse(name);

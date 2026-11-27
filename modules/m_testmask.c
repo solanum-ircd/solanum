@@ -37,9 +37,10 @@
 #include "ircd.h"
 #include "match.h"
 #include "numeric.h"
-#include "s_conf.h"
 #include "logger.h"
 #include "s_serv.h"
+#include "s_conf.h"
+#include "s_newconf.h"
 #include "send.h"
 #include "msg.h"
 #include "parse.h"
@@ -73,6 +74,13 @@ mo_testmask(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 	const char *sockhost;
 	char *gecos = NULL;
 	rb_dlink_node *ptr;
+
+	if(!IsOperGeneral(source_p))
+	{
+		sendto_one(source_p, form_str(ERR_NOPRIVS),
+			   me.name, source_p->name, "general");
+		return;
+	}
 
 	name = LOCAL_COPY(parv[1]);
 	collapse(name);
