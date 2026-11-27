@@ -72,8 +72,8 @@ m_invite(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	struct Client *target_p;
 	struct Channel *chptr;
 	struct membership *msptr;
-	int store_invite = 0;
 	hook_data_channel_approval hdata = { 0 };
+	/* hdata.dir is used to control whether the invite gets added onto the user's invited list. */
 
 	if(MyClient(source_p) && !IsFloodDone(source_p))
 		flood_endgrace(source_p);
@@ -173,7 +173,7 @@ m_invite(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 	if(chptr->mode.mode & MODE_INVITEONLY ||
 			(chptr->mode.mode & MODE_REGONLY && EmptyString(target_p->user->suser)) ||
 			chptr->mode.limit || chptr->mode.join_num)
-		store_invite = 1;
+		hdata.dir = true;
 
 	if(MyConnect(source_p))
 	{
@@ -220,7 +220,8 @@ m_invite(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		add_reply_target(target_p, source_p);
 		sendto_anywhere(target_p, source_p, "INVITE", ":%s", chptr->chname);
 
-		if(store_invite)
+		/* Just treat any nonzero value as approval. */
+		if (hdata.dir)
 			add_invite(chptr, target_p);
 	}
 	else if (target_p->from != client_p)
