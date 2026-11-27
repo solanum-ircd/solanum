@@ -35,7 +35,7 @@ hack_channel_access(void *vdata)
 		return;
 
 	if (EmptyString(data->client->user->suser))
-		data->approved = 0;
+		data->approved = CHFL_PEON;
 }
 
 DECLARE_MODULE_AV2(restrict_unauthenticated, NULL, NULL, NULL, NULL,

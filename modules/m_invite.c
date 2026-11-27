@@ -152,9 +152,16 @@ m_invite(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 		hdata.msptr = msptr;
 		hdata.client = source_p;
 		hdata.target = target_p;
-		hdata.approved = !(is_chanop(msptr) || (chptr->mode.mode & MODE_FREEINVITE));
+
+		if (chptr->mode.mode & MODE_FREEINVITE)
+			hdata.approved = 0;
+		else if (get_channel_access(source_p, chptr, msptr, MODE_ADD, NULL) >= CHFL_CHANOP)
+			hdata.approved = 0;
+		else
+			hdata.approved = 1;
 
 		call_hook(can_invite_hook, &hdata);
+
 		if (hdata.approved)
 		{
 			if (hdata.error)
