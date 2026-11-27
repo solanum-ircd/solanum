@@ -220,6 +220,8 @@ msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, uint6
 	char *commit = buf;
 	char *output = buf;
 	const char * const end = &buf[buflen - 2]; /* this is where the final ' ' goes */
+	const char *written_tags_keys[MAXTAGS] = { NULL };
+	size_t written_tags_count = 0;
 
 	for (int clientonly = 0; clientonly < 2; clientonly++)
 	{
@@ -245,11 +247,20 @@ msgbuf_unparse_tags(char *buf, size_t buflen, const struct MsgBuf *msgbuf, uint6
 			if (clientonly ^ (*msgbuf->tags[i].key == '+'))
 				continue;
 
+			/* don't write duplicate tags */
+			bool written = false;
+			for (size_t j = 0; j < written_tags_count && !written; j++)
+				if (strcmp(written_tags_keys[j], msgbuf->tags[i].key) == 0)
+					written = true;
+			if (written)
+				continue;
+
 			if (output + len + 1 > stop)
 				break;
 
 			*output++ = has_tags ? ';' : '@';
 			strcpy(output, msgbuf->tags[i].key);
+			written_tags_keys[written_tags_count++] = msgbuf->tags[i].key;
 			output += len;
 
 			if (msgbuf->tags[i].value != NULL) {
