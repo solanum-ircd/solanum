@@ -23,6 +23,7 @@
 #define INCLUDED_batch_h
 
 #include "msgbuf.h"
+#include "msg.h"
 
 #define BATCH_EXPIRY (15)
 #define BATCH_ID_LEN (16)
@@ -80,8 +81,10 @@ typedef bool (*child_allowed_cb)(struct Client *client_p, struct Client *source_
 
 struct BatchHandler
 {
-	/* function called when the batch is completed */
-	batch_cb handler;
+	/* function called when the batch is completed
+	 * UNREGISTERED, CLIENT, RCLIENT, SERVER, ENCAP (unused), OPER
+	 */
+	batch_cb handlers[LAST_HANDLER_TYPE];
 	/* optional data pointer to pass into the handler */
 	void *userdata;
 	/* bitfield of flags for this handler from the BATCH_FLAG_* constants */
@@ -98,6 +101,7 @@ void remove_batch_handler(const char *type);
 void generate_batch_id(char *buf, size_t size);
 struct Batch *batch_init(struct MsgBuf *start);
 struct BatchMessage *allocate_batch_message(struct MsgBuf *msg);
+void free_batch_message(struct BatchMessage *message);
 void batch_free(struct Batch *batch, struct ResponseInfo *resume);
 
 #endif /* INCLUDED_batch_h */

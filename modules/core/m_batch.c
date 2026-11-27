@@ -34,6 +34,8 @@
 #include "batch.h"
 #include "response.h"
 
+#define HasBatchFlag(x, y) (((x)->flags & (y)) == (y))
+
 static const char batch_desc[] =
 	"Provides the BATCH command for client-initiated or propagated batches";
 
@@ -86,11 +88,55 @@ reset_global_context(void)
 	incoming_message = saved_global_context.incoming_message;
 }
 
+static bool
+valid_batch_tag(const char *tag)
+{
+	for (; *tag != '\0'; tag++)
+	{
+		if (!IsIdChar(*tag) && *tag != '-')
+			return false;
+	}
+
+	return true;
+}
+
+static void
+abort_nested_batches(struct Client *client_p, struct Client *source_p, struct Batch *batch, bool warn)
+{
+	rb_dlink_list free_list = {0};
+	rb_dlink_node *ptr, *next_ptr;
+	struct ResponseInfo *info;
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->pending_batches.head)
+	{
+		struct Batch *other = ptr->data;
+		if (other->parent == batch)
+			rb_dlinkMoveNode(ptr, &client_p->localClient->pending_batches, &free_list);
+	}
+
+	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, free_list.head)
+	{
+		struct Batch *other = ptr->data;
+		abort_nested_batches(client_p, source_p, other, warn);
+		restore_global_context(client_p, other);
+		info = resume_response_batch(batch->response_info);
+		if (IsClient(source_p) && warn)
+			sendto_one(source_p, ":%s FAIL BATCH INCOMPLETE %s :Nested batch not finished before enclosing batch",
+				me.name, other->tag);
+
+		client_p->localClient->pending_batch_lines -= other->len + 1;
+		batch_free(other, info);
+		reset_global_context();
+		rb_dlinkDestroy(ptr, &free_list);
+	}
+}
+
 static void
 batch_timeout(void *arg)
 {
 	/* non-NULL arg indicates this is being called during module reload so we need to "time out" all batches */
 	rb_dlink_node *cptr, *ptr, *next_ptr;
+	rb_dlink_list timeout_list = {0};
 	struct Client *client;
 	time_t now = rb_current_time();
 
@@ -100,17 +146,26 @@ batch_timeout(void *arg)
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client->localClient->pending_batches.head)
 		{
 			struct Batch* batch = ptr->data;
+			/* nested batches get cleaned up with their parent */
+			if (batch->parent != NULL)
+				continue;
+
 			if (arg != NULL || batch->expires <= now)
-			{
-				restore_global_context(client, batch);
-				struct ResponseInfo *info = resume_response_batch(batch->response_info);
-				sendto_one(client, ":%s FAIL BATCH TIMEOUT %s :Batch timed out",
-					me.name, batch->tag);
-				client->localClient->pending_batch_lines -= batch->len + 1;
-				batch_free(batch, info);
-				reset_global_context();
-				rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
-			}
+				rb_dlinkMoveNode(ptr, &client->localClient->pending_batches, &timeout_list);
+		}
+
+		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, timeout_list.head)
+		{
+			struct Batch* batch = ptr->data;
+			restore_global_context(client, batch);
+			struct ResponseInfo *info = resume_response_batch(batch->response_info);
+			sendto_one(client, ":%s FAIL BATCH TIMEOUT %s :Batch timed out",
+				me.name, batch->tag);
+			client->localClient->pending_batch_lines -= batch->len + 1;
+			abort_nested_batches(client, client, batch, false);
+			batch_free(batch, info);
+			reset_global_context();
+			rb_dlinkDestroy(ptr, &timeout_list);
 		}
 	}
 
@@ -122,8 +177,20 @@ batch_timeout(void *arg)
 			client = cptr->data;
 			RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client->localClient->pending_batches.head)
 			{
-				batch_free(ptr->data, outgoing_response_info);
-				rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
+				struct Batch *batch = ptr->data;
+				/* nested batches get freed automatically when freeing their parent,
+				 * so we only need to get rid of the pending_batches node for nested batches here */
+				if (batch->parent != NULL)
+					rb_dlinkMoveNode(ptr, &client->localClient->pending_batches, &timeout_list);
+				else
+					rb_dlinkDestroy(ptr, &client->localClient->pending_batches);
+			}
+
+			RB_DLINK_FOREACH_SAFE(ptr, next_ptr, timeout_list.head)
+			{
+				struct Batch *batch = ptr->data;
+				batch_free(batch, outgoing_response_info);
+				rb_dlinkDestroy(ptr, &timeout_list);
 			}
 
 			client->localClient->pending_batch_lines = 0;
@@ -157,30 +224,12 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 	rb_dlink_node *ptr, *next_ptr;
 	struct ResponseInfo *info;
 
-	/* abort unfinished nested batches under this one */
-	RB_DLINK_FOREACH_SAFE(ptr, next_ptr, client_p->localClient->pending_batches.head)
-	{
-		struct Batch *other = ptr->data;
-		if (other->parent == batch)
-		{
-			restore_global_context(client_p, other);
-			info = resume_response_batch(batch->response_info);
-			if (IsClient(source_p))
-				sendto_one(source_p, ":%s FAIL BATCH INCOMPLETE %s :Nested batch not finished before enclosing batch",
-					me.name, other->tag);
-
-			client_p->localClient->pending_batch_lines -= other->len + 1;
-			batch_free(other, info);
-			reset_global_context();
-			rb_dlinkDestroy(ptr, &client_p->localClient->pending_batches);
-		}
-	}
-
+	abort_nested_batches(client_p, source_p, batch, true);
 	client_p->localClient->pending_batch_lines -= batch->len + 1;
 	restore_global_context(client_p, batch);
 	info = resume_response_batch(batch->response_info);
 
-	if (handler == NULL)
+	if (handler == NULL || handler->handlers[source_p->handler] == NULL)
 	{
 		/* getting here means that we originally accepted this batch type but no longer recognize it;
 		 * e.g. the supporting module got unloaded between batch start and finish.
@@ -194,10 +243,10 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 		return;
 	}
 
-	handler->handler(client_p, source_p, batch, handler->userdata);
+	handler->handlers[source_p->handler](client_p, source_p, batch, handler->userdata);
 
 	/* handle child batches */
-	if (!(handler->flags & BATCH_FLAG_SKIP_CHILDREN))
+	if (!HasBatchFlag(handler, BATCH_FLAG_SKIP_CHILDREN))
 	{
 		RB_DLINK_FOREACH_SAFE(ptr, next_ptr, batch->children.head)
 		{
@@ -209,6 +258,22 @@ finish_batch(struct Client *client_p, struct Client *source_p, struct Batch *bat
 			finish_batch(client_p, source_p, child);
 			restore_global_context(client_p, batch);
 			info = resume_response_batch(batch->response_info);
+		}
+	}
+
+	/* send a labeled-response ACK if needed; we wipe the batch context below and free its memory
+	 * so we can't rely on the parse_end hook */
+	if (batch->response_info != NULL)
+	{
+		if (MyClient(batch->response_info->source_p))
+		{
+			if ((batch->response_info->flags & RESPONSE_FLAG_SENT) == 0)
+				sendto_one(batch->response_info->source_p, ":%s ACK", me.name);
+		}
+		else
+		{
+			sendto_one(outgoing_response_info->source_p, ":%s ENCAP %s ACK",
+				me.id, outgoing_response_info->source_p->servptr->name);
 		}
 	}
 
@@ -246,6 +311,10 @@ m_queue(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 			rb_dlinkAddTailAlloc(msg, &batch->messages);
 			batch->len++;
 			client_p->localClient->pending_batch_lines++;
+			/* ignore labels on batched messages */
+			struct ResponseInfo *info = suspend_response_batch();
+			if (info != NULL && info->remote_response == 0)
+				free_response_batch(info, NULL);
 			return;
 		}
 	}
@@ -258,6 +327,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 	rb_dlink_node *ptr;
 	bool found = false;
 	bool adding = *parv[1] == '+';
+	const char *reftag = parv[1] + 1;
 	const char *batch_tag = msgbuf_get_tag(msgbuf, "batch");
 
 	if (batch_tag != NULL)
@@ -291,7 +361,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		return;
 	}
 
-	if ((!adding && *parv[1] != '-') || EmptyString(parv[1] + 1))
+	if ((!adding && *parv[1] != '-') || EmptyString(reftag) || !valid_batch_tag(reftag))
 	{
 		if (IsClient(source_p))
 			sendto_one(source_p, ":%s FAIL BATCH INVALID_REFTAG %s :Invalid reference tag",
@@ -302,7 +372,7 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 	RB_DLINK_FOREACH(ptr, client_p->localClient->pending_batches.head)
 	{
 		batch = ptr->data;
-		if (!strcmp(batch->tag, parv[1] + 1))
+		if (!strcmp(batch->tag, reftag))
 		{
 			found = true;
 			break;
@@ -315,22 +385,15 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 		{
 			if (IsClient(source_p))
 				sendto_one(source_p, ":%s FAIL BATCH INVALID_REFTAG %s :Reference tag already exists",
-					me.name, parv[1]);
+					me.name, reftag);
 			return;
 		}
 
-		if (get_batch_handler(parv[2]) == NULL)
-		{
-			if (IsClient(source_p))
-				sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
-					me.name, parv[1], parv[2]);
-			return;
-		}
-
+		const struct BatchHandler *handler = get_batch_handler(parv[2]);
 		if (parent != NULL)
 		{
 			const struct BatchHandler *parent_handler = get_batch_handler(parent->type);
-			if (parent_handler == NULL)
+			if (parent_handler == NULL || parent_handler->handlers[source_p->handler] == NULL)
 			{
 				/* parent batch type got unregistered while we were in the middle of receiving this batch... */
 				if (IsClient(source_p))
@@ -339,7 +402,16 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 				return;
 			}
 
-			bool allowed = (parent_handler->flags & BATCH_FLAG_ALLOW_ALL) == BATCH_FLAG_ALLOW_ALL;
+			if (!HasBatchFlag(parent_handler, BATCH_FLAG_SKIP_CHILDREN)
+				&& (handler == NULL || handler->handlers[source_p->handler] == NULL))
+			{
+				if (IsClient(source_p))
+					sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
+						me.name, reftag, parv[2]);
+				return;
+			}
+
+			bool allowed = HasBatchFlag(parent_handler, BATCH_FLAG_ALLOW_ALL);
 			const char *error = NULL;
 			if (!allowed && parent_handler->child_allowed != NULL)
 				allowed = parent_handler->child_allowed(client_p, source_p, parent, msgbuf, parent_handler->userdata, &error);
@@ -352,10 +424,17 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 						sendto_one(source_p, ":%s FAIL BATCH %s", me.name, error);
 					else
 						sendto_one(source_p, ":%s FAIL BATCH INVALID_NESTING %s %s %s :The parent batch type does not allow this type to be nested under it",
-							me.name, parv[1], parent->type, parv[2]);
+							me.name, reftag, parent->type, parv[2]);
 				}
 				return;
 			}
+		}
+		else if (handler == NULL || handler->handlers[source_p->handler] == NULL)
+		{
+			if (IsClient(source_p))
+				sendto_one(source_p, ":%s FAIL BATCH UNKNOWN_TYPE %s %s :Unrecognized batch type",
+					me.name, reftag, parv[2]);
+			return;
 		}
 
 		batch = batch_init(msgbuf);
@@ -368,13 +447,9 @@ m_batch(struct MsgBuf *msgbuf, struct Client *client_p, struct Client *source_p,
 	}
 	else
 	{
+		/* previously rejected batch id? */
 		if (!found)
-		{
-			if (IsClient(source_p))
-				sendto_one(source_p, ":%s FAIL BATCH INVALID_REFTAG %s :Invalid reference tag",
-					me.name, parv[1]);
 			return;
-		}
 
 		rb_dlinkDestroy(ptr, &client_p->localClient->pending_batches);
 

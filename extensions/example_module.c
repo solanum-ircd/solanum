@@ -137,14 +137,26 @@ mapi_cap_list_av2 test_cap_list[] = {
 static void test_batch_cb(struct Client *client_p, struct Client *source_p, struct Batch *batch, void *userdata);
 static bool test_batch_child(struct Client *client_p, struct Client *source_p, struct Batch *parent, struct MsgBuf *child, void *userdata, const char **error);
 struct BatchHandler test_batch_handler = {
-	&test_batch_cb,	/* The callback invoked to process this batch */
-	NULL,			/* A pointer to pass as the userdata parameter to the callback function */
-	0,					/* Flags for the batch handler (see include/batch.h) */
+	/* The callback invoked to process this batch;
+	 * a NULL handler will cause BATCH to treat the type as invalid for that client type
+	 */
+	.handlers = {
+		NULL, /* callback for unregistered clients */
+		test_batch_cb, /* callback for local clients */
+		NULL, /* callback for remote clients */
+		NULL, /* callback for servers */
+		NULL, /* unused (reserved for potential future ENCAP batch handling) */
+		test_batch_cb /* callback for operators */
+	},
+	/* A pointer to pass as the userdata parameter to the callback function */
+	.userdata = NULL,
+	/* Flags for the batch handler (see include/batch.h) */
+	.flags = 0,
 	/* The types of batches that can be nested under this one.
 	 * This should either be NULL (if no nesting is allowed or flags has BATCH_FLAG_ALLOW_ALL),
 	 * or a callback function that returns true if the nesting is allowed.
 	 */
-	&test_batch_child
+	.child_allowed = test_batch_child
 };
 
 /* Here we tell it what to do when the module is loaded */
