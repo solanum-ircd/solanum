@@ -111,6 +111,8 @@ cap_labeled_response_incoming(void *data_)
 			outgoing_response_info = &remote_response_info;
 		}
 
+		if (outgoing_response_info != NULL)
+			outgoing_response_info->flags |= RESPONSE_FLAG_PROPAGATED;
 		data->approved = MESSAGE_TAG_ALLOW;
 		data->capmask = CLICAP_SERVONLY;
 	}
@@ -148,7 +150,27 @@ cap_labeled_response_process(void *data_)
 		}
 	}
 
-	/* propagate solanum.chat/response to other servers */
+	/* propagate solanum.chat/response to other servers, if it isn't already there */
+	if (msgbuf_get_tag(msgbuf, serv_response_tag) != NULL)
+	{
+		/* strip existing solanum.chat/response tag if we need to propagate this further
+		 * for whatever reason (generally this means we received a bogus tag and would
+		 * otherwise create unnecessary ENCAP ACKs) */
+		if (outgoing_response_info != NULL
+			&& MyConnect(outgoing_response_info->source_p)
+			&& (outgoing_response_info->flags & RESPONSE_FLAG_PROPAGATED))
+		{
+			for (int i = 0; i < msgbuf->n_tags; i++)
+			{
+				if (!strcmp(msgbuf->tags[i].key, serv_response_tag))
+					msgbuf->tags[i].capmask = NOCAPS;
+			}
+		}
+
+		/* tag already exists on the outbound message, don't need to add it again */
+		return;
+	}
+
 	if (response_tag != NULL)
 	{
 		msgbuf_append_tag(msgbuf, serv_response_tag, response_tag, CLICAP_SERVONLY);

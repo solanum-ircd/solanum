@@ -507,6 +507,48 @@ static void remote_response__timeout(void)
 	standard_free();
 }
 
+static void remote_response__passthrough(void)
+{
+	char expected[BUFSIZE];
+
+	standard_init();
+
+	/* response tag in a reply doesn't generate additional ENCAP ACKs, even if the mask matches us
+	 * (reply = the uid is in the direction we're propagating to) */
+	snprintf(expected, sizeof(expected), "@solanum.chat/response=%s,foo,* :%s NOTICE %s :Reply" CRLF,
+		remote2->id, remote->id, remote2->id);
+	client_util_parse(server, expected);
+	is_client_sendq(expected, server2, MSG);
+
+	standard_free();
+}
+
+static void remote_response__bogus(void)
+{
+	char expected[BUFSIZE];
+	rb_dictionary *dict = rb_dictionary_get_for_tests("remote labeled responses");
+
+	standard_init();
+	SetClientCap(user, CLICAP_LABELED_RESPONSE | CLICAP_BATCH);
+	make_local_person_admin(user);
+
+	client_util_parse(user, "@label=foo WHOIS " TEST_REMOTE_NICK " " TEST_REMOTE_NICK);
+	snprintf(expected, sizeof(expected), "@label=foo :%s BATCH +%s labeled-response" CRLF, me.name, batch1);
+	is_client_sendq(expected, user, MSG);
+	is_int(1, rb_dictionary_size(dict), MSG);
+	is_int(1, rb_dlink_list_length(&user->localClient->pending_remote_responses), MSG);
+
+	/* a response tag with a uid for a local user doesn't get propagated elsewhere */
+	snprintf(expected, sizeof(expected), "@solanum.chat/response=%s,%s,%s :%s NOTICE %s :Unrelated message" CRLF,
+		user->id, batch1, server->name, remote->id, remote2->id);
+	client_util_parse(server, expected);
+	snprintf(expected, sizeof(expected), ":%s NOTICE %s :Unrelated message" CRLF,
+		remote->id, remote2->id);
+	is_client_sendq(expected, server2, MSG);
+
+	standard_free();
+}
+
 static void response_tag(void)
 {
 	char expected[BUFSIZE];
@@ -729,6 +771,8 @@ int main(int argc, char *argv[])
 	remote_response__hunted_client();
 	remote_response__mask();
 	remote_response__timeout();
+	remote_response__passthrough();
+	remote_response__bogus();
 
 	response_tag();
 	response_cleanup();
